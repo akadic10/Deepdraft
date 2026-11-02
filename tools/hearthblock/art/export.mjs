@@ -48,10 +48,16 @@ const out = {
     fence_rails: fromModel(T.fenceRails()),
     gate_leaf: fromModel(T.gateLeaf()),
     ladder_kit: fromModel(T.ladderKit()),
-    bridge_kit: fromModel(T.bridgeKit()),
     packed_crate: fromModel(T.packedCrate()),
     hearth: fromModel(T.hearth()),
     settlement_flag: fromModel(T.settlementFlag()),
+    drying_rack: fromModel(T.dryingRack()),
+    drying_rack_fish: fromModel(T.dryingRackFish()),
+    carpenter_bench: fromModel(T.carpenterBench()),
+    mason_bench: fromModel(T.masonBench()),
+    stone_stool: fromModel(T.stoneStool()),
+    tool_rack: fromModel(T.toolRack()),
+    raw_materials_crate: fromModel(T.rawMaterialsCrate()),
   },
   dwarf: Object.fromEntries(D.NAMES.map(n => [n, fromModel(D.build(n))])),
   wildlife: Object.fromEntries(W.NAMES.map(n => [n, fromModel(W.build(n))])),
@@ -62,5 +68,4 @@ const out = {
   tints: { skin: P.SKIN, hair: P.HAIR },
 };
 for (let h = 1; h <= 4; h++) out.furniture['ladder_' + h] = fromModel(T.ladder(h));
-for (let s = 1; s <= 5; s++) out.furniture['bridge_' + s] = fromModel(T.bridge(s));
 writeFileSync(process.argv[2], JSON.stringify(out));

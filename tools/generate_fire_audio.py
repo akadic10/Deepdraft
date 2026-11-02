@@ -1,51 +1,64 @@
-"""Original, seamless fire ambience. Private seeded synthesis; no source samples.
+"""Prepare recorded campfire/hearth and torch ambience from local CC0 masters.
 
-Periodic colored noise supplies the low flame bed; wrapped, damped noise bursts
-provide small wood crackles. Torch is lighter and smoother than the campfire.
+Torch uses a quieter wood-fire passage as foley. Source credits and edit profiles
+are in tools/audio_sources/fire/. Requires numpy; rebuilding works offline.
 """
 from pathlib import Path
+import json
 import wave
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-RATE, SECONDS = 22050, 12
+SOURCE = ROOT/'tools/audio_sources/fire'
+RATE = 22050
 
 
-def synth(kind):
-    rng = np.random.default_rng(7719 if kind == "campfire" else 8211)
-    count = RATE * SECONDS
-    frequencies = np.fft.rfftfreq(count, 1 / RATE)
-    # Avoid an overpowering wind/hiss bed; rolling fire stays warm and close.
-    spectrum = rng.normal(size=len(frequencies)) + 1j*rng.normal(size=len(frequencies))
-    curve = (frequencies / (frequencies + 110)) / (1 + (frequencies / 1100)**2)
-    bed = np.fft.irfft(spectrum * curve, n=count)
-    bed /= np.std(bed)
-    t = np.arange(count) / RATE
-    envelope = .78 + .12*np.sin(2*np.pi*t/SECONDS*3) + .1*np.sin(2*np.pi*t/SECONDS*7+.8)
-    samples = bed * envelope * (.13 if kind == "campfire" else .105)
-    for _ in range(95 if kind == "campfire" else 42):
-        length = int(RATE * rng.uniform(.009, .095))
-        noise = rng.normal(size=length)
-        noise = np.convolve(noise, [.2,.6,.2], mode="same")
-        shape = np.exp(-np.arange(length)/(length*.19))
-        shape *= np.minimum(1, np.arange(length)/max(4,length*.018))
-        burst = noise * shape * rng.uniform(.14,.42)
-        start = int(rng.integers(count))
-        samples[(start + np.arange(length)) % count] += burst
-    samples -= np.mean(samples)
-    samples *= min(1, .68/np.max(np.abs(samples)))
-    pcm = (samples * 32767).astype("<i2")
-    path = ROOT / f"assets/audio/ambience/{kind}.wav"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(path), "wb") as writer:
-        writer.setparams((1, 2, RATE, count, "NONE", "not compressed"))
-        writer.writeframes(pcm.tobytes())
+def sound(kind):
+    profile = json.loads((SOURCE/'source.json').read_text(encoding='utf-8'))['banks'][kind]
+    with wave.open(str(SOURCE/profile['master']), 'rb') as source:
+        assert (source.getnchannels(), source.getsampwidth(), source.getframerate()) == (1, 2, RATE)
+        samples = np.frombuffer(source.readframes(source.getnframes()), dtype='<i2').astype(float)/32768
+    start, end = profile['region_seconds']
+    result = samples[round(start*RATE):round(end*RATE)].copy()
+    assert len(result) == round(end*RATE)-round(start*RATE)
+    result -= result.mean()
+    padding = round(RATE*.5)
+    padded = np.pad(result, padding, mode='reflect')
+    frequencies = np.fft.rfftfreq(len(padded), 1/RATE)
+    high_pass = 1/np.sqrt(1+(profile['high_pass_hz']/np.maximum(frequencies, 1e-6))**4)
+    low_pass = 1/np.sqrt(1+(frequencies/profile['low_pass_hz'])**8)
+    result = np.fft.irfft(np.fft.rfft(padded)*high_pass*low_pass, n=len(padded))[padding:-padding]
+    if 'soft_peak_rms' in profile:
+        # Control close-mic wood pops so they do not force the flame bed too quiet.
+        threshold = profile['soft_peak_rms']*np.sqrt(np.mean(result**2))
+        result = threshold*np.tanh(result/threshold)
+    overlap = round(profile['crossfade_seconds']*RATE)
+    length = round(profile['loop_seconds']*RATE)
+    assert len(result) == length+overlap and length > overlap
+    angle = np.linspace(0, np.pi/2, overlap)
+    loop = result[overlap:].copy()
+    # The wrap returns to adjacent source samples without a fade to silence.
+    loop[-overlap:] = result[-overlap:]*np.cos(angle)+result[:overlap]*np.sin(angle)
+    loop -= loop.mean()
+    loop *= min(profile['target_rms']/max(float(np.sqrt(np.mean(loop**2))), 1e-8),
+                profile['peak_ceiling']/max(float(abs(loop).max()), 1e-8))
+    assert np.isfinite(loop).all() and abs(loop).max() < 1
+    return loop
+
+
+def write_sound(kind):
+    samples = sound(kind)
     rms = np.sqrt(np.mean(samples**2))
     seam = abs(samples[0]-samples[-1])
     difference = np.sqrt(np.mean(np.diff(samples)**2))
     assert .04 < rms < .25 and seam < difference*5
-    print(f"{kind}: {SECONDS}s mono; RMS={rms:.4f}; peak={max(abs(samples)):.4f}; seam={seam:.4f}")
+    path = ROOT/f'assets/audio/ambience/{kind}.wav'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(path), 'wb') as writer:
+        writer.setparams((1, 2, RATE, len(samples), 'NONE', 'not compressed'))
+        writer.writeframes(np.round(samples*32767).astype('<i2').tobytes())
+    print(f'{kind}: {len(samples)/RATE:g}s mono; RMS={rms:.4f}; peak={max(abs(samples)):.4f}; seam={seam:.4f}')
 
 
-if __name__ == "__main__":
-    for name in ("campfire", "torch"): synth(name)
+if __name__ == '__main__':
+    for kind in ('campfire', 'torch'): write_sound(kind)

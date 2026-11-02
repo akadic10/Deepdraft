@@ -8,7 +8,7 @@ func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Food test timed out"); quit(1))
 	await _setup_crafting_fixture()
 	for node in drops._loose.keys(): drops.take(node); node.free()
-	_expect(drops.edible_keys().size() == 5,"only five existing fruit types are edible")
+	_expect(drops.edible_keys().size() == 10 and "base:resources:fish:trout" in drops.edible_keys() and "base:resources:fish:dried_fish" in drops.edible_keys(),"the five fruits, the four fish and dried fish (doc 289) are the edible goods")
 	_expect(drops.food_definition(ACORN).is_empty() and drops.food_definition("base:resources:flora:plump_helmet").is_empty(),"seed and future food tags do not imply current edibility")
 	await _clock_checks()
 	_expect(worker.dev_make_hungry() and worker._food.hungry(),"development action triggers the ordinary hunger threshold")
@@ -109,10 +109,11 @@ func _clear_food() -> void:
 	worker.position=Vector3(40.5,21,39.5)
 
 func _clock_checks() -> void:
+	var hour_seconds: float=clock_node.get_real_seconds_per_game_hour()
 	for speed: float in [1.0,2.0,3.0]:
 		worker._food.value=1.0
 		clock_node.set_speed(speed)
-		worker._process(60.0/speed)
+		worker._process(hour_seconds/speed)
 		_expect(is_equal_approx(worker._food.value,.925),"same hunger drain per game hour at x%s" % speed)
 	clock_node.set_speed(0)
 	var value: float=worker._food.value
@@ -120,7 +121,7 @@ func _clock_checks() -> void:
 	_expect(worker._food.value==value,"zero speed freezes hunger")
 	clock_node.set_speed(1)
 	worker._begin_sleep()
-	worker._process(60)
+	worker._process(hour_seconds)
 	_expect(is_equal_approx(worker._food.value,value-.075) and worker.is_sleeping(),"hunger advances during sleep without normal hunger waking the dwarf")
 	worker._wake_up()
 	worker._idle_behavior.cancel()
@@ -197,6 +198,7 @@ func _no_food() -> void:
 	worker.sleep=0.0
 	worker._process(.05)
 	_expect(worker.is_sleeping(),"food shortage does not prevent needed sleep")
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 
 func _job_interrupt() -> void:

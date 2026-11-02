@@ -328,6 +328,9 @@ func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
 	# A cave not yet found is rock to every tool: no stockpile stands in it (Hard Rule 11).
 	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP):
 		return false
+	var fishing := get_tree().get_first_node_in_group("fishing_system")
+	if fishing != null and fishing.is_zone_cell(cell):
+		return false   # a fishing spot is a zone too (doc 289)
 	return NavGrid.is_walkable(cell)
 
 
@@ -461,10 +464,12 @@ func serialize_state() -> Dictionary:
 			stacks.back()["disallowed"] = bool(stack.get("disallowed", false))
 			if stack.has("instance_id"): stacks.back()["instance_id"] = stack.instance_id
 			stacks.back()["material_id"] = String(stack.get("material_id", ""))
+			if float(stack.get("spoil", 0.0)) > 0.0: stacks.back()["spoil"] = float(stack.spoil)
 		saved_zones.append({
 			"id": zone_id,
 			"cells": cells,
 			"storage_filter": zone.serialize_filter(),
+			"priority": zone.priority,
 			"stacks": stacks,
 		})
 	return { "zones": saved_zones }
@@ -483,6 +488,7 @@ func restore_state(state: Dictionary) -> void:
 			continue
 		var zone := _create_zone(cells, int(entry.get("id", -1)))
 		zone.restore_filter(entry.storage_filter)
+		zone.priority = clampi(int(entry.get("priority", StorageComponent.LAST_PRIORITY)), StorageComponent.FIRST_PRIORITY, StorageComponent.LAST_PRIORITY)
 		for stack_raw in entry.get("stacks", []):
 			if not (stack_raw is Dictionary):
 				continue
@@ -501,8 +507,10 @@ func restore_state(state: Dictionary) -> void:
 			zone.cell_stacks[cell]["disallowed"] = false
 			if saved_stack.has("instance_id"): zone.cell_stacks[cell]["instance_id"] = saved_stack.instance_id
 			zone.cell_stacks[cell]["material_id"] = String(saved_stack.get("material_id", ""))
+			var spoil := clampf(float(saved_stack.get("spoil", 0.0)), 0.0, 1.0)
+			if spoil > 0.0: zone.cell_stacks[cell]["spoil"] = spoil
 			if drop_manager != null:
-				drop_manager.restore_stored_item(item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")))
+				drop_manager.restore_stored_item(item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")), spoil)
 
 
 # ── Rendering helpers ─────────────────────────────────────────────────────────
@@ -651,6 +659,14 @@ func _open_zone_window(zone_id: int) -> void:
 		return
 	_window_zone_id = zone_id
 	_storage_panel.show_storage(zone, [{"id": "remove", "text": "Remove zone", "variant": "danger"}], "Storage Zone %d" % zone_id)
+	_window_manager.open(ZONE_WINDOW_ID)
+
+
+## A furniture container's storage window (doc 294): the zones' window, for its goods.
+func open_container_window(container: StorageComponent, title: String) -> void:
+	if _window_panel == null: return
+	_window_zone_id = -1
+	_storage_panel.show_storage(container, [], title)
 	_window_manager.open(ZONE_WINDOW_ID)
 
 

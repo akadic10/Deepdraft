@@ -1,7 +1,7 @@
 extends Button
 
-## Illustrated dock command. The approved artwork stays in one shared atlas;
-## its region, caption and action are supplied by UIRegistry/DockUI.
+## Illustrated dock command: a Hearthblock picture on its family's tile (doc 259). Its
+## picture, caption and action are supplied by UIRegistry/DockUI.
 var caption: String
 var description: String
 var planned := false

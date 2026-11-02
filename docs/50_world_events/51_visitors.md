@@ -168,14 +168,14 @@ the item data that owns them.
 | Group | Base trade value (TP) |
 |---|---|
 | Stone, soil, misc | Rough Stone 1 · Soil 1 · Water Bucket 1 · Gold Coin 1 · Fossil Fragment 10 |
-| Starter tools | Stone Hoe, Hunting Spear, Crude Carpentry Kit, Stone Hammer 3 each |
+| Starter tools | Stone Hoe, Ranger's Kit, Crude Carpentry Kit, Stone Hammer 3 each |
 | Ore | Tin 2 · Coal 2 · Copper 3 · Iron 4 · Silver 10 · Gold 12 |
 | Gems | Jade 22 · Amethyst 25 · Ruby 40 · Sapphire 40 · Emerald 45 · Diamond 80 |
 | Wood | Pine Log 2 · Apple Wood 3 · Juniper Log 3 · Oak Log 5 · Oak Stave 8 |
 | Produce | Plump Helmet 2 · Pig Tail 2 · Apple 3 · Hops 3 · Blueberry 4 · Juniper Berry 4 · Elderberry 5 · Grapes 5 · Wild Strawberry 6 · Honey 6 · Pig Tail Cloth 6 |
 | Seeds, cuttings | Pine Cone 2 · Pig Tail Seed 2 · Apple Seed 3 · Blueberry Cutting 3 · Oak Acorn 4 · Elderberry Cutting 4 · Hops Cutting 4 · Strawberry Cutting 5 · Juniper Seed 5 · Grape Cutting 6 |
 | Drinks | Ale 3 · Mead 5 · Stout 5 · Cider 5 · Wine 7 · Gin 8 · Aged Stout 10 · Reserve Gin 12 · Vintage Wine 15 |
-| Packed furniture | Log torch 2 · Ladder section 3 · Log bridge kit 4 · Campfire 4 · Log Stool 4 · Fence Post 4 · Gate 4 · Bench 6 · Log door (2 wide) 8 · Crude Workbench 8 · Log Dining Table 8 · Board-game Table 10 · Log door (3 wide) 12 · Log bed 12 · Hearth 14 · Double log door (4 wide) 16 |
+| Packed furniture | Log torch 2 · Ladder section 3 · Campfire 4 · Log Stool 4 · Fence Post 4 · Gate 4 · Bench 6 · Log door (2 wide) 8 · Crude Workbench 8 · Log Dining Table 8 · Board-game Table 10 · Log door (3 wide) 12 · Log bed 12 · Hearth 14 · Double log door (4 wide) 16 |
 | Not for sale | Settlement flag, uprooted plants, water stones: 0 / no value |
 
 Ingots, forged goods and armour (doc 44) still need values in the trade balance pass.
@@ -361,7 +361,7 @@ The most common threat. Fast, numerous, individually weak. Arrive in skirmishing
 
 ### Orcs
 
-Mid-tier threat. Tougher and fewer. Target workshops and stockpiles directly.
+Mid-tier threat. Tougher and fewer. Target workshops and stockpiles directly, charging the doors in their way: invaders can't open colony doors, they break them (owner, 2026-10-31; doc 52, "Invader Behaviour").
 
 | Property | Value |
 |---|---|
@@ -394,6 +394,7 @@ Undead. Do not eat, drink, or sleep. Immune to morale effects. Active only at ni
 
 ```
 APPROACHING  → pathing from world edge toward nearest colonist or workshop
+BREAKING     → bashing a shut door in the way; invaders never open doors (doc 52)
 ATTACKING    → engaging target in melee (future: combat system)
 LOOTING      → stealing from nearest accessible stockpile if no dwarves nearby
 RETREATING   → pathing back to world edge on heavy losses, or at dawn for skeletons

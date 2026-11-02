@@ -8,7 +8,7 @@ func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Seasonal refresh timeout"); quit(1))
 	_setup_fixture()
 	clock_node.set_process(false)
-	clock_node.day = 28
+	clock_node.day = clock_node.days_per_season()
 	clock_node.hour = 23.99
 	clock_node.season = "summer"
 	flora._season = "summer"
@@ -38,7 +38,7 @@ func _run() -> void:
 	source.state.work_seconds = 0.25
 	var saved_flora: Dictionary = flora.serialize_state()
 	for next: String in ["autumn", "winter", "spring", "summer"]:
-		clock_node.day = 28
+		clock_node.day = clock_node.days_per_season()
 		clock_node.hour = 23.999
 		var old_paths: Dictionary = {}
 		for id: Vector2i in roots: old_paths[id] = flora._trees[id].model_path
@@ -125,7 +125,7 @@ func _run() -> void:
 	clock_node.set_paused(false)
 	clock_node.set_speed(3)
 	var before: float = clock_node.hour
-	clock_node._process(20)
+	clock_node._process(clock_node.get_real_seconds_per_game_hour() / 3.0)
 	_expect(is_equal_approx(clock_node.hour-before,1), "calendar and transition follow chosen game speed")
 	clock_node.set_paused(true)
 	if failures.is_empty(): print("SEASONAL_REFRESH_PASS ",checks," checks")

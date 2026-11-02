@@ -36,6 +36,8 @@ signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
 var _shared_order_ui := false
 var _mining_guide_enabled := false
+## The Construction tools that offer the guide too (offer_area_guide): it shows while one is on.
+var _guide_tools: Array[Node] = []
 var _guide_spacing := 32
 var _guide_width := 0.16
 var _guide_color := Color("edbd71b8")
@@ -129,7 +131,8 @@ func _ready() -> void:
 
 ## One reactive rebuild per visibility change (the renderer emits at most once
 ## per frame). Zones re-clip even while the tool is inactive — confirmed zones
-## are always on screen; grid and preview only exist while the tool is active.
+## are always on screen; the guide exists only while it shows, and the preview
+## only while the tool is active.
 ## The overlay's per-zone skip rule (MiningZoneOverlay.needs_reclip) keeps a
 ## slice step O(1) for zones whose clip state cannot change.
 func _on_visible_volume_changed() -> void:
@@ -137,8 +140,9 @@ func _on_visible_volume_changed() -> void:
 	for zone_id: int in _zones.keys():
 		if _overlay.needs_reclip(zone_id, slice_y):
 			refresh_zone_overlay(zone_id)
-	if _state != ToolState.INACTIVE:
+	if _overlay.grid_node.visible:
 		_rebuild_terrain_grid(true)
+	if _state != ToolState.INACTIVE:
 		_update_hover_preview(true)
 
 
@@ -148,12 +152,15 @@ func _process(delta: float) -> void:
 	if _zone_ui != null and _zone_ui.is_showing() and _selected_zone_id >= 0:
 		if _zone_ui.refresh_due(delta) and _zones.has(_selected_zone_id):
 			refresh_zone_window(_selected_zone_id)
-	if _state == ToolState.INACTIVE:
+	# The guide follows the view while it shows, also for a Construction tool that offers it.
+	if _state == ToolState.INACTIVE and not _overlay.grid_node.visible:
 		return
 	if _grid_dirty:
 		_grid_dirty = false
 		_rebuild_terrain_grid(true)   # mined blocks changed effective grid tops
 	_rebuild_terrain_grid()
+	if _state == ToolState.INACTIVE:
+		return
 	# Modifier redraw (#4): force a rebuild when Ctrl is pressed/released so the
 	# removal colour updates even if the cursor has not moved to a new block
 	# (otherwise _update_hover_preview early-returns on an unchanged hit).
@@ -262,6 +269,36 @@ func set_mining_guide_enabled(enabled: bool) -> void:
 	_rebuild_terrain_grid(true)
 
 
+## A Construction tool that offers the guide (Build, Shapes, Copy, placing a blueprint): the
+## guide shows while it is on, too. Its switch is this one, so the guide holds between them.
+func offer_area_guide(tool: Node) -> void:
+	if _guide_tools.has(tool): return
+	_guide_tools.append(tool)
+	tool.tool_active_changed.connect(_sync_area_guide.unbind(1))
+
+
+## The guide's switch for a tool bar (doc 23, "The tool bar"): `doing` names the tool's work,
+## `only` what the guide leaves alone.
+func area_guide_toggle(doing: String, only := "nothing snaps to it") -> Dictionary:
+	return {"id": "guide", "label": "%d × %d guide" % [_guide_spacing, _guide_spacing], "on": _mining_guide_enabled,
+		"tooltip": "Thicker lines every %d blocks%s while %s. A guide only: %s." % [_guide_spacing,
+			" and dotted lines every %d" % _dotted_spacing if _dotted_spacing > 0 else "", doing, only]}
+
+
+## The switch is on, with Mine blocks or a tool that offers the guide on.
+func _area_guide_wanted() -> bool:
+	if not _mining_guide_enabled: return false
+	if is_active(): return true
+	for tool in _guide_tools:
+		if is_instance_valid(tool) and tool.is_active(): return true
+	return false
+
+
+## Shows or hides the guide as tools start and end. A guide already showing keeps its mesh.
+func _sync_area_guide() -> void:
+	if _area_guide_wanted() != _overlay.grid_node.visible: _rebuild_terrain_grid(true)
+
+
 func _deactivate_tool() -> void:
 	_state = ToolState.INACTIVE
 	_anchor_hit.clear()
@@ -274,6 +311,7 @@ func _deactivate_tool() -> void:
 	_last_grid_center = Vector2i(-999999, -999999)
 	_last_grid_slice = -999999
 	_last_grid_radius = -1
+	_sync_area_guide()   # a Construction tool that offers the guide may be on already
 	tool_active_changed.emit(false)
 
 
@@ -307,7 +345,7 @@ func _load_config() -> void:
 
 
 func _rebuild_terrain_grid(force: bool = false) -> void:
-	_overlay.grid_node.visible = is_active() and _mining_guide_enabled
+	_overlay.grid_node.visible = _area_guide_wanted()
 	if not _overlay.grid_node.visible:
 		_overlay.grid_node.mesh = null
 		return
@@ -515,9 +553,7 @@ func tool_bar_state() -> Dictionary:
 			"keys": "Shift + Wheel", "tooltip": "How many blocks wide the brush marks."},
 			{"id": "depth", "label": "Depth", "value": _vertical_size, "min": 1, "max": _max_vertical,
 			"keys": "Alt + Wheel", "tooltip": "How many blocks deep the brush marks, from the face you drag on."}],
-		"toggle": {"id": "guide", "label": "%d × %d guide" % [_guide_spacing, _guide_spacing], "on": _mining_guide_enabled,
-			"tooltip": "Thicker lines every %d blocks%s while mining. A guide only: mining still marks single blocks." % [_guide_spacing,
-				" and dotted lines every %d" % _dotted_spacing if _dotted_spacing > 0 else ""]}}
+		"toggles": [area_guide_toggle("mining", "mining still marks single blocks")]}
 	if _state == ToolState.DRAGGING:
 		state.selection = {"count": "%d block%s" % [_preview_blocks.size(), "" if _preview_blocks.size() == 1 else "s"],
 			"detail": "to unmark" if Input.is_key_pressed(KEY_CTRL) else "to mine", "at": _pointer_screen}
@@ -869,6 +905,17 @@ func ensure_chunk_real(block: Vector3i) -> void:
 	Work.ensure_chunk_real(block)
 
 
+## Whether a block is marked for mining. Replace leaves it to the miners (doc 285).
+func is_marked(block: Vector3i) -> bool:
+	return _zone_by_block.has(block)
+
+
+## A block's drops, rolled as mining rolls them, landing at `at`: a replaced block's builder's
+## feet, since its own cell stays solid (doc 285).
+func spawn_block_drops(block_id: int, at: Vector3i) -> void:
+	_work.spawn_block_drops(block_id, at)
+
+
 func _mine_block_world(block: Vector3i) -> void:
 	_work.mine_block_world(block)
 
@@ -895,10 +942,11 @@ func mark_grid_dirty() -> void:
 	_grid_dirty = true
 
 
-## Terrain changed under an active tool: redraw the area guide and preview.
+## Terrain changed: redraw the area guide while it shows, and an active tool's preview.
 func refresh_tool_view() -> void:
-	if _state != ToolState.INACTIVE:
+	if _overlay.grid_node.visible:
 		_rebuild_terrain_grid(true)
+	if _state != ToolState.INACTIVE:
 		_update_hover_preview(true)
 
 
@@ -920,7 +968,7 @@ func _remove_zone(zone_id: int) -> void:
 	# zone["blocks"] holds only REMAINING blocks — already-mined ones left the
 	# list at execution time, so mined cuts are never un-cut here.
 	Overlay.remove_visual_cuts(_renderer, removed_blocks, _zones)
-	if _state != ToolState.INACTIVE:
+	if _overlay.grid_node.visible:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
 
 
@@ -956,7 +1004,7 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 	for zone_id: int in affected.keys():
 		refresh_zone_overlay(zone_id)   # frees the overlay if the zone was erased
 	Overlay.remove_visual_cuts(_renderer, removed_blocks, _zones)
-	if _state != ToolState.INACTIVE:
+	if _overlay.grid_node.visible:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
 
 

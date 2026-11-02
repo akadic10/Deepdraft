@@ -1,0 +1,15 @@
+Duck Quack — gibarroule
+Source: https://freesound.org/people/gibarroule/sounds/365133/
+License: CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+
+The source page identifies this as a real duck recording made in Kuhhorst,
+Germany, and releases it under CC0. Retrieved 2026-10-28.
+
+duck_quacks.wav is a decoded, uniformly level-adjusted copy of Freesound's
+public HQ MP3 preview. It is not the original 96 kHz upload. source.json
+records the download URL, hashes, conversion and production edit regions.
+
+The three game quacks are separate excerpts, lightly filtered, faded and
+level-matched by tools/generate_duck_audio.py. No synthetic voice layers,
+time stretching or pitch changes are baked into them.

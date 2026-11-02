@@ -8,10 +8,18 @@ const CONTACT_PHASE := .54
 
 var axe: Node3D:
 	get: return tool
+var _held: PackedScene
 
 
-func apply(phase: float, contact: Vector3) -> void:
-	if not _ensure_tool(DwarfAssets.felling_axe,"FellingAxe"):
+## `held`: the tool this swing holds in place of the axe, a crafting career's own (doc 293: the
+## Carpenter's stone adze, the Stonemason's maul). Each strikes at the axe's CUTTING_EDGE.
+func apply(phase: float, contact: Vector3, held: PackedScene = null) -> void:
+	if held == null: held = DwarfAssets.felling_axe
+	if held != _held and is_instance_valid(tool):
+		tool.free()   # a fresh tool takes the axe's node name at once
+		tool = null
+	_held = held
+	if not _ensure_tool(held,"FellingAxe"):
 		return
 	axe.visible = true
 	phase = fposmod(phase, 1.0)

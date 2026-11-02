@@ -9,6 +9,14 @@
       "Slept like a stone. My own stone, in my own room.",
       "Nobody snoring but me. Best night in an age."
     ],
+    "grilled_alone": [
+      "Grilled a fish over the fire and ate it off the stick. Hot, smoky, perfect.",
+      "Sat by the fire with a fish on a stick until the skin crackled. Good evening."
+    ],
+    "grilled_together": [
+      "Grilled fish round the fire with the others. We told the same three stories again.",
+      "Two fish, one fire, a lot of burnt fingers. Best supper this week."
+    ],
     "recreation_together": [
       "A good game of stones after work. I won, mostly.",
       "Lost at stones and laughed anyway.",
@@ -25,6 +33,10 @@
     "famished": [
       "I would eat the bark off a log.",
       "Hollow as a worked-out seam."
+    ],
+    "injured": [
+      "Bruised from beard to boots.",
+      "Everything aches. A long sleep will mend it, I hope."
     ],
     "dining_seat_only": [
       "Supper off my knees again.",

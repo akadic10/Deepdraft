@@ -110,6 +110,7 @@ func _chairs_and_interruptions() -> void:
 	worker.dev_make_tired()
 	worker._process(.1)
 	_expect(worker.is_sleeping() and chair.idle_seat_owner<0 and not worker._idle_behavior.active(),"sleep safely releases leisure and seating")
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 	_expect(await _seat_phase(worker,"sitting"),"awake dwarf can use the chair again")
 	chair.set_uninstall(true)

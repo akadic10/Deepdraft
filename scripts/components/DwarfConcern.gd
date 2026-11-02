@@ -16,6 +16,10 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			if rest.state in ["searching","travelling"]:
 				return _issue("rest","Exhausted","No available bed found","Provide an accessible bed. This dwarf is finding a place to sleep on the ground.")
 		return _issue("rest","Exhausted","Needs sleep","Keep a clear route to a bed or a safe resting spot.")
+	var health = agent.get_health()
+	if health != null and health.badly_hurt():
+		var points: Dictionary = health.describe()
+		return _issue("health","Badly hurt","%d of %d hit points" % [points.points, points.maximum],"Health comes back slowly, faster while asleep.")
 	if food != null and food.hungry() and food.shortage: return _food_concern(food)
 	if agent.get_mood() != null and agent.get_mood().unhappy():
 		var thought: Dictionary = agent.get_mood().strongest_negative_thought()

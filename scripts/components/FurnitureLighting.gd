@@ -1,5 +1,7 @@
 extends RefCounted
 
+const LIGHT_META := &"furniture_light"
+
 
 ## Installed visuals only: caller supplies the definition from the furniture owner.
 ## Keeping the flame a named mesh avoids making the iron and wood glow too.
@@ -26,6 +28,7 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 	var key := String(def.get("furniture_key", ""))
 	if warm.has(key): light.set_meta("hearthblock_color", Color(String(warm[key])))
 	node.add_child(light)
+	node.set_meta(LIGHT_META, light)
 	var mesh_name := String(light_def.get("emissive_mesh", ""))
 	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
 		# Small lamp brackets suppress their own point-light shadow fan. A broad
@@ -58,6 +61,23 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 				animation.queue_free() # retain the static glow if a custom clip is invalid
 	preload("VoxelShadowSetup.gd").set_casting(node, bool(light_def.get("body_shadows", false)))
 	_apply_light_look(light)
+
+
+## Nightly fires (doc 279) switch their light and flame together; the stones and
+## ash stay. Ghosts and packed pieces never attach a light at all.
+static func set_lit(node: Node3D, def: Dictionary, lit: bool) -> void:
+	var light := light_of(node)
+	if light != null: light.visible = lit
+	var mesh_name := String(def.get("light_source", {}).get("emissive_mesh", ""))
+	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		if String(mesh.name) == mesh_name: mesh.visible = lit
+
+
+## The piece's light, also while the slice has lifted it out beside its hidden model (doc 287).
+static func light_of(node: Node) -> OmniLight3D:
+	if not node.has_meta(LIGHT_META): return null
+	var light: Variant = node.get_meta(LIGHT_META)
+	return light as OmniLight3D if is_instance_valid(light) else null
 
 
 static func _apply_light_look(light: OmniLight3D) -> void:

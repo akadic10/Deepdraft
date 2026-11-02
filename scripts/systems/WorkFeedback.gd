@@ -127,6 +127,11 @@ func play_hammer(position: Vector3, floor_y: int) -> bool:
 	return _play("hammer",position,floor_y)
 
 
+## Fishing (doc 289): fish_plop as the float lands, fish_bite at the bite, fish_land at the landing.
+func play_fishing(kind: String, position: Vector3, floor_y: int) -> bool:
+	return _play(kind,position,floor_y)
+
+
 ## A colony notification, audible even when the appointment was made while
 ## paused or its dwarf is outside the current view/slice. One voice bounds spam.
 ## Uses the same player volume/mute controls as the rest of the Work bus.
@@ -148,11 +153,13 @@ func play_promotion(position: Vector3) -> bool:
 
 
 func _profile(kind: String) -> Dictionary:
+	if kind.begins_with("footstep_"): return config.audio.get("profiles",{}).get("footsteps",{})
 	return config.audio.get("profiles",{}).get(kind,{})
 
 
 func _source_ready(source: Node3D, profile: Dictionary) -> bool:
 	if not is_instance_valid(source) or not source.is_inside_tree() or source.is_queued_for_deletion() or not source.is_visible_in_tree(): return false
+	if bool(profile.get("silence_during_loading",false)) and SaveManager.is_loading(): return false
 	if bool(profile.get("requires_sleep_pose",false)) and (not source.has_method("is_resting") or not source.is_resting()): return false
 	var required := String(profile.get("required_activity",""))
 	return required.is_empty() or String(source.get("activity")) == required
@@ -166,6 +173,18 @@ func play_animal(kind: String, source: Node3D) -> bool:
 func play_snore(source: Node3D) -> bool:
 	if not _source_ready(source,_profile("snore")): return false
 	return _play("snore",source.global_position,floori(source.global_position.y),source)
+
+
+## Actual support selects the surface; air and ladder movement have no steps.
+func play_footstep(source: DwarfAgent) -> bool:
+	if config.is_empty() or not _source_ready(source,_profile("footstep_stone")) or not source.is_walking(): return false
+	var cell := source.current_cell()
+	var block := WorldData.get_live_block(cell.x,cell.y,cell.z)
+	if not BlockRegistry.is_solid(block): return false
+	var material := String(BlockRegistry.get_def(BlockRegistry.get_key(block)).get("kind",""))
+	var settings: Dictionary = config.footsteps
+	var surface := String(settings.materials.get(material,settings.default_surface))
+	return _play("footstep_"+surface,source.global_position,cell.y,source)
 
 
 func _play(kind: String, position: Vector3, floor_y: int, source: Node3D = null) -> bool:
@@ -183,8 +202,10 @@ func _play(kind: String, position: Vector3, floor_y: int, source: Node3D = null)
 		return false
 	_update_voices(0,context)
 	var kind_count := 0
+	var group := String(profile.get("voice_group",kind))
 	for voice in _voices:
-		if float(voice.remaining) > 0 and voice.get("kind","") == kind: kind_count += 1
+		var voice_kind := String(voice.get("kind",""))
+		if float(voice.remaining) > 0 and String(_profile(voice_kind).get("voice_group",voice_kind)) == group: kind_count += 1
 	if profile.has("max_voices") and kind_count >= int(profile.max_voices): return false
 	var selected := -1
 	var quietest := INF

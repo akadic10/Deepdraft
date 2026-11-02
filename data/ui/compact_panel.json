@@ -8,6 +8,7 @@
     "uninstall": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "A dwarf packs this piece into a crate for storage."},
     "cancel_move": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Keep the piece where it stands."},
     "cancel": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Call off this order. Work already done is kept."},
+    "materials": {"icon": "res://assets/ui/icons/stocks.png", "tooltip": "Each good this plan takes: how much is delivered and on the way, how much the colony holds, and who is hauling it."},
     "assign_bed": {"icon": "res://assets/ui/icons/assign_owner.png", "tooltip": "Choose who sleeps here, or leave the bed to anyone."},
     "craft": {"icon": "res://assets/ui/icons/craft.png", "tooltip": "Open crafting at this workbench."},
     "permission": {"icon": "res://assets/ui/icons/disallow.png", "tooltip": "Dwarves leave disallowed goods where they are."},
@@ -25,7 +26,8 @@
     "resume": {"icon": "res://assets/ui/icons/play.png", "tooltip": "Carry on building."},
     "remove": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "Dwarves take it apart and recover its parts."},
     "reopen": {"icon": "res://assets/ui/icons/cancel.png", "tooltip": "Stop dismantling and open it again."},
-    "pack": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "A dwarf packs this into an item for storage."}
+    "pack": {"icon": "res://assets/ui/icons/pack_up.png", "tooltip": "A dwarf packs this into an item for storage."},
+    "replace": {"icon": "res://assets/ui/icons/build.png", "tooltip": "Choose one of Build's materials. A dwarf digs this block out and sets the material in its place; the old block drops what mining it would."}
   },
   "badges": {
     "appeal": "res://assets/ui/icons/appeal.png",

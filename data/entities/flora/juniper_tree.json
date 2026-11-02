@@ -41,12 +41,30 @@
       "footprint": {
         "sapling": 1,
         "mature": 1,
-        "ancient": 2
+        "ancient": 3
       },
       "stage_weights": {
         "sapling": 0.2,
         "mature": 0.55,
         "ancient": 0.25
+      }
+    },
+    "__planting_comment": "Player planting (doc 284): Place → Plants turns one seed into a sapling that grows to mature and ancient by stages.*.growth_duration_days, weighted by seasonal_growth (winter pauses). area = the square centred on the seed that no other tree may stand in: the mature crown (owner's pick, 2026-10-29), so grown ancients may overlap a few blocks. The ancient trunk footprint must be level open-sky ground with no other plants. Read by ContentRegistry and SurfaceFloraSpawner.",
+    "planting": {
+      "catalog_key": "base:flora:juniper_seed",
+      "item": "base:resources:seed:juniper_seed",
+      "work_seconds": 3.0,
+      "area": 7,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "seasonal_growth": {
+        "spring": 1.2,
+        "summer": 1.0,
+        "autumn": 0.8,
+        "winter": 0.0
       }
     },
     "stages": {
@@ -55,7 +73,7 @@
           "work_seconds": 2.0
         },
         "clearance_height": 2,
-        "growth_duration_days": 4,
+        "growth_duration_days": 3,
         "models": {
           "summer": "res://assets/models/flora/trees/juniper/juniper_sapling.glb",
           "winter": "res://assets/models/flora/trees/juniper/juniper_sapling_winter.glb"
@@ -69,7 +87,7 @@
           "work_seconds": 6.0
         },
         "clearance_height": 6,
-        "growth_duration_days": 8,
+        "growth_duration_days": 6,
         "models": {
           "summer": [
             "res://assets/models/flora/trees/juniper/juniper_mature.glb",
@@ -84,7 +102,7 @@
           "yields": [
             {
               "item": "base:resources:wood:juniper_log",
-              "count": 4,
+              "count": 2,
               "chance": 1.0
             },
             {
@@ -131,7 +149,7 @@
           "yields": [
             {
               "item": "base:resources:wood:juniper_log",
-              "count": 8,
+              "count": 5,
               "chance": 1.0
             },
             {

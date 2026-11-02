@@ -32,10 +32,12 @@ It also covers the dressing drawn on terrain blocks.
   span one block edge, and a block is one Godot unit. Objects may span several blocks
   at the same cell size.
 - World blocks stay one unit with simple voxels. Hearthblock only dresses the stone,
-  grass and earth faces in the shader (`terrain_appearance.gdshaderinc`, values in
-  `data/terrain/appearance_profiles.json` → `dressing`). Every mark is a whole cell,
-  like the models. Built logs are the exception: each is drawn as a Hearthblock piece, the
-  loose log stretched to fill its block (doc 275; doc 24, "Built logs").
+  grass, earth and coal faces in the shader (`terrain_appearance.gdshaderinc`, values in
+  `data/terrain/appearance_profiles.json` → `dressing`). Coal's edge is lit instead of
+  dark, because a darker edge cannot show on the darkest block. Every mark is a whole
+  cell, like the models. Built logs are the exception: each is drawn as a Hearthblock
+  piece, the loose log stretched to fill its block with its bark drawn off (docs 275 and
+  278; doc 24, "Built logs").
 
 ## Shape language
 
@@ -101,6 +103,19 @@ Who applies it:
 - **Tier 1 · Axe-Hewn Era** is the furniture in the game now. Pieces are split slabs,
   bark, chopped stepped ends, notches, rope lashings and loose hay, with no iron and no
   wool.
+- **Peeled logs (owner, 2026-10-28, doc 278).** Log builders strip the bark before a log
+  goes into a wall or a fence, and the dwarves do too. Built logs, fence posts, rails and
+  gates are peeled. Their surface is each wood's peeled swatch (`hewn_peel`), with knots
+  trimmed flush and drying checks instead of bark plates, and fresh-cut ends and notches.
+  Furniture made from stumps and slabs keeps its bark, and so does the stockpile log, which
+  is the log as felled.
+- **Fires hold no drawn wood (owner, 2026-10-28, doc 279).** The campfire and the hearth
+  are stone and ash; the night's log is the real stockpile log a worker sets in them, shown
+  in its own wood (`nightly_fire` places and scales it). Soot darkens the stone that faces
+  the flame, which also keeps the fire's own light from washing that stone out. Their menu
+  pictures show them burning a pine log. The hearth is a fire-back (owner's pick of four
+  rudimentary concepts, 2026-10-29): an open fire on four flagstones against three stacked
+  slabs, with low wing stones at the back corners.
 - **Tier 2 · Carpenter Era** is for later, when the game adds that progression step: a
   plank dining table and a blanket bed. Its designs are in
   `tools/art_data/studies/hearthblock_furniture_tiers.json`, next to the Tier 1 studies, and
@@ -183,8 +198,8 @@ convert content ahead of its feature.
 
 UI icons are Hearthblock too (owner, 2026-10-23):
 each is a small Hearthblock model rendered with a dark outline and drawn on a tile in its
-command family's colour. Since 2026-10-26 every UI icon is one, the badges over dwarves'
-heads included, except the DEV-only Development menu's painted sheet (`00_todo.md`).
+command family's colour. Since 2026-10-27 every UI icon is one, the badges over dwarves'
+heads and the DEV-only Development menu included; no painted sheet is left.
 The Sky Dial is Hearthblock too: a stone window onto the sky, built from models and
 rendered to layers (owner, 2026-10-26).
 The painted loading screens stay a separate medium.

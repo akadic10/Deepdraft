@@ -83,6 +83,33 @@
         "presentation": "serving_apple",
         "shadow_exception": "Tiny actor overlay; explicitly non-casting"
       }
+    },
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 34,
+          "visual_triangles": 46,
+          "shadow": null,
+          "min": [
+            -0.1875,
+            -0.125,
+            -0.0625
+          ],
+          "max": [
+            0.1875,
+            0.125,
+            0.0625
+          ]
+        }
+      ],
+      "bytes": 5412,
+      "sha256": "5731732493d6115070eebe9b1e852272ddd182d25bc6ae52afb10cfb8fe6e241",
+      "path": "assets/models/presentation/serving_fish.glb",
+      "authoring": {
+        "presentation": "serving_fish",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
     }
   ]
 }

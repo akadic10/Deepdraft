@@ -1,0 +1,32 @@
+Deepdraft - recorded chopping and mining
+
+All three recordings were released under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+Axe chopping wood
+Author: xkeril
+Source: https://freesound.org/people/xkeril/sounds/753925/
+Preview: https://cdn.freesound.org/previews/753/753925_13504080-hq.mp3
+Local master: axe.wav
+A small axe striking a large dry branch outdoors, recorded in mono with an SGH-6. The uploader applied cleaning and EQ.
+Channel used: original mono
+
+Garden pickaxe hitting rock
+Author: Sadiquecat
+Source: https://freesound.org/people/Sadiquecat/sounds/855629/
+Preview: https://cdn.freesound.org/previews/855/855629_5287430-hq.mp3
+Local master: pickaxe.wav
+A two-headed garden pickaxe hitting rock at night. The left microphone captures body resonance from a cardboard box; the right microphone on the floor captures the impact. Trimmed and normalized by the uploader.
+Channel used: right microphone (impact)
+
+Shovel in dirt
+Author: RavenWolfProds
+Source: https://freesound.org/people/RavenWolfProds/sounds/503672/
+Preview: https://cdn.freesound.org/previews/503/503672_9619518-hq.mp3
+Local master: soil_bucket.wav
+A shovel stabbed into and withdrawn from a bucket of dirt, recorded with a Zoom H6.
+Channel used: stereo average
+
+Masters retain complete public HQ MP3 previews, decoded in floating point and converted to mono 48 kHz PCM16. Original lossless uploads were not downloaded. The pickaxe master uses the right microphone, which the uploader placed at ground level for the impact; the left microphone was on a cardboard box for body resonance. Axe remains original mono; soil averages the stereo microphones. Source/master hashes, conversion details, crop regions and filter/fade/gain settings are in source.json. Soil mining uses real shovel entries into dirt as foley, not a recording of a pickaxe in soil. Preparation preserves natural recording speed and pitch. No synthesized layers, time stretching, pitch shifting, added reverb or denoising were applied; xkeril applied cleaning and EQ to the axe source before upload. Existing runtime cosmetic pitch variation remains unchanged.

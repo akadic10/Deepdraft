@@ -1,7 +1,14 @@
 # 41 — Dwarf Agents
 
+**2026-10-30 — Dining reach:** a dwarf holding food now looks for a seat or table up to
+32 walking blocks from where it took the food (`food.dining_distance`; it was 16). In the
+owner's lobby the food pile and a free table with four stools were 17–20 blocks apart,
+so every dwarf ate standing ("Ate without a proper place"). Seats are checked nearest
+first, and the first seat at a table found is used, so a busy room fits the two-second
+search even at ×3 (see "Dining" under Food and dining).
+
 **2026-10-19 — Dining while famished (doc 250):** once a dwarf holds food, dining
-keeps the normal 16-routed-block range (`food.dining_distance`), famished or not.
+keeps the normal routed range (`food.dining_distance`), famished or not.
 The two-second bounded search and existing route/seat claims remain. The former
 six-block famished exception skipped Birna's nearby free dining stool in the player
 save. Stored food, emergency foraging and need thresholds retain their existing
@@ -15,12 +22,12 @@ blocks for a companion under the existing bounded probe budget. The six-hour coo
 and needs/work/privacy rules still apply. Separate optional solo memory persists
 without changing old social memories.
 - **The board.** The Board-game Table (Rudimentary → Recreation, Place → Recreation)
-  keeps a 3 × 3 game area with two opposite Log Stool guides just outside it (3 × 5 with
-  both stools). Stools on those guides are game seats: dining and idle sitting skip them,
+  keeps a 3 × 3 game area with two opposite stool guides just outside it, for log or
+  stone stools (3 × 5 with both stools). Stools on those guides are game seats: dining and idle sitting skip them,
   and they become ordinary seats when the table goes.
 - **Who plays.** Idle dwarves, and a working dwarf whose happiness is below the 50
   baseline, if they carry nothing, are neither tired nor hungry, and are not collecting a
-  profession tool or leaving a bridge or ladder. Explicit movement, food and sleep come
+  profession tool or leaving a ladder. Explicit movement, food and sleep come
   first: when one of them claims a player, the game ends for both.
 - **Matchmaking** (`BoardGameRecreation`, owned by FurniturePlacementController; no
   autoload): one candidate and one bounded route slice per frame, at most three seconds
@@ -74,7 +81,8 @@ access returns to planning. The stance is anchored once on arrival from the near
 face's horizontal clearance, never from each target's height, so both feet stay put
 while the hands reach up the column; ending the assignment per block made builders
 step between stones (`ConstructionWork.continue_staged_build`). Supervision tracks each block as a separate work unit.
-`DwarfWorkExecution` applies the existing labor-speed factor to three seconds per
+`DwarfWorkExecution` applies the existing labor-speed factor (and, since 2026-10-31, the
+builder's Wits, Stats below) to three seconds per
 voxel. Carry capacity and item carry costs are unchanged (doc 205).
 
 **2026-10-14 — Colony size:** The intended maximum is **30 dwarves**.
@@ -99,9 +107,16 @@ Hungry/famished dwarves lose 5/15 happiness and work 10%/25% slower. No damage o
 death. Serving art, last-meal details and the Events food warning are live; the
 character sheet (doc 23) replaced the planned stage 3 screen.
 Fresh fruit is the first edible content; future meals/meats use the same metadata
-(the item's `food` block in `resources.json`: `edible`, `nutrition`, `serving`). A
-storage or cooking tag alone never makes an item edible, and one unit is one portion, so
-a meal never empties a crate. Tuning is `food` in `task_config.json`.
+(the item's `food` block in `resources.json`: `edible`, `nutrition`, `keeps_days`,
+`serving`). A storage or cooking tag alone never makes an item edible, and one unit is one
+portion, so a meal never empties a crate. Tuning is `food` in `task_config.json`.
+
+**2026-10-29 — Eating older food first (doc 282 phase 2):** food spoils (doc 42
+"Spoilage"), so the food search ranks each stack by its distance less
+`food.spoilage.route_margin_blocks` (12) times its spoil. A rotting stack counts 12
+blocks nearer than a fresh one, so dwarves eat it first unless it is much farther; with
+equal spoil the nearest wins, as before. Stored food still comes before loose food.
+Rotten food a dwarf has claimed or holds is eaten as usual; there is no sickness yet.
 - **Search and claims** (`DwarfFoodBehavior`): storage first, then allowed loose food, at
   each source's real withdrawal stands, moving on when a closer source is unreachable. A
   failed search gives its reason and retries after `retry_hours` while the dwarf works.
@@ -111,12 +126,27 @@ a meal never empties a crate. Tuning is `food` in `task_config.json`.
 - **Priority.** A meal in progress finishes before sleep. A famished search comes before
   sleep, while ordinary hunger waits until the dwarf wakes. A failed search never keeps a
   tired dwarf awake, and hunger never wakes a sleeper.
-- **Dining** (`DwarfDining`): backed seats must face the tabletop; round stools
-  (`face_nearby_fire`) may turn to it. Headroom, access, privacy and removal are checked;
+- **Grilling** (2026-10-31, doc 290): while a campfire marked `grilling` burns within
+  `food.dining_distance` of a hungry dwarf, the meal looks for a fresh fish (`food.grill`)
+  first, then any food. With a fish, `DwarfDining` looks only at that fire: a stool that faces
+  it, else a place at its side, claimed as a table's place is. There the dwarf grills the fish
+  on a stick (`food.grilling.grill_seconds`, `DwarfGrillPose`) and eats it off the stick; the
+  meal fills as the raw fish would and adds Rest and a memory (below). No fish, no room at the
+  fire or a fire beyond reach make an ordinary meal; a release drops the raw fish.
+- **Dining** (`DwarfDining`): the diner considers seats and tables within
+  `food.dining_distance` (32) walking blocks of where it took the food. It checks seats
+  one per frame, nearest first, and routes the first seat at a table it finds; a seat
+  alone, then a table alone, only after every piece is checked. After
+  `food.dining_search_seconds` (2 game seconds) it eats where it stands. Backed seats
+  must face the tabletop; round stools (`face_nearby_fire`) may turn to it. A seat used without a table faces as idle sitting
+  does (see Idle activity), so a stool by a campfire turns to the fire, lit or cold;
+  until 2026-10-29 diners kept the stool's placed facing, often away from the fire. Headroom,
+  access, privacy and removal are checked;
   a two-block bench is one broad seat, and board-game stools are never dining seats.
   Seats share leisure's exclusive claim; table access spots are claimed separately.
   Losing the table keeps a usable seat; losing the seat falls back without losing the
-  meal. A seated meal ends in idle rest on the same seat (see Idle activity).
+  meal. A seated meal ends in idle rest on the same seat, keeping its facing and any
+  fire it faces (see Idle activity).
 - **Effects.** One dining outcome per meal: the next meal replaces it, and a proper meal
   clears it. Hunger effects end the moment the dwarf eats. The slowdown applies to
   productive work and pickup/deposit, not to walking, pathfinding or eating.
@@ -163,6 +193,16 @@ one actual game hour asleep; strongest thermal penalty only, lasting 24 hours (d
 
 ## Overview
 
+Walking dwarves have recorded footsteps (doc 280). Each landing in the
+distance-driven gait can play one short step, including the last segment into a
+waypoint. Stone, grass, dirt and built logs select their own banks from the actual
+support block; dirt uses recorded gravel foley. Carry speed changes the cadence
+through distance travelled, while game speed never changes recording pitch.
+Climbing and stationary posing remain silent. The existing Effects volume
+controls footsteps, with a quiet nearby range and a shared three-voice limit.
+See [audio architecture](../10_core_foundation/13_architecture.md#workfeedback-doc-48--choppingmining-sound-and-dust-2026-10-04)
+for mixing, visibility and source provenance.
+
 2026-10-09 Professions and Miner (doc 96)
 implements Worker/Miner changes through the shared inspector's Profession action,
 planned career previews and saved per-dwarf work permissions. Only Miner progression
@@ -173,8 +213,8 @@ Level 6 and all other career bonuses below remain future design.
 2026-10-09 follow-ups: Carpenter promotion now requires collecting and equipping
 a crude carpentry kit. The shared Equipment tab shows the real kit, materials,
 benefit and planned upgrades; completed specialist promotions play a chime.
-Carpenter's workshop/recipes and upgraded-tool bonuses remain planned. The rules are
-under Profession System below (docs 101 and 102).
+Upgraded-tool bonuses remain planned; the Carpenter's own bench came with doc 293. The rules
+are under Profession System below (docs 101, 102 and 293).
 
 2026-10-07 Worker crafting: current Workers can make the first crude workbench
 beside collected timber, then craft torches at the installed stump from any open
@@ -182,7 +222,7 @@ side. They reuse physical pickup/carry/set-down, the two-handed axe pose and
 contact-synchronized wood sounds. Partial recipe work belongs to the order;
 interruptions return the unconsumed log. Inspection reports the actual crafting
 destination. Miner progression followed in milestone 96 and Carpenter tool
-promotion in milestone 101; specialist Carpenter production remains future work.
+promotion in milestone 101; the Carpenter's own bench followed in doc 293.
 
 2026-10-23 compact dwarf panel ([23](../20_player_interface/23_user_interface.md#object-selection-implemented-2026-10-04)):
 clicking a dwarf in the world opens the compact panel beside the dock. It shows the
@@ -235,26 +275,39 @@ to a mattress-side access cell. Visual parts recline on the mattress while the
 actor remains on that supported floor. Claims release on wake, removal, an
 Uninstall or Move order, unusable support or actor teardown, and reconstruct from
 the saved access floor on load without resetting the remaining sleep. Access cells
-lie beside the mattress, never at its ends; each must be walkable floor off bridges
-and ladders, with no other sleeper on it. The 48 blocks are `rest.bed_search_radius`
+lie beside the mattress, never at its ends; each must be walkable floor off
+ladders, with no other sleeper on it. The 48 blocks are `rest.bed_search_radius`
 in `task_config.json`; the search tries one bed approach per tick to bound
 pathfinding. Any installed piece with a `sleep_surface` is a bed; the log bed is the only one
 today, as the Dwarven bed was retired (doc 234).
 
+Before lying down, a tired dwarf whose first-choice bed stands in a sealed room with a cold,
+needed fire lights it first, by day too (owner, 2026-10-30). It takes the fire's light job
+and fetches the log itself, at most once per bedtime; the rules are in doc 34, "Bedtime
+fires".
+
 Without a usable bed, `DwarfRestBehavior` searches within eight blocks for reachable, level ground
 beside a wall or unmarked tree. It checks the full resting footprint, excludes
-stockpiles, furniture plans, bridges and ladder approaches, and keeps sleepers'
+stockpiles, furniture plans and ladder approaches, and keeps sleepers'
 claims separate. Searches use short proven flat routes and a fixed candidate
 budget per tick. Dwarves prefer either reclining or lazy sitting, try the other
 pose when needed, then fall back to clear ground (compact sitting if boxed in).
 Task cleanup and cargo release happen before searching; the six-hour sleep
-clock begins after settling. Walking to shelter does not restore sleep.
+clock begins after settling. Walking to shelter does not restore sleep; sleeping fills
+the meter as it goes (see Biological Limits).
 
 Sleep uses eased settle/wake transitions, closed voxel eyelids, breathing and
-slow head motion. The old emoji is removed. Three original quiet snores
-(`tools/generate_snore_audio.py`) use Work audio, camera distance/zoom,
-slice/visibility, pause and wake guards, at most two at once (`max_voices` in the
-snore profile of `data/audio/work_feedback.json`). The ground search and poses use
+slow head motion. The old emoji is removed. Three recorded snores use Work audio,
+camera distance/zoom, slice/visibility, pause and wake guards, at most two at once
+(`max_voices` in the snore profile of `data/audio/work_feedback.json`).
+`tools/generate_snore_audio.py` prepares separate breaths from two CC0 recordings
+of sleeping people by mffm and mlsulli. Full source masters, credits and edit
+profiles are in `tools/audio_sources/snoring/`; the masters were decoded from
+public HQ MP3 previews. The mono 24 kHz cues last 2.15, 2.32 and 2.84 seconds,
+retain natural speed and pitch, match the former average levels and have lower
+peaks. Filtering, edge fades and small silence margins prepare them for the
+existing seven-second base interval and per-dwarf stagger.
+The ground search and poses use
 `rest` in `task_config.json` (doc 119).
 Spatial choices and claims are transient: saved sleepers rebuild a suitable
 pose while retaining position and remaining rest. Lost floor support still
@@ -278,8 +331,8 @@ nearby-cover silhouette in doc 24.
 ## Idle activity — implemented 2026-10-09
 
 After a short staggered pause, available dwarves stroll on nearby clear ground,
-look around, or use an unoccupied installed seat (a log stool or bench; the wooden
-chair was retired, doc 234). Their local anchor
+look around, or use an unoccupied installed seat (a log or stone stool, or a bench; the
+wooden chair was retired, doc 234). Their local anchor
 stays at the last job/spawn position so successive walks do not become an
 expedition. Leisure remains in the task scheduler's idle pool and yields to
 work immediately. It does not restore sleep or create a mood/food requirement.
@@ -312,18 +365,23 @@ from restarting the wait before wandering indefinitely (doc 216). How long a
 planning hold lasts, what renews it and why the chair is checked first are in
 [31 — Task System](../30_simulation_systems/31_task_system.md#overview).
 
-Seats are installed pieces whose `seating_chair` has a `rest_pose` (the log stool and
-bench; never a board-game seat), checked one per frame within `seat_radius`.
+Seats are installed pieces whose `seating_chair` has a `rest_pose` (the log and stone
+stools and the bench; never a board-game seat), checked one per frame within `seat_radius`.
 `InstalledFurnitureComponent.idle_seat_owner` is the exclusive claim from the approach
 until standing up, and `idle_seat_yaw_steps` the facing the sitter takes;
 FurnitureSeating's clearance checks use that facing, so later furniture respects the
 real head room. Both clear on every release and are never saved. The logical dwarf
 stays on its proven access cell and `rest_pose` moves only its visual parts onto the
 seat, so an interruption or a save never leaves a dwarf inside furniture. A seat with
-`seating_chair.face_nearby_fire` (the stool) faces the nearest `seating_focus: "fire"`
-piece on its level within `seat_focus_radius` when that seated pose fits and terrain
-does not hide the flames: the body keeps a quarter turn, and the head turns toward an
-off-axis fire. Otherwise the placed facing is used, if it fits. Work, walk commands,
+`seating_chair.face_nearby_fire` (the stool) faces a table on its level that its front
+meets (square on, within 1.6 blocks of the top), else the nearest `seating_focus: "fire"`
+piece on its level within `seat_focus_radius` that terrain does not hide, each only when
+that seated pose fits: the body keeps a quarter turn, and the head turns toward an
+off-axis fire. A cold campfire by day draws its stools as a lit one does (owner,
+2026-10-29; doc 279 had a cold fire draw no one).
+Otherwise the placed facing is used, if it fits. `FurnitureSeating.facing()` makes this
+choice for idle sitting and for a meal without a table, so a dwarf who rests on after a
+meal keeps the meal's facing. Work, walk commands,
 sleep, abort, restore and teardown end the rest; so do the seat's removal, lost support
 or access, and seated clearance newly blocked (rechecked with FurnitureSeating's
 placement rules after navigation changes). Removing the fire only stops the head turn.
@@ -334,7 +392,7 @@ to sit, Sitting or Getting up (doc 99).
 
 Every unpaused dwarf tick checks physical support before jobs, leisure and sleep.
 When another miner removes the floor, the dwarf settles vertically onto the first
-solid block or bridge deck below. This also repairs unsupported positions restored
+solid block below. This also repairs unsupported positions restored
 from a current save and handles drops deeper than four blocks. It preserves XZ,
 facing and sleep state, and refreshes slice visibility at the new height.
 Since 2026-10-12, feet embedded in a raised floor also recover onto that block
@@ -359,20 +417,21 @@ All stats are floats in the range `0.0 – 1.0` unless otherwise noted.
 |---|---|---|---|
 | `food` (live, 131) | −0.075 / game hour | Hungry ≤ 0.40; Famished ≤ 0.15 | Seek a portion; +0.60 from fruit. Mood −5/−15; work speed −10%/−25%; no damage/death. |
 | `thirst` | −0.008 / s | < 0.15 | Mood penalty; < 0.0 → death |
-| `sleep` | −0.0007 / s | < 0.20 | Work speed ×0.6, pathfinding errors increase |
+| `sleep` | −0.042 / game hour awake; fills evenly to 1.0 over the six-hour sleep | < 0.20 | Work speed ×0.6, pathfinding errors increase |
 
-**Awake fatigue timing corrected 2026-10-12:** the sleep drain rate is per
-simulation second. Awake fatigue now scales with WorldClock speed, so equal
-game hours drain equal rest at ×1, ×2 and ×3, matching the existing six-game-hour
-sleep duration. Pause and speed zero freeze the drain. The ×1 rate, per-dwarf
-variation, sleep threshold and saved fields are unchanged. DwarfRestTest covers
-equal-game-hour drain, pause/zero speed and the accelerated sleep interrupt.
+**Awake fatigue counts game hours (2026-10-29, doc 281):** the sleep drain is per
+game hour, like food and the six-game-hour sleep itself, so a dwarf stays up about
+18 game hours whatever the speed or the calendar's seconds per game hour. It used to
+be −0.0007 per simulation second, which only matched while a game hour was 60
+seconds. Pause and speed zero freeze the drain. The per-dwarf variation, sleep
+threshold and saved fields are unchanged. DwarfRestTest covers the per-game-hour
+rate, equal drain at every speed, pause/zero speed and the accelerated sleep interrupt.
 
 > **Sleep drain retuned 2026-08-07** (was −0.003/s; first extended sleep-lite playtest).
 > The old rate emptied full→threshold in ~4 in-game hours — a 4-hour waking day against a
 > 6-hour nap, so dwarves slept 60% of the time and, with spawn-staggered schedules only
 > ~2 minutes apart, the whole squad slept *simultaneously* for minutes in every session
-> ("the dwarves are just stuck doing nothing"). −0.0007/s yields ~18 waking hours per
+> ("the dwarves are just stuck doing nothing"). −0.0007/s (now −0.042 per game hour) yields ~18 waking hours per
 > 6-hour nap — the 24-hour cycle §Biological Limits specifies. `DwarfAgent` additionally
 > jitters each dwarf's drain ±10% (deterministic per id) so schedules decohere over days
 > rather than staying phase-locked. The original sleep billboard was replaced by
@@ -382,7 +441,7 @@ equal-game-hour drain, pause/zero speed and the accelerated sleep interrupt.
 > future design, including their provisional rates and consequences.
 | `alcohol` | +varies on drink | > 0.80 | Mood bonus but pathfinding accuracy −30% |
 | `mood` | ±event-driven | < 0.10 | Tantrum trigger; < 0.0 → berserk |
-| `health` | injury-driven | < 0.10 | Forced bed rest |
+| `health` (live, Health below) | injury-driven; whole hit points, 70–130 by Toughness; heals mostly in sleep | below half | Injured thought; forced bed rest and death come with combat |
 
 ### Biological Limits
 
@@ -390,6 +449,16 @@ equal-game-hour drain, pause/zero speed and the accelerated sleep interrupt.
   Food ≤ 0.40 starts a search; Famished is ≤ 0.15, not an automatic eight-hour
   death/critical deadline. Sleep also drains Food. Pause freezes both needs.
 - **Rest profiles**: Dwarves require a minimum of **6 in-game hours** of sleep per 24-hour cycle. Sleep is taken autonomously at `sleep ≤ 0.25`, in a reachable bed when there is one and on sheltered ground otherwise (see Movement and sleep).
+- **Sleeping fills the meter (owner, 2026-10-30).** Once settled, each game hour asleep
+  fills the `sleep` meter by its share of what is missing (`DwarfAgent._process_sleeping`),
+  so it rises evenly from where the dwarf lay down to full as the six hours end: from 0.25,
+  half the rest brings it to 0.625. Waking keeps the meter as it is (`_wake_up`), so a
+  dwarf woken early (emergencies are planned) keeps the sleep it had and tires again sooner.
+  Until then the meter stayed low all night and filled only on waking. A save keeps the
+  meter and the hours left, and the fill goes on from them.
+- **Rest by the fire (2026-10-31, doc 290):** a meal grilled at a burning campfire adds 0.05
+  to the meter (`food.grilling.rest`), the only rest a dwarf gets awake. The sheet's Rest row
+  says "Rested by the fire" for two game hours after.
 - **Alcohol levels**: Drinking one unit of ale raises `alcohol` by `+0.15`. Alcohol drains at `−0.02 / s`. Dwarves **will not** voluntarily drink above `0.80`.
 
 ### Need Resolution Priority
@@ -470,7 +539,7 @@ Equipment meshes (helmets, chest armour, boots, weapons) are **child nodes** of 
 stand beside an item, turn toward it, acquire it at fist contact, lift it, carry it with both
 floating fists, and lower/release it in front of their planted feet at delivery. Item bounds drive the grip;
 loads form a compact two-column bundle at native scale. The JSON carry budget is
-4 points: rock/ore costs 1, raw timber 2, and produce/packed furniture crates 4.
+4 points: rock, ore and raw timber cost 1, and produce/packed furniture crates 4.
 Mixed loads share that budget; crate cost is independent of fill, while
 `weight_class` separately controls walking speed. Pickup and
 deposit take 0.75 s and 0.65 s at normal clock speed (task JSON tunables).
@@ -490,12 +559,13 @@ costing more than the budget is never offered and never posts an impossible leas
 Placing finished furniture is the 0.65 s set-down itself (doc 123). The worker
 starts lowering the packed piece as soon as it reaches its stand outside the
 footprint, turned toward the nearest footprint cell (a wall light: the front of its
-mount, at its height; a fence post: its corner), and the piece is installed as the
-set-down ends, with no separate build timer (`FurnitureGhostComponent.placement_contact`).
+mount, at its height; a fence post: its tile; a gate: its open tile), and the piece is
+installed as the set-down ends, with no separate build timer
+(`FurnitureGhostComponent.placement_contact`).
 Only that final commit, after the site is checked again, consumes the carried item.
 Pause and speed act on the pose and the commit together, and cancellation,
 interruption or lost support returns the item intact. Sources with work of their own
-(`remaining_work()`: bridges, ladders, crafting, planting, construction) run their
+(`remaining_work()`: ladders, crafting, planting, construction) run their
 own timed work instead (`DwarfCarryWork._begin_fetch_work`).
 
 ```
@@ -518,14 +588,21 @@ The broader table below remains design material. The live thoughts
 | Thought | Points | Lasts |
 |---|---|---|
 | A board game with a friend / on one's own | +8 / +4 | 12 game hours |
+| Grilled fish with company / by the fire (doc 290) | +8 / +6 | 12 game hours |
 | Hungry / Famished | −5 / −15 | until fed |
 | Ate without a table, or standing up / without a proper place | −3 / −8 | 8 game hours |
 | Slept in one's own bedroom | +10 | 24 game hours |
 | Slept in the cold / chilly / in the heat | −20 / −5 / −15 | 24 game hours |
 | Slept, ate or played in a horrid / pleasant / beautiful room | −6 / +4 / +8 | 24 / 8 / 12 game hours |
 
-- Only the stronger board-game thought, and the strongest sleeping-temperature thought,
-  count.
+- Only the stronger board-game thought, the stronger grilled-fish thought, and the strongest
+  sleeping-temperature thought, count.
+- **Grilled fish (2026-10-31, doc 290):** a fresh fish grilled and eaten at a burning campfire
+  leaves "Grilled fish by the fire", or "Grilled fish with company" when another dwarf grills or
+  sits at the same fire (`DwarfMood.record_grill`). The meal's dining outcome is "fire", which
+  leaves no dining memory. The hours are `grilled` in the mood section of `task_config.json`;
+  the memories save as `grill_memory_hours` and `grill_together_memory_hours`, written only
+  while they last.
 - **Room thoughts (2026-10-25):**
   - A full sleep, a meal or a board game in a sealed room leaves the room's appeal word
     (doc 23 "Room appeal").
@@ -640,7 +717,8 @@ Two visual representations are maintained per dwarf:
 ### Trait Assignment
 
 **Runtime status (2026-10-05):** generation, storage and inspection of trait IDs
-are implemented; applying their `effects` is not. The inspector's Details tab
+are implemented; applying their `effects` is not. Since 2026-10-31 Iron Constitution and
+Frail shape a new dwarf's Toughness (Stats, below). The inspector's Details tab
 shows names/descriptions from DwarfAssets with an explicit inactive-effects note.
 Light Sleeper is authored as +1 sleep hour (seven instead of six), and Deep
 Sleeper as −1 (five instead of six), but all dwarves currently use the same
@@ -658,7 +736,7 @@ polarity, rarity weight, exclusion group). The effects below are design only.
 | Loves to Cook | Reserves a future Cook profession for this dwarf |
 | Cheerful / Grumpy | Mood baseline +0.06 / −0.05 |
 | Hardworking / Lazy | All task durations ×0.90 / ×1.12 |
-| Iron Constitution / Frail | Incoming damage ×0.70 / ×1.45 |
+| Iron Constitution / Frail | Live: Toughness Good or better / Fair or worse at birth (Stats, below) |
 | Deep Sleeper / Light Sleeper | −1 / +1 hour of sleep per cycle |
 | Iron Stomach | Ignores food-variety thoughts |
 | Brave | Ignores the invader flee trigger |
@@ -669,7 +747,7 @@ polarity, rarity weight, exclusion group). The effects below are design only.
 | Alcohol Dependent | Must drink every 16 h; each missed window adds −0.06 mood, up to 4 stacks (−0.24). Alcohol thoughts are ×1.5 stronger |
 | Loner | −0.04 mood with 4+ dwarves within 5 tiles |
 | Social | +0.03 mood with 3+ dwarves within 5 tiles |
-| Homesick | −0.08 mood on arrival, fading linearly over 56 days (two seasons) |
+| Homesick | −0.08 mood on arrival, fading linearly over 42 days (two seasons) |
 
 The generator rolls a **trait slot distribution** from `generation_config` in `traits.json`, then fills each slot from the positive or negative pool independently:
 
@@ -689,8 +767,8 @@ Traits in the same **exclusion group** (e.g. `mood_baseline`, `work_pace`) canno
 Personal tastes (2026-10-25; `DwarfTastes`, `data/entities/dwarves/tastes.json`, read by
 DwarfAssets). The owner chose furniture and woods the dwarves use over adding foods and
 plants, or two broad leanings known from the start (2026-10-25).
-- **What they name:** furniture designs a dwarf uses (log bed, log stool, bench, log
-  table, board-game table) and woods (pine, oak, juniper, applewood), each with the picture
+- **What they name:** furniture designs a dwarf uses (log bed, log stool, stone stool,
+  bench, log table, board-game table) and woods (pine, oak, juniper, applewood), each with the picture
   its tile shows.
 - **Given at birth, kept for life:** one love, two likes and one dislike (`counts`). They
   are dealt by DwarfFactory from the dwarf's own seed, after every other roll, so the
@@ -718,11 +796,123 @@ plants, or two broad leanings known from the start (2026-10-25).
     dwarf builds it with `DwarfFactory.spawn`, as the game does; a bare `DwarfAgent.new()`
     has nothing to save them from (`ProduceCrateTest`, 2026-10-26).
 
+### Stats (2026-10-31)
+
+From the owner: dwarves need a few basic RPG stats, so that some jobs suit some dwarves
+better ("perhaps a strength dwarf is a better miner or warrior"). Stats are what a dwarf is
+born good at. They sit beside the three kinds of progression approved on 2026-10-09:
+promotion picks the job, experience is practice, and equipment is tools.
+
+Six stats, given at birth and kept for life (`data/entities/dwarves/stats.json`, read by
+DwarfAssets): Strength, Agility and Toughness (Body); Wits, Wisdom and Charisma (Mind).
+The owner's picks (2026-10-31): six stats in two groups; five steps shown as pips and a
+word; fixed at birth; the ledger on the Traits tab, chosen from three concepts (doc 23).
+- **Five steps:** Poor, Fair, Average, Good and Excellent, shown as pips and the word,
+  never as a number. This keeps the 2026-10-23 decision to leave out Stonehearth's
+  attribute numbers (doc 23).
+- **Rolled by DwarfFactory** from the dwarf's own seed, after its tastes (`_roll_stats`),
+  so the same world still gives each dwarf the same name, looks, traits and tastes.
+  - Every stat starts Average (`average`), then `shifts` (4) moves of one point from one
+    stat to another, never below Poor or above Excellent.
+  - So every dwarf has the same total, 18, in a shape of its own: each is best at
+    something and none is best at everything. About a third of dwarves are Good or better
+    at any one stat, one in eleven Excellent and one in eleven Poor; almost every dwarf
+    (99%) has a stat at Good or better. In a colony of 30, about ten dwarves are Good or
+    better at each stat.
+- **Traits shape the roll** (`stat_shape` in traits.json): Iron Constitution keeps Toughness
+  Good or better and Frail keeps it Fair or worse, moving points to or from the other stats.
+  The two share the `constitution` exclusion group, so no dwarf holds both.
+- **Fit.** Each profession names a main and a second stat (`stats` in professions.json).
+  Its fit is the main stat twice and the second once, rounded to a step
+  (`DwarfAssets.profession_fit`); the career map shows it (doc 23). The pairs, the planned
+  careers' included:
+
+  | Profession | Main | Second |
+  |---|---|---|
+  | Worker | Strength | Agility |
+  | Miner | Strength | Toughness |
+  | Carpenter, Builder | Wits | Strength |
+  | Stonemason, Blacksmith | Strength | Wits |
+  | Farmer | Wisdom | Toughness |
+  | Ranger | Wisdom | Agility |
+  | Brewer | Wisdom | Wits |
+  | Merchant | Charisma | Wits |
+  | Innkeeper | Charisma | Wisdom |
+  | Warrior | Strength | Toughness |
+  | Berserker | Agility | Strength |
+  | Stoneclad | Toughness | Strength |
+  | Marksman | Agility | Wisdom |
+
+  `professions.json` holds only the careers on the career map; the others take their pair
+  when they are added.
+- **Work speed:** each step from Average is 6% of work speed (`per_step`), faster above and
+  slower below, so Excellent works at ×1.12 and Poor at ×0.88. A stat names the kinds of
+  work it speeds (`work` in stats.json; `DwarfAssets.work_rate`, `DwarfAgent.work_rate`):
+  - **Strength:** mining blocks (each swing is shorter, for Miners and Workers alike),
+    felling trees, clearing stones, and a Stonemason's crafting (`stonework`, the career's
+    `craft_work`, doc 293);
+  - **Wits:** every other career's crafting at a bench, and building blocks and ladders;
+  - **Wisdom:** fishing (doc 289): each catch comes that much sooner.
+  It multiplies with hunger's slowdown and the levels (the Miner's digging, the Carpenter's
+  and the Stonemason's crafting); a level-5 Miner with
+  Excellent Strength swings in 0.8 ÷ 1.12 of the time, so practice still counts for more
+  than birth. Gathering, planting, hauling, walking and furniture work keep their speed.
+  The sheet says how much: "Crafts and builds 6% faster", "Fishes 6% faster".
+- **Toughness** gives the hit points (Health, below). Agility and Charisma do nothing yet,
+  and the sheet says "Not active yet: …". What each stat is meant to do later:
+
+  | Stat | Later |
+  |---|---|
+  | Strength | Heavy loads, forging, melee damage |
+  | Agility | Hunting, aim and dodging; perhaps walking and climbing |
+  | Toughness | Healing speed, blows taken |
+  | Wits | Smithing |
+  | Wisdom | Fishing now (doc 289); later yields, brewing, tracking, healing others |
+  | Charisma | Prices, hosting, squad morale |
+
+- **Never a gate, never a job picker.** Any dwarf can take any profession, and nothing a
+  dwarf may do depends on a stat. The scheduler still picks by distance and profession;
+  the player uses stats when choosing professions.
+- **Saves** keep `stats` (stat id → step) with each dwarf. A save missing a stat, naming one
+  the game lacks, or holding a step outside 1–5 is rejected. A dwarf set up from data
+  without stats, as some tests build them, is Average in each.
+- **For agents:**
+  - the stat's factor joins hunger's `work_multiplier()` in `DwarfWorkExecution.tick()` and
+    in the work estimate, chosen by the kind of work (`_timed_kind`); mining's swing time
+    is divided by it instead. Navigation, meal timing and search budgets stay untouched;
+  - a spawned dwarf has random stats, so tests that time mining, felling, crafting or
+    building pin their dwarves at Average (the timing fixtures build theirs without stats)
+    or read the factor.
+
+### Health (2026-10-31)
+
+Whole hit points (`DwarfHealth`, on the shared `HitPoints`; tuning `health` in
+`task_config.json`). One health model serves everything that can be hurt or broken:
+dwarves, animals (doc 45), doors (doc 62) and, later, invaders. It replaced the 0–1
+`health` value once planned here and in doc 52, since a rabbit, a dwarf and an iron door
+need pools of very different sizes and weapons will deal whole damage. The owner asked for
+health to show from the start, full until something can hurt a dwarf.
+- **The most** comes from Toughness: 100 at Average and 15 a step, so 70 to 130. It is
+  worked out from Toughness, never saved.
+- **Healing** counts game hours: 4% of the most each hour asleep (a night's six hours heals
+  about a quarter) and 1% awake, never past full. Pause and speed apply.
+- **Words:** Healthy at three quarters or more, Hurt down to half, Badly hurt below half.
+  Badly hurt brings the Injured thought (−8 happiness until health is back above half) and
+  the health concern over the head (doc 23).
+- **Nothing hurts a dwarf yet.** Development → Dwarf tools → DEV: hurt a dwarf takes 30 hit
+  points from the selected dwarf, or the first awake one, and health never drops below 1.
+  Death, forced bed rest and a Medic come with the first danger (doc 52, "Death & Injury").
+- **Saves** keep `health` only while the dwarf is hurt. A value under one is rejected, and a
+  saved value is held to the dwarf's own maximum.
+- **For agents:** tests load, never preload, scripts that name autoloads (DwarfHealth names
+  TaskManager and DwarfAssets). A preload in a test's main script compiles before the
+  autoloads exist and breaks the script for the whole run.
+
 ---
 
 ## Profession System
 
-Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. Change profession (on the character sheet's Profession tab or Colony Dwarves' Details card) opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit. Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases. Per-dwarf work permissions are independent of the active profession.
+Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. Change profession (on the character sheet's Profession tab or Colony Dwarves' Details card) opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit, Stonemason of a crude masonry kit (doc 293) and Ranger of a Ranger's kit (a spear bound to a fishing rod). Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases; Ranger experience counts catches; Carpenter and Stonemason experience counts batches made on their own page. Per-dwarf work permissions are independent of the active profession.
 
 The live rules (doc 96):
 - **Who can be assigned.** Only professions with `promotion_enabled`, from the career map
@@ -731,19 +921,65 @@ The live rules (doc 96):
 - **Changing** releases the current job through the normal release (goods set down,
   claims freed, source progress kept). A sleeping dwarf takes the new role without
   rejoining the idle pool early.
-- **Work permissions** (`work_permissions` in professions.json: Haul, Gather, Mine, Build
-  and Craft, each listing its task types) are saved per dwarf and kept across careers; a
-  category with no entry is allowed. Unticking one releases a current job of that kind.
-  Carrying supplies for an allowed job is not Haul, and rest is automatic. Craft applies
-  only while a Worker (`TaskScheduler.types_for`), so a Miner's Craft setting returns
-  with the Worker role.
+- **Each career's work** (`TaskScheduler.types_for`, `DwarfAssets.profession_task_types`).
+  A career that names its own `work` in professions.json does only that, in that order
+  (`TaskScheduler.takes`): the Ranger takes dry fish down from the rack (COLLECT), then hangs
+  fresh ones (CRAFT), then fishes, then hauls (doc 292), and only Rangers fish. An idle Ranger whom a drying order waits for is not given fishing or
+  hauling meanwhile; a drying search that fails backs its order off and frees them (owner,
+  2026-11-01: "our ranger keeps fishing and not making the dried fish"). The others take the common
+  work (`Task.COMMON_WORK`: mining, hauling, building, felling and gathering). A career
+  with a `craft_section` also crafts, but only that section's orders: Workers make
+  Rudimentary, Rangers the Ranger's page, Carpenters and Stonemasons their own pages. A
+  craft order that no idle dwarf of its career can take is skipped, so it never holds up the
+  orders below it.
+- **Crafting first** (doc 293). A career that takes the common work may name what comes
+  first (`work_first`): the Carpenter and the Stonemason take an order from their own page
+  before anything else, then the common work keeps its usual priorities
+  (`TaskScheduler.takes`). Only orders the dwarf could make hold them: a Worker's order never
+  keeps a Carpenter from hauling.
+- **Work permissions** (`work_permissions` in professions.json: Haul, Gather, Mine, Build,
+  Craft and Fish, each listing its task types) are saved per dwarf and kept across careers;
+  a category with no entry is allowed. Unticking one releases a current job of that kind.
+  Carrying supplies for an allowed job is not Haul, and rest is automatic. Labor greys out
+  a box whose work the career can't do (`DwarfAssets.profession_allows`) and keeps its
+  setting for a career that can, so a Miner's Craft setting returns with the Worker role.
+  A career map card warns when the career's own work (Mine, Fish) is unticked.
 - **Miner experience** is one per block the Miner removes, awarded before that commit can
   end the zone lease, so a zone's last block counts. Partial swings, cancelled blocks,
   walking, hauling and Worker mining earn none.
+- **Experience by career.** A career with an `experience` entry earns it: `earned_by` names
+  the task (MINE, FISH, CRAFT), `noun` what the bar counts, and `rewards` what each level
+  gives. Levels use the career's own `thresholds` or the shared ones (10, 100, 500, 2,500);
+  the time a level saves comes from `work_speed_bonus_per_level`, its reward worded by
+  `speed_text` ("5% less digging time", "5% less work time crafting"). Level 1's reward is
+  the roster's focus note ("Mining focus", "Fishing focus", "Carpentry focus", "Masonry
+  focus"), and `disabled` its note with that work unticked.
+- **Crafting experience** (doc 293): the Carpenter and the Stonemason earn one when a batch
+  from their own page finishes (`WorkerCraftOrder.complete_build`). Levels at 10, 50, 150 and
+  400 batches each take 5% off their crafting time (`DwarfAssets.craft_duration_multiplier`),
+  so a level-5 crafter needs 80% of it. A Worker's crafting earns nothing. The bar reads "5% to
+  level 3 · 12 batches made".
+- **The tool in hand** (doc 293): a career's `craft_tool` replaces the axe in the crafting
+  swing (the Carpenter's stone adze, the Stonemason's maul), striking where the axe's edge
+  does; `craft_sound` "hammer" makes the maul knock as the builder's hammer does.
+- **Ranger experience** (doc 292) is one per catch, awarded before the lease can end, so a
+  catch that fills the zone's Keep counts. Levels at 10, 50, 150 and 400 catches make
+  catches bigger, not faster, because each water's stock limits fishing:
+  - big fish one catch in six at levels 2 and 3, one in three at 4 and 45% at 5. A big
+    catch lands two fish for one off the water's stock and hangs its own heavier model on
+    the line (`DwarfAssets.big_fish`). Each catch's roll is seeded as its time is and kept
+    on the spot, so the cast shows what lands;
+  - patience from level 3: winter's half speed becomes three quarters, as a work rate the
+    spot gives (`FishingSystem.patience`), so the pose and the catch keep step.
+- **The catch log** (`CatchLog.gd`): each Ranger's catches by fish, big fish, the best day
+  and the fish dried. The character sheet's Profession tab shows it in place of the list
+  of rewards, with the next reward and the catches to go (concept C). It saves with the
+  dwarf as `catch_log` while it holds anything.
 
 `data/professions/professions.json` holds what the game uses: the career-map
-entries, work permissions, Miner experience thresholds, display names, promotion
-parents, required tools and equipment previews. Each profession also names its one
+entries, work permissions, the shared experience thresholds, display names, promotion
+parents, required tools, equipment previews, each career's work, craft section and
+experience (its thresholds and level rewards). Each profession also names its one
 Hearthblock icon (`icon`, doc 259). The career map, the equipment view and the
 Crafters menu all show it. The planned design for every
 profession is recorded below.
@@ -765,10 +1001,10 @@ profession's primary tasks (5% unless noted), so level 5 is 20% faster and level
 | Builder | `BUILD_BLOCK`, `DEMOLISH_BLOCK`, `PLACE_FURNITURE`, `REMOVE_FURNITURE` | — | Not on the career map. Level 6 gives buildings a small structural-integrity bonus |
 | Merchant | `STAFF_TRADE_COUNTER`, `COLLECT_SHOP_COINS`, `RESTOCK_SHOP_STORAGE` | Shop | Not on the career map. +2% sale price per level instead of speed; see `51_visitors.md` |
 | Innkeeper | `SERVE_DRINK`, `SEAT_GUEST`, `COLLECT_NIGHT_STAND_COINS`, `RESTOCK_TAVERN_STORAGE` | Tavern | Not on the career map. +1 coin lodging fee per level; see `51_visitors.md` |
-| Carpenter | Planned workshop recipes | — | Live: promotion with a carpentry kit |
-| Blacksmith | Smelting and forging (doc 44) | — | Needs a Smelter and Forge |
-| Weaponsmith, Armorsmith | Forge weapons / armour (doc 44) | — | Promote from Blacksmith level 3 |
-| Hunter, Stonemason | Not designed beyond the career-map preview | — | The owner's names, not Trapper or Stonesmith (2026-10-09) |
+| Carpenter (live) | `CRAFT` (the Carpenter's page) first, then the common work | — | Live (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md)): promotes with a carpentry kit and makes its own carpenter's bench, a peeled log workbench, at the crude workbench, a stone adze in hand. Levels: 5% less crafting time. Planned: its first goods (to choose); planks and Tier 2 pieces wait for the iron saw and a joiner's bench |
+| Blacksmith | Smelting and forging: tools, hardware, weapons and armour (doc 44) | — | Needs a Smelter and Forge. The one metalworking profession: no Weaponsmith or Armorsmith (owner, 2026-10-31) |
+| Ranger (live) | `COLLECT` (dried fish off the rack), `CRAFT` (the Ranger's page: the drying rack and hanging fish), then `FISH`, then `HAUL`; hunting later | — | Live (doc [292](../00_dev_roadmap/292_ranger.md)): promotes with the Ranger's kit, a spear bound to the rod it fishes with, and its levels make catches bigger instead of faster. The owner renamed the Hunter on 2026-11-01 when it took fishing; Hunter had been their pick over Trapper (2026-10-09). Planned: fish that differ, rare fish, then hunting |
+| Stonemason (live) | `CRAFT` (the Stonemason's page) first, then the common work | — | The owner's name, not Stonesmith (2026-10-09). Live (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md)): promotes with a crude masonry kit and makes its own mason's bench, a split slab on two stumps, at the crude workbench, a maul in hand; its crafting is stonework, by Strength. Levels: 5% less crafting time. Makes the stone stool at the mason's bench from a Rough Stone (doc 293 step 3). Planned: dressed stone waits for iron chisels |
 
 Level 6 needs both 10,000 tasks and the profession's calling trait (see Planned
 trait effects).
@@ -778,7 +1014,8 @@ trait effects).
 **Live follow-up (doc 101):** Carpenter's kit requirement (`required_tool`), physical
 collection, cancellation, equipped-item ownership, inspector/inventory presentation and
 current saves are implemented. Miner keeps its implicit pickaxe and promotes at once.
-Carpenter workshop gameplay and all equipment bonuses/upgrades remain planned. The live
+The Carpenter's and the Stonemason's own benches are live (doc 293); all equipment
+bonuses/upgrades remain planned. The live
 rules:
 - **A personal appointment.** `DwarfEquipment` holds one pending appointment and one
   equipped item per dwarf; no other dwarf can take it as a job. Choosing a tool career
@@ -816,8 +1053,10 @@ The player approved three connected forms of progression:
 
 - **Promotion** selects a profession. Selected careers will require an available
   starting tool. Milestone 97 adds craftable stone hoes, hunting spears, carpentry
-  kits and stone hammers for Farmer, Hunter, Carpenter and Blacksmith. Carpenter's
-  requirement and physical equipping are live; other tool careers remain planned.
+  kits and stone hammers for Farmer, Ranger (then the Hunter), Carpenter and Blacksmith.
+  Doc 293 adds the crude masonry kit for the Stonemason. The Carpenter's, the
+  Stonemason's and the Ranger's requirements and physical equipping are live; other tool
+  careers remain planned.
   Carpenter starts with a
   mallet/adze kit; its saw is a later upgrade. The dependency review is recorded in
   [44 — Carpenter entry tools](44_crafting_workshops.md#carpenter-entry-tools--dependency-review-2026-10-09).
@@ -842,9 +1081,10 @@ switching professions must preserve experience and account for the physical item
 Workers must have a route to craft the crude tools needed to establish the first
 specialists, without a profession requiring its own exclusive product to start.
 Tool durability and repairs are deferred beyond the first equipment version.
-These are agreed requirements; beyond Carpenter's kit, tool gates and all tool upgrades
-are not implemented. The four starter tools (doc 97) are ordinary goods (doc 44) and
-grant no bonus; the career map shows each tool's stock and maker.
+These are agreed requirements; beyond the Carpenter's, the Stonemason's and the Ranger's
+kits, tool gates and all tool upgrades are not implemented. The starter tools (doc 97, and
+the masonry kit of doc 293) are ordinary goods (doc 44) and grant no bonus; the career map
+shows each tool's stock and maker.
 
 ### Agent Fields
 
@@ -855,16 +1095,10 @@ var profession_experience: Dictionary = {           # raw task counts per profes
     "base:profession:worker":      randi_range(0, 9),
     "base:profession:miner":       0,
     # ...one entry, starting at 0, for every profession in professions.json
-    "base:profession:weaponsmith": 0,   # set to blacksmith count at specialisation
-    "base:profession:armorsmith":  0,   # set to blacksmith count at specialisation
 }
 ```
 
 Workers are initialised with a small random task count (0–9) so new arrivals aren't all identical level-1 dwarves. All specialist professions start at 0 until the dwarf actually practices them.
-
-### Specialisation Professions
-
-`base:profession:weaponsmith` and `base:profession:armorsmith` are restricted professions — they cannot be assigned directly from the Labour window. A dwarf must first reach **Blacksmith Level 3** (100 cumulative tasks) before the specialisation options appear. On promotion, the target profession's experience entry is set to equal the current Blacksmith count. Full rules: `44_crafting_workshops.md`.
 
 ### Experience Level Derivation
 

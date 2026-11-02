@@ -76,7 +76,9 @@ widens for ultrawide aspects, and a still view reuses its mesh. A rebuild with t
 dotted lines costs about 1.2× the 32-only guide's before them (2026-10-26, a fresh world
 at slice 47: 36 ms at 7680×2160 at zoom 46 and 59 ms at zoom 110, against 31 and 48;
 9 and 18 ms at 1920×1080). It shares the existing slice/cut invalidation (planned cuts
-and mined floors move it) and has no mesh while disabled or outside mining. Tuning:
+and mined floors move it) and has no mesh while disabled or while neither Mine blocks nor a
+Construction tool is on (doc 23); moving between those tools rebuilds it at most once
+(Build to Shapes keeps it). Tuning:
 `area_guide` in `data/terrain/mining_config.json`; a `dotted_cell_size` that does not
 divide `cell_size` (or 0) draws no dotted lines.
 
@@ -165,15 +167,18 @@ Simulation runs independently of presentation scheduling. The scheduling rules
 are in doc 33.
 
 **Rain and storms (2026-10-13, 170):** adds two scheduled and
-saved weather IDs with cloud/haze overrides and one bounded local rain mesh.
+saved weather IDs with cloud/haze overrides.
 Spring, summer and autumn can draw them (`data/calendar/weather_schedule.json`);
-winter keeps snow. Actual roofs and the visible slice clip streaks, including
-visually removed roofs over rooms. Rain presentation never adds simulated water or flooding.
+winter keeps snow. Rain presentation never adds simulated water or flooding.
 The sky dial and environmental audio follow the same authoritative weather ID.
-WeatherManager adds the scene's `WeatherPrecipitation` when the weather has a
-`precipitation` profile (`data/weather/rain.json`, `storm.json`). It draws at most
-`streaks` (180) around the listening focus, each starting on the physical roof
-(`UndergroundLighting.roof_height`), and stops at the slice.
+Since 2026-11-01 (doc 291) rain, storms and snow are drawn as §Rain and Snow below
+describes; the first version drew 180 streaks within 24 blocks of the screen centre.
+
+**Weather and temperature (2026-10-29, doc 282):** each weather's JSON has a `temperature`
+block the climate reads (doc 34): an offset (rain −1°C, storm and snow −2°C), how much of the
+day's swing it keeps (clear all of it, overcast half, the others 0.4) and `wet` for rain,
+storm and snow. It changes only what open air reaches; sealed rooms never feel the weather.
+The Temperature view shows it (doc 23; "The Temperature view's dim and floors" below).
 
 **Planned weather effects (not implemented):** snow cover would build at about
 +0.0007 per minute while it snows and melt at −0.0007 per minute in clear, foggy or
@@ -220,7 +225,8 @@ world geometry, support and picking planes retain their cube boundaries. Grass
 edge-distance maps and their deferred recolour pass are removed. Since 2026-10-21,
 stone, grass and earth also carry the Hearthblock dressing in the same shader
 ([63](../60_asset_creation/63_shared_art_standard.md#world-and-effect-boundaries)).
-Built logs take no profile: they are drawn as pieces (see "Built logs").
+Coal, too dark for a darker edge to show, has its own profile with a lighter edge and
+seam (2026-11-01). Built logs take no profile: they are drawn as pieces (see "Built logs").
 
 BlockRegistry loads `appearance_profiles.json` and builds immutable linear terrain
 colour lookups. The existing opaque sRGB `get_color` API remains for UI and
@@ -276,20 +282,22 @@ unfinished plans (doc 212). Plans provide neither terrain nor navigation support
 **Floor art removed (2026-10-26):** the plank and stone floors' authored face art
 (`ConstructionFloorArt`, which batched GLB boundary faces into the added terrain) left
 with the floors. Every built block but a log is drawn as a coloured cube with its kind's
-appearance profile; five of the seven profile ids are taken since the planked wood block and
-its `timber` boards went (doc 275). The planned Build textures need more profile ids than
-the vertex alpha holds, or authored art again (`00_todo.md`, "Build textures by progression").
+appearance profile; six of the seven profile ids are taken: the planked wood block and its
+`timber` boards went (doc 275), and coal took one on 2026-11-01. The planned Build textures
+need more profile ids than the vertex alpha holds, or authored art again (`00_todo.md`,
+"Build textures by progression").
 
 **Built logs (2026-10-26, doc 275):** a built log is a whole solid block for every system, but
 `BuiltLogs` (a WorldRenderer helper) draws it as a Hearthblock piece of
 `assets/models/construction/logs.glb`, not as a cube: the loose log stretched to fill its
-block (`tools/voxel_assets/built_logs.py`), recoloured for its wood by CraftMaterials and lit
-with the goods' material.
+block with its bark drawn off (`tools/voxel_assets/built_logs.py`, doc 278), recoloured for
+its wood by CraftMaterials and lit with the goods' material. The peeled surface has lit upper
+corner steps and shaded lower ones on a lying log, so each course reads apart in a wall.
 - **Pieces by neighbours:** logs of one wood in a row join into one long log, with end grain
   only where the row stops, and upright logs into one post. Where lying logs meet across (+,
   T, L) the top log passes whole over the lower log's fresh-cut shoulders: along X on even
   layers, along Z on odd ones, so stacked corners alternate. Logs of another wood, and lying
-  logs against upright ones, stay apart. Each block takes one of four plate variants by
+  logs against upright ones, stay apart. Each block takes one of four variants of knots and drying checks by
   position. `BuiltLogs.piece_at` picks the piece (`LogJointsTest`).
 - **Faces behind a log:** a log's clipped corners leave its block's long edges open, so
   `BlockRegistry.fills_cell` is false for a log. Built blocks keep the faces they turn to a
@@ -408,6 +416,78 @@ Stonehearth keeps a constant light scattering pass active at all times of day. T
 
 ---
 
+## Rain and Snow
+
+Since 2026-11-01 (doc 291). `WeatherManager` adds the scene's `WeatherPrecipitation` node the
+first time a weather with a `precipitation` block (rain, storm, snow) arrives; it lives and
+dies with the scene. Precipitation is presentation only: it never adds water, wets soil or
+changes a save.
+
+**Drops belong to world tiles.** `weather_precipitation.gdshader` places every drop from its
+world tile, its number and its fall cycle, so moving the camera never reshuffles drops. Each
+fall lands somewhere new; the change happens while the drop is unseen. The node picks the
+tiles the camera sees and keeps the uniforms; no script runs per drop.
+
+**The whole view is covered at every zoom and screen shape.** Two tile sizes draw at once,
+fine and coarse (twice the fine). The fine edge is half the camera distance rounded down to a
+power of two, at least 8 blocks. Rays along the screen's edges, a little outside it, meet a
+band around the ground at screen centre; every tile there that the camera frustum holds is
+drawn, at most 192 (nearest first). Rain stops 3.5 camera distances away, inside the fog. As
+the camera pulls back, fine drops give way to coarse ones, so drops per screen area stay even.
+A tile size keeps its drops when zoom moves it from the coarse level to the fine one.
+
+**Sizes are screen pixels.** Streak width and length and flake size are pixels of a 1080-line
+screen (`width_px`, `length_px`, `size_px`), never thinner than one real pixel; streaks are at
+most 2.5 blocks long. Godot's projection may be flipped in y on this renderer, so screen-size
+maths uses the absolute value of `PROJECTION_MATRIX[1][1]`.
+
+**Drops land on what is really there.** A landing map, one texel per column, holds the top
+solid block of the column plus any water standing on it. It starts from
+`WorldGenerator.heightmap`, then reads caves open to the sky, terrain edits and water over the
+next frames (1.5 ms a frame), and follows `WorldData.block_changed` and
+`WaterManager.surface_changed`. Rain ends on the water surface, not the bed. A drop ends in a
+small splash ring on the ground (`splash_seconds`) or a wider ripple on water
+(`ripple_seconds`); rings fade out between 70 and 150 blocks from the camera.
+
+**Roofs and the slice.** A drop never falls below the top solid block of its column, so a roof
+keeps rain out of the room under it even when the slice hides the roof. Nothing shows above
+the slice. The owner plays with the slice on, just above the ground: under a low cut a drop
+repeats the blocks it can show, so the rain stays as full as without the cut, and drops fade
+in just under the cut.
+
+**Weather changes fade.** A new weather fades the old precipitation out over 4 s, then fades
+in over 4 s. Paused time freezes the drops; game speed does not speed them up. Drop colour
+follows the sky: full by day, down to 40% at night (from the fog's horizon colour).
+
+**Data.** Each `precipitation` block in `data/weather/*.json` has `style` (`rain` or `snow`),
+`intensity` (share of the 256 drops a tile holds), `height` (the fall column, blocks), `speed`
+(blocks a second), `slant` (sideways blocks per block of fall, downwind toward −X), `opacity`
+and `color`. Rain adds `width_px`, `length_px`, `splash_seconds` and `ripple_seconds`. Snow
+adds `size_px`, `sway` (flutter, blocks) and `settle_seconds` (rest on the ground before it
+fades); its flakes are small spinning squares, in the voxel look.
+
+`WeatherPrecipitationTest` (sky area) checks the coverage, world-anchored tiles, even density
+across zoom, landing on roofs, pits and water, the fades and snow. The shader is judged by eye.
+
+### Lightning
+
+Since 2026-11-01 (doc 291). Every storm thunder is a lightning strike. When `AmbientAudio`'s
+thunder call comes due (35–85 s apart, as before), it calls `SkyController.flash_lightning()`
+and plays the thunder `flash_lead` seconds later (0.5–2.5 s, `data/audio/environment.json`).
+A nearer strike flashes brighter and rumbles sooner. The nearest 30% (`near_share`) play one of
+three recorded close cracks (`near_streams`, `thunder_near_01`–`03`) instead of a distant rumble
+(`thunder_01`–`03`); both are the same thunder call, with its bus, level, voice budget and pause
+rules. Thunder never plays before its flash, and paused time holds a waiting thunder.
+
+A strike is one to three flickers (`lightning` in `data/sky/sky_settings.json`). Each adds the
+flash colour to the sky, the clouds and the fog's horizon colour, so the distant land flashes
+too. It also lights open ground with a shadowless directional light, `Lightning`, from 70°
+above; the first strike adds it to the scene and a rebind reuses it. Terrain and actor shaders
+gate directional light by sky access, so sealed rooms and caves stay dark, including rooms whose
+roof the slice hides. While a flash lasts the sky updates every frame instead of 20 times a
+second. It is cosmetic: no simulation RNG, no saved state. `StormLightningTest` (sky area)
+covers the flash, its full return to the storm's colours and the thunder's order.
+
 ## World Edge Treatment
 
 ### No Special Boundary Required
@@ -514,9 +594,52 @@ Since the 2026-10-17 fix (doc 204), the sun also
 includes that layer in its **shadow-caster** mask, preventing plant/prop shadows
 from passing through cliffs. `SkyController` applies `TerrainLighting.configure_sun()`
 to the scene's sun on every bind; the terrain meshes get the layer through
-`configure_mesh()`. Camera and normal light masks include layer 20. A torch is hidden with
-its light when the slice cuts below its flame, preventing illumination over a
-sliced-away wall. Terrain identity, material colors and discovery rules are unchanged.
+`configure_mesh()`. Camera and normal light masks include layer 20. A torch the slice
+cuts away keeps its light; see "Sliced lights" below. Terrain identity, material colors
+and discovery rules are unchanged.
+
+#### Sliced lights (doc 287)
+
+The slice hides a light piece (torch, campfire, hearth) as it hides any furniture: once the
+cut is below its top cell, the whole piece is hidden, can't be picked and makes no sound.
+Its light keeps burning, so a hall whose torches hang above the cut stays lit:
+
+- **The light leaves the hidden model** for a holder beside it (`SlicedFurnitureLights`,
+  owned by `FurniturePlacementController`), at the same spot. It still goes out with a cold
+  nightly fire, and moves back when the slice shows the piece or the piece is removed.
+  `FurnitureLighting.light_of` finds it in either place.
+  - It keeps flickering: the flame animation runs while the piece or its light shows. A fire
+    hidden with its light stands still (`FireArtTest`); a cold fire in view still steps
+    (`ProfessionCraftingTest`).
+  - The piece node itself stays hidden on purpose: picking, the explorer and the fire sound
+    all read `node.is_visible_in_tree()` as "shown".
+- **The rock the slice hides stays in the shadows.** `SliceLightOccluders` (a child of
+  `WorldRenderer`) builds it as invisible, shadow-only meshes in 16-block chunks, so a light
+  above the cut can't shine past its own sliced-away walls into the next room or onto cut rock.
+  - Rock is the renderer's own picture of solid ground: the generated surface, open where a
+    cell is cut and solid where a block is built. A cave nobody has found stays rock (Hard
+    Rule 11).
+  - Chunks are built as if the slice were off, so they hold at every slice height; edits
+    rebuild the chunks they touch (`_invalidate_visual_cut_blocks` and the global path).
+  - Only the rock between the cut and the light, within its range, is needed, since a ray
+    from the light never climbs back down. A light comes on once all of that is built, and
+    one whose range ends above the cut stays dark.
+  - Chunks inside a sliced light's reach are shown. One chunk layer below the cut is built
+    ahead and kept hidden, so a step down never leaves a light waiting; other built chunks
+    stay cached and hidden.
+- **The sun never casts from that rock.** It sits on its own layer,
+  `TerrainLighting.SLICE_OCCLUDER_LAYER` (layer 18), which `configure_sun()` removes from the
+  sun's shadow casters. Otherwise the sliced-off mountain would shade every cut plate.
+- **Cost.** A chunk takes about 0.6 ms (worst about 2.4 ms) and chunks build within 3 ms a
+  frame, nearest the camera first. The owner's lobby (11 sliced torches, 2026-10-30) needed 84
+  chunks and about 24,000 shadow-only triangles, all built before the loading screen closed.
+  A big colony's first slice may take a second or two to light its farthest torches.
+- **Limits.** Built logs count as full blocks in the rock, though in the unsliced view a
+  little light passes between their round ends. Furniture above the cut casts no shadow
+  while sliced, because only terrain is kept, so a door above the cut no longer stops a
+  sliced light (`00_todo.md`, Rendering).
+- `SlicedTorchLightTest` (furniture area) checks all this headless, with rays against the rock
+  standing in for shadows.
 
 The GPU occlusion check measured zero illumination behind a test wall, versus
 0.574 luminance with its local-light shadows disabled. Roof-aware ambient and
@@ -727,8 +850,9 @@ there are no script/shader errors in the final runs. Restart play mode for the
 new tuning and shader; no project reload or save migration is required.
 
 This is a bounded skylight approximation, not bounced global illumination or
-sun-angle ray tracing. The normal slice still controls local-light shadow
-geometry and torch visibility. Natural-cave discovery and constructed room roofs
+sun-angle ray tracing. The normal slice still controls which terrain and furniture are
+drawn; a light above the cut takes its shadows from the shadow-only rock (see "Sliced
+lights"). Natural-cave discovery and constructed room roofs
 remain governed by their existing world/geometry systems; this pass does not add
 either system or lighting-related work restrictions.
 
@@ -904,6 +1028,22 @@ terrain or its materials:
   back when the view turns off.
 - **Layers:** all three sit on the default layer, X-ray's layer and the terrain layer, so
   the normal and X-ray cameras both draw them and X-ray's own scan leaves them alone.
+
+## The Temperature view's dim and floors (2026-10-29, doc 282)
+
+The Temperature view (doc 23) uses the same dim and the same kind of floor quads, never a
+change to terrain or its materials:
+- **The dim** is the Appeal view's (`appeal_dim.gdshader`, priority −100).
+- **The floors** are one multimesh a 16 x 16-column tile, a quad a run of neighbouring
+  floors along x with the same height and numbers, 0.02 above the floor, unshaded and
+  depth-tested (priority 10). Each quad's custom data holds its base temperature and its
+  shares of the season and of the day and weather; `temperature_view.gdshader` adds the
+  season's and the day and weather's offsets (two uniforms, set once a game hour and when
+  the weather changes) and picks the word's colour, so time passing redraws nothing.
+- **What shows:** each column's top floor at or under the slice, and the floors of sealed
+  rooms and dug tunnels under it. A cut plane of rock gets no quad and stays dim. Caves
+  not yet found read as rock (Hard Rule 11).
+- **Layers:** as the Appeal view's pieces.
 
 ## Mining-Edit Invalidation Contract
 

@@ -10,9 +10,9 @@ extends Node3D
 ##   deposit or water in the rock (Hard Rule 11). The copy, trimmed to its blocks, is kept
 ##   under a name to change in the Blueprints window, which opens on it.
 ## - Placing (Place, in the Blueprints window): the blueprint follows the pointer as a green
-##   ghost and R turns it a quarter (Shift + R back). A click plans it, one plan a material, and
-##   Undo takes the placement back whole. Blocks in the way show in rust and are left out, as is
-##   what the slice hides.
+##   ghost and R turns it a quarter (Shift + R back). A click plans it as one project (doc 276):
+##   one plan of all its materials, named for it, with one crate; Undo takes it back whole.
+##   Blocks in the way show in rust and are left out, as is what the slice hides.
 signal tool_active_changed(active: bool)
 ## A placement was planned: its receipt for the tool bar's Undo (doc 23, "The tool bar").
 signal order_created(receipt: Dictionary)
@@ -134,17 +134,19 @@ func _process(delta: float) -> void:
 
 # ── The tool bar ──────────────────────────────────────────────────────────────
 
-## What the tool bar shows (doc 23, "The tool bar"). Copy: Height and With floor, and while a
-## box is dragged its size and blocks; it makes no orders, so no Undo, only what it last
-## copied. Placing: the blueprint's name, and beside the pointer its size, its blocks and what
-## is in the way.
+## What the tool bar shows (doc 23, "The tool bar"). Copy: Height, With floor and the 32 × 32
+## guide, and while a box is dragged its size and blocks; it makes no orders, so no Undo, only
+## what it last copied. Placing: the blueprint's name and the guide, and beside the pointer its
+## size, its blocks and what is in the way.
 func tool_bar_state() -> Dictionary:
+	var mining: Node = construction.mining
 	if _mode == "copy":
 		var state := {"tool": "construct_copy", "undo": false,
 			"settings": [{"id": "height", "label": "Height", "value": _height, "min": 1, "max": BlueprintLibrary.MAX_SIZE.y,
 				"keys": "Alt + Wheel", "tooltip": "How many blocks tall the box is, from the ground you drag on."}],
-			"toggle": {"id": "floor", "label": "With floor", "on": _with_floor, "keys": "F",
-				"tooltip": "Takes the layer the box stands on too: its floors, or the ground there."}}
+			"toggles": [{"id": "floor", "label": "With floor", "on": _with_floor, "keys": "F",
+				"tooltip": "Takes the layer the box stands on too: its floors, or the ground there."}]}
+		if mining != null: state.toggles.append(mining.area_guide_toggle("copying"))
 		if _dragging:
 			var box := _copy_box()
 			state.selection = {"count": "%d × %d · %d tall" % [box.size.x, box.size.z, box.size.y], "short": false, "at": _pointer,
@@ -153,6 +155,7 @@ func tool_bar_state() -> Dictionary:
 	var blueprint := BlueprintLibrary.get_blueprint(_blueprint)
 	var state := {"tool": "blueprint_place", "name": "Place · %s" % String(blueprint.get("name", "")),
 		"picture": "res://assets/ui/icons/blueprints.png", "family": "work"}
+	if mining != null: state.toggles = [mining.area_guide_toggle("placing")]
 	if _hover != INVALID and not blueprint.is_empty():
 		var size := turned_size(blueprint.size, _turns)
 		var count := 0
@@ -165,6 +168,7 @@ func tool_bar_state() -> Dictionary:
 
 
 func set_tool_setting(id: String, value: Variant) -> void:
+	if id == "guide" and construction.mining != null: construction.mining.set_mining_guide_enabled(bool(value))
 	if id == "height": _height = clampi(int(value), 1, BlueprintLibrary.MAX_SIZE.y)
 	elif id == "floor": _with_floor = bool(value)
 	else: return
@@ -328,8 +332,9 @@ func capture(low: Vector3i, size: Vector3i) -> Dictionary:
 	var planned := {}
 	for order in construction.orders.values():
 		for cell: Vector3i in order.cells:
-			planned[cell] = String(order.construction_kind) if order.wood.is_empty() \
-				else BlueprintLibrary.log_material(order.wood, String(order.directions.get(cell, "up")))
+			var wood := String(order.wood_of(cell))
+			planned[cell] = String(order.kind_of(cell)) if wood.is_empty() \
+				else BlueprintLibrary.log_material(wood, String(order.directions.get(cell, "up")))
 	var found := {}
 	var first := Vector3i(WorldData.WORLD_SIZE_X, WorldData.WORLD_SIZE_Y, WorldData.WORLD_SIZE_Z)
 	var last := -Vector3i.ONE
@@ -456,32 +461,33 @@ func ghost_at(origin: Vector3i) -> void:
 		_ghost_cells[kind] = planned
 
 
-## Plans the blueprint where the ghost stands: one plan a kind and wood, its logs lying as they
-## were copied, taken back together by Undo. How many blocks it planned.
+## Plans the blueprint where the ghost stands as one project (doc 276): one plan of every
+## material, named for the blueprint, its logs lying as they were copied. The plan's own
+## material is the one with the most blocks; the rest keep theirs. Undo takes it back whole.
+## How many blocks it planned.
 func place_here() -> int:
-	var ids: Array[int] = []
-	var count := 0
-	var plans := {}
+	var cells: Array[Vector3i] = []
+	var own := {}
+	var directions := {}
+	var counts := {}
 	for material: String in _ghost_cells:
 		var parts := BlueprintLibrary.material_parts(material)
 		var key := "%s|%s" % [parts.kind, parts.wood]
-		if not plans.has(key):
-			var cells: Array[Vector3i] = []
-			plans[key] = {"kind": String(parts.kind), "wood": String(parts.wood), "cells": cells, "directions": {}}
 		for cell: Vector3i in _ghost_cells[material]:
-			plans[key].cells.append(cell)
-			if not String(parts.direction).is_empty(): plans[key].directions[cell] = parts.direction
-	for plan: Dictionary in plans.values():
-		if (plan.cells as Array).is_empty(): continue
-		var id: int = construction.create_order(plan.cells, -1, false, plan.kind, plan.wood, plan.directions)
-		if id < 0: continue
-		ids.append(id)
-		count += (construction.orders[id].cells as Array).size()
-	if ids.is_empty():
+			cells.append(cell)
+			own[cell] = [String(parts.kind), String(parts.wood)]
+			if not String(parts.direction).is_empty(): directions[cell] = parts.direction
+		counts[key] = int(counts.get(key, 0)) + (_ghost_cells[material] as Array).size()
+	var main := ""
+	for key: String in counts:
+		if main.is_empty() or int(counts[key]) > int(counts[main]): main = key
+	var name := String(BlueprintLibrary.get_blueprint(_blueprint).get("name", "blueprint"))
+	var id: int = construction.create_order(cells, -1, false, main.get_slice("|", 0), main.get_slice("|", 1), directions, own, name) if not cells.is_empty() else -1
+	if id < 0:
 		order_feedback.emit("Nothing of it can be planned here")
 		return 0
-	var name := String(BlueprintLibrary.get_blueprint(_blueprint).get("name", "blueprint"))
-	order_created.emit({"orders": ids, "message": "Planned %s · %d blocks" % [name, count]})
+	var count: int = (construction.orders[id].cells as Array).size()
+	order_created.emit({"orders": [id], "message": "Planned %s · %d blocks" % [name, count]})
 	_ghost_key = ""
 	_update(_pointer)
 	return count

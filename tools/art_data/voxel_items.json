@@ -140,7 +140,80 @@
       "cutting",
       "386448",
       "6F9650"
+    ],
+    "perch": [
+      "fish",
+      "262C15",
+      "A7A646"
+    ],
+    "trout": [
+      "fish",
+      "2E2619",
+      "BFA261"
+    ],
+    "char": [
+      "fish",
+      "142019",
+      "6E8669"
+    ],
+    "cave_fish": [
+      "fish",
+      "8E7770",
+      "F1DED7"
+    ],
+    "dried_fish": [
+      "fish",
+      "3E2416",
+      "C27448"
     ]
+  },
+  "fish_styles": {
+    "perch": {
+      "back": "55632A",
+      "side": "A7A646",
+      "belly": "EFE8C6",
+      "tail": "D9572E",
+      "eye": "1E1814",
+      "mark": "343D1D",
+      "marks": [[0, "back"], [0, "side"], [2, "back"], [2, "side"]]
+    },
+    "trout": {
+      "back": "6C5C37",
+      "side": "BFA261",
+      "belly": "F0EBDA",
+      "tail": "98865C",
+      "eye": "1E1814",
+      "mark": "2B241E",
+      "red": "D1432C",
+      "marks": [[0, "back"], [2, "back"], [1, "side", "red"]]
+    },
+    "char": {
+      "back": "2C463B",
+      "side": "6E8669",
+      "belly": "E2642B",
+      "tail": "3C5649",
+      "eye": "1E1814",
+      "mark": "F1E2C3",
+      "marks": [[0, "back"], [1, "side"], [2, "back"]]
+    },
+    "cave_fish": {
+      "back": "DCC1B8",
+      "side": "F1DED7",
+      "belly": "F8ECE7",
+      "tail": "E4D0CA",
+      "eye": "E3C6BE",
+      "mark": "E29997",
+      "marks": [[0, "side"]]
+    },
+    "dried_fish": {
+      "back": "C27448",
+      "side": "6B3A22",
+      "belly": "C27448",
+      "tail": "5C3420",
+      "eye": "2A1B14",
+      "mark": "8A4A2A",
+      "marks": [[0, "back"], [2, "belly"]]
+    }
   },
   "palette": {
     "crate_shadow": "624A35",

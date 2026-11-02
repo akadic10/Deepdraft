@@ -1,0 +1,24 @@
+Deepdraft - recorded campfire/hearth and torch sources
+
+Both recordings were published under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+campfire.wav
+Author: aerror
+Source: https://freesound.org/people/aerror/sounds/350757/
+Preview: https://cdn.freesound.org/previews/350/350757_2472895-hq.mp3
+Local master: campfire_recording.wav
+A real campfire recorded with a Zoom H4N and its internal XY microphone capsule. The uploader applied leveling and cutting.
+
+Fire Crackle and Flames 002
+Author: TheWoodlandNomad (formerly FractalStudios)
+Source: https://freesound.org/people/TheWoodlandNomad/sounds/363092/
+Preview: https://cdn.freesound.org/previews/363/363092_6612464-hq.mp3
+Local master: log_fire_flames.wav
+A crackling log fire with moving flames, recorded on Zoom H1. A quieter excerpt is adapted as torch foley; this is recorded wood fire, not a claim of an actual torch recording.
+
+Masters were decoded from public HQ MP3 previews, not original lossless uploads. Stereo sources were averaged to mono and resampled to 22050 Hz with anti-alias filtering, retaining natural speed and pitch, then stored as PCM16. Both masters retain their complete source recording. Crops, hashes, gains and reproducible edit profiles are in source.json.
+
+Campfire also supplies the hearth, per existing game definitions. Its output uses tanh soft peak control at four times source RMS to tame close-mic wood pops, before loop crossfading and gain. Torch uses a quieter passage of a separate log-fire recording as foley for a small stationary flame; it is not a recording of a torch. The original source by TheWoodlandNomad was formerly attributed to FractalStudios. Source descriptions distinguish uploader processing from our filters and loop crossfades.

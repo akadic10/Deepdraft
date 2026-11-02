@@ -2,7 +2,8 @@ extends Node
 
 ## Cosmetic voxel flame flipbook, independent of calendar speed/heat. Only installed
 ## lights create this node. Meshes are shared; each fire owns its emission material.
-## Visibility changes suspend the update loop when the slice hides the parent.
+## Visibility changes suspend the update loop when the slice hides the parent, unless its
+## light was lifted out beside it and keeps burning there (doc 287).
 static var _clip_cache: Dictionary = {} # resource path -> named Mesh resources
 
 var _owner: Node3D
@@ -62,8 +63,9 @@ func setup(owner_node: Node3D, flame: MeshInstance3D, light: OmniLight3D,
 	_speed = 1.0 + (float((seed_value >> 12) % 4093) / 4093.0 * 2.0 - 1.0) * speed_variation
 	_elapsed = _phase * _cycle
 	_apply_sample()
-	_owner.visibility_changed.connect(_sync_visibility)
-	_sync_visibility()
+	_owner.visibility_changed.connect(sync_visibility)
+	_light.visibility_changed.connect(sync_visibility)
+	sync_visibility()
 	return true
 
 
@@ -85,12 +87,19 @@ static func _load_clip(path: String) -> Dictionary:
 	return result
 
 
-func _sync_visibility() -> void:
-	set_process(_owner.is_visible_in_tree())
+## Moving the light between its piece and the holder beside it (SlicedFurnitureLights) signals
+## nothing, so the mover calls this.
+func sync_visibility() -> void:
+	set_process(_showing())
+
+
+func _showing() -> bool:
+	return (is_instance_valid(_owner) and _owner.is_visible_in_tree()) \
+		or (is_instance_valid(_light) and _light.is_visible_in_tree())
 
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(_owner) or not _owner.is_visible_in_tree():
+	if not _showing():
 		return
 	_elapsed += delta * _speed
 	_accum += delta

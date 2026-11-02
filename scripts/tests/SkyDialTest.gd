@@ -24,7 +24,7 @@ func _run() -> void:
 		_expect(dial.state.season == season and dial.state.day == 1 and dial.state.year == 2, "restoring calendar refreshes " + season)
 		_expect(is_equal_approx(dial.state.sunrise, sky.current_event_hours().sunrise) and is_equal_approx(dial.state.sunset, sky.current_event_hours().sunset), "HUD rise/set match world lighting")
 		_expect(dial._layers.has("hills_" + season) and dial._date_label.text == season.capitalize() + " 1" and dial._bar.season == season
-			and dial._left_label.text == "28 days to " + String(dial.state.next_season), "the window shows %s's land, and the plate its first day" % season)
+			and dial._left_label.text == "%d days to %s" % [clock_node.days_per_season(), dial.state.next_season], "the window shows %s's land, and the plate its first day" % season)
 		for id in ["clear", "overcast", "foggy", "snow", "rain", "storm"]:
 			weather.set_weather("base:weather:" + id)
 			dial.refresh()
@@ -43,7 +43,7 @@ func _run() -> void:
 	_expect(dial._time_label.text == "08:33" and dial.state.paused, "pause freezes display and cycle")
 	clock_node.set_paused(false)
 	clock_node.set_speed(2)
-	clock_node._process(30)
+	clock_node._process(clock_node.get_real_seconds_per_game_hour() * 0.5)
 	dial.refresh()
 	_expect(dial._time_label.text == "09:33", "speed changes use the authoritative simulation clock")
 	clock_node.restore_state({"year": 1, "season": "winter", "day": 1, "hour": 23.0, "speed": 1, "paused": true})
@@ -74,10 +74,11 @@ func _run() -> void:
 	dial.refresh()
 	_expect(dial.state.phase == "Dusk" and not dial.state.is_day and dial.state.body == "moon" and float(dial.state.body_t) < 0.01,
 		"at sunset the moon rises on the left")
-	clock_node.restore_state({"year": 1, "season": "autumn", "day": 28, "hour": 12.0, "speed": 1, "paused": true})
+	var last_day: int = clock_node.days_per_season()
+	clock_node.restore_state({"year": 1, "season": "autumn", "day": last_day, "hour": 12.0, "speed": 1, "paused": true})
 	dial.refresh()
-	_expect(dial._left_label.text == "1 day to winter" and dial._bar.day == 28, "the season's last day says one day to the next")
-	clock_node.restore_state({"year": 3, "season": "winter", "day": 28, "hour": 23.95, "speed": 1, "paused": true})
+	_expect(dial._left_label.text == "1 day to winter" and dial._bar.day == last_day, "the season's last day says one day to the next")
+	clock_node.restore_state({"year": 3, "season": "winter", "day": last_day, "hour": 23.95, "speed": 1, "paused": true})
 	clock_node.advance_hours(.1)
 	dial.refresh()
 	_expect(dial.state.season == "spring" and dial.state.day == 1 and dial.state.year == 4, "day/season/year rollover reaches the HUD")

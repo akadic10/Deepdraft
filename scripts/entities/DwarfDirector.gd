@@ -144,6 +144,13 @@ func is_following(id: Variant) -> bool:
 		and _camera_rig.has_method("is_following") and bool(_camera_rig.call("is_following", id))
 
 
+## An explicit pick of a dwarf: an open career map follows it, as an open character sheet
+## follows the selection (DwarfProfessionPanel.follow).
+func on_explorer_selected(id: Variant) -> void:
+	if _window_manager != null and _window_manager.is_open("professions") and _inspectable(id):
+		_profession_panel.follow(id)
+
+
 func clear_explorer_selection(id: Variant) -> void:
 	if is_instance_valid(_camera_rig) and _camera_rig.has_method("is_following") \
 			and bool(_camera_rig.call("is_following", id)):
@@ -376,9 +383,11 @@ func restore_state(state: Dictionary) -> void:
 			"traits": entry.get("traits", []),
 			"tastes": entry.get("tastes", {}),
 			"found_tastes": entry.get("found_tastes", []),
+			"stats": entry.get("stats", {}),
 			"profession": String(entry.get("profession", "base:profession:worker")),
 			"profession_experience": entry.get("profession_experience", {}),
 			"work_permissions": entry.get("work_permissions", {}),
+			"catch_log": entry.get("catch_log", {}),
 		}
 		var agent := _factory.spawn(data, dwarf_id)
 		agent.position = SaveManager.unpack_v3(entry.get("position", []))
@@ -402,7 +411,8 @@ func restore_state(state: Dictionary) -> void:
 			var item_key := String(saved_cargo.item_key)
 			var count := int(saved_cargo.count)
 			var instance_id := String(saved_cargo.get("instance_id", ""))
-			item_manager.restore_loose_item(item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)), String(saved_cargo.get("material_id", "")))
+			item_manager.restore_loose_item(item_key, agent.position + offset, 0.0, count, instance_id, bool(saved_cargo.get("disallowed", false)), String(saved_cargo.get("material_id", "")),
+				clampf(float(saved_cargo.get("spoil", 0.0)), 0.0, 1.0))
 			carried_index += 1
 		_birth_index = maxi(_birth_index, dwarf_id + 1)
 	refresh_window()
@@ -441,6 +451,20 @@ func _dev_make_worker_hungry() -> void:
 		if is_instance_valid(agent) and agent.dev_make_hungry():
 			print("DwarfDirector: %s will look for a food portion." % agent.dwarf_name)
 			return
+
+
+## Takes `dev_hurt` hit points (doc 41 "Health") from the selected dwarf, else the first awake one.
+## Health never drops below its minimum, and comes back slowly, faster asleep.
+func _dev_hurt_dwarf() -> void:
+	var explorer := get_tree().get_first_node_in_group("object_explorer")
+	var target: DwarfAgent = explorer.selected_dwarf(self) if explorer != null else null
+	for agent in _agents:
+		if target == null and is_instance_valid(agent) and not agent.is_sleeping(): target = agent
+	if target == null:
+		print("DwarfDirector: DEV hurt — no dwarf to hurt.")
+		return
+	var taken: float = target.dev_hurt(float(TaskManager.get_config_section("health").get("dev_hurt", 30)))
+	print("DwarfDirector: DEV hurt — %s lost %d hit points and is %s." % [target.dwarf_name, roundi(taken), target.get_health().word()])
 
 
 ## Drop rest to its threshold, preferring a working dwarf to exercise release.
@@ -568,6 +592,11 @@ func _register_dev_window() -> void:
 		"Lowers one awake dwarf's Food to the hungry threshold. They must find and eat real food through normal behavior.",button_size,"dev")
 	hunger.pressed.connect(_dev_make_worker_hungry)
 	column.add_child(hunger)
+	var hurt := UITheme.make_button("DEV: hurt a dwarf",
+		"Takes %d hit points from the selected dwarf, or from one awake dwarf when none is selected. Health never drops below 1, and comes back slowly, faster asleep." % int(TaskManager.get_config_section("health").get("dev_hurt", 30)),
+		button_size, "dev")
+	hurt.pressed.connect(_dev_hurt_dwarf)
+	column.add_child(hurt)
 
 	var spawn := UITheme.make_button("DEV: Spawn %d at camera" % squad_size,
 		"Generates the next %d roster dwarves on walkable ground around the camera. Deterministic per world seed." % squad_size,

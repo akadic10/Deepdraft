@@ -35,8 +35,12 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 	var live_task := TaskManager.get_task(agent.current_task_id)
 	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting " + _tree_fruit_label(live_task)
 	if live_task != null and live_task.type == Task.Type.UPROOT_SHRUB: data.summary = "Uprooting shrub"
+	if live_task != null and live_task.type == Task.Type.FISH: data.summary = "Fishing"
+	if live_task != null and live_task.type == Task.Type.COLLECT: data.summary = "Taking down dried fish"
 	var fetch := agent.fetch_source()
-	if fetch != null and fetch.has_method("advance_plant"): data.summary = "Planting cutting" if bool(fetch.def.get("from_cutting", false)) else "Replanting shrub"
+	if fetch != null and fetch.has_method("advance_plant"):
+		data.summary = "Planting " + String(fetch.def.display_name).to_lower() if fetch.def.has("tree_species") \
+			else "Planting cutting" if bool(fetch.def.get("from_cutting", false)) else "Replanting shrub"
 	if data.group == "idle" and not leisure: data.summary = "Idle"
 	if data.group == "resting": data.summary = "Resting"
 	if agent.promotion_pending():
@@ -138,6 +142,12 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			var harvest := task.type == Task.Type.HARVEST_SHRUB
 			activity = ("Harvesting berries" if harvest else "Clearing a shrub") if phase == Phase.FELL_WORKING else ("Going to harvest" if harvest else "Going to clear a shrub")
 			explanation = "Picking this season’s crop; the plant remains." if harvest else "Removing the plant with a chance to recover a cutting."
+		if task.type == Task.Type.FISH:
+			activity = "Fishing" if phase == Phase.FELL_WORKING else ("Going to fish" if phase == Phase.FELL_MOVING else "Finding a fishing spot")
+			explanation = "Casting from the shore; a catch lands at the dwarf's feet." if phase == Phase.FELL_WORKING else "Walking to a spot of the Fishing zone."
+		if task.type == Task.Type.COLLECT:
+			activity = "Taking down dried fish" if phase == Phase.FELL_WORKING else "Going to the drying rack"
+			explanation = "A day on the rack has dried them; they land beside it." if phase == Phase.FELL_WORKING else "Walking to the rack whose fish are dry."
 		if task.type == Task.Type.UPROOT_SHRUB:
 			var plant_source := TaskManager.get_work_source(task.source_id)
 			var label := "flowers" if plant_source != null and plant_source.get("state").get("plant_kind") == "flower" else "a shrub"
@@ -151,6 +161,10 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			if bool(fetch.def.get("from_cutting", false)):
 				activity = "Planting a cutting" if phase in [Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT] else "Carrying a cutting" if phase == Phase.FETCH_TO_GHOST else "Collecting a cutting"
 				explanation = "Planting one cutting; the young shrub will grow with the seasons."
+			if fetch.def.has("tree_species"):
+				var seed_name := String(fetch.def.display_name).to_lower()
+				activity = ("Planting " if phase in [Phase.FETCH_WORKING, Phase.FETCH_DEPOSIT] else "Carrying " if phase == Phase.FETCH_TO_GHOST else "Collecting ") + seed_name
+				explanation = "Planting one %s; the sapling will grow into a tree with the seasons." % seed_name
 		if task.type == Task.Type.CLEAR_PLANT:
 			var plant_source := TaskManager.get_work_source(task.source_id)
 			var plant_state: Dictionary = plant_source.get("state") if is_instance_valid(plant_source) else {}
@@ -174,7 +188,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 				explanation = "Bringing materials to the crafting position."
 			elif phase == Phase.FETCH_DEPOSIT and craft_source.needs_ingredient_delivery():
 				activity = "Setting down " + material
-				explanation = "Delivering this ingredient before collecting the next one."
+				explanation = "Delivering this ingredient before collecting the next one." if items.size() == 1 else "Putting the load down beside the bench."
 			elif phase in [Phase.FETCH_WORKING,Phase.FETCH_DEPOSIT]:
 				activity = "Crafting " + String(craft_source.recipe.name).to_lower()
 				explanation = "Working with the gathered materials to finish the recipe."
@@ -237,6 +251,26 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		trait_names.append(name)
 		trait_details.append({"name": name, "positive": String(definition.get("polarity", "positive")) == "positive",
 			"description": String(definition.get("description", "No description available."))})
+	# The stats (doc 41 "Stats"), in stats.json's order: each step's word and what the stat does.
+	# Health's stat gives the hit points, a stat that speeds work says how much ("Crafts and
+	# builds 6% faster"), and the others say they are not active yet.
+	var health: Dictionary = agent.get_health().describe() if agent.get_health() != null else {}
+	var health_config := TaskManager.get_config_section("health")
+	var stat_details: Array[Dictionary] = []
+	for id: String in DwarfAssets.stat_ids():
+		var stat := DwarfAssets.stat_definition(id)
+		var step := int(agent.stats.get(id, 0))
+		var work: Array = stat.get("work", [])
+		var live := not work.is_empty() or (id == String(health_config.get("stat", "")) and not health.is_empty())
+		var effect := "Not active yet: " + String(stat.get("effect", ""))
+		if not work.is_empty():
+			var rate := DwarfAssets.work_rate(String(work[0]), agent.stats)
+			var speed := "at the usual speed" if is_equal_approx(rate, 1.0) else "%d%% %s" % [roundi(absf(rate - 1.0) * 100.0), "faster" if rate > 1.0 else "slower"]
+			effect = String(stat.get("does", "")).format({"speed": speed})
+		elif live:
+			effect = "%d hit points; Average is %d" % [health.maximum, int(health_config.get("base_hit_points", 100))]
+		stat_details.append({"id": id, "name": String(stat.get("name", id)), "step": step, "word": DwarfAssets.stat_word(step),
+			"description": String(stat.get("description", "")), "effect": effect, "live": live})
 	# The compact panel's mood badge (doc 260): happiness beside the step's face, with the
 	# thought on hover.
 	var badge := {}
@@ -253,7 +287,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		"mood": mood_sheet, "experience": experience(agent), "crafting_section": crafting_section(agent),
 		"profession_icon": String(DwarfAssets.profession_definition(agent.profession).get("icon", "")),
 		"profession_name": String(DwarfAssets.profession_definition(agent.profession).get("display_name", "Worker")),
-		"profession": String(DwarfAssets.profession_definition(agent.profession).get("display_name", "Worker")) + (" · Lv %d" % DwarfAssets.profession_level(agent.profession, agent.profession_experience) if agent.profession == "base:profession:miner" else ""),
+		"profession": String(DwarfAssets.profession_definition(agent.profession).get("display_name", "Worker")) + (" · Lv %d" % DwarfAssets.profession_level(agent.profession, agent.profession_experience) if DwarfAssets.earns_experience(agent.profession) else ""),
 		"activity": activity, "explanation": explanation, "destination": destination,
 		"equipment": equipment_description(agent),
 		"equipment_details": equipment_details(agent),
@@ -262,7 +296,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		"concern": preload("DwarfConcern.gd").describe(agent),
 		"sleeping": agent.is_sleeping(), "cargo": items, "load": load_used,
 		"capacity": capacity, "traits": ", ".join(trait_names) if not trait_names.is_empty() else "No distinctive traits",
-		"trait_details": trait_details,
+		"trait_details": trait_details, "stat_details": stat_details, "health": health,
 	}
 
 
@@ -298,15 +332,15 @@ static func tastes_sheet(agent: DwarfAgent) -> Dictionary:
 
 
 ## The crafting section the dwarf's profession works in today, or "": Workers craft
-## Rudimentary, and a specialist its own section once it is no longer planned.
+## Rudimentary, Rangers their own (doc 292), and other careers once theirs is no longer planned.
 static func crafting_section(agent: DwarfAgent) -> String:
-	var section := "rudimentary" if agent.profession == "base:profession:worker" else agent.profession.get_slice(":", 2)
-	var entry: Dictionary = ContentRegistry.recipe_sections.get(section, {})
-	return section if not entry.is_empty() and not bool(entry.get("planned", false)) else ""
+	return DwarfAssets.craft_section(agent.profession)
 
 
 ## The profession's level, the way to the next and the level rewards, for every profession
-## (doc 261). Only the Miner earns experience today (`earns`); the others stay at level 1.
+## (doc 261). The Miner and the Ranger earn experience (`earns`); the others stay at level 1.
+## A Ranger's also carries their catch log (CatchLog.describe), which the sheet shows instead
+## of the rewards.
 static func experience(agent: DwarfAgent) -> Dictionary:
 	var key := agent.profession
 	var name := String(DwarfAssets.profession_definition(key).get("display_name", "Worker"))
@@ -315,20 +349,20 @@ static func experience(agent: DwarfAgent) -> Dictionary:
 		if "base:profession:" + String(entry.role) == key: summary = String(entry.summary)
 	var level := DwarfAssets.profession_level(key, agent.profession_experience)
 	var result := {"level": level, "progress": 0.0, "earns": false, "line": "%s levels are planned" % name, "summary": summary, "rewards": []}
-	if key != "base:profession:miner": return result
+	if not DwarfAssets.earns_experience(key): return result
+	var info: Dictionary = DwarfAssets.profession_definition(key).experience
 	result.earns = true
 	var count := maxi(0, int(agent.profession_experience.get(key, 0)))
-	result.rewards = [{"level": 1, "text": "Mining focus", "earned": true}]
-	for reward_level in range(2, 6):
-		var speed := DwarfAssets.mining_duration_multiplier(key, {key: DwarfAssets.experience_threshold(reward_level)})
-		result.rewards.append({"level": reward_level, "text": "%d%% less digging time" % roundi((1.0 - speed) * 100), "earned": level >= reward_level})
+	for reward: Dictionary in DwarfAssets.level_rewards(key):
+		result.rewards.append({"level": int(reward.level), "text": String(reward.text), "earned": level >= int(reward.level)})
+	if bool(info.get("catch_log", false)): result.catch_log = preload("CatchLog.gd").describe(agent)
 	if level >= 5:
 		result.progress = 1.0
-		result.line = "Master Miner · %d blocks mined" % count
+		result.line = "%s · %d %s" % [info.master, count, DwarfAssets.experience_words(key, "noun", count)]
 		return result
-	var lower := DwarfAssets.experience_threshold(level) if level > 1 else 0
-	result.progress = clampf(float(count - lower) / float(maxi(1, DwarfAssets.experience_threshold(level + 1) - lower)), 0.0, 1.0)
-	result.line = "%d%% to level %d · %d blocks mined" % [floori(result.progress * 100), level + 1, count]
+	var lower := DwarfAssets.experience_threshold(level, key) if level > 1 else 0
+	result.progress = clampf(float(count - lower) / float(maxi(1, DwarfAssets.experience_threshold(level + 1, key) - lower)), 0.0, 1.0)
+	result.line = "%d%% to level %d · %d %s" % [floori(result.progress * 100), level + 1, count, DwarfAssets.experience_words(key, "noun", count)]
 	return result
 
 

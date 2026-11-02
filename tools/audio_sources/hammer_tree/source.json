@@ -1,0 +1,160 @@
+{
+  "sources": [
+    {
+      "kind": "stone_hits",
+      "author": "xtra1",
+      "id": "858891",
+      "title": "Stone on Stone Hit",
+      "description": "Two apple-sized stones struck together in front of a Fifine HyperX, used here as stone-hammer foley.",
+      "page": "https://freesound.org/people/xtra1/sounds/858891/",
+      "download": "https://cdn.freesound.org/previews/858/858891_18963922-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "d0f9bbab9c822b8c0ee2ac6a73981a21045f62af15eebfd66554e38279523863",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 17.69015873015873,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "stone_hits.wav",
+      "master_sha256": "dd5945098512934792032c004c4c1946d194c31889d3f23e1b83308820800039",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.8212942191883713,
+      "source_channel_correlation": 0.99991766268567,
+      "decoded_preview_peak": 0.9610552787780762,
+      "master_conversion": "Complete HQ MP3 preview decoded to floating point, stereo averaged to mono, resampled to 48000 Hz with normalized 256-tap rational-phase Kaiser sinc (radius 128, beta 8.6, 19800 Hz cutoff, reflect padding), then gain-normalized to peak 0.8 before PCM16 encoding. Float decoding retains MP3 overshoots without clipping during conversion. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "tree_fall",
+      "author": "ecfike",
+      "id": "139952",
+      "title": "A Tree Falling Down.wav",
+      "description": "A real tree falling during tree cutting on the uploader\u2019s farm.",
+      "page": "https://freesound.org/people/ecfike/sounds/139952/",
+      "download": "https://cdn.freesound.org/previews/139/139952_2337290-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "d144a3f9daf6b53753b798982435d5eec5405c97c044be36cb9ba53cda96cb86",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 4.519750566893424,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "tree_fall.wav",
+      "master_sha256": "1740e7197df93d3efda35f8e629e1f9316275603ff4b4c5c47332cab8dcdd5ab",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.6832769099146004,
+      "source_channel_correlation": 0.5418592520726568,
+      "decoded_preview_peak": 1.3177820444107056,
+      "master_conversion": "Complete HQ MP3 preview decoded to floating point, stereo averaged to mono, resampled to 48000 Hz with normalized 256-tap rational-phase Kaiser sinc (radius 128, beta 8.6, 19800 Hz cutoff, reflect padding), then gain-normalized to peak 0.8 before PCM16 encoding. Float decoding retains MP3 overshoots without clipping during conversion. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "clips": {
+    "hammer_stone_01": {
+      "master": "stone_hits.wav",
+      "region_seconds": [
+        0.084,
+        0.364
+      ],
+      "high_pass_hz": 70,
+      "low_pass_hz": 11000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "output": "assets/audio/work/hammer_stone_01.wav",
+      "target_rms": 0.06570291393386075,
+      "peak_ceiling": 0.699981689453125
+    },
+    "hammer_stone_02": {
+      "master": "stone_hits.wav",
+      "region_seconds": [
+        1.391,
+        1.711
+      ],
+      "high_pass_hz": 70,
+      "low_pass_hz": 11000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "output": "assets/audio/work/hammer_stone_02.wav",
+      "target_rms": 0.05601991243759116,
+      "peak_ceiling": 0.699981689453125
+    },
+    "hammer_stone_03": {
+      "master": "stone_hits.wav",
+      "region_seconds": [
+        2.51,
+        2.79
+      ],
+      "high_pass_hz": 70,
+      "low_pass_hz": 11000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "output": "assets/audio/work/hammer_stone_03.wav",
+      "target_rms": 0.06960814836198857,
+      "peak_ceiling": 0.699981689453125
+    },
+    "hammer_stone_04": {
+      "master": "stone_hits.wav",
+      "region_seconds": [
+        3.502,
+        3.832
+      ],
+      "high_pass_hz": 70,
+      "low_pass_hz": 11000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "output": "assets/audio/work/hammer_stone_04.wav",
+      "target_rms": 0.07885282799059774,
+      "peak_ceiling": 0.699981689453125
+    },
+    "hammer_stone_05": {
+      "master": "stone_hits.wav",
+      "region_seconds": [
+        7.974,
+        8.304
+      ],
+      "high_pass_hz": 70,
+      "low_pass_hz": 11000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "output": "assets/audio/work/hammer_stone_05.wav",
+      "target_rms": 0.07269472088146017,
+      "peak_ceiling": 0.699981689453125
+    },
+    "hammer_stone_06": {
+      "master": "stone_hits.wav",
+      "region_seconds": [
+        8.582,
+        8.902
+      ],
+      "high_pass_hz": 70,
+      "low_pass_hz": 11000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "output": "assets/audio/work/hammer_stone_06.wav",
+      "target_rms": 0.06919117475893002,
+      "peak_ceiling": 0.699981689453125
+    },
+    "tree_felled": {
+      "master": "tree_fall.wav",
+      "region_seconds": [
+        0,
+        4.51975
+      ],
+      "high_pass_hz": 45,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.16,
+      "output": "assets/audio/work/tree_felled.wav",
+      "target_rms": 0.04853393486957029,
+      "peak_ceiling": 0.699981689453125
+    }
+  },
+  "production_script": "tools/generate_recorded_work_audio.py",
+  "processing": "Six distinct stone-on-stone impacts used as stone-hammer foley, plus a real tree fall. The hammer excerpts retain short natural tails; the tree retains its full event. DC removal, gentle high/low-pass filtering, short edge fades and gain toward former RMS subject to each former peak ceiling. No synthesis, pitch shifting, time stretching, extra reverberation or denoising. Runtime cosmetic pitch variation remains unchanged."
+}

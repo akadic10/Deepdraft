@@ -96,6 +96,9 @@ func get_place_definitions() -> Dictionary:
 
 
 func place_model(definition: Dictionary, season: String) -> String:
+	if definition.has("tree_species"): # A seed's plan shows the sapling it becomes (doc 284).
+		var models: Dictionary = ContentRegistry.tree_species(String(definition.tree_species)).stages.sapling.models
+		return String(models.get(season, models.summer))
 	var plant := get_definition(String(definition.plant_definition))
 	if bool(definition.get("from_cutting", false)): return String(plant.young_models[season])
 	var models: Variant = plant.seasonal_models[season]

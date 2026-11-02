@@ -43,6 +43,13 @@ func _run() -> void:
 		light.light_energy = 1.2
 		scene.add_child(light)
 		var model: Node3D = load(String(definition.model)).instantiate()
+		# A nightly fire holds no wood (doc 279): its picture burns a pine log, as at night.
+		if definition.has("nightly_fire"):
+			var fire: Dictionary = definition.nightly_fire
+			var at: Array = fire.log_position
+			var wood: Node3D = load(String(root.get_node("ContentRegistry").items["base:resources:wood:pine_log"].model)).instantiate()
+			wood.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(float(fire.log_yaw_degrees))).scaled(Vector3.ONE * float(fire.log_scale)), Vector3(at[0], at[1], at[2]))
+			model.add_child(wood)
 		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(model, false)
 		scene.add_child(model)
 		var bounds := AABB()

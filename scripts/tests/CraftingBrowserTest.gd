@@ -21,8 +21,8 @@ func _run() -> void:
 		_expect(panel._folded==folded and panel._right.visible!=folded and panel._tabs.visible==folded,"the queue folds into an Orders tab only on small screens: "+str(viewport))
 		_expect(panel._recipe_scroll.is_visible_in_tree() and panel._queue_scroll.is_visible_in_tree()!=folded,"recipes show, with the queue beside them unless folded")
 		var categories := _categories()
-		_expect(categories.size()==7 and categories.has("Rooms") and categories.has("Recreation"),"seven recipe categories include room furnishings and recreation")
-		for key: String in crafting.recipes:
+		_expect(categories.size()==7 and categories.has("Rooms") and categories.has("Recreation") and not categories.has("Food"),"seven recipe categories include room furnishings and recreation; the drying rack is the Ranger's (owner, 2026-11-01)")
+		for key: String in _rudimentary():
 			var tile: Button = panel._recipes.get_tile(key)
 			_expect(tile!=null and tile.icon!=null and tile.text.is_empty(),"illustrated recipe tile: "+key)
 		var campfire: Button = panel._recipes.get_tile(PREFIX+"campfire")
@@ -32,7 +32,7 @@ func _run() -> void:
 		_expect(panel._flavour.text=="\"Stones in a ring, logs in the middle, stories all around.\"","the recipe's flavour line shows")
 		_expect(panel._ingredients_heading.text=="INGREDIENTS · 1 timber · 1 Rough Stone" and panel._woods.get_tile(PINE)!=null
 			and panel._woods.get_tile("extra:base:resources:stone:rough_stone")!=null,"ingredients are pictures: the woods, then the stone")
-		_expect(_tag_texts().has("Needs a free crude workbench") and _tag_texts().has("✓ Any Worker"),"tags say what the recipe needs")
+		_expect(_tag_texts().has("Needs a crude workbench") and _tag_texts().has("✓ Any Worker"),"tags say what the recipe needs")
 		campfire.grab_focus()
 		panel.refresh()
 		await _frames(3)
@@ -43,6 +43,7 @@ func _run() -> void:
 			_expect(action.is_visible_in_tree() and window_rect.encloses(action.get_global_rect()),"order controls stay in view: %s (%s)" % [viewport,action.get_global_rect()])
 		await _capture_browser("recipes_%d" % viewport.x)
 		if viewport.y >= 1080: await _expect_boards_fit(viewport)
+		await _expect_rings_show(viewport)
 		dock.open_crafting(PREFIX+"hearth")
 		await _frames(4)
 		_expect(panel._requirements.text.contains("4 Rough Stone") and panel._requirements.text.count("Rough Stone")==1,"hearth groups repeated stone ingredients into one count")
@@ -59,11 +60,11 @@ func _run() -> void:
 			event.pressed = true
 			Input.parse_input_event(event)
 		await _frames(5)
-		_expect(panel._search.text=="ACCESS" and _visible_recipes().size()==4,"case-insensitive category search finds ladder, bridge, fence and gate")
+		_expect(panel._search.text=="ACCESS" and _visible_recipes().size()==3,"case-insensitive category search finds ladder, fence and gate")
 		_expect(_categories()==["Access"],"search hides empty categories")
-		_click(panel._recipes.get_tile(PREFIX+"log_bridge").get_global_rect().get_center())
+		_click(panel._recipes.get_tile(PREFIX+"log_gate").get_global_rect().get_center())
 		await _frames(4)
-		_expect(panel.selected==PREFIX+"log_bridge" and panel._title.text=="Log bridge kit","clicking a search result selects its board")
+		_expect(panel.selected==PREFIX+"log_gate" and panel._title.text=="Log Gate","clicking a search result selects its board")
 		_click(panel._make_row.more.get_global_rect().get_center())
 		await _frames(2)
 		_click(panel._queue_button.get_global_rect().get_center())
@@ -79,10 +80,10 @@ func _run() -> void:
 			_click(panel._orders_tab.get_global_rect().get_center())
 			await _frames(4)
 			_expect(panel._queue_scroll.is_visible_in_tree() and not panel._recipe_scroll.is_visible_in_tree(),"Orders tab reveals the queue even when search is empty")
-			_expect(panel._title.text=="Log bridge kit" and panel._queue_button.is_visible_in_tree(),"recipe search does not blank the board behind the Orders tab")
+			_expect(panel._title.text=="Log Gate" and panel._queue_button.is_visible_in_tree(),"recipe search does not blank the board behind the Orders tab")
 		var id: int = crafting.orders[0].id
 		var row: Dictionary = panel._rows[id]
-		_expect(row.title.text=="Log bridge kit ×2" and row.status.text.begins_with("Waiting"),"an order row names the item, how many and its status")
+		_expect(row.title.text=="Log Gate ×2" and row.status.text.begins_with("Waiting"),"an order row names the item, how many and its status")
 		_click(row.pause.get_global_rect().get_center())
 		await _frames(4)
 		_expect(crafting.get_order(id).paused and row.pause.text=="Resume" and row.tag.get_theme_stylebox("panel")==UITheme.cell_style("tag_blocked", 2),"pausing an order shows it on a rust tag")
@@ -126,12 +127,12 @@ func _run() -> void:
 		panel.maintain = false
 		panel.make_count = 1
 		panel.keep_count = 1
-		_click(panel._crafter_tiles.carpenter.get_global_rect().get_center())
+		_click(panel._crafter_tiles.blacksmith.get_global_rect().get_center())
 		await _frames(6)
-		_expect(panel.section_id=="carpenter" and not panel._tabs.visible and not panel._queue_button.is_visible_in_tree() and panel._planned.visible,"planned professions remain preview-only")
+		_expect(panel.section_id=="blacksmith" and not panel._tabs.visible and not panel._queue_button.is_visible_in_tree() and panel._planned.visible,"planned professions remain preview-only")
 		_click(panel._crafter_tiles.rudimentary.get_global_rect().get_center())
 		await _frames(6)
-		_expect(panel.selected==TORCH_RECIPE and _visible_recipes().size()==crafting.recipes.size(),"returning restores selection and clears search")
+		_expect(panel.selected==TORCH_RECIPE and _visible_recipes().size()==_rudimentary().size(),"returning restores selection and clears search")
 	# The large size, as on the 7680×2160 screen: the campfire needs a second row of
 	# ingredients and still shows whole.
 	root.size = Vector2i(2560,1440)
@@ -139,6 +140,7 @@ func _run() -> void:
 	await _frames(10)
 	_expect(panel._size==panel.SIZES.large,"1440 px tall takes the large size")
 	await _expect_boards_fit(root.size)
+	panel.select_section("rudimentary")   # the last board was the Ranger's Dried fish (doc 292)
 	# A recipe turns ready when its materials are in the colony: the bench needs only timber.
 	drops.spawn_drop(PINE,3,Vector3i(50,21,41))
 	panel.refresh()
@@ -156,6 +158,37 @@ func _expect_boards_fit(viewport: Vector2i) -> void:
 		var room: float = panel._card_scroll.size.y
 		_expect(not panel._card_scroll.get_v_scroll_bar().visible and panel._card.size.y<=room+0.5,"%s: the %s board shows whole (needs %d px, has %d)" % [viewport,key,int(panel._card.get_combined_minimum_size().y),int(room)])
 		_expect(panel._description.text.count(String(crafting.recipes[key].description))==1,"the board gives its description once: "+key)
+
+## The chosen recipe's hay ring shows whole, on both live pages: the list leaves the ring
+## room at its sides and under its last row, and scrolling to a recipe brings its ring into
+## view (the owner saw the first column's cut, 2026-11-01). A row still holds `per_row`.
+func _expect_rings_show(viewport: Vector2i) -> void:
+	for section: String in ["ranger","rudimentary"]:
+		panel.select_section(section)
+		await _frames(2)
+		for key: String in crafting.recipes:
+			if String(crafting.recipes[key].get("section","rudimentary"))!=section: continue
+			panel.select_recipe(key)
+			await _frames(2)
+			var view: Rect2 = panel._recipe_scroll.get_global_rect()
+			var bar: VScrollBar = panel._recipe_scroll.get_v_scroll_bar()
+			if bar.visible: view.size.x -= bar.size.x
+			var ring: Rect2 = panel._recipes.get_tile(key).get_node("Selected").get_global_rect()
+			_expect(view.grow(0.5).encloses(ring),"%s: the %s ring shows whole (ring %s, list %s)" % [viewport,key,ring,view])
+	var per_row := int(panel._size.per_row)
+	var by_category := {}
+	for key: String in _rudimentary(): by_category.get_or_add(String(crafting.recipes[key].get("category","Recipes")),[]).append(key)
+	for keys: Array in by_category.values():
+		var rows := {}
+		for key: String in keys.slice(0,per_row): rows[panel._recipes.get_tile(key).global_position.y] = true
+		_expect(rows.size()==1,"%s: up to %d tiles share a row: %s" % [viewport,per_row,keys])
+
+## The Rudimentary page's recipes: the Ranger's Dried fish has its own page (doc 292).
+func _rudimentary() -> Array[String]:
+	var ids: Array[String] = []
+	for key: String in crafting.recipes:
+		if String(crafting.recipes[key].get("section", "rudimentary")) == "rudimentary": ids.append(key)
+	return ids
 
 func _visible_recipes() -> Array[String]:
 	var ids: Array[String] = []

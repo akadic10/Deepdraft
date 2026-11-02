@@ -17,7 +17,7 @@
     "stages": {
       "shrub": {
         "clearance_height": 1,
-        "growth_duration_days": 3,
+        "growth_duration_days": 2.25,
         "models": {
           "spring": "res://assets/models/flora/bushes/blueberry/blueberry_young_spring.glb",
           "summer": "res://assets/models/flora/bushes/blueberry/blueberry_young_summer.glb",
@@ -47,7 +47,7 @@
             }
           ],
           "work_seconds": 3.0,
-          "regrow_days": 2.0
+          "regrow_days": 1.5
         },
         "picked_models": {
           "summer": "res://assets/models/flora/bushes/blueberry/blueberry_summer_picked.glb"

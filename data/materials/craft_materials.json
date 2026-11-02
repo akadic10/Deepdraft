@@ -1,11 +1,12 @@
 {
-  "__comment": "Appeal = design + material bonus * design material_factor. Wood differences are modest; precious metals can be decorative. Metal profiles are tuning for future refined-metal recipes, not ore recipes. Source palettes replace only authored wood colors; crates, flame, fibre and stone remain unchanged.",
+  "__comment": "Appeal = design + material bonus * design material_factor. Hit points = the design's hit_points * the material's toughness (doc 62); a material without toughness counts 1. Wood differences are modest; precious metals can be decorative. Metal profiles are tuning for future refined-metal recipes, not ore recipes. Source palettes replace only authored wood colors; crates, flame, fibre and stone remain unchanged.",
   "materials": {
     "base:material:pine": {
       "name": "Pine",
       "adjective": "Pine",
       "group": "wood",
       "appeal_bonus": 0,
+      "toughness": 1.0,
       "ingredients": [
         "base:resources:wood:pine_log"
       ],
@@ -37,6 +38,7 @@
       "adjective": "Oak",
       "group": "wood",
       "appeal_bonus": 1,
+      "toughness": 1.2,
       "ingredients": [
         "base:resources:wood:oak_log"
       ],
@@ -68,6 +70,7 @@
       "adjective": "Juniper",
       "group": "wood",
       "appeal_bonus": 1.5,
+      "toughness": 1.1,
       "ingredients": [
         "base:resources:wood:juniper_log"
       ],
@@ -99,6 +102,7 @@
       "adjective": "Applewood",
       "group": "wood",
       "appeal_bonus": 2,
+      "toughness": 1.0,
       "ingredients": [
         "base:resources:wood:apple_wood"
       ],
@@ -130,6 +134,7 @@
       "adjective": "Iron",
       "group": "metal",
       "appeal_bonus": 1,
+      "toughness": 5.0,
       "ingredients": [],
       "colors": {}
     },

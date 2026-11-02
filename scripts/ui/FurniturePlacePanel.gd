@@ -75,6 +75,8 @@ var _picture: TextureRect
 var _facts: VBoxContainer
 var _appeal: PanelContainer
 var _appeal_label: Label
+var _hit_points: PanelContainer   # a door's or a gate's hit points (doc 62)
+var _hit_points_label: Label
 var _description: Label
 var _note: Label
 var _wood_heading: Label
@@ -188,8 +190,13 @@ func _build_side() -> Control:
 	_facts.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	showcase.add_child(_facts)
 	_appeal = _chip(load("res://assets/ui/icons/appeal.png"))
+	_appeal_label = _appeal.get_meta("value")
 	_appeal.tooltip_text = "Appeal once installed"
 	_facts.add_child(_appeal)
+	_hit_points = _chip(load("res://assets/ui/icons/stat_toughness.png"))
+	_hit_points_label = _hit_points.get_meta("value")
+	_hit_points.tooltip_text = "Hit points once installed: what invaders will have to break"
+	_facts.add_child(_hit_points)
 	_description = _text("", MEDIUM.lead, INK)
 	content.add_child(_description)
 	_note = _text("", MEDIUM.body, INK_SOFT)
@@ -397,24 +404,33 @@ func _show_card(key: String) -> void:
 	if definition.has("seating"):
 		var seating: Dictionary = definition.seating
 		var seats := int(seating.get("max_chairs", seating.get("slots", []).size()))
-		spec += " · %d separate log stools" % seats if definition.has("recreation") else " · %d chair%s" % [seats, "" if seats == 1 else "s"]
-	elif key == "base:furniture:log_chair": spec += " · Snaps to tables"
+		spec += " · %d separate stools" % seats if definition.has("recreation") else " · %d chair%s" % [seats, "" if seats == 1 else "s"]
+	elif _fits_tables(key): spec += " · Snaps to tables"
 	elif String(definition.placement) == "wall": spec += " · Wall mounted"
 	var note := String(definition.get("placement_note", ""))
 	var action := "Placing · %d available" % stock.available if placing else "Place item" if stock.available > 0 else "None available"
 	# While placing, the tool bar has the keys; the window keeps what to do before.
 	var hint := "" if placing else "Click an available item to start placing."
-	if bool(definition.get("plant", false)):
+	var tree := ContentRegistry.tree_species(String(definition.get("tree_species", "")))
+	if not tree.is_empty(): # A seed: its sizes and growth are its grown tree's (doc 284).
+		var area := int(tree.planting.area)
+		var trunk := int(tree.placement.footprint.ancient)
+		var to_mature := float(tree.stages.sapling.growth_duration_days)
+		spec = "%d × %d tree area · %d × %d trunk · Open sky" % [area, area, trunk, trunk]
+		note = "Uses 1 %s. Mature after %s growth days, ancient after %s more; growth pauses in winter. No other tree may stand in its area." \
+			% [String(definition.display_name).to_lower(), String.num(to_mature, 2), String.num(float(tree.stages.mature.growth_duration_days), 2)]
+		action = "Plant %s" % String(definition.display_name).to_lower() if stock.available > 0 else "None available"
+	elif bool(definition.get("plant", false)):
 		spec = "3 × 3 planting area · Open sky"
 		if bool(definition.get("from_cutting", false)):
 			var plant := SurfaceDetailRegistry.get_definition(String(definition.plant_definition))
-			note = "Uses 1 cutting. Matures after %.1f growth days; growth pauses in winter." % float(plant.growth_days)
+			note = "Uses 1 cutting. Matures after %s growth days; growth pauses in winter." % String.num(float(plant.growth_days), 2)
 			action = "Plant cutting" if stock.available > 0 else "No cuttings available"
 		else:
 			note = "Replant this whole plant. Its shape and seasonal state are preserved." if stock.available > 0 else "Uproot a plant of this type to place it here."
 			action = "Replant" if stock.available > 0 else "No uprooted plants"
 	if definition.has("recreation") and not definition.has("placement_note"):
-		note = "Add log stools on the opposite guides. Play alone with one stool, or together with two for more happiness."
+		note = "Add stools on the opposite guides. Play alone with one stool, or together with two for more happiness."
 	if definition.has("water_stone"):
 		note = "Inactive in storage. A dwarf must place it to start the water effect." if stock.available > 0 else "Allow and pack a water stone to make it available here."
 	if String(definition.placement) == "ladder":
@@ -422,14 +438,11 @@ func _show_card(key: String) -> void:
 		note = "Aim at a cliff face. The preview shows the full height and section cost before you place it."
 		action = "Place ladder" if stock.available > 0 else "Craft ladder sections first"
 		hint = "" if placing else "Craft sections at a crude workbench."
-	if String(definition.placement) == "bridge":
-		spec = "2 blocks wide · Gaps up to %d blocks" % int(definition.bridge.max_span)
-		note = "One kit per crossing. Both two-block landings must be level and the same height."
-		action = "Place bridge" if stock.available > 0 else "Craft a bridge kit first"
-		hint = "" if placing else "Craft a kit at a crude workbench, then choose a narrow crossing."
 	_show_facts(spec.split(" · "))
 	_appeal_label.text = _appeal_text(definition, chosen)
 	_appeal.visible = not _appeal_label.text.is_empty()
+	_hit_points_label.text = _hit_points_text(definition, chosen)
+	_hit_points.visible = not _hit_points_label.text.is_empty()
 	_note.text = note
 	_note.visible = not note.is_empty()
 	_show_woods(key, definition, chosen)
@@ -446,12 +459,12 @@ func _show_card(key: String) -> void:
 	_hint.tooltip_text = hint
 
 
-## The facts as stone chips beside the picture, the appeal chip last.
+## The facts as stone chips beside the picture, then the appeal and hit points chips.
 func _show_facts(facts: PackedStringArray) -> void:
 	if facts == _shown_facts: return
 	_shown_facts = facts
 	for child: Node in _facts.get_children():
-		if child == _appeal: continue
+		if child in [_appeal, _hit_points]: continue
 		_facts.remove_child(child)
 		child.queue_free()
 	for text: String in facts:
@@ -464,9 +477,17 @@ func _show_facts(facts: PackedStringArray) -> void:
 		chip.add_child(label)
 		_facts.add_child(chip)
 	_facts.move_child(_appeal, -1)
+	_facts.move_child(_hit_points, -1)
 
 
 ## The appeal it adds once installed: for the chosen wood, or the range across its woods.
+## Whether a table's guides take this seat (its `seating.chair_keys`): the log and stone stools.
+func _fits_tables(key: String) -> bool:
+	for definition: Dictionary in controller.get_defs().values():
+		if key in definition.get("seating", {}).get("chair_keys", []): return true
+	return false
+
+
 func _appeal_text(definition: Dictionary, chosen: String) -> String:
 	if not definition.has("appeal"): return ""
 	var ids: Array = [chosen]
@@ -477,6 +498,18 @@ func _appeal_text(definition: Dictionary, chosen: String) -> String:
 	var number := func(value: float) -> String: return ("%.1f" % value).trim_suffix(".0")
 	if is_equal_approx(scores.min(), scores.max()): return number.call(scores.min())
 	return "%s–%s" % [number.call(scores.min()), number.call(scores.max())]
+
+
+## A door's or a gate's hit points once installed (doc 62): for the chosen wood, or the range
+## across its woods.
+func _hit_points_text(definition: Dictionary, chosen: String) -> String:
+	if not definition.has("hit_points"): return ""
+	var ids: Array = [chosen]
+	if chosen.is_empty() and definition.has("material_group"):
+		ids = CraftMaterials.definitions.keys().filter(func(id: String): return CraftMaterials.definitions[id].group == definition.material_group)
+	var points: Array[int] = []
+	for id: String in ids: points.append(CraftMaterials.hit_points(definition, id))
+	return str(points.min()) if points.min() == points.max() else "%d–%d" % [points.min(), points.max()]
 
 
 ## The material to place, as pictures with counts: Any first, then each of the design's group.
@@ -519,9 +552,10 @@ func _reveal_selected() -> void:
 	_reveal.call_deferred()
 
 
-## Look the tile up when the scroll moves: a refresh in between may rebuild the grid.
+## Look the tile up when the scroll moves: a refresh in between may rebuild the grid. The
+## scroll shows the tile with its ring.
 func _reveal() -> void:
-	var picture: Control = _grid.get_tile(selected_key)
+	var picture: Control = _grid.get_reveal(selected_key)
 	if picture != null and picture.is_visible_in_tree(): _scroll.ensure_control_visible(picture)
 
 
@@ -592,6 +626,7 @@ func _apply_size() -> void:
 	_description.add_theme_font_size_override("font_size", s.body)
 	_note.add_theme_font_size_override("font_size", int(s.body))
 	_appeal_label.add_theme_font_size_override("font_size", int(s.type.lead))
+	_hit_points_label.add_theme_font_size_override("font_size", int(s.type.lead))
 	_shown_facts = PackedStringArray()   # the chips are rebuilt at this size
 	_wood_heading.add_theme_font_size_override("font_size", s.label)
 	_material.caption_size = int(s.label)
@@ -624,7 +659,8 @@ func _clamp_above_dock() -> void:
 
 # ── Pieces ────────────────────────────────────────────────────────────────────
 
-## A stone chip with a picture and a value: the appeal badge.
+## A stone chip with a picture and a value (its label is the chip's "value" meta): the appeal
+## and hit points badges.
 func _chip(icon: Texture2D) -> PanelContainer:
 	var chip := PanelContainer.new()
 	chip.add_theme_stylebox_override("panel", UITheme.cell_style("chip", 3))
@@ -640,9 +676,10 @@ func _chip(icon: Texture2D) -> PanelContainer:
 	picture.custom_minimum_size = Vector2(24, 24)
 	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(picture)
-	_appeal_label = Label.new()
-	UITheme.format_label(_appeal_label, true, MEDIUM.lead, UITheme.KEYCAP_INK)
-	row.add_child(_appeal_label)
+	var value := Label.new()
+	UITheme.format_label(value, true, MEDIUM.lead, UITheme.KEYCAP_INK)
+	row.add_child(value)
+	chip.set_meta("value", value)
 	return chip
 
 

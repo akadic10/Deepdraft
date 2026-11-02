@@ -1,0 +1,19 @@
+Rabbit sound source — CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source page and its CC0 declaration checked 2026-10-28.
+
+SELECTION AND GRAZING: A rabbit is eating a cucumber — davi-sh
+https://freesound.org/people/davi-sh/sounds/482732/
+The author identifies this as a European rabbit eating cucumber, recorded
+with a Zoom H5 and normalized to -3 dB. All six variations use different,
+non-overlapping excerpts of this actual rabbit recording.
+
+Selection uses short nibble/mouth sounds as quiet interaction foley. Grazing
+uses longer chewing phrases. These are cucumber-eating sounds used to
+represent grazing, not a field recording of a wild rabbit eating grass.
+No animal vocalization or synthetic squeak is added.
+
+The master was decoded from Freesound's public HQ MP3 preview, not downloaded
+from the original-upload WAV endpoint. source.json records download hashes,
+master conversion, crop positions, filters, fades and levels. Preparation does
+not shift pitch, stretch time, synthesize voices or add reverb.

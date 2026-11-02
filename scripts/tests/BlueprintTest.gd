@@ -8,7 +8,11 @@ extends "res://scripts/tests/ConstructionTest.gd"
 ## - Copy takes every solid block as the material that builds it, plans as their own, trimmed
 ##   to its blocks, and unexplored space as rock (Hard Rule 11);
 ## - placed turned, a copy lays the same blocks; blocks in the way are left out; one Undo takes
-##   the placement back whole.
+##   the placement back whole;
+## - a placement is one project (doc 276): one plan of all its materials, named for the
+##   blueprint, with one crate on the ground though its grass starts five blocks up, a panel
+##   counting each good, Copy and saves keeping each block's material, each good's blocks
+##   started once all of it is in, and one Cancel.
 ## Loaded at run time: they name autoloads, which a test script does not see as it compiles.
 var Library: GDScript
 var Controller: GDScript
@@ -39,6 +43,7 @@ func _run() -> void:
 	await _restart_test()
 	_copy_test()
 	_place_test()
+	_project_test()
 	for failure: String in failures: push_error(failure)
 	print("BLUEPRINT_OK" if failures.is_empty() else "BLUEPRINT_FAIL")
 	quit(0 if failures.is_empty() else 1)
@@ -122,7 +127,7 @@ func _copy_test() -> void:
 	_expect(_same(copy.blocks.stone, [Vector3i(0, 0, 0)]) and _same(copy.blocks.dirt, [Vector3i(1, 0, 0)]) and _same(copy.blocks["log:pine:z"], [Vector3i(2, 0, 0)]) and _same(copy.blocks.grass, [Vector3i(0, 1, 0)]),
 		"rock copies as stone, dirt as itself, a log as its wood lying its way, a plan as its own: %s" % copy.blocks)
 	var turned: Dictionary = Controller.turned(copy, 1)
-	_expect(turned.has("log:pine:x") and not turned.has("log:pine:z") and turned.has("stone"),"a quarter turn turns a lying log with the blueprint: %s" % turned.keys())
+	_expect(turned.has("log:pine:x") and not turned.has("log:pine:z") and turned.has("stone"),"a quarter turn turns a lying log with the blueprint: %s" % [turned.keys()])
 	construction.cancel_order(id)
 	for x in range(3): world.set_block(base.x+x, base.y, base.z, blocks.AIR_ID)
 	# Unexplored space copies as rock, never as air.
@@ -172,15 +177,65 @@ func _place_test() -> void:
 	blueprints.place(String(timber.id))
 	blueprints._turns = 1
 	blueprints.ghost_at(origin)
-	_expect(blueprints.place_here()==4 and construction.orders.size()==2,"logs plan as one plan a kind and wood")
+	_expect(blueprints.place_here()==4 and construction.orders.size()==1,"lying and upright logs plan as one plan")
 	var lying := 0
 	var standing := 0
 	for order in construction.orders.values():
 		for cell: Vector3i in order.cells:
-			_expect(order.wood=="oak","a placed log keeps its wood")
+			_expect(order.wood_of(cell)=="oak","a placed log keeps its wood")
 			if order.directions[cell]=="z": lying += 1
 			if order.directions[cell]=="up": standing += 1
 	_expect(lying==3 and standing==1,"turned a quarter, logs along x lie along z and upright ones stay up")
 	for id: int in construction.orders.keys(): construction.cancel_order(id)
 	blueprints.deactivate()
 	library.delete(String(timber.id))
+
+## One placement is one project (doc 276). A wall of logs with grass on top, the grass five
+## blocks up as on the owner's Blueprint 7, whose roof, planned on its own, never found a crate.
+func _project_test() -> void:
+	const OAK := "base:resources:wood:oak_log"
+	const SOIL := "base:resources:soil:soil"
+	var logs: Array[Vector3i] = []
+	for y in range(5):
+		for x in range(3): logs.append(Vector3i(x, y, 0))
+	var roof: Array[Vector3i] = [Vector3i(0, 5, 0), Vector3i(1, 5, 0), Vector3i(2, 5, 0)]
+	var saved: Dictionary = library.save("Turf wall", Vector3i(3, 6, 1), {"log:oak:x": logs, "grass": roof})
+	blueprints.place(String(saved.id))
+	var origin := Vector3i(48, 21, 60)
+	blueprints.ghost_at(origin)
+	_expect(blueprints.place_here()==18 and construction.orders.size()==1,"a placement of logs and grass is one plan")
+	var id: int = construction.orders.keys()[0]
+	var order = construction.orders[id]
+	_expect(order.project_name=="Turf wall" and order.totals=={OAK: 15, SOIL: 3},"the plan is named for the blueprint and counts each good: %s" % [order.totals])
+	_expect(order.materials.crate_cell.y==origin.y-1,"its one crate stands on the ground, though the grass starts five blocks up: %s" % [order.materials.crate_cell])
+	var data: Dictionary = construction.get_explorer_data(id)
+	_expect(data.title=="Turf wall" and String(data.status.text)=="Waiting for oak logs and soil","its panel is named for it and names the goods still short: %s · %s" % [data.title, data.status.text])
+	_expect(data.rows[2]==["Oak logs","0 / 15 delivered"] and data.rows[3]==["Soil","0 / 3 delivered"],"its panel counts each good: %s" % [data.rows.slice(2, 4)])
+	# The Materials card (owner's option C): a row a good, the walls' first, then who hauls.
+	var card: Dictionary = data.cards.materials
+	_expect(data.actions[0].id=="materials" and card.title=="Materials" and card.rows.size()==2,"a Materials tile opens a card of its goods")
+	_expect(card.rows[0].name=="Oak logs" and card.rows[0].detail=="0 of 15 delivered · 0 on the way" and card.rows[0].tag=="None in stock" and card.rows[0].tone=="blocked"
+		and card.rows[1].name=="Soil" and card.rows[1].detail=="0 of 3 delivered · 0 on the way" and card.footer=="No one is hauling",
+		"each row counts its good, and none in stock with none coming is rust: %s" % [card])
+	var copy: Dictionary = blueprints.capture(origin, Vector3i(3, 6, 1))
+	_expect((copy.blocks["log:oak:x"] as Array).size()==15 and (copy.blocks.grass as Array).size()==3,"Copy keeps each planned block's material: %s" % [copy.blocks.keys()])
+	order.materials.staged = {OAK: {"": 15}, SOIL: {"": 1}}
+	construction.restore_state(JSON.parse_string(JSON.stringify(construction.serialize_state())))
+	order = construction.orders[id]
+	_expect(order.project_name=="Turf wall" and order.kind_of(origin+roof[0])=="grass" and order.totals=={OAK: 15, SOIL: 3} and order.materials.staged_count(SOIL)==1,
+		"a save keeps the name, each block's material, each good's blocks and the crate")
+	_expect(order.ready_goods().has(OAK) and not order.ready_goods().has(SOIL),"the logs can be built while the soil is still short")
+	_expect(construction.dev_build_order(id)==18 and construction.orders.is_empty(),"DEV finishes the wall, then the grass on it")
+	_expect(String(blocks.get_key(world.get_terrain_block(origin.x, origin.y, origin.z)))=="base:construction:log:oak:x"
+		and String(blocks.get_key(world.get_terrain_block(origin.x, origin.y+5, origin.z)))=="base:terrain:surface:grass","each block is built of its own material")
+	for cell: Vector3i in logs+roof:
+		world.set_block(origin.x+cell.x, origin.y+cell.y, origin.z+cell.z, blocks.AIR_ID)
+		nav.refresh_mined_block(origin+cell)
+	blueprints.ghost_at(origin)
+	blueprints.place_here()
+	id = construction.orders.keys()[0]
+	var crate = construction.orders[id].materials
+	construction.perform_explorer_action(id, "cancel")
+	_expect(construction.orders.is_empty() and crate.occupancy==-1 and crate.visual==null,"Cancel takes the whole placement back, its crate too")
+	blueprints.deactivate()
+	library.delete(String(saved.id))

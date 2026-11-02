@@ -5,6 +5,7 @@
     "",
     "Fields:",
     "  display_name  — human-readable name shown in UI and tooltips",
+    "  plural_name   — the name for several, where it is not display_name plus s (Events lines)",
     "  description   — one-sentence flavour text shown in the inspect panel",
     "  model         — path to the 1:16 voxel .glb model (res:// path)",
     "  crate_capacity — opted-in produce packaging capacity (24); absent means one unit",
@@ -17,7 +18,11 @@
     "                  light: full haul speed; heavy: ×0.7 haul speed while any heavy item",
     "                  is in the load; independent of carry_cost",
     "  material_tags — flat string array; must include at least one 'stockpile_*' tag",
-    "                  used by stockpile zone filters and crafting ingredient queries"
+    "                  used by stockpile zone filters and crafting ingredient queries",
+    "  food          — edible goods: edible, nutrition (hunger filled by one portion),",
+    "                  keeps_days (days a stack lasts at 20°C under a roof before it rots;",
+    "                  doc 42 'Spoilage', the rest in task_config.json food.spoilage) and",
+    "                  serving (the meal's presentation shape and colour)"
   ],
   "__comment_stone": "Raw stone blocks — heavy, common, used for construction",
   "base:resources:stone:rough_stone": {
@@ -33,7 +38,7 @@
       "stockpile_stone"
     ]
   },
-  "__comment_starter_tools": "Worker-crafted physical goods. Carpenter collects and equips its kit; other specialist promotion gates remain planned.",
+  "__comment_starter_tools": "Worker-crafted physical goods. The Carpenter, the Stonemason and the Ranger collect and equip their kits; other specialist promotion gates remain planned.",
   "base:resources:tools:stone_hoe": {
     "display_name": "Stone Hoe",
     "description": "Wooden haft with a stone blade. A starter tool for the planned Farmer profession; equipping is not available yet.",
@@ -48,10 +53,15 @@
     "material_group": "wood",
     "material_palette": "starter_tool"
   },
-  "base:resources:tools:hunting_spear": {
-    "display_name": "Hunting Spear",
-    "description": "Stone-tipped wooden spear. A starter weapon for the planned Hunter profession; hunting and equipping are not available yet.",
-    "model": "res://assets/models/items/tools/hunting_spear.glb",
+  "base:resources:tools:ranger_kit": {
+    "equipment": {
+      "tier": "Crude",
+      "materials": "Stone-tipped spear · Peeled rod",
+      "benefit": "Enables the Ranger profession. They fish with its rod; the spear waits for hunting. No work-speed bonus. The kit stays equipped until this dwarf changes profession."
+    },
+    "display_name": "Ranger's Kit",
+    "description": "A stone-tipped spear and a peeled fishing rod, bound together. Collected and equipped when promoting a Ranger; returned to colony supplies when changing professions.",
+    "model": "res://assets/models/items/tools/ranger_kit.glb",
     "carry_cost": 1,
     "weight_class": "light",
     "material_tags": [
@@ -67,11 +77,30 @@
     "equipment": {
       "tier": "Crude",
       "materials": "Wooden mallet · Stone adze",
-      "benefit": "Enables the Carpenter profession. No work-speed bonus. The kit stays equipped until this dwarf changes profession."
+      "benefit": "Enables the Carpenter profession. They hew with its stone adze. No work-speed bonus. The kit stays equipped until this dwarf changes profession."
     },
     "display_name": "Crude Carpentry Kit",
     "description": "A wooden mallet and stone adze. Collected and equipped when promoting a Carpenter; returned to colony supplies when changing professions.",
     "model": "res://assets/models/items/tools/carpentry_kit.glb",
+    "carry_cost": 1,
+    "weight_class": "light",
+    "material_tags": [
+      "tool",
+      "starter_tool",
+      "stockpile_misc"
+    ],
+    "material_group": "wood",
+    "material_palette": "starter_tool"
+  },
+  "base:resources:tools:masonry_kit": {
+    "equipment": {
+      "tier": "Crude",
+      "materials": "Hammerstone maul · Stone point",
+      "benefit": "Enables the Stonemason profession. They knock stone square with its maul. No work-speed bonus. The kit stays equipped until this dwarf changes profession."
+    },
+    "display_name": "Crude Masonry Kit",
+    "description": "A hammerstone maul and a long stone point on two hafts, bound side by side. Collected and equipped when promoting a Stonemason; returned to colony supplies when changing professions.",
+    "model": "res://assets/models/items/tools/masonry_kit.glb",
     "carry_cost": 1,
     "weight_class": "light",
     "material_tags": [
@@ -303,7 +332,7 @@
     "display_name": "Pine Log",
     "description": "A straight-grained softwood log, light and easy to work. The backbone of early construction.",
     "model": "res://assets/models/items/wood/pine_log.glb",
-    "carry_cost": 2,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "material_tags": [
       "wood",
@@ -317,7 +346,7 @@
     "display_name": "Oak Log",
     "description": "A dense hardwood log with a tight grain. Prized for furniture and barrel staves.",
     "model": "res://assets/models/items/wood/oak_log.glb",
-    "carry_cost": 2,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "material_tags": [
       "wood",
@@ -345,7 +374,7 @@
     "display_name": "Apple Wood",
     "description": "A fine-grained pinkish wood. Burns slowly with a sweet scent, useful for smoking and light carpentry.",
     "model": "res://assets/models/items/wood/apple_wood.glb",
-    "carry_cost": 2,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "material_tags": [
       "wood",
@@ -358,7 +387,7 @@
     "display_name": "Juniper Log",
     "description": "A fragrant hardwood log with dense, knotted grain.",
     "model": "res://assets/models/items/wood/juniper_log.glb",
-    "carry_cost": 2,
+    "carry_cost": 1,
     "weight_class": "heavy",
     "material_tags": [
       "wood",
@@ -373,12 +402,14 @@
     "food": {
       "edible": true,
       "nutrition": 0.6,
+      "keeps_days": 2,
       "serving": {
         "shape": "berries",
         "color": "643d7a"
       }
     },
     "display_name": "Elderberry",
+    "plural_name": "elderberries",
     "description": "Dark purple clusters with a tart depth. The classic base for mountain wine.",
     "model": "res://assets/models/items/crates/elderberry_low.glb",
     "crate_capacity": 24,
@@ -400,12 +431,14 @@
     "food": {
       "edible": true,
       "nutrition": 0.6,
+      "keeps_days": 4,
       "serving": {
         "shape": "berries",
         "color": "506dad"
       }
     },
     "display_name": "Blueberry",
+    "plural_name": "blueberries",
     "description": "Sweet high-altitude berries with a clean finish. Prized for mead and summer ales.",
     "model": "res://assets/models/items/crates/blueberry_low.glb",
     "crate_capacity": 24,
@@ -427,12 +460,14 @@
     "food": {
       "edible": true,
       "nutrition": 0.6,
+      "keeps_days": 2,
       "serving": {
         "shape": "berries",
         "color": "ca4342"
       }
     },
     "display_name": "Wild Strawberry",
+    "plural_name": "wild strawberries",
     "description": "Tiny and intensely sweet. Merchants go quiet when they see a basket of these.",
     "model": "res://assets/models/items/crates/wild_strawberry_low.glb",
     "crate_capacity": 24,
@@ -455,12 +490,14 @@
     "food": {
       "edible": true,
       "nutrition": 0.6,
+      "keeps_days": 40,
       "serving": {
         "shape": "berries",
         "color": "67728c"
       }
     },
     "display_name": "Juniper Berry",
+    "plural_name": "juniper berries",
     "description": "Tart blue-black berries with a resinous bite. Prized for gin-style brewing.",
     "model": "res://assets/models/items/crates/juniper_berry_low.glb",
     "crate_capacity": 24,
@@ -507,12 +544,14 @@
     "food": {
       "edible": true,
       "nutrition": 0.6,
+      "keeps_days": 15,
       "serving": {
         "shape": "apple",
         "color": "b34d35"
       }
     },
     "display_name": "Apple",
+    "plural_name": "apples",
     "description": "A crisp mountain apple. Sweet enough to eat raw, better pressed into cider.",
     "model": "res://assets/models/items/crates/apple_low.glb",
     "crate_capacity": 24,
@@ -527,6 +566,151 @@
       "flora",
       "food",
       "brewing_ingredient",
+      "stockpile_food"
+    ]
+  },
+  "__comment_fish": "Fish — caught from Fishing zones, one kind for each water (doc 289). Eaten raw until there is cooking.",
+  "base:resources:fish:perch": {
+    "food": {
+      "edible": true,
+      "grill": true,
+      "nutrition": 0.6,
+      "keeps_days": 2,
+      "serving": {
+        "shape": "fish",
+        "color": "8a9a3c"
+      }
+    },
+    "display_name": "Perch",
+    "plural_name": "perch",
+    "description": "A barred lake perch with orange fins. Good eating, but it keeps only a couple of days unless it is kept cool.",
+    "model": "res://assets/models/items/crates/perch_low.glb",
+    "crate_capacity": 24,
+    "crate_models": [
+      "res://assets/models/items/crates/perch_low.glb",
+      "res://assets/models/items/crates/perch_half.glb",
+      "res://assets/models/items/crates/perch_full.glb"
+    ],
+    "carry_cost": 4,
+    "weight_class": "light",
+    "material_tags": [
+      "fish",
+      "food",
+      "stockpile_food"
+    ]
+  },
+  "base:resources:fish:trout": {
+    "food": {
+      "edible": true,
+      "grill": true,
+      "nutrition": 0.6,
+      "keeps_days": 2,
+      "serving": {
+        "shape": "fish",
+        "color": "8f7f52"
+      }
+    },
+    "display_name": "Trout",
+    "plural_name": "trout",
+    "description": "A river trout, olive-brown with dark and red spots and a silver belly. Good eating, but it keeps only a couple of days unless it is kept cool.",
+    "model": "res://assets/models/items/crates/trout_low.glb",
+    "crate_capacity": 24,
+    "crate_models": [
+      "res://assets/models/items/crates/trout_low.glb",
+      "res://assets/models/items/crates/trout_half.glb",
+      "res://assets/models/items/crates/trout_full.glb"
+    ],
+    "carry_cost": 4,
+    "weight_class": "light",
+    "material_tags": [
+      "fish",
+      "food",
+      "stockpile_food"
+    ]
+  },
+  "base:resources:fish:char": {
+    "food": {
+      "edible": true,
+      "grill": true,
+      "nutrition": 0.6,
+      "keeps_days": 2,
+      "serving": {
+        "shape": "fish",
+        "color": "5f7a4c"
+      }
+    },
+    "display_name": "Char",
+    "plural_name": "char",
+    "description": "A mountain tarn's char: a green back with pale spots and a red-orange belly. Good eating, but it keeps only a couple of days unless it is kept cool.",
+    "model": "res://assets/models/items/crates/char_low.glb",
+    "crate_capacity": 24,
+    "crate_models": [
+      "res://assets/models/items/crates/char_low.glb",
+      "res://assets/models/items/crates/char_half.glb",
+      "res://assets/models/items/crates/char_full.glb"
+    ],
+    "carry_cost": 4,
+    "weight_class": "light",
+    "material_tags": [
+      "fish",
+      "food",
+      "stockpile_food"
+    ]
+  },
+  "base:resources:fish:cave_fish": {
+    "food": {
+      "edible": true,
+      "grill": true,
+      "nutrition": 0.6,
+      "keeps_days": 2,
+      "serving": {
+        "shape": "fish",
+        "color": "e8cfc4"
+      }
+    },
+    "display_name": "Cave fish",
+    "plural_name": "cave fish",
+    "description": "A pale, eyeless fish from the spring cave's pool. Good eating, but it keeps only a couple of days unless it is kept cool.",
+    "model": "res://assets/models/items/crates/cave_fish_low.glb",
+    "crate_capacity": 24,
+    "crate_models": [
+      "res://assets/models/items/crates/cave_fish_low.glb",
+      "res://assets/models/items/crates/cave_fish_half.glb",
+      "res://assets/models/items/crates/cave_fish_full.glb"
+    ],
+    "carry_cost": 4,
+    "weight_class": "light",
+    "material_tags": [
+      "fish",
+      "food",
+      "stockpile_food"
+    ]
+  },
+  "base:resources:fish:dried_fish": {
+    "food": {
+      "edible": true,
+      "nutrition": 0.6,
+      "keeps_days": 30,
+      "serving": {
+        "shape": "fish",
+        "color": "c27448"
+      }
+    },
+    "display_name": "Dried fish",
+    "plural_name": "dried fish",
+    "description": "Fish split and dried on a rack. Tough, salty and filling, and it keeps about thirty days, longer kept cool.",
+    "model": "res://assets/models/items/crates/dried_fish_low.glb",
+    "crate_capacity": 24,
+    "crate_models": [
+      "res://assets/models/items/crates/dried_fish_low.glb",
+      "res://assets/models/items/crates/dried_fish_half.glb",
+      "res://assets/models/items/crates/dried_fish_full.glb"
+    ],
+    "carry_cost": 4,
+    "weight_class": "light",
+    "material_tags": [
+      "preserved_food",
+      "food",
       "stockpile_food"
     ]
   },
@@ -1090,20 +1274,6 @@
     "material_group": "wood",
     "material_palette": "oak_log"
   },
-  "base:resources:furniture:log_bridge": {
-    "display_name": "Log bridge kit",
-    "description": "A bundle of split logs and wooden pegs for one small river crossing.",
-    "model": "res://assets/models/furniture/bridge_kit.glb",
-    "carry_cost": 4,
-    "weight_class": "heavy",
-    "material_tags": [
-      "wood",
-      "furniture",
-      "stockpile_furniture"
-    ],
-    "material_group": "wood",
-    "material_palette": "oak_log"
-  },
   "base:resources:furniture:campfire": {
     "display_name": "Campfire (packed)",
     "description": "Unlit logs and rough stones packed for a campfire.",
@@ -1195,7 +1365,7 @@
   },
   "base:resources:furniture:log_fence": {
     "display_name": "Log Fence Post (packed)",
-    "description": "Place posts at neighboring grid corners. Two level rails connect each adjacent pair, forming straight runs, corners and junctions.",
+    "description": "Stands in the middle of a tile. Two level rails join posts on neighboring tiles, forming straight runs, corners and junctions.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1208,7 +1378,7 @@
   },
   "base:resources:furniture:log_gate": {
     "display_name": "Log Gate (packed)",
-    "description": "A two-edge gate between grid corners, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
+    "description": "Hangs across one tile between posts on the tiles either side, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1221,7 +1391,7 @@
   },
   "base:resources:furniture:board_game_table": {
     "display_name": "Board-game Table (packed)",
-    "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one log stool for solo play, or two opposite stools to play together for more happiness.",
+    "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one stool for solo play, or two opposite stools to play together for more happiness.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1232,9 +1402,85 @@
     ],
     "material_group": "wood"
   },
+  "base:resources:furniture:drying_rack": {
+    "display_name": "Drying Rack (packed)",
+    "description": "Two forked posts and a crossbar lashed with rope, for drying fish into food that keeps a season.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood"
+  },
+  "base:resources:furniture:carpenter_bench": {
+    "display_name": "Carpenter's Bench (packed)",
+    "description": "A hewn slab and four peeled log legs with their rails, packed for installation: the Carpenter's own workbench.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood"
+  },
+  "base:resources:furniture:mason_bench": {
+    "display_name": "Mason's Bench (packed)",
+    "description": "A split stone slab and two log stumps, packed for installation: the Stonemason's own workbench.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "stone",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
+  "base:resources:furniture:tool_rack": {
+    "display_name": "Tool Rack (packed)",
+    "description": "A split-log tool rack and its pegs, packed for installation against a wall.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood"
+  },
+  "base:resources:furniture:raw_materials_crate": {
+    "display_name": "Raw Materials Crate (packed)",
+    "description": "The notched logs of a raw materials crate, packed for installation on the floor.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood"
+  },
+  "base:resources:furniture:stone_stool": {
+    "display_name": "Stone Stool (packed)",
+    "description": "One stone stool, a Rough Stone knocked square, packed for installation.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "stone",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
   "base:resources:furniture:log_table": {
     "display_name": "Log Dining Table (packed)",
-    "description": "A cut-log tabletop and narrow central pedestal. Place the table and add log stools separately.",
+    "description": "A cut-log tabletop and narrow central pedestal. Place the table and add stools separately.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",

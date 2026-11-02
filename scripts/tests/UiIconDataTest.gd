@@ -4,8 +4,9 @@ extends SceneTree
 ## entries, room symbols, the time/slice buttons, each
 ## profession's icon and each mood step's face.
 ## Every Hearthblock icon names a known family, so its tile has a colour, and the
-## dock, the Orders, Zones, Construction and Crafters menus, and the entries on Colony's
-## page use Hearthblock icons throughout.
+## dock, the Orders, Zones, Construction and Crafters menus, the entries on Colony's
+## page and Development's DEV tools use Hearthblock icons throughout. Development and its
+## tools sit on the DEV tile.
 ## The world order markers reuse the Orders pictures. The concern badges over dwarves'
 ## heads and the compact panel's actions and badges have pictures too.
 var failures: Array[String] = []
@@ -71,6 +72,12 @@ func _run() -> void:
 	for item: Dictionary in ui.get_dock_items():
 		_expect(String(item.icon).begins_with("res://assets/ui/icons/") and item.has("family"),
 			"dock entry uses a Hearthblock icon on a family tile: " + String(item.id))
+	for item: Dictionary in ui._dock_items:
+		if String(item.id) == "development":
+			_expect(String(item.get("family", "")) == "dev", "the Development dock button sits on the DEV tile")
+	for item: Dictionary in ui._menus.development.items:
+		_expect(String(item.icon).begins_with("res://assets/ui/icons/") and String(item.get("family", "")) == "dev",
+			"Development entry uses a Hearthblock icon on the DEV tile: " + String(item.id))
 	var orders: Dictionary = {}
 	for menu: String in ["orders", "zones", "construction"]:
 		for item: Dictionary in ui._menus[menu].items:

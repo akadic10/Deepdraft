@@ -9,6 +9,9 @@
     "  used when the generator selects which specific trait to assign.",
     "  Trait effects are planned, not implemented; their design is in",
     "  docs/40_economy_colony/41_dwarf_agents.md (Planned trait effects).",
+    "  stat_shape: the steps a trait sets for a stat when the dwarf is",
+    "  created (min, max), with points moved to or from the other stats",
+    "  so the total stays the same (doc 41).",
     "",
     "EXCLUSION GROUPS:",
     "  Traits in the same exclusion group cannot be assigned to the same dwarf.",
@@ -36,7 +39,8 @@
     "mood_baseline":      ["base:trait:cheerful", "base:trait:grumpy"],
     "work_pace":          ["base:trait:hardworking", "base:trait:lazy"],
     "sleep_pattern":      ["base:trait:deep_sleeper", "base:trait:light_sleeper"],
-    "social_preference":  ["base:trait:social", "base:trait:loner"]
+    "social_preference":  ["base:trait:social", "base:trait:loner"],
+    "constitution":       ["base:trait:iron_constitution", "base:trait:frail"]
   },
 
   "traits": {
@@ -121,7 +125,9 @@
       "display_name": "Iron Constitution",
       "description": "Shrugs off knocks that would put other dwarves in bed. Bruises faster than they slow down.",
       "polarity": "positive",
-      "rarity_weight": 30
+      "rarity_weight": 30,
+      "exclusion_group": "constitution",
+      "stat_shape": {"base:stat:toughness": {"min": 4}}
     },
 
     "base:trait:deep_sleeper": {
@@ -228,7 +234,9 @@
       "display_name": "Frail",
       "description": "Takes injuries more easily than most. One bad cave-in can put this dwarf out for a season.",
       "polarity": "negative",
-      "rarity_weight": 50
+      "rarity_weight": 50,
+      "exclusion_group": "constitution",
+      "stat_shape": {"base:stat:toughness": {"max": 2}}
     },
 
     "base:trait:social": {

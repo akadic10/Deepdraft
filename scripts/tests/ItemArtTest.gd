@@ -48,7 +48,7 @@ func _run() -> void:
 			var models: Array=definition.crate_models
 			_expect((bounds_by_stage[models[2]] as AABB).size.y>(bounds_by_stage[models[0]] as AABB).size.y,"full crate visibly higher "+key)
 		if definition.get("material_palette","")=="starter_tool": _wood_variants(key,definition)
-	_expect(keys.size()==56 and inspected.size()==86,"all 56 definitions / 86 presentations imported")
+	_expect(keys.size()==62 and inspected.size()==102,"all 62 definitions / 102 presentations imported: %d / %d" % [keys.size(), inspected.size()])
 	_expect(items._missing_models.is_empty(),"zero fallback models")
 	_work_tools()
 	_carry()
@@ -102,7 +102,7 @@ func _wood_variants(key: String,definition: Dictionary) -> void:
 		var retained := 0
 		for i in colors.size():
 			if colors[i]==changed[i]: retained+=1
-		# The spear has only six stone triangles. Check actual material roles,
+		# A tool's stone can be only a few triangles. Check actual material roles,
 		# rather than requiring an arbitrary vertex count from a voxel mesh.
 		var roles_ok := true
 		for i in colors.size():
@@ -140,7 +140,10 @@ func _shades(node: Node) -> PackedFloat32Array:
 
 func _work_tools() -> void:
 	var assets=root.get_node("DwarfAssets")
-	for spec in [[assets.felling_axe,Vector3(0,1.0625,.6875)],[assets.mining_pickaxe,Vector3(0,1.375,.9375)]]:
+	# The careers' crafting tools (doc 293) strike where the axe does: the crafting swing is the axe's.
+	var edge := Vector3(0,1.0625,.6875)
+	for spec in [[assets.felling_axe,edge],[assets.mining_pickaxe,Vector3(0,1.375,.9375)],
+			[assets.craft_tool("base:profession:carpenter"),edge],[assets.craft_tool("base:profession:stonemason"),edge]]:
 		var prop: Node3D=spec[0].instantiate()
 		_expect("/tools/" in prop.scene_file_path,"new tool routed through registry")
 		_expect(prop.transform.is_equal_approx(Transform3D.IDENTITY),"tool grip origin retained")

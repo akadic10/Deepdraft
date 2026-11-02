@@ -55,7 +55,10 @@ Roles are semantic names (`wood`, `bark`, `grain`, `rope`, `hay`, `stone`, `iron
 - The tunic and cuffs are recoloured to the dwarf's clothing colour.
 - Everything else is a fixed colour.
 
-Keep wood swatches for wood only, or hay and stone would recolour with the wood.
+Keep wood swatches for wood only, or hay and stone would recolour with the wood. Stone that
+stands for a good keeps that good's colours as fixed roles: the mason's bench's slab uses the
+`rough_stone` roles, the Rough Stone's own greys, and the crafting tools' heads `tool_stone`,
+the starter tools' stone (doc 293).
 
 ## Workflow
 
@@ -84,7 +87,7 @@ Keep wood swatches for wood only, or hay and stone would recolour with the wood.
    that replay the model (the dwarf head, the log
    stool, the packed crate) also need `tools/GenerateUiIcons.gd`.
    `FurnitureCatalogThumbnails.gd` takes `--only=<names>` (the keys' last part, such as
-   `log_bridge`) and `--out=<folder>`, so a capture can be checked in `tmp/` before it
+   `log_bed`) and `--out=<folder>`, so a capture can be checked in `tmp/` before it
    replaces a picture in use (doc 172).
 
 ## UI icons
@@ -116,13 +119,18 @@ which is Uproot's picture.
    theirs in `data/ui/order_markers.json`, the badges over dwarves' heads in
    `data/ui/dwarf_indicators.json`, the character sheet's mood faces are named
    by the mood steps in `task_config.json`, and the room window's symbols (the
-   thermometer among them) by `room_symbols` in `data/ui/dock.json`. The event log names
+   thermometer among them) by `room_symbols` in `data/ui/dock.json`, and the dwarf stats'
+   pictures (doc 41, "Stats") by `data/entities/dwarves/stats.json`. The event log names
    each kind's picture in `data/events/event_log.json` and each arrival's species in
    `data/world_events/arrivals.json`. `UiIconDataTest` checks that every named picture
    exists.
-6. An icon that replays a wildlife model (the arrival heads) names its colours
-   `<species>_<role>`. `write_data.py` adds them to the icon palette from the wildlife
-   palette (`ICON_SPECIES`), so each icon keeps its animal's own colours.
+6. An icon that replays a wildlife model (the arrival heads, Development's Arrival status)
+   names its colours `<species>_<role>`. `write_data.py` adds them to the icon palette from
+   the wildlife palette (`ICON_SPECIES`), so each icon keeps its animal's own colours.
+   Icons that borrow the Sky Dial's storm cloud, rain, snow or pine name those colours as
+   the Sky Dial does, added from the sky palette (`ICON_SKY`); water uses the world's water
+   colours. Three dwarf tints are baked: ginger and pale (Colony), black and medium
+   (`hair2`, `skin2`) and white (`hair3`, an elder for Dwarf tools).
 
 ## The Sky Dial
 
@@ -215,5 +223,6 @@ overhang never enlarges ground occupancy.
 Furniture is woodwork (owner, 2026-07-11): beds, chairs, benches, tables and shelves,
 anything dwarves use rather than work at, are wood, warm against the stone. Stone and
 iron are for industrial anchors (anvil, trade counter, workshop bodies) and monuments.
+One exception (owner, 2026-11-01): the Stonemason's stone stool (doc 293).
 Within a tier, Tier 1 pieces stay axe-hewn (split, notched, lashed, no iron); joinery,
 planks and blankets wait for Tier 2.

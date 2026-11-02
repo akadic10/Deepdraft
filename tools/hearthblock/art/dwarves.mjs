@@ -270,6 +270,174 @@ define('tools/mining_pickaxe', v => {
   v.paint(-2, 2, 28, 29, -10, 10, 'steel');                    // lit top edge
 });
 
+// ── Crafting tools (doc 293): stone heads lashed to wooden hafts, no iron ─────
+// Held in the Worker's crafting swing in place of the axe, so each strikes where the axe's
+// edge does, at (0, 17, 11). Rope binds them: there is no leather yet.
+// The Carpenter's stone adze: a wide stone blade lashed across the haft's top, its edge level.
+define('tools/stone_adze', v => {
+  v.box(-1, 1, -4, 20, -1, 1, 'wood'); v.paint(0, 1, -4, 20, -1, 1, 'grain');
+  v.box(-1, 1, -3, 1, -1, 1, 'rope'); v.box(-1, 1, 8, 10, -1, 1, 'rope');          // grip bindings
+  v.box(-3, 3, 16, 20, 1, 9, 'tool_stone'); v.box(-3, 3, 16, 18, 9, 11, 'tool_stone');
+  v.paint(-3, 3, 19, 20, 1, 9, 'tool_stone_light'); v.paint(-3, 3, 16, 18, 10, 11, 'tool_stone_light');   // the edge
+  v.paint(-3, 3, 16, 17, 1, 9, 'tool_stone_dark');
+  v.box(-2, 2, 15, 21, -2, 2, 'rope'); v.paint(-2, 2, 17, 18, -2, 2, 'rope_dark');  // the lashing
+});
+// The Stonemason's maul: a squat hammerstone lashed to a short haft, its face forward.
+define('tools/stone_maul', v => {
+  v.box(-1, 1, -4, 18, -1, 1, 'wood'); v.paint(0, 1, -4, 18, -1, 1, 'grain');
+  v.box(-1, 1, -3, 1, -1, 1, 'rope'); v.box(-1, 1, 8, 10, -1, 1, 'rope');
+  v.cut(-4, 4, 13, 21, 2, 11, 2, 'tool_stone');
+  v.paint(-4, 4, 20, 21, 2, 11, 'tool_stone_light'); v.paint(-4, 4, 13, 14, 2, 11, 'tool_stone_dark');
+  v.paint(-3, 3, 14, 20, 10, 11, 'tool_stone_light');                                // the worn face
+  v.box(-2, 2, 14, 20, -2, 3, 'rope'); v.paint(-2, 2, 16, 17, -2, 3, 'rope_dark');  // the lashing
+});
+
+// ── Fishing (doc 289): a peeled sapling rod, Tier 1 with no iron ─────────────
+// Gripped at (0, 0, 0) and running straight up +Y, 42 cells, the line wound on a peg by the
+// hand and knotted at the tip. The float rides the water with its water line at y 3; the
+// caught perch (the chunky look) hangs by its mouth at (0, 0, 0), its body along +X.
+define('tools/fishing_rod', v => {
+  v.box(-1, 1, -6, 2, -1, 1, 'rod_bark');                       // the bark butt
+  for (const y of [-5, -2, 1]) v.paint(-1, 1, y, y + 1, -1, 1, 'rod_bark_light');
+  v.box(-1, 1, 2, 18, -1, 1, 'rod_wood');                       // the thick, peeled lower rod
+  v.paint(-1, 1, 9, 10, -1, 1, 'rod_knot');                     // a node
+  v.box(0, 1, 18, 41, -1, 0, 'rod_wood');                       // the slim upper rod
+  v.paint(0, 1, 25, 26, -1, 0, 'rod_knot'); v.paint(0, 1, 33, 34, -1, 0, 'rod_knot');
+  for (const y of [3, 12]) v.box(-2, 2, y, y + 1, -2, 2, 'rope');   // rope lashings
+  v.box(-1, 2, 21, 22, -2, 1, 'rope');
+  v.box(1, 3, 4, 8, -1, 1, 'rod_line');                         // the line wound on a peg
+  v.box(1, 2, 3, 9, -1, 1, 'rod_wood');
+  v.box(0, 1, 41, 42, -1, 0, 'rope');                           // the knot at the tip
+});
+define('tools/fishing_float', v => {
+  v.box(0, 1, 0, 2, 0, 1, 'float_wood');                        // the keel
+  v.cut(-1, 2, 2, 5, -1, 2, 1, 'float_wood');                   // the carved body
+  v.paint(-1, 2, 4, 5, -1, 2, 'float_red');
+  v.box(0, 1, 5, 8, 0, 1, 'float_red');                         // the dyed tip
+  v.paint(0, 1, 7, 8, 0, 1, 'float_dark');
+});
+const PERCH = {side: 'perch_side', back: 'perch_back', belly: 'perch_belly', bar: 'perch_bar', tail: 'perch_dorsal', fin: 'perch_fin', eye: 'fish_eye'};
+function perchBody(v, c) {
+  for (const [x0, x1, y0, y1, h, n] of [[0, 2, 3, 6, 1, 0], [2, 4, 2, 7, 2, 1], [4, 8, 1, 8, 2, 1], [8, 10, 2, 7, 2, 1], [10, 11, 3, 6, 1, 0]]) {
+    v.cutX(x0, x1, y0, y1, -h, h, n, c.side);                  // the deep body, round along X
+  }
+  v.paint(0, 12, 6, 9, -3, 3, c.back); v.paint(0, 12, 0, 3, -3, 3, c.belly);
+  for (const x of [5, 8]) v.paint(x, x + 1, 4, 9, -3, 3, c.bar);
+  v.box(11, 12, 2, 7, -1, 1, c.tail); v.box(12, 13, 1, 8, -1, 1, c.tail);   // the fan tail
+  v.box(5, 7, 8, 10, -1, 1, c.tail); v.box(7, 8, 8, 9, -1, 1, c.tail);      // the dorsal
+  v.box(5, 6, 0, 1, -1, 1, c.fin); v.box(8, 9, 0, 2, -1, 1, c.fin);         // the orange fins
+  v.paint(2, 3, 5, 6, 1, 2, c.eye); v.paint(2, 3, 5, 6, -2, -1, c.eye);     // an eye on each flank
+}
+define('tools/caught_perch', v => perchBody(v, PERCH));
+// The other catches (doc 289, step 2) share the perch's chunky body and hang the same way; their
+// colours and marks set them apart. `spots` are [x, y, role] cells painted on both flanks.
+function caught(v, c, spots) {
+  for (const [x0, x1, y0, y1, h, n] of [[0, 2, 3, 6, 1, 0], [2, 4, 2, 7, 2, 1], [4, 8, 1, 8, 2, 1], [8, 10, 2, 7, 2, 1], [10, 11, 3, 6, 1, 0]]) {
+    v.cutX(x0, x1, y0, y1, -h, h, n, c.side);
+  }
+  v.paint(0, 12, 6, 9, -3, 3, c.back); v.paint(0, 12, 0, 3, -3, 3, c.belly);
+  for (const [x, y, role] of spots) { v.paint(x, x + 1, y, y + 1, 1, 2, role); v.paint(x, x + 1, y, y + 1, -2, -1, role); }
+  v.box(11, 12, 2, 7, -1, 1, c.tail); v.box(12, 13, 1, 8, -1, 1, c.tail);   // the fan tail
+  v.box(5, 7, 8, 10, -1, 1, c.dorsal); v.box(7, 8, 8, 9, -1, 1, c.dorsal);  // the dorsal
+  v.box(5, 6, 0, 1, -1, 1, c.fin); v.box(8, 9, 0, 2, -1, 1, c.fin);         // the lower fins
+  if (c.eye) { v.paint(2, 3, 5, 6, 1, 2, c.eye); v.paint(2, 3, 5, 6, -2, -1, c.eye); }
+}
+// Grilling (doc 290) browns every species alike: ROAST stands in for a catch's colours, and its
+// marks darken to grill_bar. A roasted cave fish keeps no eye, as it has none.
+const ROAST = {side: 'grill_side', back: 'grill_back', belly: 'grill_belly', bar: 'grill_bar', tail: 'grill_fin', dorsal: 'grill_fin', fin: 'grill_fin', eye: 'grill_eye'};
+const marks = (spots, roast) => spots.map(([x, y, role]) => [x, y, roast ? 'grill_bar' : role]);
+// The river's trout: olive-brown, dark spots above and red ones along the side, a silver belly.
+function trout(v, roast) {
+  caught(v, roast ? ROAST : {side: 'trout_side', back: 'trout_back', belly: 'trout_belly', tail: 'trout_fin', dorsal: 'trout_fin', fin: 'trout_fin_light', eye: 'fish_eye'},
+    marks([[4, 7, 'trout_spot'], [6, 6, 'trout_spot'], [8, 7, 'trout_spot'], [9, 6, 'trout_spot'], [5, 4, 'trout_red'], [7, 4, 'trout_red'], [9, 4, 'trout_red']], roast));
+  v.box(10, 11, 7, 8, -1, 1, roast ? 'grill_fin' : 'trout_fin');              // the adipose fin
+}
+define('tools/caught_trout', v => trout(v, false));
+// The tarn's char: a dark green back with pale spots, an orange belly, white-edged fins.
+function char(v, roast) {
+  caught(v, roast ? ROAST : {side: 'char_side', back: 'char_back', belly: 'char_belly', tail: 'char_dorsal', dorsal: 'char_dorsal', fin: 'char_fin', eye: 'fish_eye'},
+    marks([[4, 6, 'char_spot'], [6, 5, 'char_spot'], [8, 6, 'char_spot'], [5, 4, 'char_spot'], [7, 3, 'char_spot'], [9, 4, 'char_spot']], roast));
+  if (!roast) { v.paint(5, 6, 0, 1, -1, 1, 'char_edge'); v.paint(8, 9, 0, 1, -1, 1, 'char_edge'); }   // the fins' white edges
+}
+define('tools/caught_char', v => char(v, false));
+// The spring cave's fish: pinkish white, no eyes, a pink gill and a paler line down each side.
+function caveFish(v, roast) {
+  caught(v, roast ? {...ROAST, eye: null} : {side: 'cavefish_body', back: 'cavefish_shade', belly: 'cavefish_belly', tail: 'cavefish_fin', dorsal: 'cavefish_fin', fin: 'cavefish_fin', eye: 'cavefish_socket'},
+    marks([[3, 3, 'cavefish_gill'], [3, 4, 'cavefish_gill'], [3, 5, 'cavefish_gill'], [3, 6, 'cavefish_gill'],
+     [5, 5, 'cavefish_line'], [6, 5, 'cavefish_line'], [7, 5, 'cavefish_line'], [8, 5, 'cavefish_line'], [9, 5, 'cavefish_line']], roast));
+}
+define('tools/caught_cave_fish', v => caveFish(v, false));
+// The big catch (doc 292, concept B): a Ranger's big fish on the line, its own heavier model a
+// size up from the caught fish (19 cells long against 13), with a bigger eye and a heavier jaw.
+// It hangs by its mouth at (0, 0, 0) along +X as they do. `marks` are [x, y0, y1, role] stripes
+// and spots painted through both flanks.
+function bigFish(v, c) {
+  for (const [x0, x1, y0, y1, h, n] of [[0, 3, 4, 9, 2, 0], [3, 6, 2, 11, 3, 1], [6, 12, 1, 13, 3, 1], [12, 15, 2, 11, 3, 1], [15, 16, 4, 9, 2, 0]]) {
+    v.cutX(x0, x1, y0, y1, -h, h, n, c.side);                  // the deep body, round along X
+  }
+  v.paint(0, 19, 9, 13, -4, 4, c.back); v.paint(0, 19, 0, 4, -4, 4, c.belly);
+  for (const [x, y0, y1, role] of c.marks) v.paint(x, x + 1, y0, y1, -4, 4, role);
+  v.box(16, 17, 3, 10, -1, 1, c.tail); v.box(17, 19, 1, 12, -1, 1, c.tail);       // the fan tail
+  v.box(6, 10, 12, 15, -1, 1, c.dorsal); v.box(10, 12, 12, 14, -1, 1, c.dorsal);  // the dorsal
+  if (c.adipose) v.box(14, 15, 11, 13, -1, 1, c.dorsal);                          // the trout's adipose fin
+  v.box(7, 9, 0, 1, -1, 1, c.fin); v.box(12, 13, 0, 2, -1, 1, c.fin);             // the lower fins
+  if (c.edge) { v.paint(7, 9, 0, 1, -1, 1, c.edge); v.paint(12, 13, 0, 1, -1, 1, c.edge); }
+  v.paint(1, 3, 6, 8, 1, 2, c.eye); v.paint(1, 3, 6, 8, -2, -1, c.eye);           // a bigger eye
+  v.box(0, 1, 3, 5, -1, 1, c.belly);                                                // the heavy jaw
+}
+const spot = (cells, role) => cells.map(([x, y]) => [x, y, y + 1, role]);
+define('tools/big_perch', v => bigFish(v, {...PERCH, dorsal: PERCH.tail,
+  marks: [[6, 5, 13, 'perch_bar'], [9, 5, 13, 'perch_bar'], [12, 5, 13, 'perch_bar']]}));
+define('tools/big_trout', v => bigFish(v, {side: 'trout_side', back: 'trout_back', belly: 'trout_belly', tail: 'trout_fin', dorsal: 'trout_fin',
+  fin: 'trout_fin_light', eye: 'fish_eye', adipose: true,
+  marks: [...spot([[5, 10], [8, 11], [11, 10], [13, 9], [7, 9]], 'trout_spot'), ...spot([[6, 6], [9, 5], [12, 6], [10, 7]], 'trout_red')]}));
+define('tools/big_char', v => bigFish(v, {side: 'char_side', back: 'char_back', belly: 'char_belly', tail: 'char_dorsal', dorsal: 'char_dorsal',
+  fin: 'char_fin', eye: 'fish_eye', edge: 'char_edge',
+  marks: spot([[6, 9], [9, 8], [12, 9], [7, 6], [10, 5], [13, 6], [15, 8]], 'char_spot')}));
+define('tools/big_cave_fish', v => bigFish(v, {side: 'cavefish_body', back: 'cavefish_shade', belly: 'cavefish_belly', tail: 'cavefish_fin',
+  dorsal: 'cavefish_fin', fin: 'cavefish_fin', eye: 'cavefish_socket',
+  marks: [[4, 4, 10, 'cavefish_gill'], ...[6, 7, 8, 9, 10, 11, 12, 13, 14].map(x => [x, 7, 8, 'cavefish_line'])]}));
+
+// ── Grilling (doc 290): a fresh fish pushed onto a peeled green stick from the mouth, held out
+// over the campfire, then eaten off the stick (concept A, tmp/grill_concepts_20261031). Gripped at
+// (0, 0, 0) like the rod, the stick runs up +Y: a bark butt in the hand, peeled above, slim from
+// y 10 to its tip at y 29. The fish lies along it, snout up at y 26 and tail down at y 14, its
+// height across X and its flanks facing ±Z, so the stick runs through it from mouth to tail.
+// Grilled, the fish browns (ROAST), scorched along the belly where the flames reach and glossy
+// along the shoulder, and the stick's tip blackens.
+function grillStick(v, grilled) {
+  v.box(-1, 1, -3, 3, -1, 1, 'stick_bark');                     // the bark butt
+  v.paint(-1, 1, -1, 0, -1, 1, 'stick_bark_light'); v.paint(-1, 1, 1, 2, -1, 1, 'stick_bark_light');
+  v.box(-1, 1, 3, 10, -1, 1, 'stick_wood');                     // peeled
+  v.paint(-1, 1, 6, 7, -1, 1, 'stick_knot');
+  v.box(0, 1, 10, 29, -1, 0, 'stick_wood');                     // the slim upper stick
+  if (grilled) v.box(0, 1, 27, 29, -1, 0, 'stick_char');        // blackened where the flames reach
+}
+// A caught fish's ops, in its own cells (x from the snout, y up), laid on the stick's cells.
+function onStick(v) {
+  const across = (y0, y1) => [y0 - 5, y1 - 5];
+  const along = (x0, x1) => [27 - x1, 27 - x0];
+  return {
+    box: (x0, x1, y0, y1, z0, z1, c) => v.box(...across(y0, y1), ...along(x0, x1), z0, z1, c),
+    paint: (x0, x1, y0, y1, z0, z1, c) => v.paint(...across(y0, y1), ...along(x0, x1), z0, z1, c),
+    cutX: (x0, x1, y0, y1, z0, z1, n, c) => v.cut(...across(y0, y1), ...along(x0, x1), z0, z1, n, c),
+  };
+}
+const CATCHES = {perch: (v, roast) => perchBody(v, roast ? ROAST : PERCH), trout, char, cave_fish: caveFish};
+const SCORCH = [[3, 3], [4, 2], [6, 1], [7, 2], [9, 2], [10, 4], [2, 6], [6, 6], [9, 6]];
+for (const [fish, body] of Object.entries(CATCHES)) {
+  for (const grilled of [false, true]) {
+    define(`tools/grill_stick_${fish}${grilled ? '_grilled' : ''}`, v => {
+      grillStick(v, grilled);
+      const s = onStick(v);
+      body(s, grilled);
+      if (!grilled) return;
+      s.paint(4, 8, 5, 6, -3, 3, 'grill_side_light');          // the gloss along the shoulder
+      for (const [x, y] of SCORCH) s.paint(x, x + 1, y, y + 1, -3, 3, 'grill_char');
+    });
+  }
+}
+
 // ── Portrait-only scars, drawn on the face; dwarves.py lifts them clear ──────
 define('scars/scar_cheek_slash', v => { v.box(7, 8, 32, 35, 9, 10, 'scar'); v.box(8, 9, 31, 33, 9, 10, 'scar'); });
 define('scars/scar_brow_notch', v => v.box(-8, -7, 45, 48, 9, 10, 'scar'));

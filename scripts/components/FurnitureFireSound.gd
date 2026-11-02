@@ -2,6 +2,8 @@ extends Node3D
 
 ## One bounded pool per world, fed only by visible installed fires. Uses Work
 ## volume/mute and camera-focus attenuation; no per-furniture audio allocation.
+## A cold nightly fire (doc 279) is silent.
+const Fires = preload("res://scripts/components/FurnitureFires.gd")
 var furniture: Node
 var voices: Array[Dictionary] = []
 var _settings: Dictionary
@@ -60,7 +62,7 @@ func _scan(context: Dictionary) -> void:
 	var candidates: Array[Dictionary] = []
 	for piece in furniture.get_installed_pieces():
 		var kind := String(piece.def.get("fire_sound", ""))
-		if kind.is_empty() or not _audible_source(piece.node): continue
+		if kind.is_empty() or not Fires.burning(piece) or not _audible_source(piece.node): continue
 		var point: Vector3 = piece.node.global_position
 		var profile: Dictionary = _settings[kind]
 		var gain := WorkFeedback.spatial_gain(point, context.focus, context.zoom, profile)

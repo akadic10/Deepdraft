@@ -2,6 +2,8 @@ extends VBoxContainer
 
 ## A career map and appointment card for one explicit dwarf. Planned roles
 ## remain inspectable but only the registry's runtime allowlist can promote.
+## Each profession wears a tag with the dwarf's fit for it, and the card names the two
+## stats behind the chosen one's (doc 41 "Stats").
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const PREFIX := "base:profession:"
@@ -29,6 +31,9 @@ var _rewards: Label
 var _appointment: Label
 var _requirements: Label
 var _status: Label
+var _fit_row: HBoxContainer
+var _fit_icons: Array[TextureRect] = []
+var _fit_text: Label
 var _experience: Label
 var _progress: ProgressBar
 var _promote: Button
@@ -81,12 +86,14 @@ func _ready() -> void:
 	_left_scroll.mouse_force_pass_scroll_events = false
 	left.add_child(_left_scroll)
 	_tree = Control.new()
-	_tree.custom_minimum_size = Vector2(656, 342)
 	_left_scroll.add_child(_tree)
+	var lowest := 0.0
 	for entry: Dictionary in DwarfAssets.promotion_entries():
 		var key := PREFIX + String(entry.role)
 		_entries[key] = entry
 		_build_node(key, entry)
+		lowest = maxf(lowest, float(entry.position[1]))
+	_tree.custom_minimum_size = Vector2(656, lowest + 78 + 14)   # down to the lowest row of tiles
 	_tree.draw.connect(_draw_connections)
 	_label(left, "Current / Available = usable now    ·    Planned = future gameplay", MEDIUM.small, UITheme.HEARTH_MUTED)
 	var details := PanelContainer.new()
@@ -127,6 +134,23 @@ func _ready() -> void:
 	_appointment = _label(column, "", MEDIUM.title, UITheme.CATALOG_INK)
 	_appointment.add_theme_font_override("font", UITheme.display_font())
 	_status = _label(column, "", MEDIUM.small, UITheme.CATALOG_INK)
+	# The dwarf's fit: the two stats' pictures and "Good fit · Strength, then Toughness".
+	_fit_row = HBoxContainer.new()
+	_fit_row.add_theme_constant_override("separation", 4)
+	_fit_row.mouse_filter = Control.MOUSE_FILTER_PASS
+	_fit_row.tooltip_text = "The main stat counts twice, the second once. Stats change how well the work goes, never who may take it."
+	column.add_child(_fit_row)
+	for i in range(2):
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(22, 22)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_fit_row.add_child(icon)
+		_fit_icons.append(icon)
+	_fit_text = _label(_fit_row, "", MEDIUM.body, UITheme.CATALOG_INK)
+	_fit_text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_fit_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(HSeparator.new())
 	_label(column, "REQUIREMENTS", MEDIUM.small, UITheme.CATALOG_MUTED)
 	_requirements = _label(column, "", MEDIUM.body, UITheme.CATALOG_INK)
@@ -173,8 +197,15 @@ func _build_node(key: String, entry: Dictionary) -> void:
 	var state := _label(box, "", MEDIUM.small, UITheme.HEARTH_MUTED)
 	state.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_ignore_mouse(box)
+	# The dwarf's fit (doc 41 "Stats"): a tone tag hung on the tile's top right corner.
+	var fit := PanelContainer.new()
+	fit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(fit)
+	var fit_word := Label.new()
+	UITheme.format_label(fit_word, false, MEDIUM.small, UITheme.CARD_TEXT)
+	fit.add_child(fit_word)
 	button.pressed.connect(select_profession.bind(key))
-	_nodes[key] = {"button": button, "state": state, "icon": icon}
+	_nodes[key] = {"button": button, "state": state, "icon": icon, "fit": fit, "fit_word": fit_word, "fit_step": -1}
 
 
 func _draw_connections() -> void:
@@ -194,12 +225,23 @@ func begin_browsing(agent: DwarfAgent) -> void:
 	_agent = agent
 	_model = Portrait.create_model(_portrait, agent)
 	_identity.text = agent.dwarf_name
+	for node: Dictionary in _nodes.values(): node.fit_step = -1   # this dwarf's fits, named for them
 	window.set_window_title("Professions · " + agent.dwarf_name, "")
 	select_profession(agent.profession if agent.profession != PREFIX + "worker" else PREFIX + "miner")
 	_left_scroll.scroll_vertical = 0
 	_left_scroll.scroll_horizontal = 0
 	set_process(true)
 	_fit.call_deferred()
+
+
+## Another dwarf picked while the map is open, in Colony Dwarves or the world: the map shows
+## them with the same career chosen, so dwarves can be compared for one career (owner,
+## 2026-11-01).
+func follow(agent: DwarfAgent) -> void:
+	if agent == _agent: return
+	var career := _selected
+	begin_browsing(agent)
+	select_profession(career)
 
 
 func clear_subject() -> void:
@@ -255,6 +297,16 @@ func refresh() -> void:
 	if selected_pending: _status.text = "COLLECTING TOOL"
 	elif not blocked.is_empty(): _status.text = "TOOL REQUIRED" if not _agent.is_sleeping() else "RESTING"
 	_requirements.text = entry.availability
+	var pair := DwarfAssets.profession_stats(_selected)
+	var fit := DwarfAssets.profession_fit(_selected, _agent.stats)
+	_fit_row.visible = fit > 0
+	if fit > 0:
+		var names: Array[String] = []
+		for i in range(2):
+			var stat := DwarfAssets.stat_definition(String(pair[i]))
+			_fit_icons[i].texture = load(String(stat.get("icon", "")))
+			names.append(String(stat.get("name", "")))
+		_fit_text.text = "%s fit · %s, then %s" % [DwarfAssets.stat_word(fit), names[0], names[1]]
 	var starter_tool := String(entry.get("starter_tool", ""))
 	if not starter_tool.is_empty():
 		var crafting := get_tree().get_first_node_in_group("crafting_manager")
@@ -264,31 +316,34 @@ func refresh() -> void:
 			var count_available := int(stock.get(starter_tool, {}).get("available", 0))
 			_requirements.text = "%s · %d available\nWorker · crude workbench\n\n%s" % [tool_name, count_available, entry.availability]
 			if selected_pending: _requirements.text = "Tool collection in progress.\n\n" + _requirements.text
-			elif current: _requirements.text = "Equipped: %s\n\nSpecialist workshop and recipes are planned." % tool_name
+			elif current: _requirements.text = "Equipped: %s" % tool_name + ("" if not DwarfAssets.craft_section(_selected).is_empty() else "\n\nSpecialist workshop and recipes are planned.")
 	if not blocked.is_empty(): _requirements.text += "\n\n" + blocked
 	var equipment_preview: Dictionary = DwarfAssets.profession_definition(_selected).get("equipment_preview", {})
 	if equipment_preview.has("upgrade_status"):
 		_requirements.text += "\n\nNext tool: %s\n%s\nSee the dwarf's Equipment view for the upgrade path." % [equipment_preview.upgrade_name, equipment_preview.upgrade_status]
-	if _selected == PREFIX + "miner" and not bool(_agent.work_permissions.get("mine", true)):
-		_requirements.text += "\n\nMining is switched off for this dwarf. Enable Mine in the colony Work view to let them dig."
+	# A career's own work switched off in Labor: the Miner's Mine, the Ranger's Fish (doc 292).
+	var focus: String = DwarfAssets.work_category(String(DwarfAssets.profession_definition(_selected).get("experience", {}).get("earned_by", "")))
+	if not focus.is_empty() and not bool(_agent.work_permissions.get(focus, true)):
+		var label := focus.capitalize()
+		for permission: Dictionary in DwarfAssets.work_permissions():
+			if permission.id == focus: label = String(permission.label)
+		_requirements.text += "\n\n%s is unticked for this dwarf. Tick it in the colony Work view to let them %s." % [label, label.to_lower()]
 	_rewards.text = "General colony work and basic crafting. Worker progression will arrive with a later milestone."
-	_progress.visible = _selected == PREFIX + "miner"
-	if _selected == PREFIX + "miner":
-		var rewards: Array[String] = ["Lv 1  Mining focus"]
-		for reward_level in range(2, 6):
-			var value := DwarfAssets.mining_duration_multiplier(_selected, {_selected: DwarfAssets.experience_threshold(reward_level)})
-			rewards.append("Lv %d  %d%% less digging time" % [reward_level, roundi((1.0 - value) * 100)])
-		_rewards.text = "  ·  ".join(rewards) + "\nOne experience per completed block. Walking speed stays unchanged."
-		var lower := DwarfAssets.experience_threshold(level) if level > 1 else 0
-		var upper := DwarfAssets.experience_threshold(level + 1) if level < 5 else count
-		_experience.text = "Retained level %d · %d blocks mined\n%s" % [level, count, "%d more blocks to level %d" % [upper - count, level + 1] if level < 5 else "Master Miner · Maximum level"]
+	_progress.visible = DwarfAssets.earns_experience(_selected)
+	if DwarfAssets.earns_experience(_selected):   # the Miner, the Ranger (doc 292), the Carpenter and the Stonemason (doc 293)
+		var info: Dictionary = DwarfAssets.profession_definition(_selected).experience
+		var rewards: Array[String] = []
+		for reward: Dictionary in DwarfAssets.level_rewards(_selected): rewards.append("Lv %d  %s" % [int(reward.level), reward.text])
+		_rewards.text = "  ·  ".join(rewards) + "\n" + String(info.per)
+		var lower := DwarfAssets.experience_threshold(level, _selected) if level > 1 else 0
+		var upper := DwarfAssets.experience_threshold(level + 1, _selected) if level < 5 else count
+		var next := "%d %s to level %d" % [upper - count, DwarfAssets.experience_words(_selected, "to_go", upper - count), level + 1]
+		_experience.text = "Retained level %d · %d %s\n%s" % [level, count, DwarfAssets.experience_words(_selected, "noun", count), next if level < 5 else "%s · Maximum level" % info.master]
 		_progress.max_value = maxi(1, upper - lower)
 		_progress.value = float(count - lower) if level < 5 else _progress.max_value
 	else:
 		_experience.text = "No experience required." if enabled else "Level rewards will be defined with this profession's gameplay."
 		if not enabled: _rewards.text = "FUTURE CAREER\nThis role can be explored here, but cannot be assigned yet."
-	if _selected == PREFIX + "carpenter":
-		_rewards.text = "Equips a real carpentry kit. General hauling, gathering, mining and building remain available. Specialist crafting and experience are planned. No tool speed bonus yet."
 	_promote.disabled = (current and not pending) or not enabled or not blocked.is_empty() or not _agent in director.get_roster()
 	_promote.text = "Current profession" if current else "Not yet available" if not enabled else "Return to Worker" if _selected == PREFIX + "worker" else ("Resume %s · Lv %d" % [title, level] if count > 0 else "Promote to " + title)
 	if selected_pending or (current and pending): _promote.text = "Cancel promotion"
@@ -303,7 +358,26 @@ func refresh() -> void:
 		node.state.add_theme_color_override("font_color", UITheme.SUCCESS if usable else UITheme.HEARTH_MUTED)
 		node.icon.modulate = Color.WHITE if usable or key == _selected else Color(.48, .48, .48)   # dimmed like planned dock entries
 		node.button.set_pressed_no_signal(key == _selected)
+		_show_fit(key, node)
 	_tree.queue_redraw()
+
+
+## A profession's fit tag: moss from Good, hay at Average, rust below; none for a profession
+## that names no stats. Built again only when the fit changes; kept at the corner each time.
+func _show_fit(key: String, node: Dictionary) -> void:
+	var fit := DwarfAssets.profession_fit(key, _agent.stats)
+	var tag: PanelContainer = node.fit
+	tag.visible = fit > 0
+	if fit <= 0: return
+	if int(node.fit_step) != fit:
+		node.fit_step = fit
+		var tone := "fine" if fit >= 4 else ("waiting" if fit == 3 else "blocked")
+		tag.add_theme_stylebox_override("panel", UITheme.cell_style("tag_" + tone, 2))
+		node.fit_word.text = DwarfAssets.stat_word(fit)
+		node.fit_word.add_theme_color_override("font_color", UITheme.tag_ink(tone))
+		node.button.tooltip_text = "%s\n\n%s fit for %s" % [_entries[key].summary, DwarfAssets.stat_word(fit), _agent.dwarf_name]
+	tag.reset_size()
+	tag.position = Vector2(node.button.size.x - tag.size.x + 6, -8)
 
 
 func _apply_promotion() -> void:

@@ -34,6 +34,8 @@ func packed(piece: InstalledFurnitureComponent, cell: Vector3i, worker_id: int) 
 	if id.is_empty(): return false
 	var record: Dictionary = records[id]
 	record.installed_id = -1
+	# A container's filter and priority travel with it; its contents were dropped (doc 294).
+	if piece.storage != null: record["storage"] = {"storage_filter": piece.storage.serialize_filter(), "priority": piece.storage.priority}
 	var drops: ItemDropManager = controller._drop_manager
 	var rest_y: int = drops.floor_rest_y(cell + Vector3i.UP)
 	drops.restore_loose_item(piece.item_key,Vector3(cell.x+.5,rest_y,cell.z+.5),0,1,id,false,piece.material_id)
@@ -51,6 +53,10 @@ func installed(id: String, piece: InstalledFurnitureComponent) -> void:
 	for other: InstalledFurnitureComponent in controller.get_installed_pieces():
 		if other != piece and other.assigned_dwarf_id == resident: resident = -1; break
 	if resident >= 0: controller.assign_bed(piece.installed_id,resident)
+	if record.has("storage") and piece.storage != null:
+		piece.storage.restore_filter(record.storage.storage_filter)
+		piece.storage.set_priority(int(record.storage.priority))
+		StockpileManager.storage_rules_changed()
 	records.erase(id)
 
 func serialize() -> Dictionary:

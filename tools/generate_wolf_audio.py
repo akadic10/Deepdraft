@@ -1,35 +1,59 @@
-"""Original subdued wolf breath/chuff and eating foley, no external samples."""
+"""Prepare wolf cues from CC0 recordings, reproducibly and without a network.
+
+Howls are actual wolves. Selection and eating use recorded dog foley; see
+tools/audio_sources/wolf/source.json for species, licensing and edit regions.
+The source masters are mono PCM at the existing output rates. Requires numpy.
+"""
+import json
+import wave
 import numpy as np
-from generate_chopping_audio import ROOT, RATE, filtered_noise, write
-from generate_rabbit_audio import pulse
+from generate_chopping_audio import ROOT, RATE, write
+
+SOURCE = ROOT/'tools/audio_sources/wolf'
 
 
-def sound(seed, eating):
-    rng = np.random.default_rng(seed)
-    duration = .8 if eating else .65
-    t = np.arange(round(duration*RATE))/RATE
-    breath = filtered_noise(rng,len(t),850)
-    texture = filtered_noise(rng,len(t),2600)
-    result = np.zeros_like(t)
-    for onset in ([.03,.3,.54] if eating else [.035,.24]):
-        envelope = pulse(t,onset,rng.uniform(.15,.23))
-        result += envelope*(.6*breath+.4*texture if eating else breath)
-        if not eating:
-            tone = rng.uniform(105,125)
-            result += envelope*(np.sin(2*np.pi*tone*t)*.14+np.sin(2*np.pi*tone*2*t)*.04)
+def sound(kind, index):
+    profile = json.loads((SOURCE/'source.json').read_text(encoding='utf-8'))['banks'][kind]
+    rate = profile['rate']
+    with wave.open(str(SOURCE/profile['master']), 'rb') as source:
+        assert (source.getnchannels(), source.getsampwidth(), source.getframerate()) == (1, 2, rate)
+        samples = np.frombuffer(source.readframes(source.getnframes()), dtype='<i2').astype(float)/32768
+    start, end = profile['regions_seconds'][index]
+    result = samples[round(start*rate):round(end*rate)].copy()
+    assert len(result) == round(end*rate)-round(start*rate)
     result -= result.mean()
-    result *= np.minimum(t/.012,1)*np.minimum((duration-t)/.025,1)
-    result *= (.28 if eating else .35)/max(abs(result).max(),.001)
+    padding = round(rate*.15)
+    padded = np.pad(result, padding, mode='reflect')
+    frequencies = np.fft.rfftfreq(len(padded), 1/rate)
+    high_pass = 1/np.sqrt(1+(profile['high_pass_hz']/np.maximum(frequencies, 1e-6))**4)
+    low_pass = 1/np.sqrt(1+(frequencies/profile['low_pass_hz'])**8)
+    result = np.fft.irfft(np.fft.rfft(padded)*high_pass*low_pass, n=len(padded))[padding:-padding]
+    result -= result.mean()
+    fade_in, fade_out = [round(seconds*rate) for seconds in profile['fades_seconds']]
+    result[:fade_in] *= np.linspace(0, 1, fade_in)
+    result[-fade_out:] *= np.linspace(1, 0, fade_out)
+    rms = np.sqrt(np.mean(result**2))
+    result *= min(profile['target_rms']/max(float(rms), 1e-8),
+                  profile['peak_ceiling']/max(float(abs(result).max()), 1e-8))
+    assert np.isfinite(result).all() and abs(result).max() < 1
     return result
 
 
+def write_howl(index):
+    # Use the same environmental WAV writer from either generator entry point.
+    from generate_environment_audio import write as environment_write
+    environment_write(f'wolf_howl_{index+1:02}', sound('howl', index))
+
+
 if __name__ == '__main__':
-    sampler=[]
-    for kind in ['select','eat']:
+    sampler = []
+    for kind in ['select', 'eat']:
         for i in range(3):
-            wav=sound(77310+i,kind=='eat')
-            path=ROOT/'assets/audio/wildlife'/f'wolf_{kind}_{i+1:02}.wav'
-            write(path,wav)
-            sampler.extend([wav,np.zeros(round(.5*RATE))])
-            print(path.name,'peak',round(float(abs(wav).max()),3))
-    write(ROOT/'tmp/wolf_review/wolf_sampler.wav',np.concatenate(sampler))
+            pcm = sound(kind, i)
+            path = ROOT/'assets/audio/wildlife'/f'wolf_{kind}_{i+1:02}.wav'
+            write(path, pcm)
+            sampler.extend([pcm, np.zeros(round(.5*RATE))])
+            print(path.name, 'seconds', round(len(pcm)/RATE, 2), 'peak', round(float(abs(pcm).max()), 3))
+    for i in range(3): write_howl(i)
+    write(ROOT/'tmp/wolf_review/wolf_sampler.wav', np.concatenate(sampler))
+    print('Wolf audio: 3 recorded canine selection cues, 3 recorded canine eating cues, 3 real wolf howl excerpts.')

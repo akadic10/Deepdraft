@@ -2,6 +2,8 @@
   "id": "base:animal:duck",
   "display_name": "Wild Duck",
   "description": "A sociable water bird. Paddles in calm water, forages and preens along the bank, and makes occasional short flights between pools or away from danger.",
+  "__comment_hit_points": "Hit points (doc 45): what the Ranger's blows will have to wear down once hunting comes. Nothing hurts an animal yet.",
+  "hit_points": 8,
   "model_parts": {
     "male_body": "res://assets/models/animals/duck/male_body.glb",
     "male_head": "res://assets/models/animals/duck/male_head.glb",

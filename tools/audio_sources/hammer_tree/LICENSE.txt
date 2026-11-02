@@ -1,0 +1,22 @@
+Deepdraft - recorded stone-hammer foley and tree felling
+
+Both recordings were released under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+Stone on Stone Hit
+Author: xtra1
+Source: https://freesound.org/people/xtra1/sounds/858891/
+Preview: https://cdn.freesound.org/previews/858/858891_18963922-hq.mp3
+Local master: stone_hits.wav
+Two apple-sized stones struck together in front of a Fifine HyperX, used here as stone-hammer foley.
+
+A Tree Falling Down.wav
+Author: ecfike
+Source: https://freesound.org/people/ecfike/sounds/139952/
+Preview: https://cdn.freesound.org/previews/139/139952_2337290-hq.mp3
+Local master: tree_fall.wav
+A real tree falling during tree cutting on the uploader’s farm.
+
+Masters retain the complete public HQ MP3 previews, decoded in floating point, averaged to mono and resampled to 48 kHz PCM16 with anti-alias filtering. Downloaded audio is from MP3 previews; the original uploads were not downloaded. xtra1 originally uploaded MP3, while ecfike originally uploaded WAV. The tree preview has decoded peaks above full scale; it is gain-reduced before PCM conversion so those peaks are not clipped during preparation. Source/master hashes, master gains, crop regions and clip settings are in source.json. The six hammer cues are separate recorded stone-on-stone contacts used as foley for the game's stone-headed hammer; they are not recordings of a handled hammer. Natural recording speed and pitch are preserved, with gentle filtering, fades and gain only. No synthesized layers, time stretching, pitch shifting, added reverb or denoising. Existing runtime cosmetic pitch variation is unchanged.

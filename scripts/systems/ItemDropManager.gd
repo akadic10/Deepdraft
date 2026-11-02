@@ -105,15 +105,21 @@ func spawn_drop(item_key: String, count: int, block: Vector3i, material_id: Stri
 	var rest_y := floor_rest_y(block)
 	var remaining := count
 	# Only unclaimed nearby crates can be topped up. A worker's reservation is
-	# an exact quantity and must never change underneath that worker.
+	# an exact quantity and must never change underneath that worker. Fresh goods
+	# never join a crate already spoilt past the band (doc 42 "Spoilage").
 	if item_capacity(item_key) > 1:
+		var band := float(StockpileManager.spoilage.config.merge_band)
 		for existing: Node3D in _loose:
 			if not Permission.allowed(existing) or _reserved.has(existing) or String(_loose[existing]) != item_key or CraftMaterials.of_item(existing) != material_id:
+				continue
+			if spoil_of(existing) > band:
 				continue
 			if item_floor_cell(existing) != Vector3i(block.x, rest_y - 1, block.z):
 				continue
 			var added := mini(remaining, item_capacity(item_key) - quantity_of(existing))
 			if added > 0:
+				# Fresh goods freshen the crate they join.
+				set_spoil(existing, blend_spoil(spoil_of(existing), quantity_of(existing), 0.0, added))
 				set_quantity(existing, quantity_of(existing) + added)
 				remaining -= added
 	while remaining > 0:
@@ -130,6 +136,21 @@ func spawn_drop(item_key: String, count: int, block: Vector3i, material_id: Stri
 		add_child(node)
 		_loose[node] = item_key
 	drop_spawned.emit(item_key)
+
+
+## Lays goods that never pack into crates one to a cell, in the order given (a
+## felled tree's logs over its stump); more goods than open cells wrap round
+## them. A cell holding a solid block is passed over. A crate goes to the first
+## open cell; with no open cell everything drops on the first cell.
+func spawn_spread(item_key: String, count: int, cells: Array[Vector3i]) -> void:
+	if cells.is_empty():
+		return
+	var open := cells.filter(func(cell: Vector3i) -> bool: return not BlockRegistry.is_solid(_block_id(cell.x, cell.y, cell.z)))
+	if item_capacity(item_key) > 1 or open.is_empty():
+		spawn_drop(item_key, count, cells[0] if open.is_empty() else open[0])
+		return
+	for i in range(count):
+		spawn_drop(item_key, 1, open[i % open.size()])
 
 
 ## Loose (unstored) item nodes. Read-only; do not mutate.
@@ -200,6 +221,7 @@ func capture_save_state() -> Dictionary:
 		})
 		if node.has_meta("instance_id"): entries.back()["instance_id"] = node.get_meta("instance_id")
 		entries.back()["material_id"] = CraftMaterials.of_item(node)
+		if spoil_of(node) > 0.0: entries.back()["spoil"] = spoil_of(node)
 	return { "loose": entries }
 
 
@@ -212,7 +234,8 @@ func restore_state(state: Dictionary) -> void:
 		restore_loose_item(
 			key,
 			SaveManager.unpack_v3(entry.get("position", [])),
-			float(entry.get("rotation_y", 0.0)), int(entry.get("count", 1)), String(entry.get("instance_id", "")), bool(entry.get("disallowed", false)), String(entry.get("material_id", "")))
+			float(entry.get("rotation_y", 0.0)), int(entry.get("count", 1)), String(entry.get("instance_id", "")), bool(entry.get("disallowed", false)), String(entry.get("material_id", "")),
+			float(entry.get("spoil", 0.0)))
 
 
 ## Builds one unindexed item visual for save restoration consumers (shelf
@@ -234,10 +257,11 @@ func create_item_visual(item_key: String, count: int = 1, instance_id: String = 
 	return node
 
 
-func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1, instance_id: String = "", disallowed: bool = false, material_id: String = "") -> void:
+func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1, instance_id: String = "", disallowed: bool = false, material_id: String = "", spoil: float = 0.0) -> void:
 	var node := create_item_visual(item_key, count, instance_id, material_id)
 	if node == null:
 		return
+	if spoil > 0.0: set_spoil(node, spoil)
 	add_child(node)
 	node.set_meta("disallowed", disallowed)
 	place_stored(node, cell)
@@ -248,13 +272,14 @@ func restore_stored_item(item_key: String, cell: Vector3i, count: int = 1, insta
 ## used for items that were in transit at snapshot time: tasks are transient,
 ## so those materialize safely at their saved carrier's feet on load.
 func restore_loose_item(item_key: String, restored_position: Vector3,
-		rotation_y: float = 0.0, count: int = 1, instance_id: String = "", disallowed: bool = false, material_id: String = "") -> void:
+		rotation_y: float = 0.0, count: int = 1, instance_id: String = "", disallowed: bool = false, material_id: String = "", spoil: float = 0.0) -> void:
 	if count <= 0:
 		return
 	var amount := mini(count, item_capacity(item_key))
 	var node := create_item_visual(item_key, amount, instance_id, material_id)
 	if node == null:
 		return
+	if spoil > 0.0: set_spoil(node, spoil)
 	node.set_meta("disallowed", disallowed)
 	node.position = restored_position
 	node.rotation.y = rotation_y
@@ -267,7 +292,7 @@ func restore_loose_item(item_key: String, restored_position: Vector3,
 	_reserve_promised_instance(node)
 	drop_spawned.emit(item_key)
 	if count > amount:
-		restore_loose_item(item_key, restored_position, rotation_y, count - amount, "", disallowed, material_id)
+		restore_loose_item(item_key, restored_position, rotation_y, count - amount, "", disallowed, material_id, spoil)
 
 
 # ── Loose-item index API (doc 18 §2.1) ────────────────────────────────────────
@@ -384,11 +409,35 @@ func advance_nearest_haul_query(from: Vector3i, accepts_key: Callable, query: Di
 	return true
 
 
+## The distinct floor cells of a haul quote's snapshot nearest `from`, nearest first, at most
+## `limit`, skipping `exclude`d cells. Read-only, like the quote.
+func snapshot_cells_near(snapshot: Dictionary, from: Vector3i, limit: int, exclude: Dictionary = {}) -> Array[Vector3i]:
+	var cells: Array[Vector3i] = []
+	var nearest: Array = [] # [distance, cell]
+	for cell: Vector3i in snapshot.get("cells", []):
+		if limit <= 0 or exclude.has(cell): continue
+		var distance := absi(cell.x - from.x) + absi(cell.y - from.y) + absi(cell.z - from.z)
+		if nearest.size() >= limit and distance >= int(nearest.back()[0]): continue
+		if nearest.any(func(entry: Array) -> bool: return entry[1] == cell): continue
+		var at := nearest.size()
+		while at > 0 and int(nearest[at - 1][0]) > distance: at -= 1
+		nearest.insert(at, [distance, cell])
+		if nearest.size() > limit: nearest.pop_back()
+	for entry: Array in nearest: cells.append(entry[1])
+	return cells
+
+
+func snapshot_has_cell(snapshot: Dictionary, cell: Vector3i) -> bool:
+	return (snapshot.get("cells", []) as Array).has(cell)
+
+
 ## Read-only single-unit crafting quote; the chosen physical item is retained
 ## so route exclusions are not lost when execution claims the material.
+## spoil_margin (blocks, food only): older food counts that much nearer when fully spoilt,
+## so meals take it first (doc 41 "Eating").
 func advance_material_quote(keys: Array[String], from: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary,
-		claim_owner := -1, material_id := "", instance_id := "", single_unit := true) -> bool:
-	if query.is_empty(): query.merge({"nodes":_loose.keys(), "index":0, "best":{}, "distance":0x7FFFFFFF})
+		claim_owner := -1, material_id := "", instance_id := "", single_unit := true, spoil_margin := 0.0) -> bool:
+	if query.is_empty(): query.merge({"nodes":_loose.keys(), "index":0, "best":{}, "score":INF, "distance":0x7FFFFFFF})
 	while int(query.index) < query.nodes.size():
 		if Time.get_ticks_usec() >= deadline: return false
 		var node = query.nodes[query.index]
@@ -403,8 +452,10 @@ func advance_material_quote(keys: Array[String], from: Vector3i, query: Dictiona
 		if excluded.has(cell): continue
 		var delta := cell-from
 		var distance := absi(delta.x)+absi(delta.y)+absi(delta.z)
-		if distance < int(query.distance):
-			query.distance = distance
+		var score := distance-spoil_margin*spoil_of(node)
+		if score < float(query.score):
+			query.score = score
+			query.distance = distance   # the chosen item's, which callers compare across sources
 			query.best = {"node":node, "key":String(_loose[node]), "cell":cell, "distance":distance}
 	return true
 
@@ -484,9 +535,19 @@ func count_loose(accepted_tags: Array, cap: int, can_store: Callable = Callable(
 	return found
 
 
+## Loose units of one good that no one has claimed and dwarves may move.
+func free_loose_count(key: String) -> int:
+	var total := 0
+	for node: Node3D in _loose:
+		if String(_loose[node]) == key and is_instance_valid(node) and not _reserved.has(node) and Permission.allowed(node):
+			total += quantity_of(node)
+	return total
+
+
 ## The FLOOR cell a dwarf stands on to pick this item up (the item rests on
 ## that cell's top face — spawn_drop sets position.y to floor top).
 func item_floor_cell(node: Node3D) -> Vector3i:
+	if node.has_meta("floor_cell"): return node.get_meta("floor_cell")   # a handoff marker (StorageComponent)
 	return Vector3i(
 		floori(node.position.x),
 		int(round(node.position.y)) - 1,
@@ -528,6 +589,57 @@ func edible_keys() -> Array[String]:
 	return result
 
 
+## Foods a dwarf may grill at a campfire (`food.grill`, doc 290): the fresh fish.
+func grill_keys() -> Array[String]:
+	var result: Array[String] = []
+	for key: String in _defs:
+		if bool(food_definition(key).get("grill", false)): result.append(key)
+	return result
+
+
+## A food stack's spoil (doc 42 "Spoilage"): 0 fresh to 1 rotten. Loose and carried goods
+## keep it on their node; a stored stack keeps it in its storage entry and shows it on its
+## node. Splitting a stack copies it, and putting stacks together averages it by count.
+static func spoil_of(node: Node3D) -> float:
+	return float(node.get_meta("spoil", 0.0)) if is_instance_valid(node) else 0.0
+
+
+static func set_spoil(node: Node3D, value: float) -> void:
+	if is_instance_valid(node): node.set_meta("spoil", clampf(value, 0.0, 1.0))
+
+
+static func blend_spoil(spoil: float, count: int, added_spoil: float, added: int) -> float:
+	return (spoil * count + added_spoil * added) / float(count + added) if count + added > 0 else 0.0
+
+
+## Whether a dwarf has claimed this loose node, for a meal or a haul.
+func is_claimed(node: Node3D) -> bool:
+	return _reserved.has(node)
+
+
+func is_loose(node: Node3D) -> bool:
+	return _loose.has(node)
+
+
+## Every stored crate by its floor cell, in one pass over the items (zones store one a cell).
+func stored_nodes() -> Dictionary:
+	var result := {}
+	for child in get_children():
+		if child is Node3D and bool(child.get_meta("stored", false)): result[item_floor_cell(child as Node3D)] = child
+	return result
+
+
+## Takes an item out of the world for good: food that rotted (doc 42 "Spoilage"). Callers
+## leave claimed goods alone.
+func discard(node: Node3D) -> void:
+	_loose.erase(node)
+	_reserved.erase(node)
+	# Out of the tree at once, so no stored-crate lookup finds it before it is freed.
+	if node.get_parent() != null: node.get_parent().remove_child(node)
+	node.queue_free()
+	loose_items_changed.emit()
+
+
 func quantity_of(node: Node3D) -> int:
 	return int(node.get_meta("quantity", 1))
 
@@ -565,6 +677,7 @@ func take_quantity(node: Node3D, count: int, dwarf_id: int) -> Node3D:
 		take(node)
 		return node
 	var cargo := create_item_visual(item_key_of(node), count, "", CraftMaterials.of_item(node))
+	set_spoil(cargo, spoil_of(node))
 	_track_inventory_transit(cargo)
 	set_quantity(node, quantity_of(node) - count)
 	unreserve(node, dwarf_id)
@@ -708,6 +821,7 @@ func release_stored_cells(stacks: Dictionary) -> void:
 		var count := int(stack.get("count", 0))
 		if by_cell.has(cell):
 			var node: Node3D = by_cell[cell]
+			set_spoil(node, float(stack.get("spoil", 0.0)))
 			node.set_meta("stored", false)
 			_loose[node] = key
 			_reserve_promised_instance(node)
@@ -738,10 +852,6 @@ func _settle_changed_columns() -> void:
 		if not columns.has(Vector2i(floori(node.position.x), floori(node.position.z))): continue
 		moved = _settle_item(node) or moved
 	if moved: loose_items_changed.emit()
-
-func bridge_support_removed(cells: Array[Vector3i]) -> void:
-	if _unsupported_columns.is_empty(): _settle_changed_columns.call_deferred()
-	for cell: Vector3i in cells: _unsupported_columns[Vector2i(cell.x,cell.z)] = true
 
 
 func _settle_item(node: Node3D) -> bool:
@@ -818,6 +928,12 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	if in_storage: data.status = {"text": "In storage", "tone": "fine"}
 	elif not Permission.allowed(id): data.status = {"text": "Disallowed: dwarves leave it here", "tone": "blocked"}
 	else: data.status = {"text": "Awaiting collection", "tone": "waiting"}
+	# Food that spoils says how fresh it is instead, in its tone (the owner's pick, doc 282);
+	# being disallowed still says so first.
+	var food := food_definition(key)
+	if float(food.get("keeps_days", 0.0)) > 0.0 and (in_storage or Permission.allowed(id)):
+		var fresh: Dictionary = StockpileManager.spoilage.freshness(food, spoil_of(id), item_floor_cell(id) + Vector3i.UP)
+		data.status = {"text": String(fresh.text), "tone": String(fresh.tone)}
 	return data
 
 
@@ -907,7 +1023,7 @@ func _apply_material(node: Node, material: Material) -> void:
 func floor_rest_y(block: Vector3i) -> int:
 	var y := block.y - 1
 	while y > WorldGenerator.BEDROCK_MAX_Y:
-		if NavGrid.bridge_supports(Vector3i(block.x,y,block.z)) or BlockRegistry.is_solid(_block_id(block.x, y, block.z)):
+		if BlockRegistry.is_solid(_block_id(block.x, y, block.z)):
 			return y + 1
 		y -= 1
 	# Nothing solid found all the way to bedrock (should not happen — Hard

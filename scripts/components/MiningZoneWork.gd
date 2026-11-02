@@ -231,7 +231,7 @@ func execute_block_mined(zone_id: int, block: Vector3i, dwarf_id: int) -> bool:
 	mine_block_world(block)
 	NavGrid.refresh_mined_block(block)
 	if was_solid:
-		_spawn_block_drops(pre_id, block)
+		spawn_block_drops(pre_id, block)
 		WorkFeedback.block_mined(block,pre_id)
 
 	# Zone bookkeeping.
@@ -330,9 +330,10 @@ static func ensure_chunk_real(block: Vector3i) -> void:
 
 
 ## Rolls the block's loot table (block_resources.json) and hands drops to the
-## ItemDropManager. randf chance rolls are runtime behaviour, not worldgen —
-## Hard Rule 8 (deterministic terrain identity) does not apply to drops.
-func _spawn_block_drops(pre_block_id: int, block: Vector3i) -> void:
+## ItemDropManager, landing at `at`: the mined cell, or a replaced block's
+## builder's feet (doc 285). randf chance rolls are runtime behaviour, not
+## worldgen — Hard Rule 8 (deterministic terrain identity) does not apply to drops.
+func spawn_block_drops(pre_block_id: int, at: Vector3i) -> void:
 	var manager := _drop_manager()
 	if manager == null:
 		return
@@ -346,7 +347,7 @@ func _spawn_block_drops(pre_block_id: int, block: Vector3i) -> void:
 		if randf() > float(drop.get("chance", 1.0)):
 			continue
 		manager.spawn_drop(
-			String(drop.get("item", "")), int(drop.get("count", 1)), block)
+			String(drop.get("item", "")), int(drop.get("count", 1)), at)
 
 
 func _drop_manager() -> ItemDropManager:

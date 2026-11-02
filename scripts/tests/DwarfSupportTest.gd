@@ -145,13 +145,6 @@ func _check_walks_and_support() -> void:
 	world.set_block(68,22,40,stone)
 	_expect(not nav.is_walkable(worker.current_cell()), "obstructed floor is not walkable")
 	_expect(not worker._movement.snap_to_floor() and worker.position.y == 21, "solid support remains despite obstructed headroom")
-	worker.position = Vector3(70.5,27,40.5)
-	var deck: Array[Vector3i] = [worker.current_cell()]
-	var exits: Array[Vector3i] = [Vector3i(69,26,40)]
-	nav.set_bridge(999,deck,exits)
-	_expect(not worker._movement.snap_to_floor() and worker.position.y == 27, "bridge deck is physical support")
-	nav.remove_bridge(999)
-	_expect(worker._movement.snap_to_floor() and worker.position.y == 21, "removed deck exposes floor below")
 	nav.set_ladder(999,Vector3i(72,20,40),10,Vector3i.RIGHT,.5)
 	worker.position = Vector3(72.5,26.4,40.5)
 	_expect(not worker._movement.snap_to_floor() and is_equal_approx(worker.position.y,26.4), "rungs support fractional climbing height")

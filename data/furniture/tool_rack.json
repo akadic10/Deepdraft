@@ -1,0 +1,65 @@
+{
+  "__comment": [
+    "The tool rack (doc 294, concept B, the pegged board): the Carpenter's first piece and the first storage furniture. Half a split log, its round back to the wall and its split face out, lashed to two wall pegs, with three stout pegs driven in. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Carpenters make it at the carpenter's bench from one log; it keeps its wood. It hangs on a wall over the three floor cells its tools hang into, so dwarves walk round it (floor_wall: a wall behind every cell).",
+    "storage (ContainerStorageComponent): it holds tools (the tool tag), one on each of its three hooks, starting at priority 4, ahead of ground storage. The anchors are the hooks, in footprint-local blocks from the back-left floor corner; hang hangs each tool upright from its top."
+  ],
+  "furniture_key": "base:furniture:tool_rack",
+  "furniture_category": "storage",
+  "display_name": "Tool Rack",
+  "description": "Half a split log pegged against a wall, with three stout pegs to hang tools on. It keeps three of the colony's tools where everyone can see them.",
+  "model": "res://assets/models/furniture/tool_rack.glb",
+  "item_key": "base:resources:furniture:tool_rack",
+  "placement": "floor_wall",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 3,
+    "depth": 1
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        3,
+        3,
+        1
+      ]
+    }
+  ],
+  "storage": {
+    "accepts": [
+      "tool"
+    ],
+    "capacity": 3,
+    "slot_word": "hooks",
+    "priority": 4,
+    "hang": true,
+    "anchors": [
+      [
+        0.5,
+        2.4375,
+        0.25
+      ],
+      [
+        1.5,
+        2.4375,
+        0.25
+      ],
+      [
+        2.5,
+        2.4375,
+        0.25
+      ]
+    ]
+  },
+  "material_group": "wood",
+  "material_palette": "hand_hewn_timber",
+  "appeal": {
+    "design": 1,
+    "material_factor": 0.5
+  }
+}

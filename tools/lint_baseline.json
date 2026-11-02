@@ -3,9 +3,6 @@
   "scripts/components/SaveSnapshotValidator.gd": {
    "migrated": 1
   },
-  "scripts/components/StorageComponent.gd": {
-   "legacy": 1
-  },
   "scripts/systems/FurniturePlacementController.gd": {
    "legacy": 3
   },
@@ -132,7 +129,7 @@
    "controller._drop_manager": 1
   },
   "scripts/components/FurnitureSeating.gd": {
-   "controller._active_key": 2,
+   "controller._active_key": 1,
    "controller._bounds_cells": 1,
    "controller._cell_to_installed": 1,
    "controller._fences": 1,
@@ -142,7 +139,6 @@
    "controller._world_pos": 3
   },
   "scripts/components/GridFence.gd": {
-   "controller._bounds_cells": 1,
    "controller._piece_visible": 1,
    "controller._teardown_installed": 1
   },
@@ -165,7 +161,7 @@
    "water_view._splash_sites": 1
   },
   "scripts/systems/StockpileManager.gd": {
-   "destination._can_haul_key": 2,
+   "destination._can_haul_key": 1,
    "origin._outgoing": 3,
    "source._outgoing": 7,
    "storage._pulls": 2,
@@ -178,9 +174,7 @@
  },
  "unused-data": {
   "data/audio/work_feedback.json": {
-   "key: duck_quack": 1,
-   "key: duck_select": 1,
-   "key: duck_splash": 1
+   "key: duck_select": 1
   },
   "data/entities/animals/duck.json": {
    "key: female_body": 1,
@@ -197,57 +191,8 @@
   "data/entities/flora/wild_strawberry_bush.json": {
    "key: spring_picked": 1
   },
-  "data/furniture/campfire.json": {
-   "file": 1
-  },
-  "data/furniture/crude_ladder.json": {
-   "file": 1
-  },
-  "data/furniture/crude_workbench.json": {
-   "file": 1
-  },
-  "data/furniture/door.json": {
-   "file": 1
-  },
-  "data/furniture/dry_stone.json": {
-   "file": 1
-  },
-  "data/furniture/hearth.json": {
-   "file": 1
-  },
-  "data/furniture/log_bed.json": {
-   "file": 1
-  },
-  "data/furniture/log_bridge.json": {
-   "file": 1
-  },
-  "data/furniture/log_chair.json": {
-   "file": 1
-  },
-  "data/furniture/log_door_3.json": {
-   "file": 1
-  },
-  "data/furniture/log_door_4.json": {
-   "file": 1
-  },
-  "data/furniture/log_fence.json": {
-   "file": 1
-  },
-  "data/furniture/log_gate.json": {
-   "file": 1
-  },
-  "data/furniture/settlement_flag.json": {
-   "file": 1
-  },
-  "data/furniture/wet_stone.json": {
-   "file": 1
-  },
-  "data/furniture/wooden_torch.json": {
-   "file": 1
-  },
   "data/materials/craft_materials.json": {
    "key: grain_light": 1,
-   "key: heart": 1,
    "key: hewn_bark": 1,
    "key: hewn_bark_dark": 1,
    "key: hewn_bark_light": 1,

@@ -4,8 +4,9 @@ extends Control
 ## the shelf while one is open. Left to right:
 ## - the tool's picture on its family tile, its name, and its keys on keycaps;
 ## - its choices as rows of pictures (Shapes' shape, Build's material), then its settings as
-##   − value + steppers (a wall's height, a door gap, mining's width and depth). A choice's
-##   picture can open a menu above the bar (Build's Stone and Wood, doc 275);
+##   − value + steppers (a wall's height, a door gap, mining's width and depth), then its
+##   switches (Shapes' Filled, the 32 × 32 guide). A choice's picture can open a menu above
+##   the bar (Build's Stone and Wood, doc 275);
 ## - a tool's standing numbers (Place's stock);
 ## - the tool's message, else the newest order with View;
 ## - Undo, and Done · Esc as the family block.
@@ -257,9 +258,10 @@ func refresh() -> void:
 	_apply_family(UIRegistry.get_icon_family_color(String(state.get("family", entry.get("family", "work")))))
 	_picture.texture = _texture(String(state.get("picture", entry.get("icon", ""))))
 	_name.text = String(state.get("name", entry.get("label", id)))
-	_show_keys(UIRegistry.get_tool_bar().get("keys", {}).get(id, []))
+	# A tool in another mode can show another entry's keys (Build's Replace, doc 285).
+	_show_keys(UIRegistry.get_tool_bar().get("keys", {}).get(String(state.get("keys", id)), []))
 	_xray_note.visible = is_instance_valid(xray) and String(xray.mode) != "off" and bool(xray.working)
-	_show_settings(state.get("settings", []), state.get("toggle", {}), state.get("choices", []))
+	_show_settings(state.get("settings", []), state.get("toggles", []), state.get("choices", []))
 	var standing: Array = state.get("standing", [])
 	_standing.visible = not standing.is_empty()
 	_standing_rule.visible = _standing.visible
@@ -389,11 +391,11 @@ func _show_keys(pairs: Array) -> void:
 		_keys.add_child(words)
 
 
-## The tool's choices, steppers for the settings, and the tool's switch. They are rebuilt only
-## when the settings change; the chosen pictures and the values follow every refresh.
-func _show_settings(settings: Array, toggle: Dictionary, choices: Array) -> void:
+## The tool's choices, steppers for the settings, and the tool's switches. They are rebuilt only
+## when the settings change; the chosen pictures, the values and the switches follow every refresh.
+func _show_settings(settings: Array, toggles: Array, choices: Array) -> void:
 	var shown := ",".join(settings.map(func(setting: Dictionary) -> String: return String(setting.id))) \
-		+ "|" + String(toggle.get("id", "")) + "|" + ",".join(choices.map(func(choice: Dictionary) -> String:
+		+ "|" + ",".join(toggles.map(func(toggle: Dictionary) -> String: return String(toggle.id))) + "|" + ",".join(choices.map(func(choice: Dictionary) -> String:
 			return String(choice.id) + ":" + ",".join(choice.options.map(func(option: Dictionary) -> String: return String(option.id))))) + _tier
 	if shown != _shown_settings:
 		_shown_settings = shown
@@ -403,15 +405,7 @@ func _show_settings(settings: Array, toggle: Dictionary, choices: Array) -> void
 		_settings.add_theme_constant_override("separation", int(_size.gap))
 		for choice: Dictionary in choices: _settings.add_child(_choice(choice))
 		for setting: Dictionary in settings: _settings.add_child(_stepper(setting))
-		if not toggle.is_empty():
-			var button := _button(String(toggle.label), false)
-			button.name = "Toggle"
-			button.toggle_mode = true
-			button.add_theme_font_size_override("font_size", int(_size.small))
-			button.custom_minimum_size = Vector2(0, float(_size.step))
-			button.toggled.connect(func(on: bool): if is_instance_valid(_active): _active.set_tool_setting(String(toggle.id), on))
-			_hover(button, String(toggle.label), String(toggle.get("tooltip", "")), String(toggle.get("keys", "")))
-			_settings.add_child(button)
+		for toggle: Dictionary in toggles: _settings.add_child(_switch(toggle))
 	for choice: Dictionary in choices:
 		for option: Dictionary in choice.options:
 			var button: Button = _settings.get_node(String(choice.id).to_pascal_case() + "/Row/" + String(option.id).to_pascal_case())
@@ -428,11 +422,14 @@ func _show_settings(settings: Array, toggle: Dictionary, choices: Array) -> void
 		(stepper.get_node("Row/Less") as Button).disabled = int(setting.value) <= int(setting.min)
 		(stepper.get_node("Row/More") as Button).disabled = int(setting.value) >= int(setting.max)
 		i += 1
-	if not toggle.is_empty():
-		(_settings.get_node("Toggle") as Button).set_pressed_no_signal(bool(toggle.on))
-		UITheme.apply_hearth_button(_settings.get_node("Toggle"), bool(toggle.on))
-		(_settings.get_node("Toggle") as Button).add_theme_font_size_override("font_size", int(_size.small))
-	_settings.visible = not settings.is_empty() or not toggle.is_empty() or not choices.is_empty()
+	# A switch's card follows its tool: Mine blocks and the Construction tools share the guide's.
+	for toggle: Dictionary in toggles:
+		var button: Button = _settings.get_node(String(toggle.id).to_pascal_case())
+		button.set_pressed_no_signal(bool(toggle.on))
+		UITheme.apply_hearth_button(button, bool(toggle.on))
+		button.add_theme_font_size_override("font_size", int(_size.small))
+		_hover(button, String(toggle.label), String(toggle.get("tooltip", "")), String(toggle.get("keys", "")))
+	_settings.visible = not settings.is_empty() or not toggles.is_empty() or not choices.is_empty()
 	_settings_rule.visible = _settings.visible
 
 
@@ -472,6 +469,18 @@ func _stepper(setting: Dictionary) -> VBoxContainer:
 		_hover(step, String(setting.label), String(setting.get("tooltip", "")), String(setting.get("keys", "")))
 		row.add_child(step)
 	return column
+
+
+## A switch as a button named for it, lit while on (its card is set every refresh).
+func _switch(toggle: Dictionary) -> Button:
+	var button := _button(String(toggle.label), false)
+	button.name = String(toggle.id).to_pascal_case()
+	button.toggle_mode = true
+	button.add_theme_font_size_override("font_size", int(_size.small))
+	button.custom_minimum_size = Vector2(0, float(_size.step))
+	var id := String(toggle.id)
+	button.toggled.connect(func(on: bool): if is_instance_valid(_active): _active.set_tool_setting(id, on))
+	return button
 
 
 ## A choice as its name over a row of pictures, the chosen one lit. Each picture's hover card
@@ -638,8 +647,9 @@ func _show_tag(selection: Dictionary) -> void:
 ## Narrow screens drop the keys line first (its keys stay on the name's hover card), then
 ## the standing numbers. Then the bar sits over the dock, or the open shelf, sliding aside
 ## only as far as it must to clear the tower and the panels beside it. A bar too wide to slide
-## clear (Shapes, with its many settings) narrows its status line, trimmed, and drops View,
-## then drops the status line, before it rises above what it cannot pass.
+## clear (Shapes, with its many settings), or still wider than the screen, narrows its status
+## line, trimmed, and drops View, then drops the status line, before it rises above what it
+## cannot pass.
 func _fit_and_place() -> void:
 	var view := get_viewport_rect().size
 	var room := view.x - 32.0
@@ -650,11 +660,11 @@ func _fit_and_place() -> void:
 		_standing.visible = false
 		_standing_rule.visible = false
 	var placed := _place(view, false)
-	if not placed.clear:
+	if not placed.clear or _bar.get_combined_minimum_size().x > room:
 		_status_text.custom_minimum_size.x = float(_size.text) * 5.0
 		_view.visible = false
 		placed = _place(view, false)
-	if not placed.clear:   # last, the status line itself goes; a drag's tag still says what it plans
+	if not placed.clear or _bar.get_combined_minimum_size().x > room:   # last, the status line itself goes; a drag's tag still says what it plans
 		_status.visible = false
 		_status_rule.visible = false
 		placed = _place(view, true)

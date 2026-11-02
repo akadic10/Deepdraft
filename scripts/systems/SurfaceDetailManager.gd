@@ -423,11 +423,12 @@ func stones_in_clearing_rect(rect: Rect2i) -> Array[String]:
 	return details_in_rect(rect, "clear_stones")
 
 
+## Standing details whose footprint centre is in `rect` and that `tool` takes; "" takes all.
 func details_in_rect(rect: Rect2i, tool: String) -> Array[String]:
 	var result: Array[String] = []
 	for id: String in _records:
 		if get_explorer_bounds(id).size == Vector3.ZERO: continue
-		if not accepts_tool(id, tool): continue
+		if not tool.is_empty() and not accepts_tool(id, tool): continue
 		var record: Dictionary = _records[id]
 		var definition := SurfaceDetailRegistry.get_definition(record.definition)
 		var half := float(definition.footprint) * .5
@@ -923,12 +924,26 @@ func planting_reason(key: String, origin: Vector3i, ignore_id := "", ignore_ghos
 					return "plant_spacing" if other.has("planting_radius") else "plant_clearance"
 	var placer := get_tree().get_first_node_in_group("furniture_controller")
 	if placer != null and placer.plant_area_reserved(area, ignore_ghost): return "plant_spacing"
+	var flora := get_tree().get_first_node_in_group("surface_flora")
+	if flora != null and flora.trunk_reserved(area): return "plant_spacing" # A planted tree's grown trunk (doc 284).
 	var ground := _block(origin)
 	var ground_key := String(BlockRegistry.get_key(ground))
 	if String(BlockRegistry.get_def(ground_key).get("kind", "")) not in definition.transplant.ground_kinds: return "plant_soil"
 	for y in range(origin.y + 1, WorldData.WORLD_SIZE_Y):
 		if _block(Vector3i(origin.x,y,origin.z)) != BlockRegistry.AIR_ID: return "plant_sky"
 	return ""
+
+
+## Whether a standing detail's planting area or footprint meets `box`. A seed keeps its
+## grown trunk's ground clear of plants and stones (doc 284).
+func detail_in(box: AABB) -> bool:
+	for x in range(floori(box.position.x) - 2, ceili(box.end.x) + 2):
+		for z in range(floori(box.position.z) - 2, ceili(box.end.z) + 2):
+			for id: String in _columns.get(Vector2i(x, z), []):
+				var state: Dictionary = _changes.get(id, {})
+				if bool(state.get("removed", false)) or bool(state.get("packed", false)): continue
+				if box.intersects(Placement.planting_area(SurfaceDetailRegistry.get_definition(_records[id].definition), _records[id].origin)): return true
+	return false
 
 
 func can_plant(id: String, key: String, origin: Vector3i, ignore_ghost := -1) -> bool:
@@ -982,6 +997,13 @@ func dev_spawn_packed_shrub(key: String, cell: Vector3i) -> String:
 		"variant": 0, "player_created": true})
 	drops.restore_loose_item(SurfaceDetailRegistry.packed_item(key,0),Vector3(cell)+Vector3(.5,1,.5),0,1,id)
 	return id
+
+
+## DEV Remove: a standing stone or plant goes at once, without a yield; saves keep it gone.
+func dev_remove(id: String) -> bool:
+	if get_explorer_bounds(id).size == Vector3.ZERO: return false
+	_remove(id, "dev_removed")
+	return true
 
 
 func dev_mature_shrub(id: String) -> void:

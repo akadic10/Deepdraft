@@ -3,7 +3,6 @@ extends RefCounted
 ## Low-cost, interruptible leisure. The dwarf stays in the scheduler's idle
 ## pool. No tasks, goods or needs are created by wandering or using a chair.
 const Seating = preload("res://scripts/components/FurnitureSeating.gd")
-const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const Privacy = preload("DwarfPrivacy.gd")
 var _privacy := Privacy.new()
 var agent: DwarfAgent
@@ -48,9 +47,10 @@ func cancel() -> void:
 	if walking: agent.stop_walking()
 	agent._reset_part_offsets()
 
-## Dining already owns this chair and is fully seated. Keep the claim and pose
-## while returning to interruptible idle rest, then lower the empty hands.
-func continue_seated(occupied: InstalledFurnitureComponent, controller: Node, access: Vector3i) -> void:
+## Dining already owns this chair and is fully seated. Keep the claim, pose and
+## any fire it faces while returning to interruptible idle rest, then lower the
+## empty hands.
+func continue_seated(occupied: InstalledFurnitureComponent, controller: Node, access: Vector3i, fire_id := -1) -> void:
 	seat = occupied
 	_furniture = controller
 	home = agent.current_cell()
@@ -62,11 +62,15 @@ func continue_seated(occupied: InstalledFurnitureComponent, controller: Node, ac
 	_privacy.reset()
 	_sitting_blend = 1.0
 	_seat_check_revision = -1
-	_focus_fire_id = -1
+	_focus_fire_id = fire_id
 	_relax_hands.assign([agent._hand_l.position,agent._hand_r.position])
 	_relax_elapsed = 0.0
 	agent._reset_part_offsets()
 	_pose()
+
+## The fire a seated dwarf faces, or -1 (doc 290: company for a dwarf grilling there).
+func fire_watched() -> int:
+	return _focus_fire_id if state == "sitting" and seat != null else -1
 
 func _release_seat() -> void:
 	if seat != null and seat.idle_seat_owner == agent.dwarf_id:
@@ -224,7 +228,8 @@ func _find_seat_step() -> void:
 	if not Seating.is_chair(candidate.def) or not candidate.def.seating_chair.has("rest_pose"): return
 	if not Privacy.allowed(candidate.origin_cell,agent.dwarf_id): return
 	if Vector3(candidate.origin_cell-agent.current_cell()).length() > float(config.get("seat_radius",9)): return
-	var facing := _seat_facing(candidate)
+	# Picked once per visit: a stool turns to a table or a burning fire if it fits.
+	var facing: Dictionary = _furniture.get_seating().facing(candidate,float(config.get("seat_focus_radius",6)))
 	if facing.is_empty(): return
 	var access := Seating.access_cells(candidate.def,candidate.origin_cell,candidate.yaw_steps)
 	var from := agent.current_cell()
@@ -242,31 +247,6 @@ func _find_seat_step() -> void:
 		_chairs = []
 		agent.walk_nearby(cell)
 		return
-
-## Pick once per visit, keeping backed chairs aligned with their furniture.
-## Round stools prefer the nearest visible fire only if the seated pose fits.
-func _seat_facing(candidate: InstalledFurnitureComponent) -> Dictionary:
-	if bool(_furniture.get_seating().chair_settings(candidate).get("face_nearby_fire",false)):
-		var fires: Array = []
-		var radius := float(config.get("seat_focus_radius",6))
-		for piece: InstalledFurnitureComponent in _furniture.get_installed_pieces():
-			if piece.def.get("seating_focus","") != "fire" or piece.flagged_uninstall or not is_instance_valid(piece.node): continue
-			if piece.origin_cell.y != candidate.origin_cell.y: continue
-			if piece.node.global_position.distance_to(candidate.node.global_position) > radius: continue
-			fires.append(piece)
-		fires.sort_custom(func(a,b): return a.node.global_position.distance_squared_to(candidate.node.global_position) < b.node.global_position.distance_squared_to(candidate.node.global_position))
-		for fire: InstalledFurnitureComponent in fires:
-			var offset := fire.node.global_position-candidate.node.global_position
-			if offset.length_squared() < .001: continue
-			var yaw := posmod(roundi(atan2(offset.x,offset.z)/(PI*.5)),4)
-			if not _furniture.get_seating().placement_reason(candidate.def,candidate.origin_cell,yaw,candidate).is_empty(): continue
-			var eyes := candidate.node.global_position+Vector3(0,2.5,0)
-			var sight := fire.node.global_position+Vector3.UP-eyes
-			if not Picking.terrain_hit(eyes,sight.normalized(),WorldData.WORLD_SIZE_Y-1,sight.length()).is_empty(): continue
-			return {"yaw":yaw,"fire_id":fire.installed_id}
-	if _furniture.get_seating().placement_reason(candidate.def,candidate.origin_cell,candidate.yaw_steps,candidate).is_empty():
-		return {"yaw":candidate.yaw_steps}
-	return {}
 
 func _seat_valid() -> bool:
 	if seat == null or not is_instance_valid(_furniture) or not is_instance_valid(seat.node): return false

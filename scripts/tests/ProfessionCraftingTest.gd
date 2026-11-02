@@ -130,7 +130,7 @@ func _review_menu() -> void:
 		_expect(dock._panel_body.get_child_count()==crafting.sections.size(),"every profession has its own submenu button")
 		var menu_rect: Rect2 = dock._panel_container.get_global_rect()
 		_expect(Rect2(Vector2.ZERO,Vector2(viewport)).encloses(menu_rect) and menu_rect.end.y<=dock._dock_panel.position.y-8,"profession submenu fits above the dock")
-		_expect(dock._panel_body.columns==(10 if viewport.x==1280 else 5),"desktop profession row wraps into balanced compact rows")
+		_expect(dock._panel_body.columns==(8 if viewport.x==1280 else 4),"desktop profession row wraps into balanced compact rows")
 		for button in dock._panel_body.get_children():
 			_expect(not button.disabled and button.icon!=null and dock._panel_scroll.get_global_rect().encloses(button.get_global_rect()),"profession button is visible and clickable: "+button.name)
 		if "--capture" in OS.get_cmdline_user_args(): await _capture_camp("crafters_%d" % viewport.x)
@@ -152,7 +152,7 @@ func _review_menu() -> void:
 		_expect(crafting.orders.size()==1 and crafting.orders[0].quantity==2,"existing recipe still queues from menu")
 		var order_id: int = crafting.orders[0].id
 		for key: String in crafting.sections:
-			if key=="rudimentary": continue
+			if not bool(crafting.sections[key].get("planned", false)): continue   # Rudimentary and the careers' own pages are live
 			await _choose_crafter(key)
 			_expect(dock._craft_window.get_global_rect().end.y<=dock._dock_panel.position.y-8,"preview fits above dock for "+key+str(viewport))
 			panel._queue_selected()

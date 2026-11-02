@@ -70,7 +70,8 @@ func _tree_cutter_gets_nearby_lumber() -> void:
 	for item in drops._loose.keys():
 		drops.take(item)
 		item.free()
-	_zone_at([Vector3i(60,20,44), Vector3i(61,20,44), Vector3i(62,20,44), Vector3i(63,20,44)])
+	_zone_at([Vector3i(60,20,44), Vector3i(61,20,44), Vector3i(62,20,44), Vector3i(63,20,44),
+		Vector3i(60,20,45), Vector3i(61,20,45), Vector3i(62,20,45), Vector3i(63,20,45)])
 	zone.set_all_accepted(false)
 	zone.set_item_accepted(LOG, true)
 	flora = load("res://scripts/systems/SurfaceFloraSpawner.gd").new()
@@ -97,10 +98,14 @@ func _tree_cutter_gets_nearby_lumber() -> void:
 	worker._process(.02)
 	_expect(flora._tree_changes[Vector2i(40,40)].felled and worker.current_task_id < 0, "final chop creates logs and makes cutter idle in the same update")
 	_expect(tasks._idle_dwarves == [far.dwarf_id, near.dwarf_id, worker.dwarf_id], "regression reproduces cutter at the end of the idle queue")
+	var logs: int = drops._loose.values().count(LOG)
 	await _dispatch()
 	_expect(worker.current_task_id >= 0 and near.current_task_id >= 0 and far.current_task_id < 0, "cutter and nearer helper claim lumber instead of older distant idle dwarf")
-	_expect(zone._pulls[worker.dwarf_id].items.size() == 2 and zone._pulls[near.dwarf_id].items.size() == 2, "four logs form two carry-budget loads without duplicate claims")
-	_expect(drops._reserved.size() == 4 and zone.reserved_cells.size() == 4, "exactly four log and storage claims exist")
+	var cutter_load: Array = zone._pulls.get(worker.dwarf_id, {}).get("items", [])
+	var helper_load: Array = zone._pulls.get(near.dwarf_id, {}).get("items", [])
+	_expect(logs > 4 and cutter_load.size() + helper_load.size() == logs and cutter_load.size() <= 4 and helper_load.size() <= 4
+		and not cutter_load.any(func(item: Node3D) -> bool: return helper_load.has(item)), "the felled logs form two carry-budget loads without duplicate claims")
+	_expect(drops._reserved.size() == logs and zone.reserved_cells.size() == logs, "one log and one storage claim per felled log")
 	_stages += 1
 
 

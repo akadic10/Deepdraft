@@ -11,7 +11,7 @@ func _run() -> void:
 	await _setup_fixture()
 	_expect(zone.carry_capacity == 4, "ground storage receives JSON carry capacity")
 	# More destination slots than cargo: limits must come from carrying capacity.
-	for spec in [[STONE,5,4,1], [ORE,5,4,1], [COAL,5,4,1], [LOG,3,2,1],
+	for spec in [[STONE,5,4,1], [ORE,5,4,1], [COAL,5,4,1], [LOG,5,4,1],
 			[ACORN,2,1,1], [ACORN,2,1,24], [PACKED,2,1,1]]:
 		await _new_trip(spec[0], spec[3])
 		_expand_zone()
@@ -40,13 +40,13 @@ func _run() -> void:
 	await _test_data_driven_limits()
 	await _test_mixed_trip()
 	await _new_trip(LOG, 1)
-	for i in range(2): drops.restore_loose_item(LOG, Vector3(40.5+i,21,41.5))
+	for i in range(4): drops.restore_loose_item(LOG, Vector3(40.5+i,21,41.5))
 	if await _until(worker.TaskPhase.HAUL_TO_ZONE):
-		_expect(worker._carried_entries.size() == 2 and _snapshot_units() == 3, "real dwarf carries two logs and leaves the third")
+		_expect(worker._carried_entries.size() == 4 and _snapshot_units() == 5, "real dwarf carries four logs, as it does stones, and leaves the fifth")
 		tasks.cancel_task(worker.current_task_id)
-		_expect(_loose_units() == 3 and drops._reserved.is_empty() and zone.reserved_cells.is_empty(), "cancelled two-log trip restores all goods")
+		_expect(_loose_units() == 5 and drops._reserved.is_empty() and zone.reserved_cells.is_empty(), "cancelled four-log trip restores all goods")
 	else:
-		_expect(false, "two-log trip reaches carry phase")
+		_expect(false, "four-log trip reaches carry phase")
 	for failure in failures: push_error(failure)
 	if failures.is_empty():
 		print("HAULING_CAPACITY_OK: JSON budget/costs, rocks/ore/logs/crates, mixed loads, candidate skipping, claims, custom capacity, cancellation")

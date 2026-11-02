@@ -35,7 +35,7 @@
 
       "seedling": {
         "clearance_height": 1,
-        "growth_duration_days": 8,
+        "growth_duration_days": 6,
         "models": {
           "summer": "res://assets/models/flora/crops/pig_tail/pig_tail_seedling.glb"
         },

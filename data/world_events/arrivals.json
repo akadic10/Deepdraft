@@ -10,7 +10,7 @@
       "plural_name": "rabbits",
       "picture": "res://assets/ui/icons/rabbit.png",
       "entry": "wilderness",
-      "interval_days": [2.0, 4.0],
+      "interval_days": [1.5, 3.0],
       "group_size": [1, 4],
       "season_chance": {"spring": 0.9, "summer": 0.85, "autumn": 0.8, "winter": 0.45},
       "population_cap": 48,
@@ -34,7 +34,7 @@
       "plural_name": "deer",
       "picture": "res://assets/ui/icons/deer.png",
       "entry": "wilderness",
-      "interval_days": [4.0, 7.0],
+      "interval_days": [3.0, 5.25],
       "group_size": [2, 4],
       "season_chance": {"spring": 0.85, "summer": 0.8, "autumn": 0.9, "winter": 0.4},
       "population_cap": 18,
@@ -59,7 +59,7 @@
       "plural_name": "wolves",
       "picture": "res://assets/ui/icons/wolf.png",
       "entry": "wilderness",
-      "interval_days": [7.0, 12.0],
+      "interval_days": [5.25, 9.0],
       "group_size": [1, 2],
       "season_chance": {"spring": 0.5, "summer": 0.5, "autumn": 0.65, "winter": 0.55},
       "population_cap": 4,
@@ -89,8 +89,8 @@
       "picture": "res://assets/ui/icons/duck.png",
       "entry": "air",
       "interval_days": [
-        4.0,
-        7.0
+        3.0,
+        5.25
       ],
       "group_size": [
         2,

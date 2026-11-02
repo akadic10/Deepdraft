@@ -27,7 +27,7 @@ func eligible(agent) -> bool:
 	# The happiness thought lasts longer than the cooldown. Remembering a game
 	# must not prevent an otherwise available dwarf from joining another player.
 	if agent.get_mood().recreation_retry_hours > 0: return false
-	if not agent.get_carried_entries().is_empty() or agent.needs_bridge_exit() or agent.needs_ladder_exit(): return false
+	if not agent.get_carried_entries().is_empty() or agent.needs_ladder_exit(): return false
 	if not NavGrid.is_walkable(agent.current_cell()): return false
 	if agent.current_task_id >= 0: return agent.get_mood().value() < float(agent.get_mood().config.baseline)
 	# Explicit player movement keeps priority over autonomous recreation.

@@ -40,13 +40,9 @@ func _run() -> void:
 				if color.a<.999: opaque=false
 			expect(opaque,file+" opaque colors")
 		var bounds := _bounds(model)
-		if file.begins_with("log_bridge_"):
-			var span := int(file.get_basename().get_slice("_",2))
-			expect(bounds.position.x>=-.501 and bounds.end.x<=1.501,file+" bank-relative width")
-			expect(bounds.position.z>=-span-1.501 and bounds.end.z<=.501,file+" landing anchors")
-			expect(bounds.position.y>=-.626 and absf(bounds.end.y)<.001,file+" walking surface")
-		else:
-			expect(absf(bounds.position.y)<.001,file+" ground or wall origin %.4f"%bounds.position.y)
+		# The tool rack hangs on its wall, its log's underside 33 cells above its floor (doc 294).
+		var lift := 33.0/16 if file=="tool_rack.glb" else 0.0
+		expect(absf(bounds.position.y-lift)<.001,file+" ground or wall origin %.4f"%bounds.position.y)
 		if file.begins_with("crude_ladder_"):
 			expect(absf(bounds.end.y-float(file.get_basename().get_slice("_",2)))<.001,file+" section height")
 		model.free()
@@ -82,15 +78,15 @@ func _run() -> void:
 			var clip: Dictionary=load("res://scripts/components/FurnitureFlameAnimation.gd")._load_clip(light.flame_animation.model)
 			for frame in light.flame_animation.frames: expect(clip.has(frame),key+" frame "+frame)
 		var id := key.get_slice(":",2)
-		if id in ["log_chair","bench","log_table","log_bed","crude_workbench","board_game_table"]:
+		if id in ["log_chair","stone_stool","bench","log_table","log_bed","crude_workbench","carpenter_bench","mason_bench","board_game_table"]:
 			var point := Vector3(.11,4,.11)
 			var height: float=4-picking.hit_distance(model,point,point-Vector3(0,6,0))
-			var expected: float=float(definition.crafting_surface_height) if id=="crude_workbench" else float(definition.game_surface_height) if id=="board_game_table" else float(definition.dining_surface_height) if id=="log_table" else {"log_chair":.875,"bench":1.0,"log_bed":.75}[id]
+			var expected: float=float(definition.crafting_surface_height) if definition.has("crafting_surface_height") else float(definition.game_surface_height) if id=="board_game_table" else float(definition.dining_surface_height) if id=="log_table" else {"log_chair":.875,"stone_stool":.875,"bench":1.0,"log_bed":.75}[id]
 			# Non-grid legacy presentation contacts round by at most half a cell.
 			expect(absf(expected-snappedf(expected,1.0/16))<=1.0/32,id+" bounded contact quantization")
 			expect(absf(height-snappedf(expected,1.0/16))<(.075 if id=="log_bed" else .001),id+" central contact %.4f"%height)
 		model.free()
-	expect(definitions==19,"all 19 retained furniture definitions")
+	expect(definitions==24,"all 24 retained furniture definitions")
 	controller.free()
 	for failure in failures: push_error(failure)
 	print("FURNITURE_VOXEL_ART_OK: %d import, palette, footprint, contact, hinge and flame checks"%checks if failures.is_empty() else "FURNITURE_VOXEL_ART_FAIL")

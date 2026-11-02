@@ -1,7 +1,7 @@
 {
   "__comment": [
     "Apple tree — deciduous fruit tree, primary source of apples for mountain_cider.",
-    "THREE growth stages: sapling (clutter) → mature (3×3) → ancient (5×5, world-gen only).",
+    "THREE growth stages: sapling (clutter) → mature (3×3) → ancient (5×5). Planted apple seeds grow through all three (doc 284).",
     "PERENNIAL FRUIT: mature and ancient trees can be gathered once each autumn without felling.",
     "Fruit harvest is NON-DESTRUCTIVE — tree persists. Chop harvest gives wood + seeds only.",
     "Four seasonal models: spring (blossom), summer (leafy), autumn (gold/rust), winter (bare).",
@@ -21,7 +21,7 @@
       "stockpile_wood"
     ],
     "appeal": 4,
-    "__placement_comment": "Mixed-forest niche (42_farming_brewing.md, World placement): wild fruit tree in sheltered wet low ground (lowland + low foothill), CLUMPED into groves. Player planting is planned. Read by SurfaceFloraSpawner.",
+    "__placement_comment": "Mixed-forest niche (42_farming_brewing.md, World placement): wild fruit tree in sheltered wet low ground (lowland + low foothill), CLUMPED into groves. Read by SurfaceFloraSpawner.",
     "placement": {
       "pick_order": 2,
       "domains": [
@@ -53,12 +53,30 @@
         "threshold": 0.35
       }
     },
+    "__planting_comment": "Player planting (doc 284): Place → Plants turns one seed into a sapling that grows to mature and ancient by stages.*.growth_duration_days, weighted by seasonal_growth (winter pauses). area = the square centred on the seed that no other tree may stand in: the mature crown (owner's pick, 2026-10-29), so grown ancients may overlap a few blocks. The ancient trunk footprint must be level open-sky ground with no other plants. Read by ContentRegistry and SurfaceFloraSpawner.",
+    "planting": {
+      "catalog_key": "base:flora:apple_seed",
+      "item": "base:resources:seed:apple_seed",
+      "work_seconds": 3.0,
+      "area": 13,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "seasonal_growth": {
+        "spring": 1.2,
+        "summer": 1.0,
+        "autumn": 0.8,
+        "winter": 0.0
+      }
+    },
     "stages": {
       "sapling": {
         "felling": { "work_seconds": 2.0 },
         "collision": "clutter",
         "clearance_height": 2,
-        "growth_duration_days": 5,
+        "growth_duration_days": 3.75,
         "models": {
           "spring": "res://assets/models/flora/trees/apple/apple_sapling_spring.glb",
           "summer": "res://assets/models/flora/trees/apple/apple_sapling.glb",
@@ -72,7 +90,7 @@
       "mature": {
         "felling": { "work_seconds": 8.0 },
         "clearance_height": 5,
-        "growth_duration_days": 10,
+        "growth_duration_days": 7.5,
         "models": {
           "spring": [
             "res://assets/models/flora/trees/apple/apple_mature_spring.glb",
@@ -113,7 +131,7 @@
           "yields": [
             {
               "item": "base:resources:wood:apple_wood",
-              "count": 2,
+              "count": 3,
               "chance": 1.0
             },
             {
@@ -168,7 +186,7 @@
           "yields": [
             {
               "item": "base:resources:wood:apple_wood",
-              "count": 3,
+              "count": 8,
               "chance": 1.0
             },
             {

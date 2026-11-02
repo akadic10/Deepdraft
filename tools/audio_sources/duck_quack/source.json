@@ -1,0 +1,37 @@
+{
+  "title": "Duck Quack",
+  "author": "gibarroule",
+  "source_page": "https://freesound.org/people/gibarroule/sounds/365133/",
+  "download_url": "https://cdn.freesound.org/previews/365/365133_6659813-hq.mp3",
+  "license": "CC0-1.0",
+  "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-10-28",
+  "download_kind": "Public 192 kbps HQ MP3 preview, not the original 96 kHz WAV",
+  "download_sha256": "599aab0d8a1be1214d2057cce21c03f79c3bc58ec0f106fe40a8d5b97fa32370",
+  "master": "duck_quacks.wav",
+  "master_sha256": "835d4bc7da5fcf6d176549d45287847c25368f5f4eb6354ea2dc63e8ff0e7ba1",
+  "master_processing": {
+    "decoder": "soundfile 0.14.0 / libsndfile 1.2.2",
+    "sample_rate": 48000,
+    "channels": 1,
+    "encoding": "PCM_16",
+    "linear_gain": 32.043940716989944,
+    "notes": "Decoded preview, uniform gain to peak 0.8, then 16-bit PCM. No cropping, resampling or pitch changes in source master."
+  },
+  "production_regions_seconds": [
+    [
+      0.31,
+      0.72
+    ],
+    [
+      0.88,
+      1.25
+    ],
+    [
+      1.49,
+      1.87
+    ]
+  ],
+  "production_script": "tools/generate_duck_audio.py",
+  "production_processing": "Three separate recorded calls, light 110 Hz high-pass and 9.5 kHz low-pass, 5 ms in / 25 ms out fades, target RMS 0.048 with peak ceiling 0.32; no time stretch or pitch change."
+}

@@ -18,6 +18,17 @@ var changed_callback: Callable = Callable()   # (item_key, delta) -> StockpileMa
 var filter_tags: Array[String] = []
 var filter_items: Array[String] = []
 var excluded_items: Array[String] = []
+## Food crates further apart in spoil than this stay apart while room allows (doc 42
+## "Spoilage"); StockpileManager sets it from food.spoilage.merge_band.
+var spoil_band: float = 1.0
+## Its place in line (doc 294): 1 is filled first, 5 last. Ground zones start at 5 and furniture
+## containers at 4; the player sets it in the storage window. A store takes the goods a better one
+## accepts only while that one is full or its haulers can't reach anything, and draws its goods
+## out of worse stores while it has room, never out of an equal one. A project's materials crate
+## is 0: it always takes its project's goods.
+const FIRST_PRIORITY := 1
+const LAST_PRIORITY := 5
+var priority: int = LAST_PRIORITY
 signal changed
 
 # One outgoing total per stack, optionally shared by individual meal claims.
@@ -27,6 +38,9 @@ var _outgoing: Dictionary = {}
 var _lease_ids: Dictionary = {}               # task_id -> true (live HAUL leases)
 var _pulls: Dictionary = {}                   # dwarf_id -> {items, deposits, cargo, picked}
 const FruitPlanner = preload("res://scripts/components/FruitHaulPlanner.gd")
+## Every stand ground_access_cells returns lies within these offsets of the item's floor cell.
+const STAND_MIN := Vector3i(-1, -2, -1)
+const STAND_MAX := Vector3i(1, 1, 1)
 
 
 # ── Subclass surface (abstract — override all of these) ───────────────────────
@@ -36,13 +50,19 @@ func has_any_room() -> bool:
 	return false
 
 
-## Reserve one deposit for `item_key`. Returns a token, or null when full.
-func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amount: int = 1, _material_id: String = "") -> Variant:
+## Reserve one deposit for `item_key`. Returns a token, or null when full. `spoil` is the
+## food's (doc 42 "Spoilage"), -1 for goods that never spoil.
+func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amount: int = 1, _material_id: String = "", _spoil: float = -1.0) -> Variant:
 	return null
 
 
 func _has_room_for_key(_key: String) -> bool:
 	return has_any_room()
+
+
+## Whether one more of `key` would fit, for other storage owners (doc 294's priority).
+func has_room_for(key: String) -> bool:
+	return _has_room_for_key(key)
 
 
 func _item_capacity(key: String) -> int:
@@ -55,7 +75,36 @@ func _carry_cost(key: String) -> int:
 
 
 func _can_haul_key(key: String) -> bool:
-	return accepts_key(key) and _carry_cost(key) <= carry_capacity and _has_room_for_key(key)
+	return accepts_key(key) and _carry_cost(key) <= carry_capacity and _has_room_for_key(key) \
+		and not StockpileManager.better_store_takes(key, self)
+
+
+## The player's priority for this store, 1 (filled first) to 5 (last) (doc 294).
+func set_priority(value: int) -> void:
+	value = clampi(value, FIRST_PRIORITY, LAST_PRIORITY)
+	if value == priority: return
+	priority = value
+	StockpileManager.storage_rules_changed()
+	changed.emit()
+
+
+## Whether every haul job this store has posted is waiting out repeated failures to reach goods
+## or its cells, so worse stores take the goods it would take meanwhile (doc 294).
+func hauling_blocked() -> bool:
+	var now := Time.get_ticks_msec()
+	var waiting := 0
+	for task_id: int in _lease_ids:
+		var task := TaskManager.get_task(task_id)
+		if task == null: continue
+		if task.status == Task.Status.BLOCKED or (task.status == Task.Status.PENDING and now < task.retry_at): waiting += 1
+		else: return false
+	return waiting > 0
+
+
+## A crate's spoil for choosing where it goes and what it travels with; -1 for goods that
+## never spoil.
+func _deposit_spoil(key: String, spoil: float) -> float:
+	return spoil if float(drop_manager.food_definition(key).get("keeps_days", 0.0)) > 0.0 else -1.0
 
 
 ## Free an unused reservation token.
@@ -228,11 +277,17 @@ func storage_capacity() -> int:
 	return 0
 
 
+## What storage_capacity counts in use: a zone's cells, a container's goods (doc 294).
+func storage_used() -> int:
+	return stored_entries().size()
+
+
 func slot_cell(_slot: Variant) -> Vector3i:
 	return Vector3i(-1, -1, -1)
 
 
-## Physical spawn location used by the legacy fetch withdrawal executor.
+## Where a withdrawn good is set down: pickups from the slot are planned to stand beside it
+## (fetches, relocations, promotions). A zone's own cell; a container's stand (doc 294).
 func withdrawal_item_cell(slot: Variant) -> Vector3i:
 	return slot_cell(slot)
 
@@ -353,6 +408,54 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline_usec: int) -
 	return true
 
 
+## The loads one pickup search may end at: the quoted load first, then the nearest other
+## eligible loads (hauling.pickup_search_cells in all) that keep the search heading the same
+## way. Logs crowded on one shelf then cost one route search per dwarf, not one per log. A
+## load that would bring the search's distance estimate below half the quoted load's, such as
+## one on the dwarf's other side or on a level beneath it, keeps a search of its own, so a
+## load without a route never holds up the search for one that has a route.
+func pickup_group(from: Vector3i, quoted: Vector3i, snapshot: Dictionary, exclude: Dictionary) -> Array[Vector3i]:
+	var group: Array[Vector3i] = [quoted]
+	if not is_instance_valid(drop_manager): return group
+	var limit := int(TaskManager.get_config_section("hauling").get("pickup_search_cells", 16))
+	var lo := quoted + STAND_MIN
+	var hi := quoted + STAND_MAX
+	var estimate := _box_distance(from, lo, hi)
+	for cell: Vector3i in drop_manager.snapshot_cells_near(snapshot, from, limit, exclude):
+		if group.size() >= limit: break
+		if cell == quoted: continue
+		var grown_lo := Vector3i(mini(lo.x, cell.x + STAND_MIN.x), mini(lo.y, cell.y + STAND_MIN.y), mini(lo.z, cell.z + STAND_MIN.z))
+		var grown_hi := Vector3i(maxi(hi.x, cell.x + STAND_MAX.x), maxi(hi.y, cell.y + STAND_MAX.y), maxi(hi.z, cell.z + STAND_MAX.z))
+		if 2 * _box_distance(from, grown_lo, grown_hi) < estimate: continue
+		lo = grown_lo
+		hi = grown_hi
+		group.append(cell)
+	return group
+
+
+## The loads of a pickup group still in the current quote snapshot and outside `exclude`. The
+## quoted load leads the group and stays: the quote has just chosen it again.
+func current_pickup_group(group: Array, snapshot: Dictionary, exclude: Dictionary) -> Array[Vector3i]:
+	var kept: Array[Vector3i] = []
+	for index in group.size():
+		var cell: Vector3i = group[index]
+		if index == 0 or (not exclude.has(cell) and drop_manager.snapshot_has_cell(snapshot, cell)): kept.append(cell)
+	return kept
+
+
+## The load a finished pickup search reached: the first group cell its end stand serves, or
+## (-1, -1, -1) when none of them is left in the group.
+func pickup_cell_for_stand(stand: Vector3i, group: Array) -> Vector3i:
+	for cell: Vector3i in group:
+		if stand in ground_access_cells(cell): return cell
+	return Vector3i(-1, -1, -1)
+
+
+static func _box_distance(cell: Vector3i, lo: Vector3i, hi: Vector3i) -> int:
+	return maxi(0, maxi(lo.x - cell.x, cell.x - hi.x)) + maxi(0, maxi(lo.y - cell.y, cell.y - hi.y)) \
+		+ maxi(0, maxi(lo.z - cell.z, cell.z - hi.z))
+
+
 ## Destination owns the HAUL lease. A hidden handoff marker supplies the
 ## existing reach animation; it is never a loose, stored or saved item.
 func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> Dictionary:
@@ -360,7 +463,8 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 		var origin: StorageComponent = candidate.source
 		var outgoing: Dictionary = candidate.token
 		var material_id := String(origin.stored_entries()[outgoing.slot].get("material_id", ""))
-		var deposit: Variant = _reserve_deposit(outgoing.item, near, dwarf_id, outgoing.count, material_id)
+		var spoil := _deposit_spoil(outgoing.item, float(origin.stored_entries()[outgoing.slot].get("spoil", 0.0)))
+		var deposit: Variant = _reserve_deposit(outgoing.item, near, dwarf_id, outgoing.count, material_id, spoil)
 		if deposit == null: continue
 		outgoing.count = int(deposit.count)
 		outgoing.active = true
@@ -371,6 +475,9 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 			origin.release_outgoing(outgoing)
 			continue
 		marker.set_meta("relocation_id", origin.relocation_id(outgoing.slot))
+		# The hands reach for the contact (a rack's hook, doc 294); the goods are set down on the
+		# floor cell, and the pickup's reach rules judge that cell.
+		marker.set_meta("floor_cell", origin.withdrawal_item_cell(outgoing.slot))
 		marker.position = origin.withdrawal_contact(outgoing.slot)
 		drop_manager.add_child(marker)
 		marker.visible = false
@@ -388,7 +495,8 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 func _take_relocation(transfer: Dictionary, dwarf_id: int) -> Node3D:
 	var origin: StorageComponent = transfer.source
 	var token: Dictionary = transfer.token
-	if not bool(token.active) or not StockpileManager.is_registered(origin) or origin.accepts_key(token.item): return null
+	# Goods leave a store that no longer takes them, or for a better one (doc 294).
+	if not bool(token.active) or not StockpileManager.is_registered(origin) or (origin.accepts_key(token.item) and priority >= origin.priority): return null
 	var stack: Dictionary = origin.stored_entries().get(token.slot, {})
 	if stack.get("item") != token.item or int(stack.get("count", 0)) < int(token.count): return null
 	var cargo := origin.withdraw_stack(token.slot, token.count, dwarf_id)
@@ -450,10 +558,12 @@ func on_task_gone(task_id: int, dwarf_id: int) -> void:
 ## object pays its JSON carry_cost once, including partially filled crates.
 ## Nearby objects that do not fit are skipped so a cheaper one can fill the
 ## remaining budget. Only successful paired item/deposit claims spend points.
-func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> Dictionary:
+## `near` is the pickup the scheduler's route search reached, if any: the
+## bundle starts from the load nearest it, so the claim follows the proven route.
+func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary, near := Vector3i(-1, -1, -1)) -> Dictionary:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return {}
-	var main := drop_manager.nearest_loose(_query_tags(), dwarf_cell, exclude, _can_haul_key)
+	var main := drop_manager.nearest_loose(_query_tags(), near if near.x >= 0 else dwarf_cell, exclude, _can_haul_key)
 	if main == null:
 		return _reserve_relocation(dwarf_id, dwarf_cell, exclude)
 	var main_cell: Vector3i = drop_manager.item_floor_cell(main)
@@ -479,7 +589,9 @@ func reserve_haul(dwarf_id: int, dwarf_cell: Vector3i, exclude: Dictionary) -> D
 			continue
 		var amount := int(drop_manager.quantity_of(item))
 		var fruit_item: bool = _item_capacity(key)>1 and not drop_manager.food_definition(key).is_empty() and not item.has_meta("instance_id")
-		var token: Variant = _reserve_fruit_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item)) if fruit_item else _reserve_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item))
+		var spoil := _deposit_spoil(key, ItemDropManager.spoil_of(item))
+		var token: Variant = _reserve_fruit_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item),spoil) if fruit_item \
+			else _reserve_deposit(key,main_cell,dwarf_id,amount,CraftMaterials.of_item(item),spoil)
 		if token == null:
 			continue
 		if not drop_manager.reserve(item, dwarf_id):
@@ -535,8 +647,11 @@ func plan_fruit_haul(dwarf_id: int, route: Array[Vector3i], exclude: Dictionary,
 		if choice.is_empty(): break
 		var item: Node3D = choice.item
 		omitted[item]=true
+		# Only crates of like freshness share one basket (doc 42 "Spoilage").
+		var spoil := _deposit_spoil(fruit.key, ItemDropManager.spoil_of(item))
+		if spoil >= 0.0 and absf(spoil-ItemDropManager.spoil_of(pull.items[0])) > spoil_band: continue
 		var amount := mini(_item_capacity(fruit.key)-count,int(drop_manager.quantity_of(item)))
-		var token = _reserve_fruit_deposit(fruit.key,drop_manager.item_floor_cell(item),dwarf_id,amount,fruit.material)
+		var token = _reserve_fruit_deposit(fruit.key,drop_manager.item_floor_cell(item),dwarf_id,amount,fruit.material,spoil)
 		if token==null: break
 		if not drop_manager.reserve(item,dwarf_id):
 			_release_haul_deposit(token)
@@ -568,11 +683,11 @@ static func cargo_deposits(token: Dictionary) -> Array:
 	return token.get("parts",[token])
 
 
-func _reserve_fruit_deposit(key: String, near: Vector3i, owner: int, amount: int, material: String) -> Variant:
+func _reserve_fruit_deposit(key: String, near: Vector3i, owner: int, amount: int, material: String, spoil := -1.0) -> Variant:
 	var parts: Array = []
 	var remaining := amount
 	while remaining>0:
-		var token = _reserve_deposit(key,near,owner,remaining,material)
+		var token = _reserve_deposit(key,near,owner,remaining,material,spoil)
 		if token==null: break
 		parts.append(token)
 		remaining-=int(token.count)
@@ -662,6 +777,8 @@ func take_item(dwarf_id: int, index: int) -> Node3D:
 			if is_instance_valid(basket):
 				var basket_group: Dictionary = pull.cargo[basket]
 				basket_group.parts.append_array(cargo_deposits(pull.deposits[item]))
+				ItemDropManager.set_spoil(basket, ItemDropManager.blend_spoil(ItemDropManager.spoil_of(basket), int(basket_group.count),
+					ItemDropManager.spoil_of(cargo), int(pull.deposits[item].count)))
 				basket_group.count+=int(pull.deposits[item].count)
 				drop_manager.set_quantity(basket,int(basket_group.count))
 				pull.items[index]=basket # Retain a live, already-picked identity in the visit list.
@@ -727,6 +844,7 @@ func commit_haul(dwarf_id: int, carried: Array) -> bool:
 				drop_manager.set_quantity(portion,int(part.count))
 			if node.has_meta("instance_id"): part["instance_id"] = node.get_meta("instance_id")
 			part["material_id"] = CraftMaterials.of_item(node)
+			part["spoil"] = ItemDropManager.spoil_of(node)
 			_commit_one(part, key)
 			_place_visual(portion, part)
 			if changed_callback.is_valid(): changed_callback.call(key, int(part.count))

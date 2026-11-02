@@ -92,9 +92,10 @@ func _test_dates() -> void:
 	var date: Dictionary = clock.date_at(clock.elapsed_days())
 	_expect(date.year == 1 and date.season == "autumn" and date.day == 7 and is_equal_approx(date.hour, 20.5), "date_at reads the calendar back: %s" % date)
 	_expect(clock.time_string_at(clock.elapsed_days()) == "20:30" and clock.time_string() == "20:30", "a whole minute survives the trip through elapsed days")
-	var later := 112.0 + 27.25
+	var season_days := float(clock.days_per_season())
+	var later := season_days * 4.0 + season_days - 0.75
 	var next: Dictionary = clock.date_at(later)
-	_expect(next.year == 2 and next.season == "spring" and next.day == 28 and clock.time_string_at(later) == "06:00", "date_at rolls into the next year: %s" % next)
+	_expect(next.year == 2 and next.season == "spring" and next.day == clock.days_per_season() and clock.time_string_at(later) == "06:00", "date_at rolls into the next year: %s" % next)
 	_expect(clock.time_string_at(62.0 + 23.999999 / 24.0) == "23:59", "the day's last minute stays on its day")
 
 

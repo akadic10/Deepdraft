@@ -1,0 +1,32 @@
+{
+  "furniture_key": "base:furniture:drying_rack",
+  "furniture_category": "food",
+  "display_name": "Drying Rack",
+  "description": "Two forked posts and a crossbar lashed with rope: the Ranger's workbench. Fresh fish hang along it for a day, then a Ranger takes them down as food that keeps a season. One batch at a time. Occupies a 2 by 1 space and is worked from either long side.",
+  "model": "res://assets/models/furniture/drying_rack.glb",
+  "item_key": "base:resources:furniture:drying_rack",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "crafting_surface_height": 1.6,
+  "crafting_surface_radius": 0.5,
+  "crafting_motion": "hands",
+  "crafting_recipe": "base:recipe:worker:dried_fish",
+  "crafting_action": "Dry fish",
+  "batch_model": "res://assets/models/furniture/parts/drying_rack_fish.glb",
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "collision_regions": [
+    {
+      "min": [0, 0, 0],
+      "max": [2, 2.0, 1]
+    }
+  ],
+  "material_group": "wood",
+  "material_palette": "hand_hewn_timber",
+  "appeal": {
+    "design": 0,
+    "material_factor": 0.5
+  }
+}

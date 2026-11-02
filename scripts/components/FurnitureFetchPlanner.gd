@@ -15,6 +15,7 @@ static func advance(source: FurnitureGhostComponent, worker: DwarfAgent, context
 		if context.stage == "quote":
 			if not is_instance_valid(source.drop_manager): return NavGrid.ProbeResult.UNREACHABLE
 			var keys: Array[String] = [source.item_key]
+			if source.has_method("fetch_keys"): keys = source.fetch_keys() # any of several goods (a fire's logs)
 			if not source.drop_manager.advance_material_quote(keys,from,context.loose,deadline,context.excluded,
 					source.claim_owner_id(),source.required_material_id,source.required_instance_id,false): return NavGrid.ProbeResult.SEARCHING
 			if not StockpileManager.advance_material_quote(keys,from,context.stored,deadline,context.excluded,

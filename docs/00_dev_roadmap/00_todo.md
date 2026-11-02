@@ -100,22 +100,22 @@ review (§4.2) and by the 2026-10-22 code review (doc 258), and were re-checked 
 Found by the 2026-10-20 project review (doc 254) and re-checked against the code on
 2026-10-26, apart from the teardown item, which comes from the 2026-10-15 benchmarks.
 
-### A ladder or bridge change interrupts meals, games and promotions
+### A ladder change interrupts meals, games and promotions
 
-- **What happens.** Building, extending or removing any ladder or bridge, even one section
+- **What happens.** Building, extending or removing any ladder, even one section
   far away, makes every walking dwarf replan. A dwarf walking to a meal gives it up
   ("Meal interrupted by movement."), one walking to a game cancels it, and one fetching a
   promotion's tool cancels the promotion ("Promotion cancelled: the route to the tool
   changed."). Work, rest and meal walks each run a new path search in that frame, after
   the path cache is cleared.
-- **Why.** Each ladder or bridge change raises `NavGrid.ladder_revision` and clears the
+- **Why.** Each ladder change raises `NavGrid.ladder_revision` and clears the
   path cache (`_rebuild_ladders`). `DwarfMovement.follow_path` then calls
   `_repath_walk()`, which cancels recreation outright and otherwise calls
   `DwarfAgent.walk_to`, whose first lines cancel a meal. `DwarfEquipment.tick` cancels a
   promotion on its own revision check.
 - **Fix direction.** Replan without the cancellations: let the activity that owns the walk
   replan its route (or call `DwarfMovement.walk_to` directly), and replan only the walks
-  whose route uses the changed ladder or bridge.
+  whose route uses the changed ladder.
 - **Done when** finishing a ladder section elsewhere leaves dwarves walking to a meal, a
   game or a tool still on their way.
 
@@ -174,14 +174,35 @@ Found by the 2026-10-20 project review (doc 254) and re-checked against the code
   the tool and starts a walk with no path, and the next tick cancels with "Promotion
   cancelled: the route to the tool changed." instead of trying another tool. Treat it as
   unreachable.
-- **Leaving a closing bridge counts as a full night's sleep.**
-  `DwarfAgent._process_bridge_exit` wakes a sleeper through `_wake_up()`, which sets
-  `sleep = 1.0`. Wake without the rest.
 - **Founding dwarves can start in a river.** `DwarfDirector._standable_ground_y` skips
   lake, tarn and occupied cells but never asks `NavGrid.is_walkable`, so a river column
   passes.
 
 ---
+
+### Stats and hit points left for later
+
+Left open when the stats and hit points milestone was retired (2026-10-31); the rules are
+in doc 41 ("Stats", "Health"), doc 45 (animals) and docs 52 and 62 (doors).
+
+- **Calling traits and stats.** A Born Miner with Poor Strength reads oddly. Recommended:
+  each calling trait also guarantees its profession's main stat at Good or better, as Iron
+  Constitution does for Toughness: Strength for Born Miner and Born Hauler, Wisdom for Green
+  Thumb and Brewmaster's Intuition, Wits for Architect's Eye, Charisma for Merchant's Tongue
+  and Warm Host.
+- **Colony → Dwarves sorted by fit,** to find the best miner among 30. Recommended next to
+  the career map's fit.
+- **Agility's first live job.** Walking and climbing speed, at a smaller 3% a step, would
+  show it now. It touches every trip, so it waits for the owner's word.
+- **Wisdom's first live job.** Tree planting (doc 284) is the only farming work today.
+- **Charisma** does nothing until a Merchant, an Innkeeper or a squad leader exists.
+- **With the Hunter:** spear blows against animal hit points, fleeing when struck,
+  carcasses; Agility and Wisdom at work (doc 45).
+- **With combat:** invaders breaking doors, armour, weapons, death and forced bed rest;
+  Strength, Agility and Toughness in the damage formula; whether dwarves can lock doors
+  during a raid, and whether mending a door takes a log (doc 52).
+- **A Medic:** Wisdom heals others, and a bed or an infirmary heals faster.
+- **Better doors:** iron with the Smelter and Forge, stone with the Stonemason (doc 62).
 
 ## Furniture
 
@@ -341,6 +362,21 @@ Owner decision 2026-10-21: log the proper fix and leave `buffer_size` unchanged
 - **Done when** a slot count over a large save shows only actors and doors reserving
   slots, and dwarves, animals and doorways light exactly as before.
 
+### Sliced lights ignore furniture above the cut
+
+Left open when doc 287 was accepted (2026-10-30); not seen in play.
+
+- **What happens.** While the slice cuts a torch away, its light burns on and the rock above
+  the cut still stops it, but furniture above the cut casts no shadow. A closed door above
+  the cut no longer stops the light, so it could pass that doorway and reach a shown floor
+  beyond, if one lies low enough.
+- **Why.** `SliceLightOccluders` keeps only terrain in the shadows, and the slice hides
+  furniture through `node.visible`. A hidden node casts nothing (doc 24, "Sliced lights").
+- **Fix direction.** While a light is lifted, keep the shadow proxies of hidden doors in its
+  reach casting, or add installed doors' boxes to the shadow rock.
+- **Done when** a closed door above the cut stops a sliced torch's light as it does with the
+  slice off, and nothing else changes for pieces the slice shows.
+
 ---
 
 ## UI
@@ -405,13 +441,6 @@ Owner decision 2026-10-21: log the proper fix and leave `buffer_size` unchanged
   - stamping furniture already installed, through the normal placement rules.
 - **Fix direction.** Both belong to the stamper's window (doc 23, "The item stamper"),
   behind the DEV switch.
-
-### Development still uses painted pictures
-
-- **Fix direction.** The Development menu's entries still show the painted
-  `assets/ui/dock/utilities_atlas.png` (`data/ui/dock.json`), the last painted sheet. The
-  menu is DEV-only, so it may stay simple. Hearthblock icons, or plain text, would let the
-  sheet go.
 
 ### DEV windows still build their own chrome
 
@@ -541,6 +570,10 @@ becomes a building object (the weak spot of Stonehearth's building editor).
 
 - **Dig and build.** Placing a blueprint also orders the mining of the rock in its way, for
   rooms cut into the mountain. Today that rock shows in rust and its blocks are left out.
+  Build's Replace (doc 285) already plans solid blocks and swaps each in one job; a blueprint
+  block in rock could be one of those.
+- **Replace in Shapes and blueprints** (doc 285): Shapes could take Build's Replace switch,
+  for paths and borders inlaid in a floor.
 - **Furniture in blueprints,** kept as placement plans that wait for their items.
 - **To the ceiling.** Walls raised to the rock above, so a room built in a cavern seals.
 - **Roofs and other shapes,** only if homes outside the mountain come.
@@ -575,6 +608,9 @@ becomes a building object (the weak spot of Stonehearth's building editor).
 
 ### Build textures by progression
 
+- **Planned, then held (2026-11-01):** doc [293](293_stonemason_and_carpenter.md) proposed
+  dressed stone and planks as the first two textures, made by the Stonemason and the Carpenter.
+  The owner held them until the dwarves have iron tools ("they look too advanced").
 - **What happens.** Each of Build's materials has one look. The plank and stone floors,
   the only finer looks, were removed on 2026-10-26: every block is a whole cell, so a
   floor is just a block a dwarf stands on, and a floor block could always be stacked into

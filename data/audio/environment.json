@@ -1,5 +1,5 @@
 {
-  "__comment": "Cosmetic real-time ambience and contextual sources. Rain/storm IDs are owned by WeatherManager; no audio changes simulation or water volume.",
+  "__comment": "Cosmetic real-time ambience and contextual sources. Rain/storm IDs are owned by WeatherManager; no audio changes simulation or water volume. Each storm thunder is a lightning strike: the sky flashes first and the thunder follows flash_lead seconds later (nearer strikes flash brighter and sooner). The nearest near_share of strikes play a close crack from near_streams instead of a distant rumble.",
   "bus": "Ambience",
   "default_volume": 0.72,
   "default_effects_volume": 0.4466836,
@@ -146,7 +146,17 @@
         35,
         85
       ],
-      "dawn_interval_multiplier": 1.0
+      "dawn_interval_multiplier": 1.0,
+      "flash_lead": [
+        0.5,
+        2.5
+      ],
+      "near_share": 0.3,
+      "near_streams": [
+        "thunder_near_01",
+        "thunder_near_02",
+        "thunder_near_03"
+      ]
     },
     "chirps": {
       "streams": [

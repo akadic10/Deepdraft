@@ -60,6 +60,7 @@ func _run() -> void:
 	_expect(explorer.get_compact_panel().get_title() == "Wild Deer" and events == ["deer_select"],"deer identity and paused selection sound use deer definition")
 	var data: Dictionary = wildlife.get_explorer_data(deer)
 	_expect(data.rows.back() == ["Herd","2 deer"],"inspector reports saved herd membership")
+	_expect(String(data.badge.get("value", "")) == "40" and ["Health", "Healthy · 40 hit points"] in data.rows, "a deer has 40 hit points on its badge (doc 45)")
 	var snapshot: Dictionary = wildlife.serialize_state()
 	wildlife.advance(10,[])
 	_expect(snapshot == wildlife.serialize_state(),"pause freezes both species")

@@ -9,6 +9,7 @@ func _run() -> void:
 	rooms = root.get_node("RoomManager")
 	rooms.clear_runtime_state()
 	_build_bedroom()
+	_bury(Vector3i(60,0,60),Vector3i(69,0,69)) # A cellar bedroom: the hearth warms it without overheating.
 	door = _put("door",Vector3i(63,20,60))
 	bed = _put("log_bed",Vector3i(62,20,64))
 	lamp = _put("wooden_torch",Vector3i(68,20,64))

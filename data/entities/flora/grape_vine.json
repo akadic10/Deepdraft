@@ -21,7 +21,7 @@
 
       "cutting": {
         "clearance_height": 1,
-        "growth_duration_days": 6,
+        "growth_duration_days": 4.5,
         "models": {
           "summer": "res://assets/models/flora/crops/grape/grape_cutting.glb"
         },

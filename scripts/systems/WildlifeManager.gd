@@ -536,8 +536,15 @@ func get_explorer_data(id: Variant) -> Dictionary:
 		match String(row[0]):
 			"Herd", "Flock": line += " · %s" % String(row[1]).to_lower()
 			"Hunting": line += " · %s" % String(row[1]).to_lower()
+	# Hit points (doc 45): the heart on the panel's badge. Nothing hurts an animal yet; the
+	# Ranger's blows will wear them down once hunting comes.
+	var hit_points := int(data.get("hit_points", 0))
+	var badge := {}
+	if hit_points > 0:
+		rows.insert(4, ["Health", "Healthy · %d hit points" % hit_points])   # after Diet, before the species' own rows
+		badge = {"icon": "res://assets/ui/icons/health.png", "value": str(hit_points), "tooltip": "Healthy · %d hit points" % hit_points}
 	return {"title": data.display_name, "family": "work", "subject": id, "portrait": id,
-		"status": {"text": line, "tone": "fine"},
+		"status": {"text": line, "tone": "fine"}, "badge": badge,
 		"rows": rows, "details": data.description,
 		"actions": [{"id":"stop_follow" if following else "follow", "text":"Stop following" if following else "Follow", "active": following}, {"id":"locate", "text":"Locate"}]}
 

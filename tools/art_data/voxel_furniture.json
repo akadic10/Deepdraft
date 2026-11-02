@@ -107,6 +107,54 @@
         }
       ]
     },
+    "drying_rack": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "drying_rack"
+        }
+      ]
+    },
+    "carpenter_bench": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "carpenter_bench"
+        }
+      ]
+    },
+    "mason_bench": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "mason_bench"
+        }
+      ]
+    },
+    "stone_stool": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "stone_stool"
+        }
+      ]
+    },
+    "tool_rack": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "tool_rack"
+        }
+      ]
+    },
+    "raw_materials_crate": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "raw_materials_crate"
+        }
+      ]
+    },
     "board_game_table": {
       "main": [
         {
@@ -139,14 +187,6 @@
         }
       ]
     },
-    "bridge_kit": {
-      "main": [
-        {
-          "op": "hearthblock_vox",
-          "model": "bridge_kit"
-        }
-      ]
-    },
     "crude_ladder_1": {
       "main": [
         {
@@ -176,46 +216,6 @@
         {
           "op": "hearthblock_vox",
           "model": "ladder_4"
-        }
-      ]
-    },
-    "log_bridge_1": {
-      "main": [
-        {
-          "op": "hearthblock_vox",
-          "model": "bridge_1"
-        }
-      ]
-    },
-    "log_bridge_2": {
-      "main": [
-        {
-          "op": "hearthblock_vox",
-          "model": "bridge_2"
-        }
-      ]
-    },
-    "log_bridge_3": {
-      "main": [
-        {
-          "op": "hearthblock_vox",
-          "model": "bridge_3"
-        }
-      ]
-    },
-    "log_bridge_4": {
-      "main": [
-        {
-          "op": "hearthblock_vox",
-          "model": "bridge_4"
-        }
-      ]
-    },
-    "log_bridge_5": {
-      "main": [
-        {
-          "op": "hearthblock_vox",
-          "model": "bridge_5"
         }
       ]
     },
@@ -398,6 +398,14 @@
         {
           "op": "hearthblock_vox",
           "model": "fence_rails"
+        }
+      ]
+    },
+    "parts/drying_rack_fish": {
+      "fish": [
+        {
+          "op": "hearthblock_vox",
+          "model": "drying_rack_fish"
         }
       ]
     }

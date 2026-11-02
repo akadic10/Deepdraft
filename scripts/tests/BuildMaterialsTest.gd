@@ -8,7 +8,9 @@ extends "res://scripts/tests/ConstructionTest.gd"
 ## - Build opens on its last material, Q and E step through the four, Stone's and Wood's
 ##   pictures carry their menus, a drag lays logs along its longer side and R turns them for a
 ##   click, grass hides the height, and the tag counts the chosen wood's logs;
-## - a log plan keeps its wood, its directions and its crate through a save.
+## - a log plan keeps its wood, its directions and its crate through a save;
+## - a plan of two goods (doc 276) stages each for its own blocks: its logs are built once both
+##   are in while its soil is still short, then the soil comes and the dirt is built of it.
 const PINE := "base:resources:wood:pine_log"
 const OAK := "base:resources:wood:oak_log"
 const SOIL := "base:resources:soil:soil"
@@ -34,6 +36,7 @@ func _run() -> void:
 	_soil_test()
 	_tool_test()
 	_log_save_test()
+	await _mixed_test()
 	_expect(tasks.lifecycle_errors().is_empty(),"building leaves no orphan tasks or claims")
 	for failure: String in failures: push_error(failure)
 	print("BUILD_MATERIALS_OK" if failures.is_empty() else "BUILD_MATERIALS_FAIL")
@@ -141,3 +144,25 @@ func _log_save_test() -> void:
 	_expect(int(construction.staged_inventory()[OAK][""])==2,"staged logs count in the colony's stock")
 	_expect(construction.dev_build_order(id)==2,"both logs finish from the staged logs")
 	_expect(_key_at(cells[0])=="base:construction:log:oak:z" and _key_at(cells[1])=="base:construction:log:oak:x","each log lies its own way")
+
+func _mixed_test() -> void:
+	var logs := _cells([Vector3i(44,21,47),Vector3i(45,21,47)])
+	var dirt := Vector3i(46,21,47)
+	drops.spawn_drop(PINE,2,Vector3i(41,21,41))
+	var pine := _loose_of(PINE)
+	var id: int = construction.create_order(_cells([logs[0],logs[1],dirt]),-1,false,"log_horizontal","pine",{logs[0]:"x",logs[1]:"x"},{dirt:["dirt",""]},"Log bank")
+	var order = construction.orders[id]
+	_expect(order.materials.filter_items==[PINE,SOIL],"the crate takes both goods: %s" % [order.materials.filter_items])
+	for tick in range(2000):
+		await _tick()
+		if order.cells==_cells([dirt]) and order.builder_id<0: break
+	_expect(logs.all(func(cell: Vector3i) -> bool: return _key_at(cell)=="base:construction:log:pine:x") and order.cells==_cells([dirt]),
+		"the logs are built once both are in, while the soil is still short")
+	var status := String(construction.get_explorer_data(id).status.text)
+	_expect(status.begins_with("Waiting for soil"),"the plan then waits for its soil: %s" % status)
+	drops.spawn_drop(SOIL,1,Vector3i(41,21,41))
+	for tick in range(2000):
+		await _tick()
+		if not construction.orders.has(id): break
+	_expect(not construction.orders.has(id) and _key_at(dirt)=="base:terrain:surface:dirt","the soil comes and the dirt is built of it")
+	_expect(_loose_of(PINE)==pine-2 and _loose_of(SOIL)==0,"each block took its own good")

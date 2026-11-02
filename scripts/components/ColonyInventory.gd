@@ -19,7 +19,7 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 		_row(result, entry.key).carried += int(entry.count)
 	for entry: Dictionary in physical.equipped:
 		_row(result, entry.key).equipped += int(entry.count)
-	for source: StorageComponent in StockpileManager.get_zones():
+	for source: StorageComponent in StockpileManager.get_stores():
 		for stack: Dictionary in source.stored_entries().values():
 			_material(_row(result, String(stack.item)), String(stack.get("material_id", "")), int(stack.count))
 	for category: String in physical:
@@ -48,6 +48,13 @@ static func snapshot(items: ItemDropManager, furniture: FurniturePlacementContro
 			row.requests = int(catalog[row.furniture_key].reserved)
 		row.reserved = maxi(0, row.total - row.available - row.disallowed)
 	return result
+
+
+## One good's available count as `snapshot` gives it, without counting every other good:
+## stored and not on its way out, and lying loose unclaimed.
+static func available(items: ItemDropManager, key: String) -> int:
+	var stored := maxi(0, StockpileManager.get_available_total(key) - int(StockpileManager.get_outgoing_totals().get(key, 0)))
+	return stored + (items.free_loose_count(key) if is_instance_valid(items) else 0)
 
 
 static func _row(rows: Dictionary, key: String) -> Dictionary:

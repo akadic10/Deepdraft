@@ -55,43 +55,11 @@ signal ladder_routes_changed
 var ladder_revision := 0
 var _ladders: Dictionary = {}
 var _rungs: Dictionary = {}
-var _bridges: Dictionary = {}
-var _bridge_floors: Dictionary = {}
 var _min_climb_cost := COST_UP
 var _min_vertical_cost := COST_DOWN
 var navigation_revision := 0
 var _chunk_revisions: Dictionary = {}
 enum ProbeResult { SEARCHING, REACHABLE, UNREACHABLE, BUDGET_EXHAUSTED }
-
-## Deck supports belong to structures, not the terrain/water grid. Closing
-## keeps physical support but allows only actors already on that deck to exit.
-func set_bridge(id: int, floors: Array[Vector3i], exits: Array[Vector3i], closing := false) -> void:
-	_bridges[id] = {"cells":floors,"exits":exits,"closing":closing}
-	_rebuild_bridges()
-
-func remove_bridge(id: int) -> void:
-	if not _bridges.has(id): return
-	_bridges.erase(id)
-	_rebuild_bridges()
-
-func _rebuild_bridges() -> void:
-	_bridge_floors.clear()
-	for id: int in _bridges:
-		for cell: Vector3i in _bridges[id].cells: _bridge_floors[cell] = id
-	_walkable_cache.clear()
-	# Structural revision also invalidates in-flight paths and scheduler proofs.
-	_rebuild_ladders()
-
-func bridge_supports(cell: Vector3i) -> bool:
-	return _bridge_floors.has(cell)
-
-func closing_bridge_at(cell: Vector3i) -> Dictionary:
-	var route: Dictionary = _bridges.get(_bridge_floors.get(cell,-1),{})
-	return route if bool(route.get("closing",false)) else {}
-
-func _bridge_entry_allowed(cell: Vector3i, start: Vector3i) -> bool:
-	var id: int = _bridge_floors.get(cell,-1)
-	return id < 0 or not bool(_bridges[id].closing) or _bridge_floors.get(start,-1) == id
 
 
 ## Rungs are explicit traversal supports, never solid terrain/walkable floors.
@@ -279,6 +247,27 @@ func advance_reachability(query: Dictionary, start: Vector3i, goal: Vector3i,
 	return int(query.status)
 
 
+## A copy of a finished exact-goal search that carries on past the cell it stopped at, for a
+## caller whose goals have shrunk since (a hauler's load was claimed meanwhile). `goals`
+## becomes the copy's goals. Empty when the search did not end at a goal or is out of date.
+func reopen_search(query: Dictionary, goals: Dictionary) -> Dictionary:
+	if int(query.get("status", -1)) != ProbeResult.REACHABLE or not query.has("goals") \
+			or (query.get("path", []) as Array).is_empty() or not search_is_current(query):
+		return {}
+	var copy := query.duplicate(true)
+	var end: Vector3i = copy.path.back()
+	var none: Array[Vector3i] = []
+	copy.goals = goals
+	copy.path = none
+	copy.status = ProbeResult.SEARCHING
+	# The forward search stopped as it took this cell, before opening its neighbours.
+	if copy.closed.has(end):
+		copy.closed.erase(end)
+		copy.tie += 1
+		_heap_push(copy.heap, [float(copy.g[end]) + _search_heuristic(copy, end), copy.tie, end])
+	return copy
+
+
 ## Cache only a current exact proof for immediate worker execution.
 func remember_reachable_path(query: Dictionary) -> void:
 	if int(query.get("status", ProbeResult.SEARCHING)) != ProbeResult.REACHABLE \
@@ -315,8 +304,6 @@ func _remember_search_area(query: Dictionary, cell: Vector3i) -> void:
 
 
 func _new_approach_probe(start: Vector3i, goal: Vector3i, adjacent_ok := true, exact_goals: Dictionary = {}) -> Dictionary:
-	for bridge: Dictionary in _bridges.values():
-		if bool(bridge.closing): return {}
 	for route: Dictionary in _ladders.values():
 		if bool(route.closing): return {}
 	var query := _new_search(goal, start, false, true)
@@ -382,7 +369,7 @@ func line_walkable_flat(a: Vector3i, b: Vector3i, radius: float = 0.3) -> bool:
 
 
 ## Moving actors are usually between cell centres. Checking a parallel line
-## from current_cell() can approve a shortcut that steps off a bridge corner.
+## from current_cell() can approve a shortcut that steps off a narrow deck's corner.
 func line_walkable_flat_from(position: Vector3, b: Vector3i, radius: float = 0.3) -> bool:
 	var a := Vector3i(floori(position.x), roundi(position.y)-1, floori(position.z))
 	if a.y != b.y or not is_walkable(a) or not is_walkable(b):
@@ -391,7 +378,6 @@ func line_walkable_flat_from(position: Vector3, b: Vector3i, radius: float = 0.3
 	# interrupted actor may already be within the corner margin of its edge;
 	# requiring that margin here would prevent it from moving back to safety.
 	if a == b: return true
-	if PlacedEntityRegistry.barrier_blocks_segment(position,Vector3(b)+Vector3(.5,1,.5),radius,float(CLEARANCE)): return false
 	var from := Vector2(position.x, position.z)
 	var to := Vector2(float(b.x) + 0.5, float(b.z) + 0.5)
 	var length := from.distance_to(to)
@@ -405,7 +391,7 @@ func line_walkable_flat_from(position: Vector3, b: Vector3i, radius: float = 0.3
 		for offset in [Vector2.ZERO, side, -side]:
 			var q: Vector2 = p + offset
 			var sample := Vector3i(floori(q.x), a.y, floori(q.y))
-			if not is_walkable(sample) or not _bridge_entry_allowed(sample,a):
+			if not is_walkable(sample):
 				return false
 		t += 0.25
 	return true
@@ -424,8 +410,6 @@ func get_stats() -> Dictionary:
 
 func clear_runtime_state() -> void:
 	_chunk_revisions.clear()
-	_bridges.clear()
-	_bridge_floors.clear()
 	_ladders.clear()
 	_rebuild_ladders()
 	_walkable_cache.clear()
@@ -439,7 +423,7 @@ func clear_runtime_state() -> void:
 # ── Walkability ───────────────────────────────────────────────────────────────
 
 func _compute_walkable(cell: Vector3i) -> bool:
-	if not bridge_supports(cell) and not BlockRegistry.is_solid(_block_id(cell.x, cell.y, cell.z)):
+	if not BlockRegistry.is_solid(_block_id(cell.x, cell.y, cell.z)):
 		return false
 	for k in range(1, CLEARANCE + 1):
 		var above := Vector3i(cell.x, cell.y + k, cell.z)
@@ -517,9 +501,7 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 
 		var g_cur: float = g[current]
 		for neighbor: Vector3i in _ladder_neighbors(current, query.get("route_start",start), query.get("route_goal",goal)):
-			if not edge_clear(current,neighbor): continue
 			if floor_filter.is_valid() and not floor_filter.call(neighbor): continue
-			if not _bridge_entry_allowed(neighbor,query.get("route_start",start)): continue
 			if closed.has(neighbor): continue
 			var route: Dictionary = ladder_at(current) if _rungs.has(current) else ladder_at(neighbor)
 			var g_new := g_cur + (1.0 / maxf(.1, float(route.speed)) if neighbor.y != current.y else COST_LATERAL)
@@ -539,8 +521,6 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 				if floor_filter.is_valid() and not floor_filter.call(neighbor): continue
 				if closed.has(neighbor) or not is_walkable(neighbor):
 					continue
-				if not _bridge_entry_allowed(neighbor,query.get("route_start",start)): continue
-				if not edge_clear(current,neighbor): continue
 				var step_cost := COST_LATERAL
 				if dy > 0:
 					step_cost = COST_UP
@@ -560,16 +540,12 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 		for dir: Vector2i in _DIAGS:
 			var neighbor := Vector3i(current.x + dir.x, current.y, current.z + dir.y)
 			if floor_filter.is_valid() and (not floor_filter.call(neighbor) or not floor_filter.call(Vector3i(current.x+dir.x,current.y,current.z)) or not floor_filter.call(Vector3i(current.x,current.y,current.z+dir.y))): continue
-			if not _bridge_entry_allowed(neighbor,query.get("route_start",start)) \
-				or not _bridge_entry_allowed(Vector3i(current.x+dir.x,current.y,current.z),query.get("route_start",start)) \
-				or not _bridge_entry_allowed(Vector3i(current.x,current.y,current.z+dir.y),query.get("route_start",start)): continue
 			if closed.has(neighbor) or not is_walkable(neighbor):
 				continue
 			if not is_walkable(Vector3i(current.x + dir.x, current.y, current.z)):
 				continue
 			if not is_walkable(Vector3i(current.x, current.y, current.z + dir.y)):
 				continue
-			if not edge_clear(current,neighbor): continue
 			var g_new := g_cur + COST_DIAGONAL
 			if g.has(neighbor) and g_new >= float(g[neighbor]):
 				continue
@@ -578,10 +554,6 @@ func _advance_search(query: Dictionary, node_budget: int, deadline_usec: int) ->
 			query.tie += 1
 			_heap_push(heap, [g_new + _search_heuristic(query, neighbor), query.tie, neighbor])
 	query.status = ProbeResult.UNREACHABLE
-
-## Grid-edge fences block transitions without reserving either floor tile.
-func edge_clear(from: Vector3i, to: Vector3i) -> bool:
-	return not PlacedEntityRegistry.barrier_blocks_segment(Vector3(from)+Vector3(.5,1,.5),Vector3(to)+Vector3(.5,1,.5))
 
 
 ## Multi-position work searches use distance to the goals' bounding box: a

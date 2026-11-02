@@ -1,0 +1,32 @@
+{
+  "__comment": [
+    "Dwarf stats (doc 41), read by DwarfAssets. Each dwarf is given its stats when created, from its own seed after its tastes, and keeps them for life.",
+    "words: the five steps, Poor to Excellent. A step shows as pips and its word, never as a number.",
+    "average: the step every stat starts at. shifts: how many times a point then moves from one stat to another, never below the first step or above the last, so every dwarf has the same total in a different shape.",
+    "groups: the sheet's two columns, in order. stats: name, group, icon, description (the hover), in the sheet's order.",
+    "A stat that speeds work names its kinds (`work`: mining, felling, stonework (a Stonemason's crafting, doc 293), crafting, building, fishing) and what the sheet says (`does`, {speed} being '6% faster', 'at the usual speed' or '6% slower'); per_step is the work speed for each step from Average (doc 41). Toughness gives the hit points (`health` in task_config.json). The others give `effect`, what they will do, shown as 'Not active yet: ...'.",
+    "Each profession names its main and second stat in data/professions/professions.json; Iron Constitution and Frail shape Toughness in traits.json."
+  ],
+  "words": ["Poor", "Fair", "Average", "Good", "Excellent"],
+  "average": 3,
+  "shifts": 4,
+  "per_step": 0.06,
+  "groups": {"body": "Body", "mind": "Mind"},
+  "stats": {
+    "base:stat:strength": {"name": "Strength", "group": "body", "icon": "res://assets/ui/icons/stat_strength.png",
+      "description": "Muscle: the heavy work of digging, felling, clearing and shaping stone.",
+      "work": ["mining", "felling", "stonework"], "does": "Digs, fells, clears and shapes stone {speed}"},
+    "base:stat:agility": {"name": "Agility", "group": "body", "icon": "res://assets/ui/icons/stat_agility.png",
+      "description": "Quick feet and a sure aim.", "effect": "hunting, aim and dodging"},
+    "base:stat:toughness": {"name": "Toughness", "group": "body", "icon": "res://assets/ui/icons/stat_toughness.png",
+      "description": "Grit: how much a dwarf can take."},
+    "base:stat:wits": {"name": "Wits", "group": "mind", "icon": "res://assets/ui/icons/stat_wits.png",
+      "description": "Clever hands: making and building.",
+      "work": ["crafting", "building"], "does": "Crafts and builds {speed}"},
+    "base:stat:wisdom": {"name": "Wisdom", "group": "mind", "icon": "res://assets/ui/icons/stat_wisdom.png",
+      "description": "Patience and judgement.",
+      "work": ["fishing"], "does": "Fishes {speed}"},
+    "base:stat:charisma": {"name": "Charisma", "group": "mind", "icon": "res://assets/ui/icons/stat_charisma.png",
+      "description": "Warmth and presence.", "effect": "trading, hosting and leading"}
+  }
+}

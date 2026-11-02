@@ -19,7 +19,8 @@ func _run() -> void:
 	feedback = root.get_node("WorkFeedback")
 	feedback.set_process(false)
 	feedback._sync_scene()
-	feedback.sound_started.connect(func(kind,position,variant): sound_events.append([kind,position,variant]))
+	feedback.sound_started.connect(func(kind,position,variant):
+		if kind == "chop": sound_events.append([kind,position,variant]))
 	camera.set_meta("work_focus",Vector3(42,21,41))
 	camera.set_meta("work_zoom",24.0)
 	slice_stub = CraftSliceStub.new()

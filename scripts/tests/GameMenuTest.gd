@@ -622,7 +622,7 @@ func _check_key_list(page, frame_size: Vector2) -> void:
 		and page.tabs.controls.theme_type_variation == &"FamilyBlock" and not page.restore_button.visible
 		and page._intro.text.contains("Choosing your own keys comes later"), "the Controls tab shows the key list, with nothing to restore")
 	_expect(menu._frame.size.is_equal_approx(frame_size), "the window keeps its size on all three tabs")
-	var shown := {"Pause or resume": "Space", "Normal speed": "1", "Fast speed": "2", "Appeal": "V", "X-ray": "X",
+	var shown := {"Pause or resume": "Space", "Normal speed": "1", "Fast speed": "2", "Appeal": "V", "Temperature": "T", "X-ray": "X",
 		"Slice": "\\", "Raise / lower 4 levels": "] / [", "Raise / lower 1 level": "Ctrl + ] / Ctrl + [",
 		"Over the tower: 1 / 4 levels": "Wheel / Ctrl + Wheel", "Move": "W A S D or Arrow keys",
 		"Mining width, or a door gap": "Shift + Wheel", "Take blocks out of building plans": "Ctrl + Drag", "Finish the tool": "Esc", "Close the front window, or open the menu": "Esc"}

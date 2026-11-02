@@ -4,6 +4,7 @@ extends Node3D
 const Work = preload("res://scripts/components/ConstructionWork.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const Shapes = preload("res://scripts/components/ConstructionShapes.gd")
+const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const INVALID := Vector3i(-1,-1,-1)
 const DIRECTIONS := [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.UP,Vector3i.DOWN,Vector3i.FORWARD,Vector3i.BACK]
 @export var mining_path: NodePath
@@ -60,6 +61,9 @@ var _erasing := false
 var _erase: MeshInstance3D
 var _erase_cells: Array[Vector3i] = []
 var _dev_feedback: Dictionary = {}
+# Build's Replace switch (doc 285): a drag picks the blocks themselves, swapped for the material.
+var _replace := false
+var _moved: Dictionary = {}   # cells whose block changed since the last frame, for replace plans
 
 func _ready() -> void:
 	add_to_group("construction")
@@ -83,15 +87,24 @@ func _ready() -> void:
 	TaskManager.task_cancelled.connect(func(task: Task): _task_gone(task,task.assigned_to))
 	TaskManager.task_failed.connect(func(task: Task,_why: String): _task_gone(task,task.assigned_to))
 	TaskManager.task_released.connect(_task_released)
-	WorldData.block_changed.connect(func(cell: Vector3i, _old: int, _new: int): _roofs.erase(Vector2i(cell.x,cell.z)))
+	WorldData.block_changed.connect(_on_block_changed)
 	# Copy and placing blueprints (doc 273, Phase 3) work on these plans.
 	blueprints = preload("res://scripts/systems/BlueprintController.gd").new()
 	blueprints.name = "Blueprints"
 	blueprints.construction = self
 	add_child(blueprints)
+	# Every Construction tool offers Mine blocks' 32 × 32 guide, on the one switch (doc 23).
+	if mining != null:
+		mining.offer_area_guide(self)
+		mining.offer_area_guide(blueprints)
 
 func _exit_tree() -> void:
 	for id: int in orders.keys(): cancel_order(id,false)
+
+## A block changed: grass looks for its open sky again, and a replace plan checks the block.
+func _on_block_changed(cell: Vector3i, _old: int, _new: int) -> void:
+	_roofs.erase(Vector2i(cell.x,cell.z))
+	if not orders.is_empty(): _moved[cell] = true
 
 func _make_overlay(label: String, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -111,6 +124,7 @@ func _process(delta: float) -> void:
 		_dirty = false
 		_rebuild_visuals()
 	if not SaveManager.is_loading():
+		if not _moved.is_empty(): _sweep_replaced()
 		for order in orders.values():
 			if order.materials != null: order.materials.tick_site(delta,_slice_y())
 			order.update_lease()
@@ -154,6 +168,8 @@ func _on_tool_requested(tool: String) -> void:
 	_stair_note = ""
 	_dragging = false
 	_erasing = false
+	# Build always opens building; Replace is switched on each time (doc 285).
+	_replace = false
 	_preview.mesh = null
 	_erase.mesh = null
 	_clear_ghost()
@@ -178,12 +194,16 @@ func deactivate() -> void:
 
 ## What the tool bar shows (doc 23, "The tool bar"): Shapes' shape and Build's material as
 ## choices, Stone's and Wood's with the menu their picture opens, the height and a door gap as
-## steppers, Filled as the switch, and while a plan is dragged, its blocks and their goods
-## against the stock (or, while erasing, the plans to go).
+## steppers, Filled, Build's Replace and the 32 × 32 guide as switches, and while a plan is
+## dragged, its blocks and their goods against the stock (or, while erasing, the plans to go).
 func tool_bar_state() -> Dictionary:
 	var def := _tool_definition()
 	var build := _is_build(_kind)
 	var state := {"tool": "construct_shapes" if _shapes else ("construct_build" if build else "construct_" + _kind)}
+	# Replace (doc 285) names the tool and shows its own keys while the switch is on.
+	if _replace:
+		state.name = "Replace"
+		state.keys = "construct_replace"
 	var choices := []
 	if _shapes:
 		var shapes := BlockRegistry.get_construction_shapes()
@@ -206,9 +226,15 @@ func tool_bar_state() -> Dictionary:
 		settings.append({"id": "door", "label": "Door", "value": _door, "min": 0, "max": int(_door_widths().max()),
 			"keys": "Shift + Wheel", "tooltip": "A door gap in the middle of the side facing you, 3 blocks tall: 2, 3 or 4 wide, as the doors come, or none."})
 	if not settings.is_empty(): state.settings = settings
+	var toggles := []
 	if _shapes and _shape != "stairs":
-		state.toggle = {"id": "filled", "label": "Filled", "on": _filled, "keys": "F",
-			"tooltip": "Fills the shape, a slab or a platform. Off, it is walls round its edge."}
+		toggles.append({"id": "filled", "label": "Filled", "on": _filled, "keys": "F",
+			"tooltip": "Fills the shape, a slab or a platform. Off, it is walls round its edge."})
+	if build and not _shapes:
+		toggles.append({"id": "replace", "label": "Replace", "on": _replace, "keys": "F",
+			"tooltip": "Picks the blocks you point at, not the air in front of them. A dwarf digs each one out and sets the material in its place; blocks already of it are left."})
+	if mining != null: toggles.append(mining.area_guide_toggle("building"))
+	if not toggles.is_empty(): state.toggles = toggles
 	if _erasing:
 		state.selection = {"count": _drag_size(), "short": false, "at": _pointer,
 			"detail": "takes %d planned block%s out" % [_erase_cells.size(), "" if _erase_cells.size() == 1 else "s"]}
@@ -253,9 +279,10 @@ func _material_option(material: String) -> Dictionary:
 
 
 ## Height and the door gap from their steppers, the shape and the material from their choices,
-## a material's type and wood from its menu, Filled from the switch. A material keeps the height
-## chosen for the others, though grass is one block tall.
+## a material's type and wood from its menu, Filled, Replace and the guide from their switches. A
+## material keeps the height chosen for the others, though grass is one block tall.
 func set_tool_setting(id: String, value: Variant) -> void:
+	if id == "guide" and mining != null: mining.set_mining_guide_enabled(bool(value))
 	if id == "material" and String(value) in build_materials():
 		_material = String(value)
 		_kind = _kind_of(_material)
@@ -268,6 +295,8 @@ func set_tool_setting(id: String, value: Variant) -> void:
 		_shape = String(value)
 	elif id == "filled":
 		_filled = bool(value)
+	elif id == "replace":
+		_replace = bool(value) and _is_build(_kind) and not _shapes
 	elif id == "door":
 		_door = _door_width(int(value))
 	elif id == "height":
@@ -293,13 +322,14 @@ func _column_height() -> int:
 
 
 ## A plan's cost against the stock: "27 rough stone · 6 in stock", short when it is more. Logs
-## count the chosen wood's: "18 pine logs · 6 in stock".
-func _cost(cells: int) -> Dictionary:
-	var def := _tool_definition()
+## count the chosen wood's: "18 pine logs · 6 in stock". `kind` is the tool's own unless given.
+func _cost(cells: int, kind := "") -> Dictionary:
+	if kind.is_empty(): kind = _kind
+	var def := BlockRegistry.get_construction_def(kind)
 	var need := cells * int(def.get("cost", 1))
 	var stock := 0
-	for item: String in BlockRegistry.construction_goods(_kind,_wood): stock += StockpileManager.get_available_total(item)
-	return {"detail": "%d %s · %d in stock" % [need, Work.good_words(_kind,_wood,need), stock], "short": need > stock}
+	for item: String in BlockRegistry.construction_goods(kind,_wood): stock += StockpileManager.get_available_total(item)
+	return {"detail": "%d %s · %d in stock" % [need, Work.good_words(kind,_wood,need), stock], "short": need > stock}
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active: return
@@ -341,16 +371,17 @@ func _unhandled_input(event: InputEvent) -> void:
 					_update_preview(event.position)
 					if _erasing: _finish_erase()
 					else:
-						var id := create_order(_preview_cells,-1,false,_kind,_wood,_preview_dirs)
+						var id := create_order(_preview_cells,-1,false,_kind,_wood,_preview_dirs,{},"",_replace)
 						if id >= 0: order_created.emit(_receipt(id))
-						else: order_feedback.emit("No clear cells to build")
+						else: order_feedback.emit("No blocks here to replace" if _replace else "No clear cells to build")
 				_dragging = false
 				_erasing = false
 				_erase.mesh = null
 			get_viewport().set_input_as_handled()
 
 ## Q and E step through the materials, R turns a lying log, Tab (Shift + Tab back) steps through
-## Shapes' shapes, and F fills a shape or empties it. False when the key does none of these.
+## Shapes' shapes, and F fills a shape or empties it, or in Build switches Replace. False when the
+## key does none of these.
 func _key_setting(key: Key, back: bool) -> bool:
 	if key in [KEY_Q,KEY_E] and _is_build(_kind):
 		var materials := build_materials()
@@ -363,6 +394,8 @@ func _key_setting(key: Key, back: bool) -> bool:
 		set_tool_setting("shape",shapes[posmod(shapes.find(_shape)+(-1 if back else 1),shapes.size())])
 	elif key == KEY_F and _shapes and _shape != "stairs":
 		set_tool_setting("filled",not _filled)
+	elif key == KEY_F and _is_build(_kind) and not _shapes:
+		set_tool_setting("replace",not _replace)
 	else: return false
 	return true
 
@@ -380,7 +413,8 @@ func _update_preview(mouse := Vector2(-1,-1)) -> void:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null: return
 	var hit: Dictionary = furniture.surface_cell_for(mouse)
-	_hover = target_from_hit(hit)
+	# Replace (doc 285) takes the block itself, not the air in front of its face.
+	_hover = (Vector3i(hit.x,hit.y,hit.z) if not hit.is_empty() else INVALID) if _replace else target_from_hit(hit)
 	if not hit.is_empty():
 		_hover_plane_y = camera.project_ray_origin(mouse).y+camera.project_ray_normal(mouse).y*float(hit.distance)
 	if _dragging:
@@ -401,17 +435,17 @@ func _update_preview(mouse := Vector2(-1,-1)) -> void:
 	var reason := ""
 	for cell: Vector3i in _shape_cells(start,_hover):
 		if cell.y > _slice_y(): continue
-		var invalid := build_reason(cell,true,false,_kind)
+		var invalid := replace_reason(cell,_kind,_wood) if _replace else build_reason(cell,true,false,_kind)
 		if invalid.is_empty(): _preview_cells.append(cell)
 		else: reason = invalid
 	_preview_dirs = _directions(_preview_cells,start,_drag_finish(start,_hover))
 	_show_preview()
-	_reason = "" if not _preview_cells.is_empty() else (reason if not reason.is_empty() else "Raise the slice to build above this face")
+	_reason = "" if not _preview_cells.is_empty() else (reason if not reason.is_empty() else ("No blocks here to replace" if _replace else "Raise the slice to build above this face"))
 
 ## The drag's preview: green cells, or for logs green ghost logs lying as they will be built
-## (owner's pick, doc 275).
+## (owner's pick, doc 275). Blocks to replace stay green cells, since a ghost would hide in them.
 func _show_preview() -> void:
-	if _preview_dirs.is_empty() or renderer == null:
+	if _preview_dirs.is_empty() or renderer == null or _replace:
 		_clear_ghost()
 		_preview.mesh = mining.build_fill_mesh(_preview_cells,Color.WHITE,.005) if not _preview_cells.is_empty() else null
 		return
@@ -561,23 +595,32 @@ func _finish_erase() -> void:
 func erase_cells(id: int, cells: Array) -> void:
 	var order = orders.get(id)
 	if order == null: return
+	var taken := {}
 	for cell: Vector3i in cells:
+		var good: String = order.good_of(cell)
+		taken[good] = int(taken.get(good,0))+1
 		order.cells.erase(cell)
 		order.work_progress.erase(cell)
 	order.total_blocks = maxi(order.total_blocks-cells.size(),order.cells.size())
+	# Each good keeps the blocks it still has, built or planned.
+	var need: Dictionary = order.needs()
+	for good: String in taken:
+		order.totals[good] = maxi(int(order.totals.get(good,0))-int(taken[good]),int(need.get(good,0)))
+		if int(order.totals[good]) <= 0: order.totals.erase(good)
 	if order.cells.is_empty():
 		cancel_order(id)
 		return
 	if order.target != INVALID and not order.cells.has(order.target) and order.source_id >= 0:
 		TaskManager.cancel_source_tasks(order.source_id)
-	if order.materials != null: order.materials.refund_excess(order.cells.size())
+	if order.materials != null: order.materials.refund_excess()
 	order.update_lease()
 	_dirty = true
 
 ## A queued plan's receipt: the tool bar's Undo takes back what is not built yet.
 func _receipt(id: int) -> Dictionary:
 	var order = orders[id]
-	var message := "Queued %d blocks · %s" % [order.cells.size(), String(_cost(order.cells.size()).detail).get_slice(" · ", 0)]
+	var message := "Queued %d %s · %s" % [order.cells.size(), "replacements" if order.replace else "blocks",
+		String(_cost(order.cells.size(),order.construction_kind).detail).get_slice(" · ", 0)]
 	return {"order_id": id, "order": order, "message": message}
 
 func order_is_pending(receipt: Dictionary) -> bool:
@@ -644,15 +687,22 @@ func get_explorer_bounds(object_id: Variant) -> AABB:
 func get_explorer_data(object_id: Variant) -> Dictionary:
 	var order = orders.get(object_id)
 	if order == null or get_explorer_bounds(object_id).size == Vector3.ZERO: return {}
-	# The compact panel (doc 260): the plan's construction icon and one status line.
-	var picture := Work.picture(order.construction_kind,order.wood)
+	# The compact panel (doc 260): the plan's construction icon and one status line. A placed
+	# blueprint (doc 276) is named for it, and a plan of several goods counts each.
+	var picture := Work.picture(order.construction_kind,order.wood) if order.project_name.is_empty() else "res://assets/ui/icons/blueprints.png"
 	var task := TaskManager.get_task(order.lease_id())
 	var worker: DwarfAgent = TaskManager.get_agent(order.builder_id)
 	var materials = order.materials
-	var good := Work.good_words(order.construction_kind,order.wood)
-	var waiting := "Waiting for %s" % good
+	var goods: Array = order.totals.keys()
+	var mixed := goods.size() > 1
+	var good := Work.good_words(order.construction_kind,order.wood) if not mixed else Work.items_words(goods)
+	var short: Array = order.needs().keys().filter(func(item: String) -> bool: return materials.staged_count(item) < int(order.needs()[item]))
+	var waiting := "Waiting for %s" % (good if not mixed else Work.items_words(short))
 	var status := waiting
 	var details := "Deliver all materials to the temporary crate, then hammer each block. Cancelling returns unused %s; completed blocks remain." % good
+	if mixed: details = "Deliver each good to the temporary crate; a good's blocks are hammered once all of it is in. Cancelling returns unused %s; completed blocks remain." % good
+	# Replace (doc 285): the builder digs each old block out and hammers the new one in.
+	if order.replace: details = "Deliver all materials to the temporary crate, then dig out each old block and hammer the new one into its place. The old block drops what mining it would. Cancelling returns unused %s; replaced blocks remain." % good
 	var haulers: Array[String] = []
 	for dwarf_id: int in materials.puller_ids():
 		var hauler: DwarfAgent = TaskManager.get_agent(dwarf_id)
@@ -660,7 +710,8 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	if materials.crate_cell == INVALID or materials.delivery_stand_cells(materials.crate_cell).is_empty():
 		status = "No delivery access"
 	elif is_instance_valid(worker):
-		status = "Building" if worker.get_task_phase() == DwarfAgent.TaskPhase.FETCH_WORKING else "Going to build"
+		var working := worker.get_task_phase() == DwarfAgent.TaskPhase.FETCH_WORKING
+		status = ("Replacing" if working else "Going to replace") if order.replace else ("Building" if working else "Going to build")
 	elif order.ready_for_staged_work():
 		status = "Waiting for builder"
 		if task != null and task.blocked_count > 0:
@@ -670,22 +721,61 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	if task != null and task.recovery_paused: status = "Needs attention"
 	var progress := "—"
 	if order.cells.has(order.target):
-		progress = "%d%%" % roundi(clampf(float(order.work_progress.get(order.target,0.0))/float(order.def.work_seconds),0.0,1.0)*100.0)
+		progress = "%d%%" % roundi(clampf(float(order.work_progress.get(order.target,0.0))/order.work_seconds_of(order.target),0.0,1.0)*100.0)
 	var built: int = order.total_blocks - order.cells.size()
-	var count := " · %d / %d %s delivered" % [materials.count() + built, order.total_blocks, good] if status in [waiting, "Delivering materials"] \
-		else " · %d / %d blocks built" % [built, order.total_blocks]
+	# A plan of several goods names those still short; its Materials card counts each.
+	var delivered := " · %d / %d %s delivered" % [materials.count() + built, order.total_blocks, good] if not mixed else ""
+	var count := delivered if status in [waiting, "Delivering materials"] else " · %d / %d blocks %s" % [built, order.total_blocks, "replaced" if order.replace else "built"]
 	var tone := "blocked" if status.begins_with("No ") or status == "Needs attention" else "waiting" if status.begins_with("Waiting") else "fine"
-	return {"title":"%s area" % Work.type_name(order.construction_kind,order.wood), "family":"work", "picture":picture,
+	# One Materials row, or for several goods a row each: "Oak logs · 30 / 247 delivered".
+	var rows := [["Status",status],["Blocks left",str(order.cells.size())]]
+	var on_way: Array[String] = []
+	if not mixed:
+		rows.append(["Materials","%d / %d %s delivered" % [materials.count()+built,order.total_blocks,good]])
+		on_way.append("%d %s" % [materials.in_transit(),good])
+	else:
+		for item: String in goods:
+			var total := int(order.totals[item])
+			var item_built := total-int(order.needs().get(item,0))
+			var words := Work.item_words(item)
+			rows.append([words.left(1).to_upper()+words.substr(1),"%d / %d delivered" % [materials.staged_count(item)+item_built,total]])
+			on_way.append("%d %s" % [materials.in_transit(item),Work.item_words(item,materials.in_transit(item))])
+	rows.append_array([["Worker",worker.dwarf_name if is_instance_valid(worker) else "None assigned"],
+		["Current block",progress],["On the way",", ".join(on_way)],
+		["Delivery workers",", ".join(haulers) if not haulers.is_empty() else "None assigned"],
+		["Completed","%d / %d blocks" % [built,order.total_blocks]],
+		["Work remaining","%.1f seconds at normal speed" % order.total_remaining_work()]])
+	var dev_note := "DEV finish uses delivered materials and supplies any missing ones instantly. Occupied or unsupported blocks stay pending."
+	if order.replace: dev_note = "DEV finish uses delivered materials and supplies any missing ones instantly. The old blocks drop nothing."
+	return {"title":order.project_name if not order.project_name.is_empty() else order.title(),
+		"family":"work", "picture":picture,
 		"status":{"text":status + count, "tone":tone},
-		"rows":[["Status",status],["Blocks left",str(order.cells.size())],
-			["Materials","%d / %d %s delivered" % [materials.count()+order.total_blocks-order.cells.size(),order.total_blocks,good]],
-			["Worker",worker.dwarf_name if is_instance_valid(worker) else "None assigned"],
-			["Current block",progress],["On the way","%d %s" % [materials.in_transit(),good]],
-			["Delivery workers",", ".join(haulers) if not haulers.is_empty() else "None assigned"],
-			["Completed","%d / %d blocks" % [order.total_blocks-order.cells.size(),order.total_blocks]],
-			["Work remaining","%.1f seconds at normal speed" % order.total_remaining_work()]],
-		"details":details+_dev_details(object_id,"DEV finish uses delivered materials and supplies any missing ones instantly. Occupied or unsupported blocks stay pending."),
-		"actions":[{"id":"dev_build","text":"DEV: Finish construction","variant":"dev"},{"id":"cancel","text":"Cancel construction","variant":"danger"}]}
+		"rows":rows,
+		"details":details+_dev_details(object_id,dev_note),
+		"actions":[{"id":"materials","text":"Materials","card":"materials"},
+			{"id":"dev_build","text":"DEV: Finish construction","variant":"dev"},{"id":"cancel","text":"Cancel construction","variant":"danger"}],
+		"cards":{"materials":_materials_card(order,haulers)}}
+
+## The Materials card (doc 23, owner's option C, 2026-10-27): each good the plan takes, how much
+## is delivered and on the way, its stock on a tag, and who is hauling. Stock counts what the
+## colony holds unclaimed, stored or loose (`ColonyInventory.available`).
+func _materials_card(order: RefCounted, haulers: Array[String]) -> Dictionary:
+	var rows := []
+	# The good with the most blocks first, the walls' before a roof's, saved or not.
+	var items: Array = order.totals.keys()
+	items.sort_custom(func(a: String, b: String) -> bool: return int(order.totals[a]) > int(order.totals[b]) or (int(order.totals[a]) == int(order.totals[b]) and a < b))
+	for item: String in items:
+		var total := int(order.totals[item])
+		var delivered: int = order.materials.staged_count(item) + total - int(order.needs().get(item,0))
+		var coming: int = order.materials.in_transit(item)
+		var stock := Inventory.available(drops,item)
+		var words := Work.item_words(item)
+		var tag := "All in" if delivered >= total else ("None in stock" if stock == 0 else "%d in stock" % stock)
+		var tone := "fine" if delivered >= total else ("blocked" if stock == 0 and coming == 0 else "waiting")
+		rows.append({"picture":Inventory.thumbnail_path(item),"name":words.left(1).to_upper()+words.substr(1),
+			"detail":"%d of %d delivered · %d on the way" % [delivered,total,coming],"tag":tag,"tone":tone})
+	return {"title":"Materials","rows":rows,
+		"footer":"Hauling: %s" % ", ".join(haulers) if not haulers.is_empty() else "No one is hauling"}
 
 ## DEV notes and results appear only while the development tools are on.
 func _dev_details(object_id: Variant,note: String) -> String:
@@ -732,7 +822,7 @@ func build_reason(cell: Vector3i, planning := true, require_support := true, kin
 		for group: Array in [furniture.get_ghost_pieces(),furniture.get_installed_pieces()]:
 			for piece in group:
 				if furniture.visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps).intersects(area): return "Furniture or a placement plan occupies this cell"
-		if furniture.get_ladders().reserves(area) or furniture.get_bridges().reserves(area): return "Keep access structures clear"
+		if furniture.get_ladders().reserves(area): return "Keep access structures clear"
 	for zone: StockpileZoneComponent in StockpileManager.get_zones():
 		if zone.tile_cells.has(cell-Vector3i.UP): return "Remove the storage designation first"
 	if planning:
@@ -760,6 +850,96 @@ func _roof(cell: Vector3i) -> int:
 				break
 	return int(_roofs[column])
 
+## Why Replace (doc 285) can't take a block, "" when it can: a solid block with an open face,
+## above bedrock's layers, not marked for mining or planned, and not already what `kind` builds.
+## The open face keeps a drag to what the colony sees: a wall's face, never the rock behind it,
+## and a cave or deposit not yet found reads as the rock around it (Hard Rule 11).
+func replace_reason(cell: Vector3i, kind := "stone", wood := "", planning := true) -> String:
+	if cell.x < 0 or cell.z < 0 or cell.y <= 3 or cell.x >= WorldData.WORLD_SIZE_X or cell.z >= WorldData.WORLD_SIZE_Z or cell.y >= WorldData.WORLD_SIZE_Y: return "Outside the buildable world"
+	if not open_face(cell): return "Only a block with an open face can be replaced"
+	var block := WorldData.get_live_block(cell.x,cell.y,cell.z)
+	if not BlockRegistry.is_solid(block): return "Nothing here to replace"
+	if mining != null and mining.is_marked(cell): return "Marked for mining"
+	var def := BlockRegistry.get_construction_def(kind)
+	if _already(block,kind,wood):
+		var words := "a %s log" % String(BlockRegistry.get_wood(wood).get("label","")).to_lower() if def.has("logs") else Work.type_name(kind,wood).to_lower()
+		return "Already %s" % words
+	if bool(def.get("needs_sky", false)) and _roof(cell) > cell.y: return "%s needs open sky above" % String(def.label)
+	if planning:
+		for order in orders.values():
+			if order.cells.has(cell): return "Construction already planned here"
+	return ""
+
+## Whether a block faces air the colony knows. Water and a cave not yet found count as closed.
+func open_face(cell: Vector3i) -> bool:
+	for direction: Vector3i in DIRECTIONS:
+		var near: Vector3i = cell+direction
+		if WorldData.get_live_block(near.x,near.y,near.z) == BlockRegistry.AIR_ID and not InteriorTracker.is_hidden_cave(near): return true
+	return false
+
+## Whether a block is already what `kind` builds: natural rock for stone (built stone is its
+## layer's rock), the kind's own block for dirt and grass, a log of the wood, whichever way it lies.
+func _already(block: int, kind: String, wood: String) -> bool:
+	var def := BlockRegistry.get_construction_def(kind)
+	if def.has("logs"): return String(BlockRegistry.log_of(block).get("wood","")) == wood
+	if def.has("block_key"): return BlockRegistry.get_key(block) == StringName(String(def.block_key))
+	return String(BlockRegistry.get_def(BlockRegistry.get_key(block)).get("kind","")) == "rock"
+
+## A replaced block's dig, timed as Mine blocks times it: {swings, swing_time}, {} for nothing to dig.
+func dig_work(cell: Vector3i) -> Dictionary:
+	return mining.get_zone_block_work(cell) if mining != null and cell != INVALID else {}
+
+func play_dig_impact(cell: Vector3i, contact: Vector3, normal: Vector3) -> void:
+	if mining != null: mining.play_zone_mining_impact(cell,contact,normal)
+
+## The block panel's Replace list (doc 285): each of Build's materials, as its chosen type, that
+## could take the block's place, with its picture and stock: "Native stone · 6 in stock".
+func replace_options(cell: Vector3i) -> Array:
+	if _wood.is_empty(): _wood = _likeliest_wood()
+	var options := []
+	for material: String in build_materials():
+		var kind := _kind_of(material)
+		if not replace_reason(cell,kind,_wood).is_empty(): continue
+		options.append({"id": "replace:" + material, "picture": Work.picture(kind,_wood),
+			"text": "%s · %s" % [Work.type_name(kind,_wood), String(_cost(1,kind).detail).get_slice(" · ",1)]})
+	return options
+
+## The panel's Replace: plans one block's replacement with a material's chosen type, as a drag
+## with Replace on would, and shows the plan. -1 when it can't.
+func replace_block(cell: Vector3i, material: String) -> int:
+	if not material in build_materials(): return -1
+	if _wood.is_empty(): _wood = _likeliest_wood()
+	var cells: Array[Vector3i] = [cell]
+	var id := create_order(cells,-1,false,_kind_of(material),_wood,{},{},"",true)
+	if id < 0: return id
+	var receipt := _receipt(id)
+	order_created.emit(receipt)
+	inspect_order(receipt)
+	return id
+
+## Where a replace plan's crate is sought from and its lease points: a floor a builder could work
+## its lowest reachable block from, else its first block.
+func _replace_origin(cells: Array[Vector3i]) -> Vector3i:
+	for cell: Vector3i in cells:
+		var stands := stands_for(cell)
+		if not stands.is_empty(): return stands[0]
+	return cells[0]
+
+## A replace plan's block that changed under it leaves the plan, as Ctrl + drag takes one out:
+## mined out, or made what the plan would make it.
+func _sweep_replaced() -> void:
+	var moved := _moved
+	_moved = {}
+	for id: int in orders.keys():
+		var order = orders.get(id)
+		if order == null or not order.replace: continue
+		var gone: Array[Vector3i] = []
+		for cell: Vector3i in order.cells:
+			if not moved.has(cell): continue
+			var block := WorldData.get_live_block(cell.x,cell.y,cell.z)
+			if not BlockRegistry.is_solid(block) or _already(block,order.kind_of(cell),order.wood_of(cell)): gone.append(cell)
+		if not gone.is_empty(): erase_cells(id,gone)
+
 func stands_for(cell: Vector3i) -> Array[Vector3i]:
 	var result: Array[Vector3i] = []
 	if cell == INVALID: return result
@@ -769,14 +949,23 @@ func stands_for(cell: Vector3i) -> Array[Vector3i]:
 			if NavGrid.is_walkable(stand): result.append(stand)
 	return result
 
-## A plan of blocks. Logs (doc 275) name their wood and which way each cell's log lies.
-func create_order(requested: Array[Vector3i], saved_id := -1, restoring := false, kind := "stone", wood := "", directions: Dictionary = {}) -> int:
+## A plan of blocks. Logs (doc 275) name their wood and which way each cell's log lies. A placed
+## blueprint (doc 276) is one plan of several materials: `own` gives a block its own kind and
+## wood ([kind, wood]) where they are not the plan's, and `project_name` is the blueprint's. A
+## replace plan (doc 285) holds solid blocks to swap for the kind, by Replace's rules.
+func create_order(requested: Array[Vector3i], saved_id := -1, restoring := false, kind := "stone", wood := "", directions: Dictionary = {}, own: Dictionary = {}, project_name := "", replace := false) -> int:
 	var def := BlockRegistry.get_construction_def(kind)
-	if def.is_empty() or (def.has("logs") and BlockRegistry.get_wood(wood).is_empty()): return -1
+	if not _buildable(kind,wood): return -1
 	var cells: Array[Vector3i] = []
+	var taken := {}
 	for cell: Vector3i in requested:
-		if cells.has(cell): continue
-		if restoring or (cell.y<=_slice_y() and build_reason(cell,true,false,kind).is_empty()): cells.append(cell)
+		if taken.has(cell): continue
+		var cell_kind := String(own[cell][0]) if own.has(cell) else kind
+		if own.has(cell) and not _buildable(cell_kind,String(own[cell][1])): continue
+		var reason := "" if restoring else (replace_reason(cell,cell_kind,wood) if replace else build_reason(cell,true,false,cell_kind))
+		if restoring or (cell.y<=_slice_y() and reason.is_empty()):
+			cells.append(cell)
+			taken[cell] = true
 	if cells.is_empty(): return -1
 	cells.sort_custom(func(a: Vector3i,b: Vector3i): return a.y<b.y if a.y!=b.y else (a.x<b.x if a.x!=b.x else a.z<b.z))
 	var id := saved_id if saved_id > 0 else next_id
@@ -784,12 +973,20 @@ func create_order(requested: Array[Vector3i], saved_id := -1, restoring := false
 	var order = Work.new()
 	order.controller = self
 	order.construction_kind = kind
-	if def.has("logs"):
-		order.wood = wood
-		for cell: Vector3i in cells: order.directions[cell] = "up" if def.logs == "up" else String(directions.get(cell,_log_axis))
-	order.setup(id,kind,def,cells[0]-Vector3i.UP,0)
+	order.project_name = project_name
+	order.replace = replace
+	if def.has("logs"): order.wood = wood
+	for cell: Vector3i in cells:
+		if own.has(cell):
+			var cell_def := BlockRegistry.get_construction_def(String(own[cell][0]))
+			var material := [String(own[cell][0]),String(own[cell][1]) if cell_def.has("logs") else ""]
+			if material != [kind,order.wood]: order.own[cell] = material
+		var logs := String(BlockRegistry.get_construction_def(order.kind_of(cell)).get("logs",""))
+		if not logs.is_empty(): order.directions[cell] = "up" if logs == "up" else String(directions.get(cell,_log_axis))
+	order.setup(id,kind,def,_replace_origin(cells) if replace else cells[0]-Vector3i.UP,0)
 	order.cells = cells
 	order.total_blocks = cells.size()
+	order.totals = order.needs().duplicate()
 	order.drop_manager = drops
 	orders[id] = order
 	order.source_id = TaskManager.allocate_source_id()
@@ -805,6 +1002,11 @@ func create_order(requested: Array[Vector3i], saved_id := -1, restoring := false
 	_dirty = true
 	return id
 
+## Whether a kind can be planned: one the game knows, and a log with a wood.
+func _buildable(kind: String, wood: String) -> bool:
+	var def := BlockRegistry.get_construction_def(kind)
+	return not def.is_empty() and not (def.has("logs") and BlockRegistry.get_wood(wood).is_empty())
+
 ## Automatic packaging on a clear, flat patch. Keep an open ring around it;
 ## never occupy stairs, storage, access structures, doors or any blueprint.
 func _crate_site_clear(site: Vector3i) -> bool:
@@ -815,9 +1017,7 @@ func _crate_site_clear(site: Vector3i) -> bool:
 		for dy in range(1,4):
 			for order in orders.values():
 				if order.cells.has(around+Vector3i(0,dy,0)): return false
-	if not build_reason(site+Vector3i.UP,true,false).is_empty(): return false
-	var area := AABB(Vector3(site)+Vector3(0,1,0),Vector3.ONE)
-	return not PlacedEntityRegistry.barriers_overlap(area)
+	return build_reason(site+Vector3i.UP,true,false).is_empty()
 
 func place_materials_crate(materials: RefCounted) -> void:
 	if is_instance_valid(materials.visual): return
@@ -867,15 +1067,21 @@ func staged_inventory() -> Dictionary:
 				result[item][material] = int(result[item].get(material,0))+int(staged[material])
 	return result
 
-## The block a finished cell becomes: a log of its wood lying its way, the kind's own block
-## (dirt, grass), else the natural rock of its layer (stone).
+## The block a finished cell becomes, by its own kind: a log of its wood lying its way, the
+## kind's own block (dirt, grass), else the natural rock of its layer (stone).
 func block_key_for(order: RefCounted, cell: Vector3i) -> String:
-	var def: Dictionary = order.def
-	if def.has("logs"): return String(BlockRegistry.log_block(order.wood,String(order.directions.get(cell,"up"))))
+	var def: Dictionary = BlockRegistry.get_construction_def(order.kind_of(cell))
+	if def.has("logs"): return String(BlockRegistry.log_block(order.wood_of(cell),String(order.directions.get(cell,"up"))))
 	if def.has("block_key"): return String(def.block_key)
 	return String(BlockRegistry.get_key(WorldGenerator.construction_stone_id(cell)))
 
 func commit_block(order: RefCounted) -> void:
+	# A replaced block drops what mining it would, at its builder's feet, since its own cell
+	# stays solid (doc 285).
+	if order.replace and mining != null:
+		var cell: Vector3i = order.target
+		var worker: DwarfAgent = TaskManager.get_agent(order.builder_id)
+		if is_instance_valid(worker): mining.spawn_block_drops(WorldData.get_live_block(cell.x,cell.y,cell.z),worker.current_cell()+Vector3i.UP)
 	_place_block(order.target,block_key_for(order,order.target))
 
 func _place_block(cell: Vector3i, key: String) -> void:
@@ -901,12 +1107,12 @@ func dev_build_order(id: int) -> int:
 		progressed = false
 		reason = ""
 		for cell: Vector3i in order.cells.duplicate():
-			var invalid := build_reason(cell,false,true,order.construction_kind,obstacles)
+			var invalid: String = order.blocked_reason(cell,order.kind_of(cell),obstacles)
 			if cell.y > _slice_y(): invalid = "Raise the slice to show the remaining blocks"
 			if not invalid.is_empty():
 				reason = invalid
 				continue
-			if order.materials != null: order.materials.consume_one()
+			if order.materials != null: order.materials.consume(order.good_of(cell))
 			_place_block(cell,block_key_for(order,cell))
 			order.cells.erase(cell)
 			order.work_progress.erase(cell)
@@ -970,9 +1176,16 @@ func serialize_state() -> Dictionary:
 		for cell: Vector3i in order.cells:
 			var saved := {"cell":SaveManager.pack_v3i(cell),"work":float(order.work_progress.get(cell,0.0))}
 			if order.directions.has(cell): saved["dir"] = String(order.directions[cell])
+			# A placed blueprint's block of another material names its own (doc 276).
+			if order.own.has(cell):
+				saved["kind"] = String(order.own[cell][0])
+				if not String(order.own[cell][1]).is_empty(): saved["wood"] = String(order.own[cell][1])
 			pending.append(saved)
 		var entry := {"id":order.ghost_id,"kind":order.construction_kind,"cells":pending,"total_blocks":order.total_blocks}
 		if not order.wood.is_empty(): entry["wood"] = order.wood
+		if order.replace: entry["replace"] = true
+		if not order.project_name.is_empty(): entry["name"] = order.project_name
+		if order.totals.size() > 1: entry["totals"] = order.totals.duplicate()
 		if order.materials != null:
 			entry["materials"] = order.materials.staged.duplicate(true)
 			if order.materials.crate_cell != INVALID: entry["crate_cell"] = SaveManager.pack_v3i(order.materials.crate_cell)
@@ -985,12 +1198,19 @@ func restore_state(state: Dictionary) -> void:
 	for entry: Dictionary in state.orders:
 		var cells: Array[Vector3i] = []
 		var directions := {}
+		var own := {}
 		for pending: Dictionary in entry.cells:
 			cells.append(SaveManager.unpack_v3i(pending.cell))
 			if pending.has("dir"): directions[cells.back()] = String(pending.dir)
-		var id := create_order(cells,int(entry.id),true,String(entry.kind),String(entry.get("wood","")),directions)
+			if pending.has("kind"): own[cells.back()] = [String(pending.kind),String(pending.get("wood",""))]
+		var id := create_order(cells,int(entry.id),true,String(entry.kind),String(entry.get("wood","")),directions,own,String(entry.get("name","")),bool(entry.get("replace",false)))
 		if id >= 0:
 			orders[id].total_blocks = int(entry.total_blocks)
+			# Each good's blocks, built ones included; a plan of one good has them all.
+			var totals := {}
+			for good: String in entry.get("totals",{}): totals[good] = int(entry.totals[good])
+			if totals.is_empty(): totals[orders[id].good_of(INVALID)] = int(entry.total_blocks)
+			orders[id].totals = totals
 			if orders[id].materials != null:
 				orders[id].materials.staged = entry.get("materials",{}).duplicate(true)
 				# Restore the location after furniture/storage owners load too.

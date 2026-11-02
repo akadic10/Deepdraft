@@ -2,20 +2,20 @@ extends Node3D
 
 ## Two bounded ambience beds, positioned around nearby visible moving water.
 ## Uses the same camera-focus attenuation and Work bus as work/wildlife audio.
-const Synth := preload("res://scripts/components/WaterAudioSynth.gd")
+const Bank := preload("res://scripts/components/WaterAudioBank.gd")
 var water_view: Node3D
 var voices: Dictionary = {}
 var last_scan_usec := 0
 var _settings: Dictionary
 var _until_scan := 0.0
 var _revision := -1
-var _synthesis := Thread.new()
+var _loading_thread := Thread.new()
 var _streams_ready := false
 
 func _ready() -> void:
 	process_priority = 55 # After camera and water presentation updates.
 	_settings = WorldGenerator.water_profile.audio
-	_synthesis.start(_prepare_streams)
+	_loading_thread.start(_prepare_streams)
 	for kind: String in ["waterfall","river"]:
 		var player := AudioStreamPlayer3D.new()
 		player.name = kind.capitalize()
@@ -29,8 +29,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if not _streams_ready:
-		if _synthesis.is_alive(): return
-		var streams: Dictionary = _synthesis.wait_to_finish()
+		if _loading_thread.is_alive(): return
+		var streams: Dictionary = _loading_thread.wait_to_finish()
 		for kind: String in voices: voices[kind].player.stream = streams[kind]
 		_streams_ready = true
 	if not WaterManager.initialized or not is_instance_valid(water_view) or not water_view.is_visible_in_tree() or WorldClock.paused or WorldClock.speed<=0 or SaveManager.is_loading() or get_viewport().get_camera_3d()==null:
@@ -59,10 +59,10 @@ func _process(delta: float) -> void:
 		if not player.stream_paused and not player.playing and DisplayServer.get_name()!="headless": player.play()
 
 func _prepare_streams() -> Dictionary:
-	return {"waterfall":Synth.stream("waterfall"),"river":Synth.stream("river")}
+	return {"waterfall":Bank.stream(String(_settings.waterfall.stream)),"river":Bank.stream(String(_settings.river.stream))}
 
 func _exit_tree() -> void:
-	if _synthesis.is_started(): _synthesis.wait_to_finish()
+	if _loading_thread.is_started(): _loading_thread.wait_to_finish()
 
 func _silence() -> void:
 	_until_scan = 0.0

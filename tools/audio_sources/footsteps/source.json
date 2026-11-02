@@ -1,0 +1,240 @@
+{
+  "sources": [
+    {
+      "kind": "stone",
+      "id": "521590",
+      "title": "Hiking Boot Footsteps on Stone",
+      "description": "Six hiking-boot steps recorded on stone with a Zoom H4n Pro; edited by the uploader in Audacity.",
+      "author": "Fission9",
+      "page": "https://freesound.org/people/Fission9/sounds/521590/",
+      "download": "https://cdn.freesound.org/previews/521/521590_9395330-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "62a89ab50b329495d917a553846795f967c76391aaed5a28419781adcd41efdf",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 3.5490833333333334,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "boots_stone.wav",
+      "master_sha256": "9925d1f2271d367dac805e4c39df8afdc213eeefa5718c02c732857af4844bb0",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_conversion": "Complete HQ MP3 preview decoded to mono PCM16 at its original 48000 Hz; no resampling, pitch or speed change.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "wood",
+      "id": "521589",
+      "title": "Hiking Boot Footsteps on Wooden Planks",
+      "description": "Six light hiking-boot steps recorded on a wooden plank with a Zoom H4n Pro; edited by the uploader in Audacity.",
+      "author": "Fission9",
+      "page": "https://freesound.org/people/Fission9/sounds/521589/",
+      "download": "https://cdn.freesound.org/previews/521/521589_9395330-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "f85c345b33d91da886f6c118d1c0c080c39b074c0ac053bcce58f46a6e407e86",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 2.5084166666666667,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "boots_wood.wav",
+      "master_sha256": "a8abbee128362d900f547f440bd8988436d61d59f643648c9aa80bf01223e3c3",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_conversion": "Complete HQ MP3 preview decoded to mono PCM16 at its original 48000 Hz; no resampling, pitch or speed change.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "gravel",
+      "id": "521588",
+      "title": "Hiking Boot Footsteps on Gravel",
+      "description": "Four hiking-boot steps recorded on crunchy gravel with a Zoom H4n Pro; edited by the uploader in Audacity.",
+      "author": "Fission9",
+      "page": "https://freesound.org/people/Fission9/sounds/521588/",
+      "download": "https://cdn.freesound.org/previews/521/521588_9395330-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "085013ce436bc00838d28cf18bc90ac797c65db2aa49869f728c7dd10f3ded17",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 2.7347916666666667,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "boots_gravel.wav",
+      "master_sha256": "ae5a32221ac43d4269474686edf9887e399cf6dac6248400b2282c31a64d69e0",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_conversion": "Complete HQ MP3 preview decoded to mono PCM16 at its original 48000 Hz; no resampling, pitch or speed change.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "grass",
+      "id": "521587",
+      "title": "Hiking Boot Footsteps on Grass",
+      "description": "Six grass-footstep foley events: the uploader layered a recorded thud with moving grass, using a Zoom H4n and Audacity.",
+      "author": "Fission9",
+      "page": "https://freesound.org/people/Fission9/sounds/521587/",
+      "download": "https://cdn.freesound.org/previews/521/521587_9395330-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "13657d6ebcce7616163ff2aae46c8f55bf337ea92e7ce8f1d710a5b2c4a96f36",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 4.352416666666667,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "boots_grass.wav",
+      "master_sha256": "b9bde61019e87b4a46181408a09f0f0d0f0ec4e71a3a28fa146fdb5e0ac867d2",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_conversion": "Complete HQ MP3 preview decoded to mono PCM16 at its original 48000 Hz; no resampling, pitch or speed change.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "stone": {
+      "master": "boots_stone.wav",
+      "regions_seconds": [
+        [
+          0.087,
+          0.265
+        ],
+        [
+          0.685,
+          0.921
+        ],
+        [
+          1.246,
+          1.45
+        ],
+        [
+          1.797,
+          2.134
+        ],
+        [
+          2.386,
+          2.688
+        ],
+        [
+          3.004,
+          3.298
+        ]
+      ],
+      "high_pass_hz": 80,
+      "low_pass_hz": 9500,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.015,
+      "target_rms": 0.085,
+      "peak_ceiling": 0.65,
+      "output_pattern": "assets/audio/dwarves/footsteps/stone_{index:02d}.wav"
+    },
+    "wood": {
+      "master": "boots_wood.wav",
+      "regions_seconds": [
+        [
+          0.089,
+          0.311
+        ],
+        [
+          0.526,
+          0.716
+        ],
+        [
+          0.924,
+          1.11
+        ],
+        [
+          1.389,
+          1.585
+        ],
+        [
+          1.813,
+          2.037
+        ],
+        [
+          2.251,
+          2.413
+        ]
+      ],
+      "high_pass_hz": 80,
+      "low_pass_hz": 9500,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.015,
+      "target_rms": 0.085,
+      "peak_ceiling": 0.65,
+      "output_pattern": "assets/audio/dwarves/footsteps/wood_{index:02d}.wav"
+    },
+    "earth": {
+      "master": "boots_gravel.wav",
+      "regions_seconds": [
+        [
+          0.089,
+          0.502
+        ],
+        [
+          0.846,
+          1.201
+        ],
+        [
+          1.551,
+          1.922
+        ],
+        [
+          2.222,
+          2.6
+        ]
+      ],
+      "high_pass_hz": 110,
+      "low_pass_hz": 6000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.015,
+      "target_rms": 0.085,
+      "peak_ceiling": 0.65,
+      "output_pattern": "assets/audio/dwarves/footsteps/earth_{index:02d}.wav"
+    },
+    "grass": {
+      "master": "boots_grass.wav",
+      "regions_seconds": [
+        [
+          0.09,
+          0.463
+        ],
+        [
+          0.791,
+          1.072
+        ],
+        [
+          1.478,
+          1.799
+        ],
+        [
+          2.265,
+          2.721
+        ],
+        [
+          3.046,
+          3.329
+        ],
+        [
+          3.784,
+          4.072
+        ]
+      ],
+      "high_pass_hz": 80,
+      "low_pass_hz": 9500,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.015,
+      "target_rms": 0.085,
+      "peak_ceiling": 0.65,
+      "output_pattern": "assets/audio/dwarves/footsteps/grass_{index:02d}.wav"
+    }
+  },
+  "production_script": "tools/generate_footstep_audio.py",
+  "processing": "Trim individual recorded events; remove DC, apply gentle high/low-pass filters, short edge fades and level matching subject to peak headroom. Gravel supplies earth-path foley; grass is uploader-layered recorded thud and moving grass. Original speed and pitch retained during preparation. No synthetic layers or added reverb."
+}

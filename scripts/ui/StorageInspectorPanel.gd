@@ -7,8 +7,14 @@ extends MarginContainer
 ##   its exact goods under the group, where a click allows or refuses one good: the
 ##   exceptions both ways.
 ## - All and None, how full it is, and Remove zone.
+## - Its priority (doc 294): five steps, 1 filled first. Ground storage starts at 5.
+## - A furniture container (doc 294, the tool rack, the raw materials crate) lists only its own
+##   kind of goods, as one grid of pictures, and counts its goods ("Used 2 / 3 hooks", "Used
+##   9 / 12 goods").
 ## - Filter and Contents hang under the window, as Stonehearth's do. Contents is the same
-##   grouped picture grid with counts; goods awaiting relocation carry a "!".
+##   grouped picture grid with counts; goods awaiting relocation carry a "!". Above it, for
+##   a store that takes food, the Keeping list (StorageKeeping.gd): how long each food keeps
+##   there, the soonest to rot first. It follows each spoilage pass.
 ## Changes go straight to the storage owner; nothing waits for Apply. The groups and the
 ## categories' pictures are UIRegistry's (storage_filters.json).
 signal action_requested(action_id: String)
@@ -37,6 +43,11 @@ const SIZES := {
 }
 const HINTS := ["Click the pictures to choose what to store here; a name opens its exact goods.",
 	"What this storage holds. Click a picture to find it in the filter."]
+const CONTAINER_HINT := "Click a good to keep it here or not."
+const PRIORITY_TIPS := ["Priority 1: filled first. Its goods come here before any other store, and move in from lower ones while it has room.",
+	"Priority 2: filled before stores at 3, 4 and 5.", "Priority 3: filled before stores at 4 and 5.",
+	"Priority 4: filled before stores at 5. Storage furniture starts here.",
+	"Priority 5: filled last. Ground storage starts here."]
 
 var window: UIWindow
 var dock: Node   # DockUI, when there is one: the window fits above it
@@ -54,13 +65,18 @@ var _exact: MarginContainer
 var _exact_heading: Label
 var _exact_grid
 var _exact_empty: Label
+var _goods_grid   # a container's own goods, in place of the category rows
 var _contents_page: VBoxContainer
+var _keeping   # StorageKeeping: how long the store's food keeps
 var _contents
 var _contents_empty: Label
 var _footer: HBoxContainer
 var _all: Button
 var _none: Button
 var _capacity: ProgressBar
+var _priority_label: Label
+var _priority_buttons: Array[Button] = []
+var _priority_hint: Label
 var _waiting: Label
 var _actions: VBoxContainer
 var _action_data: Array = []
@@ -91,6 +107,9 @@ func _ready() -> void:
 	_scroll.add_child(pages)
 	_filter = VBoxContainer.new()
 	pages.add_child(_filter)
+	_goods_grid = _grid()
+	_goods_grid.item_pressed.connect(_toggle_item)
+	_filter.add_child(_goods_grid)
 	for group: Dictionary in UIRegistry.get_storage_groups():
 		var row = _grid()
 		row.item_pressed.connect(_toggle_category)
@@ -114,6 +133,9 @@ func _ready() -> void:
 	_exact_empty = _text(exact_box, "No goods of this kind are known yet.", MEDIUM.small, MUTED)
 	_contents_page = VBoxContainer.new()
 	pages.add_child(_contents_page)
+	_keeping = preload("res://scripts/ui/StorageKeeping.gd").new()
+	_contents_page.add_child(_keeping)
+	StockpileManager.spoilage.passed.connect(_queue_refresh)
 	_contents = _grid()
 	_contents.item_pressed.connect(_find_in_filter)
 	_contents_page.add_child(_contents)
@@ -136,6 +158,22 @@ func _ready() -> void:
 	UITheme.hearth_progress(_capacity)
 	_capacity.tooltip_text = "Produce crates hold several goods in one cell."
 	fullness.add_child(_capacity)
+	# The store's place in line (doc 294): goods come to the best store with room first.
+	var priority_row := HBoxContainer.new()
+	priority_row.add_theme_constant_override("separation", 6)
+	_column.add_child(priority_row)
+	_priority_label = _text(priority_row, "Priority", MEDIUM.body, HAY)
+	_priority_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_priority_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var steps := ButtonGroup.new()
+	for step in range(StorageComponent.FIRST_PRIORITY, StorageComponent.LAST_PRIORITY + 1):
+		var button := _button(priority_row, str(step), PRIORITY_TIPS[step - 1])
+		button.toggle_mode = true
+		button.button_group = steps
+		button.pressed.connect(func(): if storage != null: storage.set_priority(step))
+		_priority_buttons.append(button)
+	_priority_hint = _text(priority_row, "1 is filled first", MEDIUM.small, MUTED)
+	_priority_hint.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_waiting = _text(_column, "", MEDIUM.body, HAY)
 	_actions = VBoxContainer.new()
 	_column.add_child(_actions)
@@ -191,6 +229,7 @@ func clear_subject() -> void:
 
 func _exit_tree() -> void:
 	clear_subject()
+	if StockpileManager.spoilage.passed.is_connected(_queue_refresh): StockpileManager.spoilage.passed.disconnect(_queue_refresh)
 
 
 ## Every known good under its category, by name; identity comes from the item registry.
@@ -248,6 +287,9 @@ func _toggle_item(key: String) -> void:
 
 ## A stored good's picture in Contents opens its category in the filter.
 func _find_in_filter(id: String) -> void:
+	if _is_container():
+		_show_tab(0)
+		return
 	var tag := _category_of(id.get_slice("|", 0))
 	if tag.is_empty(): return
 	category = tag
@@ -270,13 +312,17 @@ func refresh() -> void:
 	for key: String in held:
 		goods += int(held[key])
 		if not storage.accepts_key(key): rejected += int(held[key])
-	var used := storage.stored_entries().size()
-	info_label.text = "Used %d / %d cells · %d goods" % [used, storage.storage_capacity(), goods]
+	var used := storage.storage_used()
+	# A container counts its goods ("Used 9 / 12 goods"); a zone its cells and goods.
+	info_label.text = "Used %s" % storage.usage_text() if _is_container() else "Used %d / %d cells · %d goods" % [used, storage.storage_capacity(), goods]
 	_capacity.max_value = maxi(1, storage.storage_capacity())
 	_capacity.value = used
+	_capacity.tooltip_text = storage.capacity_hint() if _is_container() else "Produce crates hold several goods in one cell."
+	for index in _priority_buttons.size(): _priority_buttons[index].set_pressed_no_signal(storage.priority == index + 1)
 	_show_filter()
 	_show_contents()
-	var accepts_any := UIRegistry.get_storage_categories().any(func(entry: Dictionary): return category_state(String(entry.tag)) != "off")
+	var accepts_any: bool = storage.allowed_keys().any(storage.accepts_key) if _is_container() \
+		else UIRegistry.get_storage_categories().any(func(entry: Dictionary): return category_state(String(entry.tag)) != "off")
 	_waiting.visible = rejected > 0 or not accepts_any
 	_waiting.text = "Goods awaiting relocation: %d · kept here until storage that takes them has room." % rejected if rejected > 0 \
 		else "Nothing is allowed yet: choose goods to start deliveries."
@@ -284,6 +330,18 @@ func refresh() -> void:
 
 
 func _show_filter() -> void:
+	var container := _is_container()
+	_goods_grid.visible = container
+	for row in _rows.values(): row.visible = not container
+	if container:
+		_exact.visible = false
+		var goods := []
+		for key: String in storage.allowed_keys():
+			var kept: bool = storage.accepts_key(key)
+			goods.append({"id": key, "picture": _item_texture(key), "mark": "on" if kept else "", "dim": not kept,
+				"tooltip": "%s\n%s" % [_item_name(key), "Kept here. Click to stop keeping it." if kept else "Not kept here. Click to keep it."]})
+		_goods_grid.show_groups([{"id": "goods", "items": goods}])
+		return
 	for group: Dictionary in UIRegistry.get_storage_groups():
 		var items := []
 		var states := []
@@ -346,6 +404,7 @@ func _show_contents() -> void:
 		if not items.is_empty(): groups.append({"id": group.id, "title": group.label, "items": items})
 	_contents.show_groups(groups)
 	_contents_empty.visible = groups.is_empty()
+	_keeping.show_storage(storage)
 
 
 func _show_tab(index: int) -> void:
@@ -356,7 +415,7 @@ func _show_tab(index: int) -> void:
 	_contents_page.visible = index == 1
 	_all.visible = index == 0
 	_none.visible = index == 0
-	_hint.text = HINTS[index]
+	_hint.text = CONTAINER_HINT if index == 0 and _is_container() else HINTS[index]
 	_scroll.scroll_vertical = 0
 	_fit.call_deferred()
 
@@ -395,6 +454,7 @@ func _place_tabs() -> void:
 
 func _apply_size(s: Dictionary) -> void:
 	_size = s
+	_keeping.sizes = s
 	var gap := int(s.gap)
 	for side: String in ["left", "right"]: add_theme_constant_override("margin_" + side, int(s.side))
 	add_theme_constant_override("margin_top", int(s.top))
@@ -402,7 +462,7 @@ func _apply_size(s: Dictionary) -> void:
 	_column.add_theme_constant_override("separation", gap)
 	_hint.add_theme_font_size_override("font_size", s.hint)
 	_filter.add_theme_constant_override("separation", gap + 4)
-	for row in _rows.values() + [_contents]:
+	for row in _rows.values() + [_contents, _goods_grid]:
 		row.heading_beside = true
 		row.heading_width = float(s.heading_width)
 		row.heading_size = int(s.heading)
@@ -420,6 +480,11 @@ func _apply_size(s: Dictionary) -> void:
 	for button: Button in [_all, _none]:
 		button.custom_minimum_size = s.button
 		button.add_theme_font_size_override("font_size", s.button_font)
+	for button: Button in _priority_buttons:
+		button.custom_minimum_size = Vector2(s.button.y, s.button.y)
+		button.add_theme_font_size_override("font_size", s.button_font)
+	_priority_label.add_theme_font_size_override("font_size", int(s.hint))
+	_priority_hint.add_theme_font_size_override("font_size", int(s.label))
 	for button: Node in _actions.get_children():
 		(button as Button).custom_minimum_size.y = float(s.action)
 		(button as Button).add_theme_font_size_override("font_size", s.button_font)
@@ -430,6 +495,11 @@ func _apply_size(s: Dictionary) -> void:
 
 
 # ── Pieces ────────────────────────────────────────────────────────────────────
+
+## A furniture container (doc 294): it lists its own goods, not the categories.
+func _is_container() -> bool:
+	return storage != null and storage.has_method("allowed_keys")
+
 
 func _grid():
 	var grid = Grid.new()

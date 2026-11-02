@@ -636,7 +636,8 @@ static func cell_slab(w: int, h: int, face: Color, top: Color, skirt: Color, out
 ##   "tag_blocked";
 ## - window pieces (doc 261): "raised", "raised_hover", "raised_on" (a hay edge),
 ##   "raised_off", "hay", "hay_hover" and "hay_on" (a main action), "inset", "board" and
-##   "board_compact" (the pine board), "groove", "fill", "grabber" and "grabber_hover".
+##   "board_compact" (the pine board), "groove", "fill", "grabber" and "grabber_hover";
+## - "health": a bar's fill in heart red (doc 41 "Health").
 static func cell_style(kind: String, cell: int) -> StyleBoxTexture:
 	var key := "%s%d" % [kind, cell]
 	if _cell_styles.has(key):
@@ -687,6 +688,10 @@ static func cell_style(kind: String, cell: int) -> StyleBoxTexture:
 		"fill":
 			var tone: Array = TAG_TONES.waiting
 			art = cell_slab(8, 8, tone[0], tone[1], tone[2], Color("6d5520"), 1, 1)
+			edges = [3, 3, 3, 3]
+			content = [0, 0, 0, 0]
+		"health":
+			art = cell_slab(8, 8, Color("c9412f"), Color("e2634b"), Color("94291f"), Color("3a160c"), 1, 1)
 			edges = [3, 3, 3, 3]
 			content = [0, 0, 0, 0]
 		"grabber", "grabber_hover":

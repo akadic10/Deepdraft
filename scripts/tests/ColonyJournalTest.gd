@@ -8,7 +8,7 @@ extends SceneTree
 ## stands still; ten days are kept; the save section round-trips and a load starts the look
 ## afresh. Every thought a dwarf can have has its lines. The page's journal is
 ## SettlementPanelTest's; validating the section is SaveManagerRoundTripTest's.
-const THOUGHTS := ["bedroom", "recreation_together", "recreation_alone", "hungry", "famished", "dining_seat_only",
+const THOUGHTS := ["bedroom", "recreation_together", "recreation_alone", "grilled_alone", "grilled_together", "hungry", "famished", "injured", "dining_seat_only",
 	"dining_table_only", "dining_neither", "cold", "chilly", "hot", "slept_horrid", "slept_pleasant", "slept_beautiful",
 	"ate_horrid", "ate_pleasant", "ate_beautiful", "played_horrid", "played_pleasant", "played_beautiful"]
 ## A found taste's lines, by its kind (doc 41 "Tastes").

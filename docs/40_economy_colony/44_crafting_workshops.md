@@ -1,12 +1,55 @@
 # 44 — Crafting Workshops
 
+**Drying rack (2026-10-31, doc 289):** Crafters → Ranger → Workshops offers a Drying Rack
+for two matching logs and 12 seconds at a crude workbench: a 2×1 Tier 1 piece installed
+through Place → Food. It is the Ranger's own workbench, so Rangers make it (owner,
+2026-11-01: "the drying rack should move under the rangers menu as a workbench, the ranger
+may have more workbenches later such as drying leather"); with no Ranger its order waits as
+"Needs a Ranger". Place still files it with food (owner, 2026-10-31: "the drying rack is not
+a workshop"). To the code it is the bench of its one recipe (`workshop` in the recipe, a
+bench claim while drying). Crafters → Ranger → Food → Dried fish (doc 292; Rudimentary until
+then) takes two fresh fish of one kind (perch, trout, char or cave fish) to an installed rack.
+Hanging them takes 12 seconds, and then they dry there by themselves (owner, 2026-11-01: "the
+fish dried instantly, I don't think we want it to work that way"):
+- **A day on the rack.** The recipe's `dry_hours` (24) pass on the world clock while the
+  batch hangs, on show (the rack's `batch_model`). The order's batch counts as done once hung,
+  so an order moves on to another free rack. A rack holds one batch: an order whose every rack
+  is drying says "Waiting for a free drying rack · about 14 hours".
+- **Taken down.** Once dry, the rack posts a COLLECT lease (`WorkshopBatch`, a surface work
+  source like a fishing spot). A Ranger takes the batch down by hand in `collect_seconds` (4);
+  two dried fish land beside the rack, the Ranger's log counts them, and the rack is free.
+  With no Ranger, the dry fish wait on the rack.
+- **Fish on a rack** don't spoil and count toward a Keep target (`CraftingManager.batch_output`).
+  The rack's window shows a Drying row ("2 trout · about 14 hours left"), and the crafting
+  window lists each batch under the queue (DRYING).
+- **Saves** keep each batch: its rack, fish and the hour it was hung. A rack removed or marked
+  for uninstall before its batch comes down drops the fish beside it, dried if they were.
+
+Dried fish keep 30 days at 20°C (doc 42, "Spoilage") and are never an ingredient again. Only Rangers dry fish: a recipe's `section` names the page
+it sits on, and the career whose `craft_section` it is makes its orders (doc 41). With no
+Ranger in the colony the order waits as "Needs a Ranger". The recipe's `catch_log` adds each
+batch to the Ranger's log of fish dried.
+- **Ingredient words.** A recipe names its goods with `ingredient_words` (the dried fish's:
+  "fish"), so its orders wait "for 2 matching fish" or "for 2 perch", never for wood.
+  Wooden recipes keep timber's words.
+- **A workshop's motion.** The furniture's `crafting_motion`: "hands" hangs the goods by
+  hand, with the goods at the dwarf's feet and no axe or chop. Without it a Worker hews, as
+  at the workbench.
+- **Its window's action.** `crafting_recipe` and `crafting_action` give a workshop its
+  action: the workbench's Craft items and the rack's Dry fish.
+- **Its batch on show.** A workshop's `batch_model` is laid over it only while a dwarf works
+  a batch there (`CraftingManager._show_batches`, `FurniturePlacementController.show_batch`):
+  the fish hang on the drying rack while they dry, and an idle rack is bare (owner: "the
+  drying rack should not display fish if no fish are drying").
+
 **Log dining table (2026-10-18):** Craft → Rudimentary → Dining now offers a
 Log Dining Table for two matching logs and 16 seconds at a crude workbench.
 Its 3×3 footprint is a split-slab top over a one-block central base (the Tier 1
 design in doc 62). Pine, Oak, Juniper and Applewood follow normal material selection,
-packed delivery, installation, Move and saving. Four separate log stools fit
+packed delivery, installation, Move and saving. Four separate stools fit
 the displayed guides, one against the middle of each side, so table and four
-stools together occupy 5×5. Stools are crafted independently (docs 231, 232).
+stools together occupy 5×5. Stools are crafted independently (docs 231, 232); the
+guides take log and stone stools alike (doc 293).
 
 **Recipe categories (2026-10-13):** Rudimentary groups items by their use, matching
 the Place catalogue: Rooms contains the log bed, hearth and three doors; Dining
@@ -19,8 +62,9 @@ seconds; Access also holds the Log Fence Post and Log Gate, one log and 10 secon
 
 **Rudimentary hearth (2026-10-11):** Rudimentary → Rooms now offers a
 rough fieldstone hearth: two matching logs and four rough stones, physically delivered to
-a crude workbench before 18 seconds of work. It emits 1600 heat units (2400 until
-doc 199; doc 34) and quiet fire audio when installed. Unlike the other wooden
+a crude workbench before 18 seconds of work. It emits 9600 heat units, tended so a room
+never goes past 18°C (1600 until 2026-10-30, 2400 until doc 199; doc 34), and quiet fire
+audio while lit. Unlike the other wooden
 starter pieces it keeps no wood identity, whichever logs it used (its definition has no
 `material_group`). Repeated ingredients appear as one quantity in the recipe detail. Fuel upkeep remains
 future work (doc 122).
@@ -42,8 +86,8 @@ scaled material bonus, with future copper/gold tuning separate from recipes (doc
   (`CraftMaterials.product_name`).
 - `material_id` is an item property, not a new item key. It survives splitting, storage,
   relocation, equipment, saves, installation and recovery, and different materials never
-  share a stack or a storage slot. A bridge keeps one kit material; a ladder keeps one per
-  built section and gives them back in order. Packed crates keep their neutral art.
+  share a stack or a storage slot. A ladder keeps one material per built section and gives
+  them back in order. Packed crates keep their neutral art.
 - A placement plan's chosen wood (`required_material_id`, saved with the plan) binds its
   claim, storage withdrawal and redirected hauls; Any takes the nearest.
 - Appeal (`design`, `material_factor`) lives only in the furniture definitions
@@ -72,17 +116,13 @@ selection stay in Orders. Recipe costs, reservations and work are unchanged (doc
 The window was rebuilt on 2026-10-24; its current layout is "The crafting window" in
 `23_user_interface.md`.
 
-**Log bridge kits (2026-10-11):** Craft → Rudimentary → Access now offers a kit
-from one selected raw log at a crude workbench (12 seconds). Workers physically
-deliver one kit to whichever landing is nearer to them and install a two-block-wide,
-1–5-block river crossing in 8 seconds. Place → Access validates both landings and previews the
-whole span. Four seconds of safe dismantling returns the kit (doc 113; the
-crossing rules are in doc 32, Entity Obstacles).
+**No bridge kits (2026-10-27):** the Log bridge kit recipe was retired with the log
+bridge; rivers are crossed on logs built from Build (doc 32, "River crossings").
 
 **Carpenter promotion (2026-10-09):** A crafted crude carpentry kit now enables
 promotion after the selected dwarf reserves, collects and equips it. Changing
-profession returns the kit. Specialist Carpenter workshop/recipes remain planned;
-general work remains available. The old profession stays until the kit is picked up;
+profession returns the kit. The Carpenter's own page and bench followed in doc 293
+(Specialist workbenches, below); general work remains available. The old profession stays until the kit is picked up;
 the appointment rules are in `41_dwarf_agents.md`, Agreed equipment progression
 (doc 101).
 
@@ -98,8 +138,8 @@ Each menu shows its own section's orders. Browsing preserves live production;
 previews cannot queue unavailable crafts. Workers can now make a campfire from
 one allowed log plus one Rough Stone (10 seconds), or a log stool from one allowed
 log (8 seconds), at the crude workbench. Both use normal physical crafting and
-placement; installed campfires animate and light, and idle dwarves use stump stools.
-No fuel upkeep or specialist jobs are enabled (doc 100).
+placement; idle dwarves use stump stools. Installed campfires and hearths are lit at
+dusk with a log and burn until dawn (doc 34). No specialist jobs are enabled (doc 100).
 - **Sections** (`sections` in `worker_crafting.json`: name, `planned`, preview and
   requirement text) only present the menu. They never enable a specialist job or change
   who may craft; a recipe without `section` belongs to Rudimentary.
@@ -127,8 +167,9 @@ remain design specifications, not live conversion systems.
   hearth) takes them all from one species: a batch starts only when one allowed
   species can supply all of them. Logs a working order still needs are not
   available to other orders (`CraftingManager.batch_ingredient_keys`). Every log is
-  delivered to the bench before work starts; cancelling or loading keeps staged and
-  carried logs as goods (doc 120).
+  delivered to the bench before work starts. Logs set down there stay with the order
+  through an interruption ("Interruption" below); cancelling the order leaves staged
+  and carried logs as ordinary goods (doc 120).
 - **Changing wood mid-order.** Excluding the species of the log already being
   used returns that log and keeps the order's partial progress.
 - **Maintain orders** refill in full batches, so the last batch may overshoot a
@@ -137,41 +178,80 @@ remain design specifications, not live conversion systems.
   updates the existing order's target and wood list.
 - **One worker per bench.** A worker claims a bench while collecting and
   working; an order never fans out into parallel batches.
+- **The queue.** Orders are made from the top down. An order that could start but finds
+  every bench of its kind claimed keeps its turn: its status says "Next in line", "2nd in
+  line" and so on, and its recipe stays ready to queue. Only a missing bench is a
+  requirement ("Needs a crude workbench"): none installed, or none kept, standing on solid
+  ground and open on a side. The next free bench goes to the top-most order that can start
+  (doc 31, "Craft queue order"). An order that can't start yet (wood, materials, a met
+  stock target, paused) is passed over, so later orders may go ahead of it. An
+  interrupted order with goods beside a bench waits for that bench only.
 - **Fixed ingredients.** `additional_ingredients` lists exact item keys, one unit each
   (Rough Stone for the starter tools, campfire, hearth and board-game table). The worker
   fetches them first, then the logs. Every ingredient but the last is set down beside the
-  bench as an ordinary loose item reserved to that worker, not an abstract credit, and
-  the bench stays claimed between trips. Counts, claims, positions, the wood rule, the
-  work cell and the bench are checked again before work and at the commit; only a
-  finished batch consumes them. Pausing, sleep, lost access or a removed bench release
-  the goods and the bench while the order keeps its progress; cancelling the order
-  releases them too. The item owner saves staged goods, the dwarf its cargo and the
-  order its recipe, wood and progress, so after a load the worker gathers them again;
-  there is no material ledger (doc 97).
-- **Interruption.** Pause, sleep and moving the workbench keep partial work, which
-  belongs to the order; it resumes with its ingredients at an installed bench
-  (doc 132). Cancelling removes the order.
+  bench as an ordinary loose item claimed by the order (`WorkerCraftOrder.claim_owner_id`),
+  not an abstract credit, and the bench stays claimed between trips. Counts, claims,
+  positions, the wood rule, the work cell and the bench are checked again before work and
+  at the commit; only a finished batch consumes them. There is no material ledger
+  (doc 97).
+- **Trips.** A Worker carries as many ingredients a trip as hauling would: the hauling
+  `carry_capacity` by each good's `carry_cost`, so four stones or logs (owner report
+  2026-10-30: Tekak brought a Log bed's logs one at a time).
+  - The first ingredient is chosen, and its routes proven, as before. After each pickup
+    the Worker also takes the next ingredient the batch needs if it lies within the
+    hauling `pouch_bundle_radius` (8 blocks), loose or stored, then sets the whole load
+    down beside the bench together (`WorkerCraftOrder.reserve_trip_extra`).
+  - A load that completes the batch keeps its last log in hand, and work starts.
+  - An extra that is gone or out of reach is left where it lies; the trip goes on to
+    the bench with the rest.
+  - Goods in a loose crate, such as a fisher's catch at the shore, are used where they
+    lie: the crate is reserved whole until pickup, which takes out one unit
+    (`WorkerCraftOrder.take_planting_item`), and the rest stay in it (doc 289).
+  - Units of one kind that travel in crates share one crate's load, as a hauler carries
+    a crate (`WorkerCraftOrder._load_with`), so both fish of a drying batch go in one
+    trip. A log or a stone is one to a crate, so they still go four at a time.
+  - A Log bed takes one trip; a hearth two, four stones and then two logs.
+- **Interruption.** Sleep, a meal, lost access or a broken route stop the Worker, not
+  the order (owner report 2026-10-30: a hauler stored a hearth's stones and logs while
+  the next Worker gathered them all again).
+  - The goods beside the bench stay there, claimed by the order, so no hauler stores
+    them and no other order takes them. So does the stone or log in the Worker's hands
+    if it lands beside the bench, as when they were working or setting it down.
+  - Partial work stays with the order. The bench goes to the next order in turn; the
+    interrupted order waits for that bench, "Next in line" while another order uses it.
+  - When its turn comes, a Worker brings only what is missing, or lifts the last log
+    when everything is there, and finishes the work at that bench.
+  - The goods become ordinary loose goods again, which hauling stores, when the order
+    is paused or cancelled, its bench is removed or flagged for uninstall, its stock
+    target is met, its staged logs' wood is excluded, or a staged good is moved,
+    forbidden or falls. Partial work survives all of these but cancelling, and moving
+    the workbench keeps it too (doc 132).
+  - A save keeps the goods with the order, which records each one's item and cell and
+    the bench; the Worker's ingredient is recorded at their feet, where it lands on
+    load. A load claims them again in order, stopping at the first one no longer there.
 - **Sound.** The craft sound fires when the axe crosses contact, driven by saved
   work progress, so resuming never replays earlier strikes. Clock speed changes
   the cadence, not the pitch.
 
-**Starter tools implemented (2026-10-09):** Workers craft stone hoes, hunting
-spears, crude carpentry kits and stone hammers at the crude workbench. Each uses
-one allowed log and one Rough Stone, collected physically before crafting.
-Tools support normal hauling, storage and saving. The recipe card and profession
-preview show current availability: Carpenter can equip its kit; other careers
-and specialist crafting gameplay remain planned (doc 97). Tools are ordinary goods in
-the Other goods storage category (`stockpile_misc`, with exact-item filters) and
-Inventory's Tools group, never placeable. The hunting spear avoids a cord or leather
-dependency; bows are later equipment.
+**Starter tools implemented (2026-10-09):** Workers craft stone hoes, Ranger's
+kits, crude carpentry kits, crude masonry kits (doc 293) and stone hammers at the crude
+workbench. Each uses one allowed log and one Rough Stone, collected physically before
+crafting. Tools support normal hauling, storage and saving. The recipe card and profession
+preview show current availability: the Carpenter, the Stonemason and the Ranger equip their
+kits; other careers remain planned (doc 97). Tools are
+ordinary goods in the Other goods storage category (`stockpile_misc`, with exact-item
+filters) and Inventory's Tools group, never placeable. The Ranger's kit, a stone-tipped
+spear bound to a peeled fishing rod, replaced the hunting spear on 2026-11-01 (owner,
+doc 292). Its line is drawn, not an ingredient, so it needs no cord or leather; bows
+are later equipment.
 
 **Agreed equipment direction (2026-10-09, planned):** crafted tools will support
 selected profession requirements and later upgrades. Miner keeps its default
 pickaxe and free promotion; the iron pickaxe is the first planned mining-tool upgrade.
 Workers must be able to craft the crude tools needed to establish the first
-specialists without circular recipe dependencies. The four starter recipes above
-are now live; Carpenter kit pickup/equipping followed in milestone 101. Specialist
-workshops and other tool careers remain future work. Equipment ownership and UI:
+specialists without circular recipe dependencies. The starter recipes above
+are live; Carpenter kit pickup/equipping followed in milestone 101, and the Stonemason's
+kit and both careers' own benches in doc 293. Other tool careers remain future work. Equipment ownership and UI:
 [41 — Equipment progression](41_dwarf_agents.md#agreed-equipment-progression--planned-2026-10-09).
 Iron/advanced-metal multi-voxel benefits and limits:
 [43 — Pickaxe upgrades](43_mining_materials.md#pickaxe-upgrades--planned-2026-10-09).
@@ -179,11 +259,11 @@ Durability and repairs are deferred beyond the first equipment version.
 
 ## Overview
 
-The colony's metalworking chain converts raw ore into the tools, weapons, and armour that keep the settlement alive and defended. It operates in two stages: the **Smelter** refines ore into ingots, and the **Forge** turns ingots into finished goods. Both buildings are operated by the **Blacksmith** profession and its two specialisations — **Weaponsmith** and **Armorsmith**.
+The colony's metalworking chain converts raw ore into the tools, weapons, and armour that keep the settlement alive and defended. It operates in two stages: the **Smelter** refines ore into ingots, and the **Forge** turns ingots into finished goods. Both buildings are operated by the **Blacksmith**, the colony's one metalworking profession. There is no Weaponsmith or Armorsmith (owner decision, 2026-10-31): the Blacksmith forges weapons and armour too.
 
 This system closes the two open placeholders in prior design docs:
 
-- `52_combat_military.md` states military gear is acquired through trade *"until a Weaponsmith exists."* The Weaponsmith profession defined here removes that constraint.
+- `52_combat_military.md` acquires military gear through trade until the Forge exists. The Blacksmith's weapon and armour recipes here remove that constraint.
 - `51_visitors.md` lists crafted goods as merchant buy priority 5. Forged items are the first entries in that tier; mined gems are already finished valuables in tier 2.
 
 ---
@@ -198,6 +278,38 @@ Keep the existing oak-stave item definition for this future crafting output.
 Recipe quantities, work times and workshop behavior are not implemented yet.
 This carpentry work is separate from the tree-felling milestone.
 
+### Specialist workbenches (2026-11-01)
+
+From the owner: each specialist crafts its own starting workbench, and better tools later let
+it craft more advanced ones. A career's first workbench is made by that career alone at the
+crude workbench from raw goods, as Rangers make the drying rack. Built for the Carpenter and
+the Stonemason (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md), step 2):
+- **The pages.** Crafters → Carpenter and Crafters → Stonemason are live sections
+  (`worker_crafting.json`), laid out as the Rudimentary page with no `later` box. A recipe's
+  `section` names the career that makes it; with none in the colony its order reads "Needs a
+  Carpenter" or "Needs a Stonemason".
+- **The carpenter's bench:** three matching logs, 16 s, Workshops. A thick slab hewn flat on
+  top on four peeled log legs braced low with log rails, from the owner's picture (peeled,
+  A), 3 × 1 with its work top at 1.125. Its wood recolours it like other log furniture.
+- **The mason's bench:** a log and three Rough Stones, 18 s, Workshops. A split stone slab on
+  two log stumps, 3 × 1 with its work top at 0.9375; the slab keeps the Rough Stone's own
+  greys and the bench takes no wood (no `material_group`).
+- Both install through Place → Workshops. Goods worked on either lie on the slab where it is
+  nearest the worker, `crafting_surface_inset` (0.4375) inside its edges, so even a Rough Stone
+  never overhangs it (`CraftingManager.bench_surface`); the round stump keeps
+  `crafting_surface_radius`.
+- **The stone stool** (step 3): Stonemasons make it at the mason's bench from one Rough Stone
+  (10 s, Dining; the recipe's `ingredient_tag` is `stockpile_stone`, the Rough Stone alone, with
+  stone's `ingredient_words`). Without a mason's bench its order reads "Needs a mason's bench".
+  The Rough Stone itself lies on the slab while the maul knocks it square.
+- **The tool rack** (doc [294](../00_dev_roadmap/294_storage_furniture.md), step 3): the
+  Carpenter's first goods. Carpenters make it at the carpenter's bench from one log (12 s,
+  Storage); without a carpenter's bench its order reads "Needs a carpenter's bench". It keeps
+  three of the colony's tools (doc 31, "Storage priority and storage furniture").
+- The benches' Craft items now open what is made at them: the tool rack at the carpenter's
+  bench, the stone stool at the mason's bench.
+- Planks, dressed stone and the advanced benches wait for iron tools.
+
 ### Carpenter entry tools — dependency review (2026-10-09)
 
 The player flagged that requiring a saw for Carpenter promotion could require
@@ -210,7 +322,7 @@ axe and crude workbench; milestone 97 extends it with the carpentry kit.
 **Starter recipe implemented in milestone 97:** a Worker makes a crude carpentry kit
 at the crude workbench from timber and rough stone, represented by a wooden
 mallet and stone adze. Milestone 101 makes it the Carpenter's collected/equipped
-promotion requirement without metalworking; specialist production remains planned.
+promotion requirement without metalworking; the Carpenter's own bench followed in doc 293.
 A later Blacksmith-made iron saw will upgrade the Carpenter's equipment,
 with faster work and/or finer recipes to be balanced with the profession.
 Do not invent a wooden saw to satisfy the entry requirement.
@@ -222,71 +334,10 @@ promotion gates and upgrade benefits remain to be implemented.
 
 ### Blacksmith — `base:profession:blacksmith`
 
-The Blacksmith is a permanent, long-term colony role — not a stepping stone. They are the only profession that operates the Smelter, and they produce the basic metal goods the colony consumes continuously: pickaxe heads, torch brackets, door hardware, and nails. Every colony that wants to expand militarily needs at least one Blacksmith keeping the Smelter running even after specialists take over the Forge.
+The Blacksmith is a permanent, long-term colony role. They are the only profession that operates the Smelter and the Forge: they make the basic metal goods the colony consumes continuously (pickaxe heads, torch brackets, door hardware and nails) and every weapon, piece of armour and shield its military uses. A colony that arms itself needs enough Blacksmiths to keep both buildings busy.
 
 **Primary task types:** `SMELT`, `FORGE`
 **Work speed bonus per level:** `0.05` (matches Brewer — 5% per level, 25% total at level 5)
-
-### Weaponsmith — `base:profession:weaponsmith`
-
-A Blacksmith who has been promoted by the player into dedicated weapons production. Weaponsmiths do not operate the Smelter — they work exclusively at the Forge, crafting the weapons and crossbows used by the colony's military. They accept `FORGE` tasks for weapon recipes only; `SMELT` tasks are ignored.
-
-**Primary task types:** `FORGE` (weapon recipes only)
-**Work speed bonus per level:** `0.05`
-
-### Armorsmith — `base:profession:armorsmith`
-
-A Blacksmith promoted into armour and shield production. Like the Weaponsmith, the Armorsmith works at the Forge only and ignores `SMELT` tasks. They produce every piece of armour and every shield used by enlisted dwarves.
-
-**Primary task types:** `FORGE` (armour and shield recipes only)
-**Work speed bonus per level:** `0.05`
-
----
-
-## Specialisation
-
-### Requirements
-
-A dwarf can be promoted to Weaponsmith or Armorsmith only if **all three conditions** are met:
-
-1. Their current profession is `base:profession:blacksmith`.
-2. Their Blacksmith experience level is **≥ 3** (100 cumulative tasks — see `41_dwarf_agents.md`).
-3. An operational Forge exists in the colony (reachable by the dwarf).
-
-### How to Promote
-
-In the **Labour Assignment Window**, a Blacksmith's profession dropdown gains two additional entries once the above conditions are met:
-
-```
-— Blacksmith —      ← current
-  Weaponsmith       ← unlocked at level 3
-  Armorsmith        ← unlocked at level 3
-```
-
-If the level requirement is not yet met, both entries appear **greyed out** with the tooltip: *"Requires Blacksmith Level 3 (100 tasks)."*
-
-### Experience Carry-Over
-
-Specialisation shares the Blacksmith's accumulated task count. On promotion, the target profession's experience entry is set to equal the current Blacksmith count:
-
-```gdscript
-# On promotion — called by the Labour window when player selects a specialisation
-func _promote_blacksmith(dwarf: DwarfAgent, target: String) -> void:
-    # target is "base:profession:weaponsmith" or "base:profession:armorsmith"
-    var bs_xp := dwarf.profession_experience.get("base:profession:blacksmith", 0)
-    dwarf.profession_experience[target] = bs_xp
-    dwarf.profession = target
-    # Cancel any active SMELT or FORGE task — dwarf re-queues from the new role
-    TaskManager.cancel_active_task(dwarf.id)
-```
-
-A level 4 Blacksmith promoted to Weaponsmith begins as a level 4 Weaponsmith immediately. The Blacksmith entry in `profession_experience` is retained unchanged — if the dwarf is ever reassigned back to Blacksmith, their original count is intact.
-
-### De-specialisation
-
-The player can reassign a Weaponsmith or Armorsmith back to `base:profession:blacksmith` at any time via the Labour window. No experience is lost from any entry. The dwarf re-enters the full Blacksmith task pool (`SMELT` + `FORGE` general recipes).
-
-> **Agent note:** De-specialisation to Weaponsmith/Armorsmith from Civilian (skipping Blacksmith) is not permitted. The UI must enforce `base:profession:blacksmith` as the required intermediate step — it is not possible to jump directly from `base:profession:worker` to `base:profession:weaponsmith`.
 
 ---
 
@@ -294,7 +345,7 @@ The player can reassign a Weaponsmith or Armorsmith back to `base:profession:bla
 
 `base:workshop:smelter`
 
-The Smelter converts raw ore into metal ingots. It is a standalone workshop block — no sealed room required. Place it underground or on the surface; it functions identically in both locations. Only **Blacksmiths** operate the Smelter. Weaponsmiths and Armorsmiths ignore `SMELT` tasks entirely.
+The Smelter converts raw ore into metal ingots. It is a standalone workshop block — no sealed room required. Place it underground or on the surface; it functions identically in both locations. Only **Blacksmiths** operate the Smelter.
 
 Full schema: `data/workshops/smelter.json` *(to be created)*.
 
@@ -330,7 +381,7 @@ Silver and gold ingots need base trade values (see the planned price table in `5
 
 `base:workshop:forge`
 
-The Forge turns ingots and other materials into finished goods. All three metalworking professions work at the Forge, but each accepts only the recipes appropriate to their role. A single Forge serves the whole colony — build additional Forges only when throughput is a bottleneck.
+The Forge turns ingots and other materials into finished goods. Blacksmiths work every Forge recipe: general goods, weapons and armour. A single Forge serves the whole colony — build additional Forges only when throughput is a bottleneck.
 
 Full schema: `data/workshops/forge.json` *(to be created)*.
 
@@ -342,9 +393,9 @@ Full schema: `data/workshops/forge.json` *(to be created)*.
 
 ---
 
-## Forge Recipes — Blacksmith
+## Forge Recipes — General Goods
 
-General metal goods. Any Blacksmith accepts these tasks. Weaponsmiths and Armorsmiths do **not** take general Blacksmith recipes — they are specialists.
+General metal goods. Any Blacksmith accepts these tasks.
 
 | Recipe ID | Inputs | Output | Work Time | Min Skill | Notes |
 |---|---|---|---|---|---|
@@ -356,9 +407,9 @@ General metal goods. Any Blacksmith accepts these tasks. Weaponsmiths and Armors
 
 ---
 
-## Forge Recipes — Weaponsmith
+## Forge Recipes — Weapons
 
-Only Weaponsmiths accept `FORGE` tasks for these recipes. If no Weaponsmith exists, these recipes are never queued.
+Only Blacksmiths accept `FORGE` tasks for these recipes. If no Blacksmith exists, these recipes are never queued.
 
 ### Melee Weapons
 
@@ -379,9 +430,9 @@ Only Weaponsmiths accept `FORGE` tasks for these recipes. If no Weaponsmith exis
 
 ---
 
-## Forge Recipes — Armorsmith
+## Forge Recipes — Armour
 
-Only Armorsmiths accept `FORGE` tasks for these recipes.
+As with weapons, only Blacksmiths accept `FORGE` tasks for these recipes.
 
 ### Leather Armour
 
@@ -441,9 +492,9 @@ Priority bonuses:
 | Task Type | Preferred Skill |
 |---|---|
 | `SMELT` | `base:profession:blacksmith` |
-| `FORGE` | `base:profession:blacksmith` / `weaponsmith` / `armorsmith` (matched by recipe type) |
+| `FORGE` | `base:profession:blacksmith` |
 
-A dwarf without the preferred profession can attempt a `SMELT` or `FORGE` task at ×0.7 speed — but only plain Blacksmith recipes. Weapon and armour recipes are hard-gated by profession: a Farmer cannot forge a sword regardless of speed penalty.
+A dwarf without the preferred profession can attempt a `SMELT` or `FORGE` task at ×0.7 speed — but only general-goods recipes. Weapon and armour recipes need a Blacksmith: a Farmer cannot forge a sword regardless of speed penalty.
 
 ---
 
@@ -467,7 +518,7 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 | System | Integration Point |
 |---|---|
 | `TaskManager` | `SMELT` and `FORGE` added to `Task.Type`. Priority table in `31_task_system.md` updated. |
-| `DwarfAgent` | Three new profession keys added to `profession_experience` dict (see `41_dwarf_agents.md`). Specialisation logic runs in the Labour window on player action. |
+| `DwarfAgent` | Blacksmith experience counts in `profession_experience` like every profession's (see `41_dwarf_agents.md`). |
 | `StockpileManager` | New filter tags `stockpile_ingots` and `stockpile_metalwork`. Bolt stockpile tag `stockpile_ammo` already scaffolded in `52_combat_military.md`. |
 | `RoomData` / temperature | Smelter emits 800 heat units into its enclosing sealed room while active. Handled the same way as torches — see `34_temperature.md`. |
 | `VisitorManager` / trade | Gold and silver ingots, forged weapons (if surplus), and armour pieces get base trade values (`51_visitors.md` § Pricing) and appear in the merchant buy priority 5 tier. |
@@ -477,12 +528,11 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 
 ## Hard Rules
 
-1. **Only Blacksmiths operate the Smelter.** Weaponsmiths and Armorsmiths never receive `SMELT` tasks. If no Blacksmith exists, the Smelter idles regardless of ore supply.
-2. **Weapon and armour recipes are profession-gated.** The Task System must check the assigned dwarf's profession before issuing a `FORGE` task. A plain Blacksmith cannot forge a plate chest; an Armorsmith cannot forge a sword.
-3. **Specialisation requires Blacksmith Level 3.** The Labour window must enforce this. Do not expose the specialisation options until the threshold is reached.
+1. **Only Blacksmiths operate the Smelter.** If no Blacksmith exists, the Smelter idles regardless of ore supply.
+2. **Weapon and armour recipes need a Blacksmith.** The Task System must check the assigned dwarf's profession before issuing a weapon or armour `FORGE` task.
+3. **One metalworking profession.** There is no Weaponsmith or Armorsmith, and no specialisation beyond Blacksmith: the same Blacksmith forges nails, swords and plate (owner decision, 2026-10-31).
 4. **The Smelter heat output applies at all times while a batch is in progress.** It does not matter whether a dwarf is currently standing at the Smelter — a running batch heats the room.
 5. **Leather strips are never produced in the colony.** They are a trade-only input. Do not add a tanning or hide-processing recipe without a new design doc covering that system.
-6. **Experience carry-over is one-way at promotion.** The Weaponsmith or Armorsmith counter is set to the Blacksmith count at the moment of promotion. Subsequent Weaponsmith task counts do not flow back to the Blacksmith entry.
 
 ---
 
@@ -490,7 +540,7 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 
 - **Gems are finished drops (user decision, 2026-10-10)** — Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond are beautiful and trade-ready immediately after mining. No Jeweller profession, workshop, cutting or polishing stage is planned. This replaces the earlier deferred Jeweller proposal. Their stable `_raw` identifiers do not imply unfinished goods.
 - **Steel tier** — `52_combat_military.md` notes steel as a future equipment quality tier above iron. When steel ore or a steel-making recipe is added, it slots into the existing smelting/forging pipeline with higher `min_skill` requirements and better damage/reduction values. No structural changes to this system are needed.
-- **Weaponsmith crafting for champions** — the champion invader AI (`52_combat_military.md` Forward Compatibility) may loot forged weapons on colony breach. The item drop pipeline already handles this; no new code needed.
+- **Forged weapons and champions** — the champion invader AI (`52_combat_military.md` Forward Compatibility) may loot forged weapons on colony breach. The item drop pipeline already handles this; no new code needed.
 - **Copper and tin uses** — copper and tin ingots have no forge recipes yet. They are placeholder outputs for future systems: copper fittings for water/brewing infrastructure upgrades, tin for food preservation vessels. Do not delete them from the smelting table.
 - **Support pillars** — `43_mining_materials.md` notes a future support pillar mechanic. Iron or copper ingots are the likely material input when that system is designed.
 

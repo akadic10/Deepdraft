@@ -1,0 +1,90 @@
+{
+  "sources": [
+    {
+      "kind": "nibbles",
+      "title": "A rabbit is eating a cucumber",
+      "author": "davi-sh",
+      "id": "482732",
+      "description": "European rabbit eating cucumber, recorded with a Zoom H5; short excerpts provide selection and grazing foley.",
+      "page": "https://freesound.org/people/davi-sh/sounds/482732/",
+      "download": "https://cdn.freesound.org/previews/482/482732_1324102-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "c889fa6918e991b3461d1d7953b8d8e787e6e344e1fc511215044c4efba06401",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 38.17466666666667,
+      "preview": "Public HQ MP3 preview, not the original uploaded WAV.",
+      "master": "rabbit_nibbles.wav",
+      "master_sha256": "1054f33916820d4d5755f0377760b61a0d5401c15a0165e4e3a0ef4d9aca45c8",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.4818204862555566,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels averaged to mono",
+        "48 kHz preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "select": {
+      "master": "rabbit_nibbles.wav",
+      "rate": 48000,
+      "regions_seconds": [
+        [
+          0.99,
+          1.44
+        ],
+        [
+          2.1,
+          2.55
+        ],
+        [
+          25.28,
+          25.88
+        ]
+      ],
+      "high_pass_hz": 170,
+      "low_pass_hz": 9500,
+      "fades_seconds": [
+        0.012,
+        0.035
+      ],
+      "target_rms": 0.047,
+      "peak_ceiling": 0.6
+    },
+    "graze": {
+      "master": "rabbit_nibbles.wav",
+      "rate": 48000,
+      "regions_seconds": [
+        [
+          7.04,
+          7.85
+        ],
+        [
+          4.5,
+          5.35
+        ],
+        [
+          31.42,
+          32.32
+        ]
+      ],
+      "high_pass_hz": 170,
+      "low_pass_hz": 9500,
+      "fades_seconds": [
+        0.015,
+        0.045
+      ],
+      "target_rms": 0.034,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_rabbit_audio.py",
+  "use": "Real rabbit cucumber-eating recording: short nibble fragments for selection; longer chewing phrases for grazing. Six different, non-overlapping regions.",
+  "processing": "Separate real excerpts, zero-phase light band limiting, edge fades, per-bank RMS target with peak cap. No pitch shifting, time stretching, voice synthesis or added reverb."
+}

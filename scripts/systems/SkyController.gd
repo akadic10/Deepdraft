@@ -60,9 +60,18 @@ var _darken: float = 1.0
 var _c_stars: Array = []
 var _atmosphere: Dictionary = {}
 
+# Lightning (doc 24, "Lightning"): one strike's flickers as Vector2(start, peak).
+var _lightning: DirectionalLight3D = null
+var _flickers: Array[Vector2] = []
+var _flash_time := -1.0
+var _flash_end := 0.0
+var _flash_yaw := 0.0
+var _flash_rng := RandomNumberGenerator.new()
+
 
 func _ready() -> void:
 	_settings = _load_settings()
+	_flash_rng.randomize()
 	_clock = get_node_or_null("/root/WorldClock")
 	# Autoloads run _ready BEFORE the main scene exists; wait one frame, then bind + start driving.
 	await get_tree().process_frame
@@ -79,11 +88,43 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not _ready_ok:
 		return
+	# A flash flickers faster than the sky's 20 Hz: update every frame while it lasts.
+	var flashing := _flash_time >= 0.0
+	if flashing:
+		_flash_time += delta
+		if _flash_time > _flash_end: _flash_time = -1.0
 	_accum += delta
-	if _accum < UPDATE_INTERVAL:
+	if _accum < UPDATE_INTERVAL and not flashing:
 		return
 	_accum = 0.0
 	_update(_current_hour())
+
+
+## A lightning strike: the sky, clouds, fog and open ground flash in one to a few
+## flickers. AmbientAudio calls this before each storm thunder. Cosmetic only.
+func flash_lightning(strength: float = 1.0) -> void:
+	var look: Dictionary = _settings.get("lightning", {})
+	if look.is_empty(): return
+	var count := _flash_rng.randi_range(int(look.flickers[0]), int(look.flickers[1]))
+	var gap: Array = look.flicker_gap
+	_flickers.clear()
+	var start := 0.0
+	for i in count:
+		_flickers.append(Vector2(start, strength * (1.0 if i == 0 else _flash_rng.randf_range(.45, .9))))
+		start += _flash_rng.randf_range(float(gap[0]), float(gap[1]))
+	_flash_end = _flickers.back().x + 6.0 * float(look.fade_seconds)
+	_flash_yaw = _flash_rng.randf_range(0.0, 360.0)
+	_flash_time = 0.0
+
+
+## How bright the current flash is, 0 when there is none.
+func lightning_level() -> float:
+	if _flash_time < 0.0: return 0.0
+	var fade := float(_settings.get("lightning", {}).get("fade_seconds", 0.12))
+	var level := 0.0
+	for flicker: Vector2 in _flickers:
+		if _flash_time >= flicker.x: level = maxf(level, flicker.y * exp(-(_flash_time - flicker.x) / fade))
+	return level
 
 
 func underground_settings() -> Dictionary:
@@ -111,6 +152,7 @@ func _clear_scene_binding() -> void:
 	_sky_mat = null
 	_sun = null
 	_moon = null
+	_lightning = null
 
 
 func _bind_to_scene() -> void:
@@ -154,6 +196,8 @@ func _bind_to_scene() -> void:
 		_moon.light_energy = 0.0
 		_moon.visible = false
 		scene.add_child(_moon)
+	# The first flash adds the Lightning light; a rebind reuses it.
+	_lightning = scene.get_node_or_null("Lightning") as DirectionalLight3D
 
 	_ready_ok = _env != null
 	if _env == null:
@@ -354,9 +398,15 @@ func _update(h: float) -> void:
 	for key: String in targets:
 		_atmosphere[key] = lerpf(float(_atmosphere.get(key, targets[key])), float(targets[key]), WEATHER_BLEND)
 	var cover: float = _atmosphere.get("cloud_cover", 0.0)
-	var top := _weather_color(_eval_color(_c_sky_top, h), cover)
-	var horizon := _weather_color(_eval_color(_c_sky_horizon, h), cover)
-	var bottom := _weather_color(_eval_color(_c_sky_ground, h), cover)
+	# Lightning adds its light on top of the weather's sky; the horizon colour is
+	# also the fog's, so the distant land flashes too.
+	var bolt: Dictionary = _settings.get("lightning", {})
+	var flash := lightning_level()
+	var tint := _to_color(bolt.get("color", [1, 1, 1]))
+	var glow := Color(tint.r * flash, tint.g * flash, tint.b * flash, 0.0)
+	var top := _weather_color(_eval_color(_c_sky_top, h), cover) + glow * float(bolt.get("sky_boost", 0.0))
+	var horizon := _weather_color(_eval_color(_c_sky_horizon, h), cover) + glow * float(bolt.get("sky_boost", 0.0))
+	var bottom := _weather_color(_eval_color(_c_sky_ground, h), cover) + glow * float(bolt.get("sky_boost", 0.0)) * 0.5
 	var night := _eval_scalar(_c_stars, h)
 	var sun_live := is_instance_valid(_sun) and _sun.is_inside_tree()
 	var moon_live := is_instance_valid(_moon) and _moon.is_inside_tree()
@@ -374,7 +424,7 @@ func _update(h: float) -> void:
 		_sky_mat.set_shader_parameter("cloud_rotation", h * TAU / _day_hours())
 		var cloud_day := _to_color(look.get("cloud_day", [.82, .86, .91]))
 		var cloud_night := _to_color(look.get("cloud_night", [.13, .18, .28]))
-		_sky_mat.set_shader_parameter("cloud_color", _scale_color(cloud_day.lerp(cloud_night, night), _darken))
+		_sky_mat.set_shader_parameter("cloud_color", _scale_color(cloud_day.lerp(cloud_night, night), _darken) + glow * float(bolt.get("cloud_boost", 0.0)))
 		if sun_live:
 			_sky_mat.set_shader_parameter("sun_direction", _sun.global_basis.z.normalized())
 			_sky_mat.set_shader_parameter("sun_visibility", (1.0 - night) * (1.0 - cover * .8) if _sun.visible else 0.0)
@@ -394,6 +444,27 @@ func _update(h: float) -> void:
 		_env.fog_density = float(_atmosphere.get("fog_density", .2))
 		_env.fog_depth_begin = float(_atmosphere.get("fog_begin", 90.0))
 		_env.fog_depth_end = float(_atmosphere.get("fog_end", 450.0))
+	_apply_lightning_light(flash, bolt)
+
+
+## A shadowless light from high above, only while a flash lasts. Terrain and actor
+## shaders gate directional light by sky access, so sealed rooms and caves stay dark.
+func _apply_lightning_light(flash: float, bolt: Dictionary) -> void:
+	if flash <= 0.0:
+		if is_instance_valid(_lightning): _lightning.visible = false
+		return
+	if not is_instance_valid(_lightning):
+		var scene := _world_env.get_parent()
+		_lightning = scene.get_node_or_null("Lightning") as DirectionalLight3D
+		if _lightning == null:
+			_lightning = DirectionalLight3D.new()
+			_lightning.name = "Lightning"
+			_lightning.shadow_enabled = false
+			scene.add_child(_lightning)
+	_lightning.visible = true
+	_lightning.light_color = _to_color(bolt.get("color", [1, 1, 1]))
+	_lightning.light_energy = flash * float(bolt.get("light_energy", 0.0))
+	_lightning.rotation_degrees = Vector3(float(bolt.get("pitch", -70.0)), _flash_yaw, 0.0)
 
 
 func _weather_color(color: Color, cover: float) -> Color:

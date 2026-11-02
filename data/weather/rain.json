@@ -1,8 +1,14 @@
 {
-  "__comment": "Presentation weather: visible precipitation and contextual sound; does not create simulated flood water. Scheduled and saved by WeatherManager.",
+  "__comment": [
+    "Presentation weather: visible precipitation and contextual sound; does not create simulated flood water. Scheduled and saved by WeatherManager.",
+    "precipitation is drawn by WeatherPrecipitation (doc 24, 'Rain and snow'). intensity is the share of the drop budget shown;",
+    "height and speed are the fall column (blocks) and fall speed (blocks/s); slant is sideways blocks per block of fall;",
+    "width_px and length_px are streak sizes in pixels of a 1080-line screen; splash/ripple seconds are the rings on ground and water."
+  ],
   "id": "base:weather:rain",
   "display_name": "Rain",
   "is_dark_during_daytime": true,
+  "temperature": {"offset_c": -1.0, "daily_swing_scale": 0.4, "wet": true},
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 0.93,
@@ -12,14 +18,16 @@
     }
   },
   "precipitation": {
-    "intensity": 0.65,
-    "radius": 24.0,
+    "style": "rain",
+    "intensity": 0.6,
     "height": 14.0,
-    "streaks": 180,
     "speed": 17.0,
-    "slant": 0.8,
-    "width": 0.023,
-    "length": 0.65,
+    "slant": 0.15,
+    "width_px": 1.8,
+    "length_px": 30.0,
+    "splash_seconds": 0.15,
+    "ripple_seconds": 0.4,
+    "opacity": 0.5,
     "color": "#9fb6c6"
   }
 }

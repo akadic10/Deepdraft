@@ -1,0 +1,341 @@
+{
+  "sources": [
+    {
+      "kind": "axe",
+      "author": "xkeril",
+      "id": "753925",
+      "title": "Axe chopping wood",
+      "description": "A small axe striking a large dry branch outdoors, recorded in mono with an SGH-6. The uploader applied cleaning and EQ.",
+      "page": "https://freesound.org/people/xkeril/sounds/753925/",
+      "download": "https://cdn.freesound.org/previews/753/753925_13504080-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "1aa502981c70e32ce1d7853f1148938ebd6fa0a70b2232e8a86f4988cd0c6111",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 12.922625,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "axe.wav",
+      "master_sha256": "0a1e8044137169d24cc001aa9ebb27a50c48494c6ddca635cfcac94867d7032c",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.8214124592178519,
+      "source_channel_correlation": null,
+      "selected_channel": "original mono",
+      "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel selection: original mono. Original 48000 Hz rate retained. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "pickaxe",
+      "author": "Sadiquecat",
+      "id": "855629",
+      "title": "Garden pickaxe hitting rock",
+      "description": "A two-headed garden pickaxe hitting rock at night. The left microphone captures body resonance from a cardboard box; the right microphone on the floor captures the impact. Trimmed and normalized by the uploader.",
+      "page": "https://freesound.org/people/Sadiquecat/sounds/855629/",
+      "download": "https://cdn.freesound.org/previews/855/855629_5287430-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "e0bc14bd06a82b0b1c509108ce05aa9dd49a5904f96cd0232fe6649ab8be649a",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 93.828375,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "pickaxe.wav",
+      "master_sha256": "7c3291d1347392964ccd86041655820020f8201c6a2b5fe2c490244a7060a7fb",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.8379407410663092,
+      "source_channel_correlation": 0.2888765002592396,
+      "selected_channel": "right microphone (impact)",
+      "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel selection: right microphone (impact). Original 48000 Hz rate retained. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "soil_bucket",
+      "author": "RavenWolfProds",
+      "id": "503672",
+      "title": "Shovel in dirt",
+      "description": "A shovel stabbed into and withdrawn from a bucket of dirt, recorded with a Zoom H6.",
+      "page": "https://freesound.org/people/RavenWolfProds/sounds/503672/",
+      "download": "https://cdn.freesound.org/previews/503/503672_9619518-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "55627f1a0cad07e539666a3e27e12658661bafcfc65911f30f41cccd7ebe1552",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 10.784920634920635,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "soil_bucket.wav",
+      "master_sha256": "fca95c606dbe90997344b895a9ffed70116d1eed5c0993d544fb9ff38a55b6e5",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.4223448304170474,
+      "source_channel_correlation": 0.4984349171634134,
+      "selected_channel": "stereo average",
+      "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel selection: stereo average. Resampled to 48000 Hz with normalized 256-tap rational-phase Kaiser sinc (radius 128, beta 8.6, 19800 Hz cutoff, reflect padding). Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "clips": {
+    "axe_chop_01": {
+      "master": "axe.wav",
+      "high_pass_hz": 60,
+      "low_pass_hz": 10000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "region_seconds": [
+        0.268,
+        0.538
+      ],
+      "output": "assets/audio/work/axe_chop_01.wav",
+      "target_rms": 0.06488606935305583,
+      "peak_ceiling": 0.699981689453125
+    },
+    "axe_chop_02": {
+      "master": "axe.wav",
+      "high_pass_hz": 60,
+      "low_pass_hz": 10000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "region_seconds": [
+        1.834,
+        2.114
+      ],
+      "output": "assets/audio/work/axe_chop_02.wav",
+      "target_rms": 0.06624269799495172,
+      "peak_ceiling": 0.699981689453125
+    },
+    "axe_chop_03": {
+      "master": "axe.wav",
+      "high_pass_hz": 60,
+      "low_pass_hz": 10000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "region_seconds": [
+        3.422,
+        3.722
+      ],
+      "output": "assets/audio/work/axe_chop_03.wav",
+      "target_rms": 0.06483772143818131,
+      "peak_ceiling": 0.699981689453125
+    },
+    "axe_chop_04": {
+      "master": "axe.wav",
+      "high_pass_hz": 60,
+      "low_pass_hz": 10000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "region_seconds": [
+        4.438,
+        4.748
+      ],
+      "output": "assets/audio/work/axe_chop_04.wav",
+      "target_rms": 0.06676910776995974,
+      "peak_ceiling": 0.699981689453125
+    },
+    "axe_chop_05": {
+      "master": "axe.wav",
+      "high_pass_hz": 60,
+      "low_pass_hz": 10000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "region_seconds": [
+        5.864,
+        6.144
+      ],
+      "output": "assets/audio/work/axe_chop_05.wav",
+      "target_rms": 0.0697603342396963,
+      "peak_ceiling": 0.699981689453125
+    },
+    "axe_chop_06": {
+      "master": "axe.wav",
+      "high_pass_hz": 60,
+      "low_pass_hz": 10000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.035,
+      "region_seconds": [
+        7.016,
+        7.326
+      ],
+      "output": "assets/audio/work/axe_chop_06.wav",
+      "target_rms": 0.07111738788942179,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_stone_01": {
+      "master": "pickaxe.wav",
+      "high_pass_hz": 80,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.045,
+      "region_seconds": [
+        0.432,
+        0.772
+      ],
+      "output": "assets/audio/work/pick_stone_01.wav",
+      "target_rms": 0.041826777117724104,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_stone_02": {
+      "master": "pickaxe.wav",
+      "high_pass_hz": 80,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.045,
+      "region_seconds": [
+        2.306,
+        2.666
+      ],
+      "output": "assets/audio/work/pick_stone_02.wav",
+      "target_rms": 0.029939860880237514,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_stone_03": {
+      "master": "pickaxe.wav",
+      "high_pass_hz": 80,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.045,
+      "region_seconds": [
+        4.26,
+        4.62
+      ],
+      "output": "assets/audio/work/pick_stone_03.wav",
+      "target_rms": 0.046925387578711425,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_stone_04": {
+      "master": "pickaxe.wav",
+      "high_pass_hz": 80,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.045,
+      "region_seconds": [
+        6.152,
+        6.472
+      ],
+      "output": "assets/audio/work/pick_stone_04.wav",
+      "target_rms": 0.03860228384674882,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_stone_05": {
+      "master": "pickaxe.wav",
+      "high_pass_hz": 80,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.045,
+      "region_seconds": [
+        8.3,
+        8.66
+      ],
+      "output": "assets/audio/work/pick_stone_05.wav",
+      "target_rms": 0.04231989205272651,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_stone_06": {
+      "master": "pickaxe.wav",
+      "high_pass_hz": 80,
+      "low_pass_hz": 12000,
+      "fade_in_seconds": 0.001,
+      "fade_out_seconds": 0.045,
+      "region_seconds": [
+        10.31,
+        10.67
+      ],
+      "output": "assets/audio/work/pick_stone_06.wav",
+      "target_rms": 0.04232736418994506,
+      "peak_ceiling": 0.699981689453125
+    },
+    "pick_soil_01": {
+      "master": "soil_bucket.wav",
+      "high_pass_hz": 65,
+      "low_pass_hz": 5000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.06,
+      "region_seconds": [
+        1.486,
+        1.826
+      ],
+      "output": "assets/audio/work/pick_soil_01.wav",
+      "target_rms": 0.04788885653727614,
+      "peak_ceiling": 0.41998291015625
+    },
+    "pick_soil_02": {
+      "master": "soil_bucket.wav",
+      "high_pass_hz": 65,
+      "low_pass_hz": 5000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.06,
+      "region_seconds": [
+        2.856,
+        3.196
+      ],
+      "output": "assets/audio/work/pick_soil_02.wav",
+      "target_rms": 0.0488307547322355,
+      "peak_ceiling": 0.41998291015625
+    },
+    "pick_soil_03": {
+      "master": "soil_bucket.wav",
+      "high_pass_hz": 65,
+      "low_pass_hz": 5000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.06,
+      "region_seconds": [
+        4.03,
+        4.37
+      ],
+      "output": "assets/audio/work/pick_soil_03.wav",
+      "target_rms": 0.043440870936091266,
+      "peak_ceiling": 0.41998291015625
+    },
+    "pick_soil_04": {
+      "master": "soil_bucket.wav",
+      "high_pass_hz": 65,
+      "low_pass_hz": 5000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.06,
+      "region_seconds": [
+        5.225,
+        5.565
+      ],
+      "output": "assets/audio/work/pick_soil_04.wav",
+      "target_rms": 0.04021503057448648,
+      "peak_ceiling": 0.41998291015625
+    },
+    "pick_soil_05": {
+      "master": "soil_bucket.wav",
+      "high_pass_hz": 65,
+      "low_pass_hz": 5000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.06,
+      "region_seconds": [
+        6.31,
+        6.67
+      ],
+      "output": "assets/audio/work/pick_soil_05.wav",
+      "target_rms": 0.04602706665370387,
+      "peak_ceiling": 0.41998291015625
+    },
+    "pick_soil_06": {
+      "master": "soil_bucket.wav",
+      "high_pass_hz": 65,
+      "low_pass_hz": 5000,
+      "fade_in_seconds": 0.003,
+      "fade_out_seconds": 0.06,
+      "region_seconds": [
+        7.418,
+        7.758
+      ],
+      "output": "assets/audio/work/pick_soil_06.wav",
+      "target_rms": 0.04567838816046798,
+      "peak_ceiling": 0.41998291015625
+    }
+  },
+  "production_script": "tools/generate_chopping_mining_audio.py",
+  "processing": "Six different axe-to-wood contacts, six different pickaxe-to-rock contacts and six separate shovel-to-dirt entries used as soil-mining foley. Cropped to align with animation contact, gently filtered, edge-faded and adjusted toward previous RMS subject to previous peak ceilings. No synthesis, pitch shifting, time stretching, added reverberation or denoising. Runtime cosmetic pitch variation remains unchanged."
+}

@@ -48,11 +48,29 @@
         "ancient": 0.3
       }
     },
+    "__planting_comment": "Player planting (doc 284): Place → Plants turns one seed into a sapling that grows to mature and ancient by stages.*.growth_duration_days, weighted by seasonal_growth (winter pauses). area = the square centred on the seed that no other tree may stand in: the mature crown (owner's pick, 2026-10-29), so grown ancients may overlap a few blocks. The ancient trunk footprint must be level open-sky ground with no other plants. Read by ContentRegistry and SurfaceFloraSpawner.",
+    "planting": {
+      "catalog_key": "base:flora:oak_acorn",
+      "item": "base:resources:seed:oak_acorn",
+      "work_seconds": 3.0,
+      "area": 13,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "seasonal_growth": {
+        "spring": 1.2,
+        "summer": 1.0,
+        "autumn": 0.8,
+        "winter": 0.0
+      }
+    },
     "stages": {
       "sapling": {
         "felling": { "work_seconds": 2.0 },
         "clearance_height": 2,
-        "growth_duration_days": 8,
+        "growth_duration_days": 6,
         "models": {
           "spring": "res://assets/models/flora/trees/oak/oak_sapling_spring.glb",
           "summer": "res://assets/models/flora/trees/oak/oak_sapling.glb",
@@ -66,7 +84,7 @@
       "mature": {
         "felling": { "work_seconds": 10.0 },
         "clearance_height": 7,
-        "growth_duration_days": 16,
+        "growth_duration_days": 12,
         "models": {
           "spring": [
             "res://assets/models/flora/trees/oak/oak_mature_spring.glb",
@@ -93,7 +111,7 @@
           "yields": [
             {
               "item": "base:resources:wood:oak_log",
-              "count": 4,
+              "count": 6,
               "chance": 1.0
             },
             {
@@ -134,7 +152,7 @@
           "yields": [
             {
               "item": "base:resources:wood:oak_log",
-              "count": 8,
+              "count": 16,
               "chance": 1.0
             },
             {

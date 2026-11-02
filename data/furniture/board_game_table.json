@@ -2,7 +2,7 @@
   "furniture_key": "base:furniture:board_game_table",
   "furniture_category": "recreation",
   "display_name": "Board-game Table",
-  "description": "A rough log table with a scratched board and loose stone counters. Add a log stool to play alone, or two opposite stools to play together for more happiness.",
+  "description": "A rough log table with a scratched board and loose stone counters. Add a stool to play alone, or two opposite stools to play together for more happiness.",
   "model": "res://assets/models/furniture/board_game_table.glb",
   "item_key": "base:resources:furniture:board_game_table",
   "placement": "floor",
@@ -12,7 +12,7 @@
     "depth": 3
   },
   "placement_label": "3 × 3 log game area",
-  "placement_note": "Place log stools on the opposite guides outside the game area. Solo play restores some happiness; playing together restores more.",
+  "placement_note": "Place stools, log or stone, on the opposite guides outside the game area. Solo play restores some happiness; playing together restores more.",
   "show_placement_area": true,
   "collision_regions": [
     {
@@ -87,7 +87,10 @@
     }
   ],
   "seating": {
-    "chair_key": "base:furniture:log_chair",
+    "chair_keys": [
+      "base:furniture:log_chair",
+      "base:furniture:stone_stool"
+    ],
     "snap_radius": 1.5,
     "slots": [
       {

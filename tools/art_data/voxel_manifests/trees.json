@@ -2931,12 +2931,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1267316,
-          "visual_triangles": 1984,
+          "cells": 1268596,
+          "visual_triangles": 2356,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9991509615597057,
-            "triangles": 962
+            "retained_volume": 0.9991518182305478,
+            "triangles": 1048
           },
           "min": [
             -4.0,
@@ -2950,8 +2950,8 @@
           ]
         }
       ],
-      "bytes": 273008,
-      "sha256": "fa26d159294da6ed436ba84f295fec5b8b24020af29870a994cc96e0e5278644",
+      "bytes": 315148,
+      "sha256": "6cabc84a5aae24a6919003fff4205fb2ed141827fc2285f628c155baea1ae6f0",
       "path": "assets/models/flora/trees/juniper/juniper_ancient.glb",
       "authoring": {
         "species": "juniper",
@@ -2965,12 +2965,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1311401,
-          "visual_triangles": 1910,
+          "cells": 1312169,
+          "visual_triangles": 2022,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9991878914229896,
-            "triangles": 910
+            "retained_volume": 0.9991883667423938,
+            "triangles": 952
           },
           "min": [
             -3.75,
@@ -2984,8 +2984,8 @@
           ]
         }
       ],
-      "bytes": 261420,
-      "sha256": "61a614e4569375a0951bc8e378ea8616c825f07d38c7890df9fd0c22830556c5",
+      "bytes": 275588,
+      "sha256": "69a5f1b3591eb7e5f0497cbda20080bbf9e91533381c0c1670613786e7eb581e",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_2.glb",
       "authoring": {
         "species": "juniper",
@@ -2999,12 +2999,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1267316,
-          "visual_triangles": 2260,
+          "cells": 1268596,
+          "visual_triangles": 2632,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9991509615597057,
-            "triangles": 962
+            "retained_volume": 0.9991518182305478,
+            "triangles": 1048
           },
           "min": [
             -4.0,
@@ -3018,8 +3018,8 @@
           ]
         }
       ],
-      "bytes": 298408,
-      "sha256": "a53e3e9b55237095f39329a35410c2e43d2a6d3a04d2a176628bf9bba161debd",
+      "bytes": 340544,
+      "sha256": "40c588619199bd4b5d6735a10c4684c173f3f3daff6518c14fc4bfadbdea7587",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter.glb",
       "authoring": {
         "species": "juniper",
@@ -3033,12 +3033,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1311401,
-          "visual_triangles": 2172,
+          "cells": 1312169,
+          "visual_triangles": 2284,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.9991878914229896,
-            "triangles": 910
+            "retained_volume": 0.9991883667423938,
+            "triangles": 952
           },
           "min": [
             -3.75,
@@ -3052,8 +3052,8 @@
           ]
         }
       ],
-      "bytes": 285532,
-      "sha256": "53017567672fe3a81da5c07a6b05eec9ca2e5520beaad9554bca9738d9eabd8b",
+      "bytes": 299700,
+      "sha256": "7e8c4a662f8297ef8ec9ccf4eaea1a6e88571afcdc5236b161f53e6d1d3fd89a",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter_2.glb",
       "authoring": {
         "species": "juniper",
@@ -3067,12 +3067,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1266240,
-          "visual_triangles": 1576,
+          "cells": 1267520,
+          "visual_triangles": 1948,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 962
+            "triangles": 1048
           },
           "min": [
             -3.75,
@@ -3086,8 +3086,8 @@
           ]
         }
       ],
-      "bytes": 235480,
-      "sha256": "c74c6fc9f203a704c702ea6cde98356f4d689ca410f03c3eb3fdbef436c7c3eb",
+      "bytes": 277616,
+      "sha256": "e54a882c572ed96d6fd09493a2164f8c5572d0f686d9d41eb518bba3ec381923",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -3101,12 +3101,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1310336,
-          "visual_triangles": 1498,
+          "cells": 1311104,
+          "visual_triangles": 1610,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 910
+            "triangles": 952
           },
           "min": [
             -3.75,
@@ -3120,8 +3120,8 @@
           ]
         }
       ],
-      "bytes": 223524,
-      "sha256": "84e8268670dcef08bd14a0a846d12c747d957422aaf04abe41c5ef5ff8e90594",
+      "bytes": 237692,
+      "sha256": "a5cdb80f4d4864ab1a805b6a46c177384fb9c27e6dcded5c1b88f29283dced15",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_2_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -3135,12 +3135,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1266240,
-          "visual_triangles": 1850,
+          "cells": 1267520,
+          "visual_triangles": 2222,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 962
+            "triangles": 1048
           },
           "min": [
             -3.75,
@@ -3154,8 +3154,8 @@
           ]
         }
       ],
-      "bytes": 260696,
-      "sha256": "1cb5dbb721301333ed9542c637deb650f537ab59784fe29a05a263ef26fa4aea",
+      "bytes": 302832,
+      "sha256": "f798075e168eaf7f80e0fec571bb9655937657906ae2417134644feb21e902a5",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter_picked.glb",
       "authoring": {
         "species": "juniper",
@@ -3169,12 +3169,12 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1310336,
-          "visual_triangles": 1760,
+          "cells": 1311104,
+          "visual_triangles": 1872,
           "shadow": {
             "stride": 4,
             "retained_volume": 1.0,
-            "triangles": 910
+            "triangles": 952
           },
           "min": [
             -3.75,
@@ -3188,8 +3188,8 @@
           ]
         }
       ],
-      "bytes": 247636,
-      "sha256": "5c5ca6a85546a3c4c0018b38fc0ae1bccd1215fa1e5f105ff87ca4a5ddb1a91a",
+      "bytes": 261804,
+      "sha256": "7660ff16711496346a1a5c87265361e6328adca05c0e68d1b7a8b0752ee03770",
       "path": "assets/models/flora/trees/juniper/juniper_ancient_winter_2_picked.glb",
       "authoring": {
         "species": "juniper",

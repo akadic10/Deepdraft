@@ -2043,6 +2043,486 @@
       "parts": [
         {
           "name": "main",
+          "cells": 428,
+          "visual_triangles": 764,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 113708,
+      "sha256": "ab5738ec0745008f8e1a0c6d395b1cd43700a7ef6438c6178b84a7d5c17f45c0",
+      "path": "assets/models/items/crates/perch_low.glb",
+      "authoring": {
+        "item": "perch_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 476,
+          "visual_triangles": 764,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 113708,
+      "sha256": "8383916ee19fb855dfc4a550e0e827a1988f241456d003b788e0345d6722c040",
+      "path": "assets/models/items/crates/perch_half.glb",
+      "authoring": {
+        "item": "perch_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 588,
+          "visual_triangles": 850,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 380
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 128884,
+      "sha256": "df224fcbd4bdb7745bb894cba4458d494c57dbe28e64f274484aaaca0febd1be",
+      "path": "assets/models/items/crates/perch_full.glb",
+      "authoring": {
+        "item": "perch_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 428,
+          "visual_triangles": 768,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 114140,
+      "sha256": "480ed6718dcc8d248571d29ac6d616796f060f96aa1ecb4f9f7a7254fc72c6a3",
+      "path": "assets/models/items/crates/trout_low.glb",
+      "authoring": {
+        "item": "trout_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 476,
+          "visual_triangles": 768,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 114140,
+      "sha256": "b0c3139167753bbf3c7baa51780adad1f6187c388d5e92a38d4714ec66da08bc",
+      "path": "assets/models/items/crates/trout_half.glb",
+      "authoring": {
+        "item": "trout_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 588,
+          "visual_triangles": 854,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 380
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 129316,
+      "sha256": "cb6c7d19847b006baae94e820391b9e64b9eda9ddbd4ba717c2975bf1a0fbbe7",
+      "path": "assets/models/items/crates/trout_full.glb",
+      "authoring": {
+        "item": "trout_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 428,
+          "visual_triangles": 768,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 114140,
+      "sha256": "df65e1aaebfc52f30b7add555a6e6fe689a9b9c29d1a28c38d7e7ab4066985d5",
+      "path": "assets/models/items/crates/char_low.glb",
+      "authoring": {
+        "item": "char_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 476,
+          "visual_triangles": 768,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 114140,
+      "sha256": "3f8eba384acb92c1b2e5503596f1b7a6e764f4d41da80367f5b5d23fc62d91c2",
+      "path": "assets/models/items/crates/char_half.glb",
+      "authoring": {
+        "item": "char_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 588,
+          "visual_triangles": 854,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 380
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 129316,
+      "sha256": "e8312724e6ab8efc72660b898f9fea132d53ed43860c2f0862c508294e94bac3",
+      "path": "assets/models/items/crates/char_full.glb",
+      "authoring": {
+        "item": "char_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 428,
+          "visual_triangles": 746,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 111768,
+      "sha256": "700df0d8ccb4c9477552b65d2731bb990a3e6664e1935b7c357b955ba002f2bc",
+      "path": "assets/models/items/crates/cave_fish_low.glb",
+      "authoring": {
+        "item": "cave_fish_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 476,
+          "visual_triangles": 746,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 111768,
+      "sha256": "dbcfd846ab22ffeb575837e996d93b809025d9ec63e7040d13be0bef74693f65",
+      "path": "assets/models/items/crates/cave_fish_half.glb",
+      "authoring": {
+        "item": "cave_fish_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 588,
+          "visual_triangles": 832,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 380
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 126940,
+      "sha256": "2dfa1d90b9bbe5c5d2b3b62467bfa5f4b36c722109b5cfb5805f9909dc9d4c18",
+      "path": "assets/models/items/crates/cave_fish_full.glb",
+      "authoring": {
+        "item": "cave_fish_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 428,
+          "visual_triangles": 760,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 113280,
+      "sha256": "ee9c1f21d079ec92f836208cc6c533c0812f82f15877d127b8227630f8a29bd4",
+      "path": "assets/models/items/crates/dried_fish_low.glb",
+      "authoring": {
+        "item": "dried_fish_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 476,
+          "visual_triangles": 760,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 316
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 113284,
+      "sha256": "a5e9a4d95c408e22cbab23bf143866de598505f8f52ac3a95854dab3c8b31735",
+      "path": "assets/models/items/crates/dried_fish_half.glb",
+      "authoring": {
+        "item": "dried_fish_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 588,
+          "visual_triangles": 848,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 380
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.5,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 128672,
+      "sha256": "baae8c46f9abeda08211cb4e2d0181e195d142b0919e7d289ce62ac06f2fdb9a",
+      "path": "assets/models/items/crates/dried_fish_full.glb",
+      "authoring": {
+        "item": "dried_fish_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 278,
           "visual_triangles": 210,
           "occlusion": true,
@@ -2107,31 +2587,31 @@
       "parts": [
         {
           "name": "main",
-          "cells": 173,
-          "visual_triangles": 184,
+          "cells": 393,
+          "visual_triangles": 788,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 82
+            "triangles": 298
           },
           "min": [
-            -0.125,
+            -0.3125,
             0.0,
             -1.0625
           ],
           "max": [
-            0.125,
+            0.4375,
             0.1875,
-            1.125
+            1.375
           ]
         }
       ],
-      "bytes": 29528,
-      "sha256": "b7c9264cf04ecd5df5a618a9f054191f2e30c94d9c3ad1db0a40c8f11b803240",
-      "path": "assets/models/items/tools/hunting_spear.glb",
+      "bytes": 114648,
+      "sha256": "3ca7ea7ccb83ae7d42393d23dd9930040a1c09622227e99224c142bf63fb8ce7",
+      "path": "assets/models/items/tools/ranger_kit.glb",
       "authoring": {
-        "item": "hunting_spear",
+        "item": "ranger_kit",
         "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },
@@ -2164,6 +2644,38 @@
       "path": "assets/models/items/tools/carpentry_kit.glb",
       "authoring": {
         "item": "carpentry_kit",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 945,
+          "visual_triangles": 960,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 286
+          },
+          "min": [
+            -0.6875,
+            0.0,
+            -0.75
+          ],
+          "max": [
+            0.4375,
+            0.5,
+            1.25
+          ]
+        }
+      ],
+      "bytes": 132112,
+      "sha256": "1c3242a9eec7a89cc1a2db788f2c3fde6a84d91f342e14956c153d9b2d8357c5",
+      "path": "assets/models/items/tools/masonry_kit.glb",
+      "authoring": {
+        "item": "masonry_kit",
         "source": "tools/voxel_assets/hearthblock_goods.py"
       }
     },

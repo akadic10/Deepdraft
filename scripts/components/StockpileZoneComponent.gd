@@ -76,9 +76,9 @@ func has_any_room() -> bool:
 	return _slots.has_any_room()
 
 
-func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "") -> Variant:
+func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "", spoil: float = -1.0) -> Variant:
 	if not accepts_key(item_key): return null
-	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id)
+	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id, spoil, spoil_band)
 
 
 func _release_deposit(token: Variant) -> void:
@@ -103,7 +103,8 @@ func delivery_stand_cells(target: Vector3i, dwarf_id: int = -1) -> Array[Vector3
 	return stands
 
 
-## WYSIWYG: the deposited node stays visible, snapped to its cell.
+## WYSIWYG: the deposited node stays visible, snapped to its cell, showing the stack's count
+## and spoil.
 func _place_visual(node: Node3D, token: Variant) -> void:
 	if node != null and is_instance_valid(node) \
 			and drop_manager != null and is_instance_valid(drop_manager):
@@ -113,6 +114,8 @@ func _place_visual(node: Node3D, token: Variant) -> void:
 			node.queue_free()
 		else:
 			drop_manager.place_stored(node, token.slot)
+			existing = node
+		ItemDropManager.set_spoil(existing, float(cell_stacks[token.slot].get("spoil", 0.0)))
 
 
 ## Scheduler probe / hauler walk target: the zone floor cell nearest this
@@ -176,6 +179,7 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 		return null
 	var count := int(cell_stacks[best].count)
 	if amount <= 0 or amount > count: return null
+	var spoil := float(cell_stacks[best].get("spoil", 0.0))
 	if count > amount:
 		var single: Node3D = drop_manager.spawn_reserved(item_key, best, dwarf_id, "", CraftMaterials.of_item(node))
 		if single == null:
@@ -187,7 +191,30 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	else:
 		cell_stacks.erase(best)
 		drop_manager.withdraw_stored(node, dwarf_id)
+	ItemDropManager.set_spoil(node, spoil)
 	if changed_callback.is_valid():
 		changed_callback.call(item_key, -amount)
 	changed.emit()
 	return node
+
+
+## Rot (doc 42 "Spoilage"): a rotten stack loses the units nobody has claimed; units claimed
+## for a meal or a haul stay until used. Returns how many went.
+func discard_unclaimed(cell: Vector3i) -> int:
+	var stack: Dictionary = cell_stacks.get(cell, {})
+	if stack.is_empty() or drop_manager == null or not is_instance_valid(drop_manager): return 0
+	var claimed := int(_outgoing.get(cell, {}).get("count", 0))
+	var gone := int(stack.count) - claimed
+	if gone <= 0: return 0
+	var key := String(stack.item)
+	var node: Node3D = drop_manager.stored_node_at(cell)
+	if claimed > 0:
+		stack.count = claimed
+		if node != null: drop_manager.set_quantity(node, claimed)
+	else:
+		cell_stacks.erase(cell)
+		if node != null: drop_manager.discard(node)
+	if changed_callback.is_valid():
+		changed_callback.call(key, -gone)
+	changed.emit()
+	return gone

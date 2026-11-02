@@ -51,6 +51,8 @@ func start(assigned_id: int, task: Task, target_pos: Vector3i, carried_item: Nod
 		for cell: Vector3i in task.payload.get("haul_excluded_cells", []):
 			_haul_exclude[cell] = true
 		task.payload.erase("haul_excluded_cells") # one assignment's probe results only
+		_haul_pickup_cell = task.payload.get("haul_pickup_cell", Vector3i(-1, -1, -1))
+		task.payload.erase("haul_pickup_cell")
 		_haul_pull_next()
 		return
 	if task != null and task.type in [Task.Type.FETCH_BUILD, Task.Type.CRAFT]:
@@ -120,7 +122,7 @@ func walk_finished(success: bool) -> void:
 		task_phase = DwarfAgent.TaskPhase.NONE
 		if success:
 			_fetch_pickup()
-		else:
+		elif not _fetch_skip_extra():
 			_fetch_fail_release()
 		return
 	if task_phase == DwarfAgent.TaskPhase.FETCH_TO_GHOST:
@@ -146,8 +148,10 @@ func walk_finished(success: bool) -> void:
 ## executor drops or releases what it holds (Hard Rule 12).
 func clear_task_state() -> void:
 	_finish_zone_state()
-	_finish_haul_state()
+	# Fetch first: it drops its own cargo, so a craft can keep what lands beside
+	# its bench; the haul teardown would otherwise drop it as a catch-all.
 	_finish_fetch_state()
+	_finish_haul_state()
 	_finish_uninstall_state()
 	_finish_felling_state()
 	task_phase = DwarfAgent.TaskPhase.NONE
@@ -238,7 +242,8 @@ func _begin_swinging() -> void:
 		_skip_zone_block(source)
 		return
 	_swings_left = int(work["swings"])
-	_swing_time = float(work["swing_time"]) * DwarfAssets.mining_duration_multiplier(agent.profession, agent.profession_experience)
+	# Practice (the Miner's level) and Strength (doc 41 "Stats") shorten each swing.
+	_swing_time = float(work["swing_time"]) * DwarfAssets.mining_duration_multiplier(agent.profession, agent.profession_experience) / agent.work_rate("mining")
 	_swing_timer = _swing_time
 	task_phase = DwarfAgent.TaskPhase.ZONE_SWINGING
 	_face_cell(_zone_block)
@@ -295,7 +300,7 @@ func _process_swinging(delta: float) -> void:
 	task_phase = DwarfAgent.TaskPhase.NONE
 	rig.reset_part_offsets()
 	var committed := source != null and commit(agent.dwarf_id,"mine:%s" % _zone_block,func(): return source.commit_mined(agent.dwarf_id))
-	if committed and agent.profession == "base:profession:miner":
+	if committed and DwarfAssets.earns_by(agent.profession, "MINE"):
 		# The final commit may end the zone lease synchronously. Award first.
 		agent.profession_experience[agent.profession] = maxi(0, int(agent.profession_experience.get(agent.profession, 0))) + 1
 	movement.snap_to_floor()
@@ -442,7 +447,13 @@ func _begin_felling_work() -> void:
 	_fell_contact = agent.to_local(contact)
 	_swing_time = FellingPose.CYCLE_SECONDS
 	_swing_timer = _swing_time
-	_apply_clearing_pose(0.0)
+	if task != null and task.type == Task.Type.FISH:
+		# One catch is one pose cycle (cast, wait, bite, land), resumed where it was left (doc 289).
+		_swing_time = maxf(float(source.get("duration")), .5)
+		_swing_timer = maxf(_swing_time-float(source.get("state").get("work_seconds",0.0)), .001)
+		rig.fishing_pose.catch_item = String(source.get("item"))
+		rig.fishing_pose.catch_big = bool(source.call("big_for", agent.dwarf_id))   # a Ranger's big fish (doc 292)
+	_apply_clearing_pose(1.0-_swing_timer/_swing_time)
 
 
 func _clearing_uses_pick() -> bool:
@@ -450,9 +461,28 @@ func _clearing_uses_pick() -> bool:
 	return task != null and task.type == Task.Type.CLEAR_BOULDER
 
 
+## The kind of timed work under way, for the stat that speeds it (doc 41 "Stats"): felling a tree,
+## clearing stones (as mining), fishing, building a block or a ladder, crafting at a bench (a
+## Stonemason's crafting is stonework, doc 293). Gathering, planting and handling goods are none.
+## Mining blocks is counted in its swing time instead.
+func _timed_kind() -> String:
+	if task_phase == DwarfAgent.TaskPhase.FELL_WORKING:
+		var task := TaskManager.get_task(agent.current_task_id)
+		if task != null and task.type == Task.Type.FELL_TREE: return "felling"
+		if task != null and task.type == Task.Type.CLEAR_BOULDER: return "mining"
+		if task != null and task.type == Task.Type.FISH: return "fishing"
+	elif task_phase == DwarfAgent.TaskPhase.FETCH_WORKING:
+		var source := fetch_source()
+		if source != null and source.has_method("advance_install"): return "building"
+		if source != null and source.has_method("advance_craft"): return DwarfAssets.craft_work(agent.profession)
+	return ""
+
+
 func _apply_clearing_pose(phase: float) -> void:
 	var task := TaskManager.get_task(agent.current_task_id)
-	if task != null and task.type in Task.GATHER_WORK:
+	if task != null and task.type == Task.Type.FISH:
+		rig.fishing_pose.apply(phase, _fell_contact)
+	elif task != null and task.type in Task.GATHER_WORK:
 		rig.carry_pose.gather(phase, _fell_contact)
 	elif _clearing_uses_pick():
 		rig.mining_pose.apply(phase, _fell_contact)
@@ -465,6 +495,8 @@ func _process_felling(delta: float) -> void:
 	if source == null or not bool(source.call("is_work_position", agent.current_cell())):
 		_fell_release()
 		return
+	# A Ranger's patience joins Wisdom (doc 292), so the pose and the catch keep step.
+	if source.has_method("rate_for"): delta *= float(source.call("rate_for", agent.dwarf_id))
 	# Emit once when crossing contact, including wrapped/skipped frames. A long
 	# stalled frame never replays a backlog or impacts after the tree completes.
 	var remaining := maxf(0,float(source.get("duration"))-float(source.get("state").get("work_seconds",0)))
@@ -472,7 +504,13 @@ func _process_felling(delta: float) -> void:
 	var before := 1.0-_swing_timer/_swing_time
 	var after := before+elapsed/_swing_time
 	var impact_phase := MiningPose.CONTACT_PHASE if _clearing_uses_pick() else FellingPose.CONTACT_PHASE
-	if floori(after-impact_phase) > floori(before-impact_phase) \
+	if source.get("task_type") == Task.Type.FISH:
+		# A catch is one pose cycle: the float lands, a fish bites, it is landed (doc 289).
+		if agent.is_visible_in_tree() and bool(source.call("feedback_visible")):
+			for cue: Array in [[FishingPose.CAST_END, "fish_plop"], [FishingPose.BITE_START, "fish_bite"], [FishingPose.LANDED, "fish_land"]]:
+				if before < float(cue[0]) and after >= float(cue[0]):
+					WorkFeedback.play_fishing(String(cue[1]), agent.to_global(_fell_contact), int(source.get("origin").y))
+	elif floori(after-impact_phase) > floori(before-impact_phase) \
 			and agent.is_visible_in_tree() and bool(source.call("feedback_visible")):
 		if _clearing_uses_pick():
 			WorkFeedback.mining_impact(agent.to_global(_fell_contact), source.get("origin"),
@@ -551,7 +589,7 @@ func sample() -> Dictionary:
 			if source != null and source.has_method("commit_staged_build"):
 				unit = str(source.target)
 	if movement.move_path.is_empty() and phase not in [DwarfAgent.TaskPhase.FETCH_PLANNING,DwarfAgent.TaskPhase.FELL_FINDING]:
-		seconds /= maxf(.1,agent.get_food().work_multiplier())
+		seconds /= maxf(.1,agent.get_food().work_multiplier()*agent.work_rate(_timed_kind()))
 	return {"step":step,"unit":unit,"remaining":remaining,"expected_seconds":seconds}
 
 ## Simulation-time execution dispatch; DwarfMovement and the body rig own locomotion and poses.
@@ -580,7 +618,7 @@ func tick(delta: float) -> bool:
 		_fell_try_stand()
 		return true
 	if task_phase == DwarfAgent.TaskPhase.FELL_WORKING:
-		_process_felling(work_delta)
+		_process_felling(work_delta*agent.work_rate(_timed_kind()))   # Strength fells and clears stones (doc 41 "Stats")
 		return true
 	if task_phase == DwarfAgent.TaskPhase.FELL_MOVING and not movement.move_path.is_empty() \
 			and not NavGrid.is_navigable(movement.move_path[movement.move_index]):
@@ -596,18 +634,13 @@ func tick(delta: float) -> bool:
 			if not craft.can_complete_build():
 				_fetch_fail_release()
 				return true
-			var before := float(craft.progress)/ConstructionPose.CYCLE_SECONDS
-			exec_timer = craft.advance_install(work_delta)
+			var before := float(craft.progress)
+			exec_timer = craft.advance_install(work_delta*agent.work_rate("building"))   # Wits builds (doc 41 "Stats")
 			var face: Vector3i = craft.work_facing(agent.current_cell())
 			agent.rotation.y = atan2(face.x, face.z)
 			if craft.has_method("commit_staged_build"):
 				var contact := _construction_work_pose(craft)
-				var after := float(craft.progress)/ConstructionPose.CYCLE_SECONDS
-				# Actual clamped progress crosses contact once. Stalls coalesce hits;
-				# resuming a partially built block cannot replay an earlier impact.
-				if floori(after-ConstructionPose.CONTACT_PHASE) > floori(before-ConstructionPose.CONTACT_PHASE) \
-						and agent.is_visible_in_tree():
-					WorkFeedback.play_hammer(contact,int(craft.target.y))
+				if agent.is_visible_in_tree(): _construction_strike(craft,before,contact)
 			else:
 				rig.carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
 			if exec_timer <= 0.0: _fetch_complete()
@@ -617,14 +650,18 @@ func tick(delta: float) -> bool:
 				_fetch_fail_release()
 				return true
 			var before := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
-			exec_timer = float(craft.call("advance_craft", work_delta))
+			# Wits crafts, Strength works stone (doc 41 "Stats"); a crafting career's level saves time (doc 293).
+			var rate := agent.work_rate(_timed_kind())/DwarfAssets.craft_duration_multiplier(agent.profession,agent.profession_experience)
+			exec_timer = float(craft.call("advance_craft", work_delta*rate))
 			var after := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
 			var contact := _craft_pose(craft)
 			# Follow actual axe contact and clamped work progress. A stalled frame
 			# emits at most one hit; resumed work never replays earlier strikes.
 			if floori(after-FellingPose.CONTACT_PHASE) > floori(before-FellingPose.CONTACT_PHASE) \
-					and agent.is_visible_in_tree():
-				WorkFeedback.play_chop(contact,int(craft.get("work_cell").y))
+					and agent.is_visible_in_tree() and String(craft.call("work_motion")) != "hands":
+				# The Stonemason's maul knocks on stone as a builder's hammer does (doc 293).
+				if DwarfAssets.craft_sound(agent.profession) == "hammer": WorkFeedback.play_hammer(contact,int(craft.get("work_cell").y))
+				else: WorkFeedback.play_chop(contact,int(craft.get("work_cell").y))
 			if exec_timer <= 0.0: _begin_fetch_deposit()
 			return true
 		if craft != null and craft.has_method("advance_plant"):

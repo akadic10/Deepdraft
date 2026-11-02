@@ -56,12 +56,23 @@ func appeal_badge(definition: Dictionary, id: String, packed: bool = false) -> D
 		"Appeal when installed" if packed else "Appeal", number.call(score.total), number.call(score.design), number.call(score.material)]}
 
 
+## A piece's hit points (doc 62): its design's `hit_points` times its material's
+## `toughness`, the way appeal is design plus material; 0 for a piece without them. Nothing
+## damages a piece yet: invaders will break doors.
+func hit_points(definition: Dictionary, id: String) -> int:
+	if not definition.has("hit_points"): return 0
+	return roundi(float(definition.hit_points) * float(definitions.get(id, {}).get("toughness", 1.0)))
+
+
 func inspection_rows(definition: Dictionary, id: String, packed: bool = false) -> Array:
 	var rows: Array = []
 	if not id.is_empty(): rows.append(["Material", material_name(id)])
 	if definition.has("appeal"):
 		var score := appeal(definition, id)
 		rows.append(["Appeal when installed" if packed else "Appeal", "%s  (%s design + %s material)" % [str(score.total), str(score.design), str(score.material)]])
+	if definition.has("hit_points"):
+		rows.append(["Hit points", "%d  (%d design × %s %s)" % [hit_points(definition, id), int(definition.hit_points),
+			("%.1f" % float(definitions.get(id, {}).get("toughness", 1.0))).trim_suffix(".0"), material_name(id).to_lower() if not id.is_empty() else "any material"]])
 	return rows
 
 

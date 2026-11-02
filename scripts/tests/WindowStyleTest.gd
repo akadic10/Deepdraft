@@ -142,6 +142,8 @@ func _check_grid() -> void:
 	_expect(tile != null and tile.icon == bench and tile.get_node("Count").text == "3" and tile.get_node("Mark") != null
 		and (tile.get_node("Selected") as Panel).get_theme_stylebox("panel") == UITheme.selection_ring() and tile.tooltip_text == "Log bench",
 		"a tile carries its picture, count, mark, hay selection ring and name")
+	_expect(grid.get_global_rect().encloses(tile.get_node("Selected").get_global_rect()) and grid.get_reveal("bench") == tile.get_node("Selected"),
+		"the ring of a tile at the grid's edge stays inside the grid, so a scroll edge cannot cut it")
 	var dim: Button = grid.get_tile("table")
 	_expect(dim.get_theme_stylebox("normal") == UITheme.icon_tile_style(grid.family, "planned")
 		and not dim.has_node("Count") and dim.get_theme_color("icon_normal_color").v < 0.6, "a missing recipe is dimmed")
@@ -172,10 +174,12 @@ func _check_grid() -> void:
 		"a rebuild gives focus back to the tile with the same id; a tile can show a word for its picture")
 	# Storage's rows: the heading beside its tiles, its state a tag that toggles the group.
 	grid.heading_beside = true
-	grid.show_groups([{"id": "materials", "title": "Materials", "state": "Some", "items": [{"id": "stone", "picture": bench, "mark": "on"}]}])
+	grid.show_groups([{"id": "materials", "title": "Materials", "state": "Some", "items": [{"id": "stone", "picture": bench, "mark": "on", "selected": true}]}])
 	await _frames(2)
 	_expect(grid.get_tile("stone").get_node("Mark").get_global_rect().position.y >= grid.get_global_rect().position.y - 0.5,
 		"a mark on the first row stays inside the grid, so a scroll edge cannot cut it")
+	_expect(grid.get_global_rect().encloses(grid.get_reveal("stone").get_global_rect()),
+		"the ring of the last row's last tile stays inside the grid too")
 	var state: Button = null
 	for node: Node in grid.find_children("*", "Button", true, false):
 		if (node as Button).text == "Some": state = node

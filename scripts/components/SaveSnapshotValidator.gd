@@ -11,7 +11,10 @@ const WorldSize = preload("res://scripts/systems/WorldSize.gd")
 const SettlementName = preload("res://scripts/components/SettlementName.gd")
 
 const FILTER := {"tags": [TYPE_STRING], "items": [TYPE_STRING], "excluded_items": [TYPE_STRING]}
-const CARGO := {"item_key": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}
+## A furniture container's goods (doc 294), saved with its piece.
+const CONTAINER := {"stacks": [{"slot": TYPE_INT, "item": "item", "count": "positive_int", "material_id": "material", "?instance_id": TYPE_STRING}],
+	"storage_filter": FILTER, "priority": TYPE_INT}
+const CARGO := {"item_key": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material", "?spoil": TYPE_FLOAT}
 const ANIMAL := {
 	"id": "key", "cell": "cell", "home": "cell", "target": "cell", "position": "vector",
 	"yaw": TYPE_FLOAT, "hunger": TYPE_FLOAT, "fatigue": TYPE_FLOAT, "activity": "key",
@@ -32,8 +35,9 @@ const ACTIVE_EVENT := {
 }
 const SCENE := {
 	"construction": {"next_id":"positive_int",
-		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT,"?dir":TYPE_STRING}],
-			"total_blocks":"positive_int","?wood":TYPE_STRING,"?crate_cell":"cell","?materials":{"*":{"*":"positive_int"}}}]},
+		"orders":[{"id":"positive_int","kind":"key","cells":[{"cell":"cell","work":TYPE_FLOAT,"?dir":TYPE_STRING,"?kind":"key","?wood":TYPE_STRING}],
+			"total_blocks":"positive_int","?wood":TYPE_STRING,"?name":TYPE_STRING,"?totals":{"*":"positive_int"},
+			"?crate_cell":"cell","?materials":{"*":{"*":"positive_int"}}}]},
 	"jobs": {"next_order":"positive_int","next_attempt":"positive_int","time":TYPE_FLOAT,
 		"records":{"*":{"key":"key","label":TYPE_STRING,"state":"key","reason":TYPE_STRING,"failures":TYPE_INT,"last_transition":TYPE_FLOAT}},
 		"history":[{"order":"key","state":"key","reason":TYPE_STRING,"attempt":TYPE_INT,"worker":TYPE_INT,"time":TYPE_FLOAT}]},
@@ -45,6 +49,8 @@ const SCENE := {
 		"test_dam":[{"cell":"cell","block":"key"}],
 		"moisture":[{"cell":"cell","value":TYPE_INT,"target":TYPE_INT,"since":TYPE_INT}]},
 	"mining": {"zones": [{"id": TYPE_INT, "blocks": ["cell"]}]},
+	"fishing": {"next_id": "positive_int", "zones": [{"id": "positive_int", "cells": ["cell"], "keep": TYPE_INT}],
+		"stocks": {"*": {"fish": TYPE_FLOAT, "day": TYPE_FLOAT}}},
 	"terrain": {"edits": [{"cell": "cell", "block": "key"}]},
 	"exploration": {"cells": ["cell"], "caves": [TYPE_INT]},
 	"flora": {"trees": [{
@@ -52,6 +58,7 @@ const SCENE := {
 		"action": TYPE_STRING, "fell_work_seconds": TYPE_FLOAT, "harvest_work_seconds": TYPE_FLOAT,
 		"harvest_work_cycle": TYPE_STRING, "harvested_cycle": TYPE_STRING,
 		"felled": TYPE_BOOL, "designated": TYPE_BOOL,
+		"?planted": TYPE_BOOL, "?anchor": "cell", "?planted_at": TYPE_FLOAT, "?growth_credit": TYPE_FLOAT,
 	}]},
 	"surface_details": {
 		"changes": [{"id": "key", "removed": TYPE_BOOL, "designated": TYPE_BOOL,
@@ -66,24 +73,24 @@ const SCENE := {
 	},
 	"settlement_flag": {"founded": TYPE_BOOL, "cell": "cell", "name": TYPE_STRING, "founded_day": TYPE_INT},
 	"stockpiles": {"zones": [{"id": TYPE_INT, "cells": ["cell"],
-		"storage_filter": FILTER,
-		"stacks": [{"cell": "cell", "item": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]}]},
+		"storage_filter": FILTER, "?priority": TYPE_INT,
+		"stacks": [{"cell": "cell", "item": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material", "?spoil": TYPE_FLOAT}]}]},
 	"furniture": {
-		"moves": {"next_id":"positive_int","records":{"*":{"key":"furniture","installed_id":TYPE_INT,"assigned_dwarf_id":TYPE_INT}}},
+		"moves": {"next_id":"positive_int","records":{"*":{"key":"furniture","installed_id":TYPE_INT,"assigned_dwarf_id":TYPE_INT,
+			"?storage": {"storage_filter": FILTER, "priority": TYPE_INT}}}},
 		"ghosts": [{"id": TYPE_INT, "key": "furniture", "origin": "cell", "yaw": TYPE_INT,
 			"required_material_id": "material", "?plant_work": TYPE_FLOAT, "?plant_id": TYPE_STRING, "?stone_id": TYPE_STRING, "?move_id":TYPE_STRING}],
 		"installed": [{"id": TYPE_INT, "key": "furniture", "origin": "cell", "yaw": TYPE_INT,
-			"flagged_uninstall": TYPE_BOOL, "material_id": "material", "?assigned_dwarf_id": TYPE_INT}],
+			"flagged_uninstall": TYPE_BOOL, "material_id": "material", "?assigned_dwarf_id": TYPE_INT, "?storage": CONTAINER}],
 	},
 	"ladders": {"routes": [{"id": TYPE_INT, "key": "key", "base": "cell", "yaw": TYPE_INT,
 		"height": TYPE_INT, "built": TYPE_INT, "?materials": ["material"], "?required_material_id": "material", "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": TYPE_INT},
-	"bridges": {"routes": [{"id": "positive_int", "key": "key", "base": "cell", "yaw": TYPE_INT,
-		"span": "positive_int", "built": TYPE_BOOL, "?material_id": "material", "?required_material_id": "material", "mode": TYPE_STRING, "progress": TYPE_FLOAT}], "next_id": "positive_int"},
 	"items": {"loose": [{"item_key": "item", "position": "vector", "rotation_y": TYPE_FLOAT,
-		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material"}]},
+		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material", "?spoil": TYPE_FLOAT}]},
 	"dwarves": {"birth_index": TYPE_INT, "settlement_anchor": "cell", "roster": [{
 		"id": TYPE_INT, "name": TYPE_STRING, "gender": TYPE_STRING, "appearance": {"*": TYPE_STRING},
-		"traits": [TYPE_STRING], "tastes": {"*": "key"}, "found_tastes": ["key"], "profession": "key", "profession_experience": {"*": TYPE_INT},
+		"traits": [TYPE_STRING], "tastes": {"*": "key"}, "found_tastes": ["key"], "stats": {"*": TYPE_INT}, "?health": TYPE_FLOAT, "profession": "key", "profession_experience": {"*": TYPE_INT},
+		"?catch_log": {"?caught": {"*": TYPE_INT}, "?big": TYPE_INT, "?dried": TYPE_INT, "?day": TYPE_INT, "?today": TYPE_INT, "?best": TYPE_INT, "?best_day": TYPE_INT},
 		"work_permissions": {"*": TYPE_BOOL}, "position": "vector", "rotation_y": TYPE_FLOAT,
 		"sleep": TYPE_FLOAT, "sleeping": TYPE_BOOL, "sleep_hours_left": TYPE_FLOAT,
 		"food": {"value":TYPE_FLOAT,"last_meal":TYPE_STRING,"last_dining":TYPE_STRING,"hours_since_meal":TYPE_FLOAT,"retry_hours":TYPE_FLOAT},
@@ -91,6 +98,7 @@ const SCENE := {
 			"dining_outcome":TYPE_STRING,"dining_memory_hours":TYPE_FLOAT,
 			"recreation_memory_hours":TYPE_FLOAT,"recreation_retry_hours":TYPE_FLOAT,
 			"?solo_recreation_memory_hours":TYPE_FLOAT,
+			"?grill_memory_hours":TYPE_FLOAT,"?grill_together_memory_hours":TYPE_FLOAT,
 			"cold_sleep_hours":TYPE_FLOAT,"cold_memory_hours":TYPE_FLOAT,
 			"chilly_sleep_hours":TYPE_FLOAT,"chilly_memory_hours":TYPE_FLOAT,
 			"hot_sleep_hours":TYPE_FLOAT,"hot_memory_hours":TYPE_FLOAT,
@@ -106,7 +114,10 @@ const SCENE := {
 		"pressure": {"*": {"x": TYPE_FLOAT, "z": TYPE_FLOAT, "level": TYPE_FLOAT, "day": TYPE_FLOAT}},
 		"history": [{"id": "key", "result": TYPE_STRING, "count": TYPE_INT, "day": TYPE_FLOAT}]},
 	"worker_crafting": {"orders": [{"id":"positive_int","recipe": "recipe", "quantity": "positive_int", "maintain": TYPE_BOOL,
-		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": [TYPE_STRING]}]},
+		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": [TYPE_STRING],
+		"?bench": TYPE_INT, "?staged": [{"item": "item", "cell": "cell"}]}],
+		"?batches": [{"bench": TYPE_INT, "origin": "cell", "recipe": "recipe", "input": "item", "inputs": "positive_int",
+			"started": TYPE_FLOAT, "?material": TYPE_STRING}]},
 	"camera": {"target_position": "vector", "zoom": TYPE_FLOAT, "pitch": TYPE_FLOAT, "orbit_y": TYPE_FLOAT},
 	"slice": {"active": TYPE_BOOL, "seeded": TYPE_BOOL, "slice_y": TYPE_INT, "last_slice_y": TYPE_INT},
 	"events": {"next_id": "positive_int", "seen_id": TYPE_INT, "entries": [{"id": "positive_int", "kind": "key",
@@ -167,29 +178,55 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	var construction_ids := {}
 	for order: Dictionary in construction.orders:
 		if not catalogs.construction.has(String(order.kind)): return "save.scene.construction has an unknown construction type."
-		# Logs (doc 275) name a wood the game knows and which way each log lies.
-		var logs := String(catalogs.construction[order.kind].get("logs", "")) if catalogs.construction[order.kind] is Dictionary else ""
-		if not logs.is_empty() and not catalogs.woods.has(String(order.get("wood", ""))): return "save.scene.construction has an unknown wood."
+		# Logs (doc 275) name a wood the game knows and which way each log lies. A placed
+		# blueprint's block of another material names its own kind and wood (doc 276).
+		var plan_logs := String(catalogs.construction[order.kind].get("logs", "")) if catalogs.construction[order.kind] is Dictionary else ""
+		if not plan_logs.is_empty() and not catalogs.woods.has(String(order.get("wood", ""))): return "save.scene.construction has an unknown wood."
+		var needs := {}   # good -> the unbuilt blocks built from it
 		for entry: Dictionary in order.cells:
+			var kind := String(entry.get("kind", order.kind))
+			if not catalogs.construction.has(kind) or not catalogs.construction[kind] is Dictionary: return "save.scene.construction has an unknown construction type."
+			var logs := String(catalogs.construction[kind].get("logs", ""))
+			var wood := String(entry.get("wood", "")) if entry.has("kind") else String(order.get("wood", ""))
+			if not logs.is_empty() and not catalogs.woods.has(wood): return "save.scene.construction has an unknown wood."
 			var direction := String(entry.get("dir", ""))
 			if (logs.is_empty() and not direction.is_empty()) or (not logs.is_empty() and not direction in (["up"] if logs == "up" else ["x", "z"])):
 				return "save.scene.construction has a log lying an unknown way."
+			var good := String(catalogs.woods[wood]) if not logs.is_empty() else String(catalogs.construction[kind].get("item", ""))
+			needs[good] = int(needs.get(good, 0))+1
+		for item: String in order.get("totals", {}):
+			if not catalogs.items.has(item): return "save.scene.construction has an unknown material."
 		if order.id >= construction.next_id or construction_ids.has(order.id) or order.cells.is_empty(): return "save.scene.construction has an invalid order."
 		construction_ids[order.id] = true
 		if int(order.total_blocks) < order.cells.size():
 			return "save.scene.construction has an invalid total block count."
-		# Staged goods by item, then material.
-		var staged := 0
+		# Staged goods by item, then material, each no more than its own blocks need.
 		for item: String in order.get("materials",{}):
 			if not catalogs.items.has(item): return "save.scene.construction has an unknown material."
+			var staged := 0
 			for material: String in order.materials[item]:
 				if not material.is_empty() and not catalogs.materials.has(material): return "save.scene.construction has an unknown material."
 				staged += int(order.materials[item][material])
-		if staged > order.cells.size(): return "save.scene.construction has excess staged materials."
+			if staged > int(needs.get(item, 0)): return "save.scene.construction has excess staged materials."
 		for entry: Dictionary in order.cells:
 			var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
 			if not _construction_cell(cell) or construction_cells.has(cell) or entry.work<0: return "save.scene.construction has invalid planned work."
 			construction_cells[cell] = true
+	# Fishing (doc 289): zones with their own ids and cells, a Keep never below nought, and a
+	# stock no water can hold less than none of.
+	var fishing: Dictionary = snapshot.scene.fishing
+	var fishing_ids := {}
+	var fishing_cells := {}
+	for zone: Dictionary in fishing.zones:
+		if zone.id >= fishing.next_id or fishing_ids.has(zone.id) or zone.cells.is_empty() or zone.keep < 0:
+			return "save.scene.fishing has an invalid zone."
+		fishing_ids[zone.id] = true
+		for packed: Array in zone.cells:
+			var cell := Vector3i(packed[0], packed[1], packed[2])
+			if not _construction_cell(cell) or fishing_cells.has(cell): return "save.scene.fishing has an invalid or shared spot."
+			fishing_cells[cell] = true
+	for water: String in fishing.stocks:
+		if fishing.stocks[water].fish < 0 or fishing.stocks[water].day < 0: return "save.scene.fishing has an invalid stock."
 	var jobs: Dictionary = snapshot.scene.jobs
 	if jobs.time < 0 or jobs.history.size() > 200: return "save.scene.jobs has invalid diagnostic bounds."
 	var order_keys := {}
@@ -226,13 +263,15 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	for tree: Dictionary in snapshot.scene.flora.trees:
 		if not catalogs.trees[tree.species].has(tree.stage):
 			return "save.scene.flora names an unknown growth stage '%s'; start a new world." % tree.stage
+		if bool(tree.get("planted", false)) and not (tree.has("anchor") and tree.has("planted_at")):
+			return "save.scene.flora has a planted tree without its seed cell or planting day."
 	var residents := {}
 	for dwarf: Dictionary in snapshot.scene.dwarves.roster:
 		residents[int(dwarf.id)] = true
 		if float(dwarf.food.value)<0.0 or float(dwarf.food.value)>1.0 or float(dwarf.food.hours_since_meal)<0.0 or float(dwarf.food.retry_hours)<0.0:
 			return "save.scene.dwarves has invalid food need or meal timing."
 		for outcome in [dwarf.food.last_dining,dwarf.mood.dining_outcome]:
-			if outcome not in ["","proper","seat_only","table_only","neither"]: return "save.scene.dwarves has an invalid dining outcome."
+			if outcome not in ["","proper","seat_only","table_only","neither","fire"]: return "save.scene.dwarves has an invalid dining outcome."
 		for field: String in dwarf.mood:
 			if not dwarf.mood[field] is String and float(dwarf.mood[field])<0: return "save.scene.dwarves has a negative mood timer."
 		for activity: String in ["slept", "ate", "played"]:
@@ -245,6 +284,14 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 			if dwarf.tastes[thing] not in ["love", "like", "dislike"]: return "save.scene.dwarves has an invalid taste."
 		for thing: String in dwarf.found_tastes:
 			if not dwarf.tastes.has(thing): return "save.scene.dwarves has found a taste it does not hold."
+		# Stats (doc 41 "Stats"): every stat the game has, each a step from the first to the last.
+		for id: String in catalogs.stats:
+			if not dwarf.stats.has(id): return "save.scene.dwarves is missing a stat."
+		for id: String in dwarf.stats:
+			if not catalogs.stats.has(id): return "save.scene.dwarves names an unknown stat."
+			if int(dwarf.stats[id]) < 1 or int(dwarf.stats[id]) > int(catalogs.stat_steps): return "save.scene.dwarves has a stat outside its steps."
+		# Health is saved only while hurt, and nothing yet takes a dwarf below one hit point.
+		if dwarf.has("health") and float(dwarf.health) < 1.0: return "save.scene.dwarves has a dwarf below one hit point."
 	var assigned_beds := {}
 	for piece: Dictionary in snapshot.scene.furniture.installed:
 		var resident := int(piece.get("assigned_dwarf_id",-1))
@@ -252,13 +299,6 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 		if resident<0: continue
 		if not residents.has(resident) or assigned_beds.has(resident): return "save.scene.furniture has a missing or duplicate bed owner."
 		assigned_beds[resident] = true
-	var bridge_ids := {}
-	for bridge: Dictionary in snapshot.scene.bridges.routes:
-		if bridge.key != "base:furniture:log_bridge" or bridge.span > 5 or bridge.yaw < 0 or bridge.yaw > 3 \
-			or bridge.progress < 0 or bridge_ids.has(bridge.id) or bridge.id >= snapshot.scene.bridges.next_id \
-			or not bridge.mode in (["ready","remove","damaged"] if bridge.built else ["build"]):
-			return "save.scene.bridges has an invalid bridge."
-		bridge_ids[bridge.id] = true
 	for list_name: String in ["cells","displaced"]:
 		var seen: Dictionary = {}
 		for entry: Dictionary in snapshot.scene.water.flow[list_name]:

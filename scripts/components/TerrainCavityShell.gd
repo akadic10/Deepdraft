@@ -70,6 +70,11 @@ func clear_cut_index() -> void:
 	_cut_cells_by_column.clear()
 
 
+## Whether any cut cell (hole, plan, found cave or built block) lies in this 16×16 column.
+func has_cut_cells(column: Vector2i) -> bool:
+	return _cut_cells_by_column.has(column)
+
+
 ## Rebuilds the cavity-shell mesh (doc 11 SO-2b + defect fixes 2026-06-05):
 ## for every ENCLOSED cavity block — designated or mined — render the faces of
 ## adjacent SOLID blocks (floor/ceiling/back walls).

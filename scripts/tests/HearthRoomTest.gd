@@ -1,9 +1,11 @@
 extends "res://scripts/tests/BedroomTest.gd"
 
-## Native geometry, existing room topology, lifecycle and player-facing heating.
+## Native geometry, existing room topology, lifecycle and player-facing heating, and the heat
+## a door lets through (doc 34 "Heat and cold spreading").
 const HEARTH := "base:furniture:hearth"
 const HEATER_ORIGIN := Vector3i(85,20,65)
 const SMALL_PROBE := Vector3i(82,21,62)
+const ENTRY_PROBE := Vector3i(82,21,56)
 const OUT := "res://tmp/hearth_room/"
 var readings: Array[Dictionary] = []
 
@@ -14,6 +16,9 @@ func _run() -> void:
 	rooms.clear_runtime_state()
 	DirAccess.make_dir_recursive_absolute(OUT)
 	_build_small_room()
+	# A cellar bedroom: under 12 solid blocks, behind an entry room, one hearth keeps it
+	# comfortable all year (doc 34).
+	_bury(Vector3i(80,0,60), Vector3i(87,0,67))
 	_put("door", Vector3i(83,20,60))
 	_put("log_bed", Vector3i(81,20,62))
 	var definition: Dictionary = furniture.get_defs()[HEARTH]
@@ -52,49 +57,81 @@ func _run() -> void:
 		furniture._teardown_installed(heater.installed_id, false)
 		_expect(int(_small_room().heat_units) == 0, "removal clears heat once")
 	var heater = furniture._installed.values().filter(func(piece): return piece.furniture_key == HEARTH)[0]
-	# A real small bedroom stays comfortable at the extremes of the calendar.
+	# A door straight onto the winter night costs the bedroom about 2°C and leaves it Chilly.
+	_set_clock("winter", 2.0)
+	var outdoors: float = rooms.get_room_at(SMALL_PROBE).temp_c
+	_expect(rooms.comfort_label(outdoors) == "Chilly", "a door straight onto the winter night leaves a one-hearth bedroom Chilly: %.1f°C" % outdoors)
+	readings.append({"room":"small bedroom, door outside", "volume":144, "season":"winter", "hour":2.0, "temperature_c":outdoors})
+	_build_entry_room()
+	_small_room()
+	# Behind an entry room the real small bedroom stays comfortable at the extremes of the calendar.
 	for season in ["spring", "summer", "autumn", "winter"]:
 		for hour in [2.0, 14.0]:
-			clock_node.season = season
-			clock_node.day = 1
-			clock_node.hour = hour
-			rooms._on_hour_changed(int(hour))
+			_set_clock(season, hour)
 			var room: Dictionary = rooms.get_room_at(SMALL_PROBE)
-			_expect(rooms.comfort_label(room.temp_c) == "Comfortable", "one hearth keeps the small bedroom comfortable in %s at %.0f" % [season,hour])
+			_expect(rooms.comfort_label(room.temp_c) == "Comfortable", "one hearth keeps the small bedroom comfortable in %s at %.0f: %.1f°C" % [season,hour,room.temp_c])
 			readings.append({"room":"small bedroom", "volume":room.volume, "season":season, "hour":hour, "temperature_c":room.temp_c})
 			var info := _rows(furniture.get_explorer_data("installed:%d" % heater.installed_id))
 			_expect(String(info.get("Heating room", "")).begins_with("Bedroom"), "inspector identifies heated bedroom")
 			_expect(String(info.get("Temperature", "")) == "%.1f°C · Comfortable" % room.temp_c, "inspector follows live temperature")
-			_expect(String(info.get("This hearth", "")) == "+%.1f°C" % room.heat_bonus_c, "single heater reports its actual contribution")
+			var kept: float = rooms.heat_kept(SMALL_PROBE, int(definition.heat_source.heat_units))
+			_expect(kept < float(room.heat_bonus_c) and String(info.get("This hearth", "")) == "+%.1f°C" % kept, "single heater reports what the room keeps of its heat")
+	# The hearth warms the entry room through the door by about a degree.
+	_set_clock("winter", 2.0)
+	var warmed: float = rooms.get_room_at(ENTRY_PROBE).temp_c
+	furniture._teardown_installed(heater.installed_id, false)
+	_small_room()
+	var unwarmed: float = rooms.get_room_at(ENTRY_PROBE).temp_c
+	_expect(warmed - unwarmed > 0.5 and warmed - unwarmed < 2.0, "the hearth warms the entry room next door by about a degree: %.2f°C" % (warmed - unwarmed))
+	readings.append({"room":"entry room, hearth next door", "volume":144, "season":"winter", "hour":2.0, "temperature_c":warmed, "without_c":unwarmed})
+	heater = _put("hearth", HEATER_ORIGIN, 3)
+	_small_room()
 	# Minimum thermal mass must also protect tinier rooms in warm weather.
-	var tiny := {"heat_units":int(definition.heat_source.heat_units) + 75, "volume":64, "seasonal_influence":.25}
+	var tiny := {"heat_units":int(definition.heat_source.heat_units) + 75, "volume":64, "seasonal_influence":.25, "mean_floor_y":21.0}
 	clock_node.season = "summer"; clock_node.day = 1; clock_node.hour = 14
 	rooms._recompute_temp(tiny)
 	_expect(rooms.comfort_label(tiny.temp_c) == "Comfortable", "one heater plus a log torch does not overheat a tiny summer bedroom")
 	readings.append({"room":"minimum thermal mass with torch", "volume":64, "season":"summer", "hour":14, "temperature_c":tiny.temp_c})
-	# Large room and winter demonstrate why contribution depends on volume.
+	# The owner's report (2026-10-30): a lit hearth left Furin's 605-cell bedroom, 40% open to
+	# the season at floor 56, Chilly. One hearth now keeps a bedroom that size comfortable on
+	# the hottest and the coldest day of the year.
+	var furins := {"heat_units":int(definition.heat_source.heat_units), "volume":605, "seasonal_influence":.4, "mean_floor_y":56.0}
+	for season in ["summer", "winter"]:
+		clock_node.season = season; clock_node.day = 1; clock_node.hour = 14
+		rooms._recompute_temp(furins)
+		_expect(rooms.comfort_label(furins.temp_c) == "Comfortable", "one hearth keeps a 605-cell bedroom comfortable in %s: %.1f°C" % [season, furins.temp_c])
+		readings.append({"room":"605-cell bedroom, one hearth", "volume":605, "season":season, "hour":14, "temperature_c":furins.temp_c})
+	# The seasonal swing follows the calendar's year, so it turns smoothly into winter (doc 281).
+	clock_node.season = "autumn"; clock_node.day = clock_node.days_per_season(); clock_node.hour = 23.99
+	var autumn_end: float = rooms.climate.temperature(21.0, 1.0, 1.0)
+	clock_node.season = "winter"; clock_node.day = 1; clock_node.hour = 0.0
+	_expect(absf(rooms.climate.temperature(21.0, 1.0, 1.0) - autumn_end) < 0.05 * float(rooms.temperature_config.seasonal_swing_c) + 0.01, "the seasonal temperature turns smoothly into winter")
+	# A hearth warms a room of up to about 600 cells (owner, 2026-10-30), so one is enough for
+	# this barracks in winter; its fires are tended, so a second only shares the heat.
 	_build_bedroom()
+	_bury(Vector3i(60,0,60), Vector3i(69,0,69))
 	_put("door", Vector3i(63,20,60))
 	_put("log_bed", Vector3i(61,20,62))
 	_put("log_bed", Vector3i(65,20,62))
 	var large_heater = _put("hearth", Vector3i(66,20,66),2)
 	clock_node.season = "winter"; clock_node.day = 1; clock_node.hour = 2
 	var large := _room_data()
-	_expect(large.room_type == "barracks" and rooms.comfort_label(large.temp_c) == "Chilly", "one hearth does not claim to heat a large winter barracks comfortably")
+	_expect(large.room_type == "barracks" and rooms.comfort_label(large.temp_c) == "Comfortable", "one hearth warms a winter barracks: %.1f°C" % float(large.temp_c))
 	readings.append({"room":"barracks, one hearth", "volume":large.volume, "season":"winter", "hour":2, "temperature_c":large.temp_c})
+	var one_hearth := float(large.temp_c)
 	_put("hearth", Vector3i(61,20,66),2)
 	large = _room_data()
-	_expect(rooms.comfort_label(large.temp_c) == "Comfortable", "two hearths warm the winter barracks")
+	_expect(is_equal_approx(float(large.temp_c), one_hearth), "a second hearth adds nothing past the tended cap")
 	var large_info := _rows(furniture.get_explorer_data("installed:%d" % large_heater.installed_id))
-	_expect(String(large_info.get("This hearth", "")) == "+%.1f°C" % (float(large.heat_bonus_c) / 2.0), "each inspector reports only its own contribution")
+	_expect(String(large_info.get("This hearth", "")) == "+%.1f°C" % rooms.heat_kept(room_probe, int(definition.heat_source.heat_units)), "each inspector reports only its own contribution")
 	readings.append({"room":"barracks, two hearths", "volume":large.volume, "season":"winter", "hour":2, "temperature_c":large.temp_c})
-	# Heat and inspector association are derived again after a roof breach/repair.
-	world.set_block(82,25,62,blocks.AIR_ID)
-	_expect(_small_room().is_empty(), "roof breach opens room")
+	# Heat and inspector association are derived again after a wall breach/repair.
+	world.set_block(80,22,62,blocks.AIR_ID)
+	_expect(_small_room().is_empty(), "wall breach opens room")
 	var outside_info: Dictionary = furniture.get_explorer_data("installed:%d" % heater.installed_id)
 	_expect(_rows(outside_info).get("Heating") == "No enclosed room" and outside_info.details.contains("Not inside an enclosed room"), "unsealed room explains why the hearth is not heating")
-	world.set_block(82,25,62,blocks.get_id("base:terrain:rock:rock01"))
-	_expect(not _small_room().is_empty(), "roof repair restores room heating")
+	world.set_block(80,22,62,blocks.get_id("base:terrain:rock:rock01"))
+	_expect(not _small_room().is_empty(), "wall repair restores room heating")
 	# Restoring existing furniture uses the new model/balance with no extra heat.
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
 	for id in furniture._installed.keys(): furniture._teardown_installed(id,false)
@@ -126,6 +163,24 @@ func _small_room() -> Dictionary:
 	rooms._rebuild_all_rooms()
 	return rooms.get_room_at(SMALL_PROBE)
 
+func _set_clock(season: String, hour: float) -> void:
+	clock_node.season = season
+	clock_node.day = 1
+	clock_node.hour = hour
+	rooms._on_hour_changed(int(hour))
+
+## An entry room in front of the small bedroom's door, 6 x 6 x 4 inside with its own door in
+## its far wall, buried as the bedroom is.
+func _build_entry_room() -> void:
+	var stone: int = blocks.get_id("base:terrain:rock:rock01")
+	for x in range(80,88):
+		for z in range(53,60):
+			for y in range(21,26):
+				if x in [83,84] and z == 53 and y < 25: continue
+				if x in [80,87] or z == 53 or y == 25: world.set_block(x,y,z,stone)
+	_bury(Vector3i(80,0,53), Vector3i(87,0,59))
+	_put("door", Vector3i(83,20,53))
+
 func _build_small_room() -> void:
 	var stone: int = blocks.get_id("base:terrain:rock:rock01")
 	for x in range(80,88):
@@ -135,6 +190,8 @@ func _build_small_room() -> void:
 				if x in [80,87] or z in [60,67] or y == 25: world.set_block(x,y,z,stone)
 
 func _capture_heaters(outside_heater) -> void:
+	# The pictures look into the rooms, so their burying stone goes first.
+	for box in [[Vector3i(80,26,53), Vector3i(87,36,67)], [Vector3i(60,26,60), Vector3i(69,36,69)]]: _fill_box(box[0], box[1], blocks.AIR_ID)
 	for node in drops._loose.keys(): drops.take(node); node.free()
 	for environment: WorldEnvironment in scene.find_children("*","WorldEnvironment",true,false):
 		environment.environment.ambient_light_color = Color("d5e3ed")

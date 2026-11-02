@@ -1,0 +1,114 @@
+{
+  "sources": [
+    {
+      "kind": "campfire",
+      "author": "aerror",
+      "id": "350757",
+      "title": "campfire.wav",
+      "description": "A real campfire recorded with a Zoom H4N and its internal XY microphone capsule. The uploader applied leveling and cutting.",
+      "page": "https://freesound.org/people/aerror/sounds/350757/",
+      "download": "https://cdn.freesound.org/previews/350/350757_2472895-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "53814d6715e9ed901cad254b7977ca8756112fe68a20f1c1641e5ec3a3dc80cb",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 39.5634693877551,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "campfire_recording.wav",
+      "master_sha256": "9ce3e71fae1f0561a7752972c7b2bace12a0a3603de99eb29b3a8ce89ba54e89",
+      "master_region_in_download_seconds": [
+        0,
+        39.5634693877551
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.7882994871729833,
+      "source_channel_correlation": 0.9999999999999998,
+      "selected_source_channel": "mono average",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Stereo averaged to mono for spatial playback",
+        "44100 to 22050 Hz with normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "torch",
+      "author": "TheWoodlandNomad",
+      "former_author": "FractalStudios",
+      "id": "363092",
+      "title": "Fire Crackle and Flames 002",
+      "description": "A crackling log fire with moving flames, recorded on Zoom H1. A quieter excerpt is adapted as torch foley; this is recorded wood fire, not a claim of an actual torch recording.",
+      "page": "https://freesound.org/people/TheWoodlandNomad/sounds/363092/",
+      "download": "https://cdn.freesound.org/previews/363/363092_6612464-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "d18b992237248ac766d613f41fb85af352f7e2a8ae63af170c3bad968de842af",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 21.032925170068026,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "log_fire_flames.wav",
+      "master_sha256": "8bfab85aa2aa0bf6de0a7940ebcaf8d9651275f3491ab1c7a9b7beb08696f877",
+      "master_region_in_download_seconds": [
+        0,
+        21.032925170068026
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 2.095151576430054,
+      "source_channel_correlation": 0.882771828306955,
+      "selected_source_channel": "mono average",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Stereo averaged to mono for spatial playback",
+        "44100 to 22050 Hz with normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "campfire": {
+      "master": "campfire_recording.wav",
+      "region_seconds": [
+        4,
+        35
+      ],
+      "loop_seconds": 29,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 80,
+      "low_pass_hz": 7000,
+      "soft_peak_rms": 4,
+      "rate": 22050,
+      "channels": 1,
+      "loop": true,
+      "target_rms": 0.07565983213511698,
+      "peak_ceiling": 0.68,
+      "output": "assets/audio/ambience/campfire.wav"
+    },
+    "torch": {
+      "master": "log_fire_flames.wav",
+      "region_seconds": [
+        3,
+        17
+      ],
+      "loop_seconds": 12,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 180,
+      "low_pass_hz": 4500,
+      "rate": 22050,
+      "channels": 1,
+      "loop": true,
+      "target_rms": 0.0855400042037333,
+      "peak_ceiling": 0.68,
+      "output": "assets/audio/ambience/torch.wav"
+    }
+  },
+  "production_script": "tools/generate_fire_audio.py",
+  "processing": "Two separate real wood-fire recordings. DC removal, gentle zero-phase high/low-pass filtering, two-second equal-power tail-to-head loop crossfades and gain toward previous RMS levels with a 0.68 peak ceiling. Campfire uses tanh soft peak control at four times source RMS so close-mic wood pops do not force the continuous flame bed too quiet. Torch removes more bass and upper crackle to represent a smaller flame. No synthesis, pitch shifting, time stretching or added reverb."
+}

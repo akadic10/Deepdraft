@@ -22,6 +22,7 @@
     [
       {"title": "Views", "entries": [
         {"label": "Appeal", "actions": ["view_appeal"]},
+        {"label": "Temperature", "actions": ["view_temperature"]},
         {"label": "X-ray", "actions": ["view_xray"]},
         {"label": "Slice", "actions": ["slice_toggle"]},
         {"label": "Raise / lower 4 levels", "actions": ["slice_cell_up", "slice_cell_down"], "joined": "/"},

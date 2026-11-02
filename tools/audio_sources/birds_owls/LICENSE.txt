@@ -1,0 +1,23 @@
+Bird and owl sound sources — CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source pages and their CC0 declarations checked 2026-10-28.
+
+DAYTIME BIRDS: Blackbird (isolated) — richwise
+https://freesound.org/people/richwise/sounds/811988/
+The author describes a close blackbird singing in the evening, recorded with
+the XY microphones of a Zoom H5 Studio. Very distant traffic is noted in the
+source description. Six separate song phrases provide the daytime bird bank;
+they are variations of one bird species, not six different species.
+
+OWLS: Perfect Spooky Owls — DreamSavvyr
+https://freesound.org/people/DreamSavvyr/sounds/787733/
+The author describes real outdoor owl hoots recorded with a Tascam DR-05,
+with pauses between calls shortened in the uploaded recording. The owl
+species is not identified by the author. Three separate hooting sequences
+are used; no human imitation or synthetic owl voice is added.
+
+Masters were decoded from Freesound's public HQ MP3 previews, not downloaded
+from the original-upload WAV endpoints. source.json records download hashes,
+master conversion, crop positions, filters, fades and levels. Preparation
+mixes to mono and resamples with anti-alias filtering to 22050 Hz while
+preserving original speed and pitch. No time stretching or reverb is added.

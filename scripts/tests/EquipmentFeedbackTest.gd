@@ -85,7 +85,7 @@ func _review_views(factory) -> void:
 		# Colony Dwarves' Details card opens the character sheet beside the roster.
 		var card = director._roster_panel._card
 		_expect(director._roster_panel.window.get_global_rect().encloses(card._buttons.profession.get_global_rect()), "the card's Change profession fits the roster " + str(viewport))
-		_expect(not card._buttons.crafting.visible, "a Carpenter's card has no Crafting while its recipes are planned")
+		_expect(card._buttons.crafting.visible, "a Carpenter's card opens their own crafting page (doc 293)")
 		_click(card._buttons.character_sheet.get_global_rect().get_center())
 		await _frames(8)
 		var detail = explorer._dwarf_panel

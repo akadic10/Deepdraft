@@ -1,5 +1,5 @@
 {
-  "__comment": "Command dock. Dock items and the Orders, Zones, Construction and Crafters menus show Hearthblock icons (assets/ui/icons, doc 259) on their family tile (icon_families.json); other menus keep the illustrated atlas regions until their icon pass. Labels appear on hover/focus. Colony opens its page, and 'colony' lists the entries that page shows as buttons (doc 23). UIRegistry owns layout; DockUI owns dispatch.",
+  "__comment": "Command dock. Dock items and every menu show Hearthblock icons (assets/ui/icons, doc 259) on their family tile (icon_families.json); Development and its DEV tools sit on the DEV tile. Labels appear on hover/focus. Colony opens its page, and 'colony' lists the entries that page shows as buttons (doc 23). UIRegistry owns layout; DockUI owns dispatch.",
   "schema_version": 2,
   "items": [
     {
@@ -98,7 +98,7 @@
       "dev": true,
       "label": "Development",
       "icon": "res://assets/ui/icons/development.png",
-      "family": "system",
+      "family": "dev",
       "separator_before": true,
       "tooltip": "Development and testing tools",
       "action": "open_panel",
@@ -166,7 +166,7 @@
           "label": "Carpenter",
           "icon": "res://assets/ui/icons/carpenter.png",
           "family": "settlement",
-          "tooltip": "Browse the carpentry catalog. Carpenter promotion is available; specialist production is planned.",
+          "tooltip": "The Carpenter's page: their own bench first, made at the crude workbench.",
           "action": "open_crafting",
           "target": "carpenter"
         },
@@ -175,7 +175,7 @@
           "label": "Stonemason",
           "icon": "res://assets/ui/icons/stonemason.png",
           "family": "settlement",
-          "tooltip": "Browse planned stonework and masonry designs.",
+          "tooltip": "The Stonemason's page: their own bench first, made at the crude workbench.",
           "action": "open_crafting",
           "target": "stonemason"
         },
@@ -184,27 +184,9 @@
           "label": "Blacksmith",
           "icon": "res://assets/ui/icons/blacksmith.png",
           "family": "settlement",
-          "tooltip": "Browse planned metalworking designs.",
+          "tooltip": "Browse planned metalwork: tools, fittings, weapons and armor.",
           "action": "open_crafting",
           "target": "blacksmith"
-        },
-        {
-          "id": "weaponsmith",
-          "label": "Weaponsmith",
-          "icon": "res://assets/ui/icons/weaponsmith.png",
-          "family": "settlement",
-          "tooltip": "Browse planned weapons and weapon-making tools.",
-          "action": "open_crafting",
-          "target": "weaponsmith"
-        },
-        {
-          "id": "armorsmith",
-          "label": "Armorsmith",
-          "icon": "res://assets/ui/icons/armorsmith.png",
-          "family": "settlement",
-          "tooltip": "Browse planned armor and protective equipment.",
-          "action": "open_crafting",
-          "target": "armorsmith"
         },
         {
           "id": "farmer",
@@ -216,13 +198,13 @@
           "target": "farmer"
         },
         {
-          "id": "hunter",
-          "label": "Hunter",
-          "icon": "res://assets/ui/icons/hunter.png",
+          "id": "ranger",
+          "label": "Ranger",
+          "icon": "res://assets/ui/icons/ranger.png",
           "family": "settlement",
-          "tooltip": "Browse planned hunting equipment.",
+          "tooltip": "Fish dried on the rack. Hunting comes later.",
           "action": "open_crafting",
-          "target": "hunter"
+          "target": "ranger"
         },
         {
           "id": "miner",
@@ -245,8 +227,8 @@
       ],
       "illustrated": true,
       "dock_anchor": "craft",
-      "columns": 10,
-      "compact_columns": 5
+      "columns": 8,
+      "compact_columns": 4
     },
     "orders": {
       "title": "Orders",
@@ -319,6 +301,15 @@
           "tooltip": "Drag over clear, walkable ground to create a storage zone. Select a finished zone to choose accepted goods.",
           "action": "activate_tool",
           "target": "storage_zone"
+        },
+        {
+          "id": "fishing_zone",
+          "label": "Fishing",
+          "icon": "res://assets/ui/icons/fishing_zone.png",
+          "family": "work",
+          "tooltip": "Drag along a shore to make a fishing zone. Dwarves allowed to fish cast from it until the colony keeps enough fish.",
+          "action": "activate_tool",
+          "target": "fishing_zone"
         },
         {
           "id": "farming_zone",
@@ -401,13 +392,8 @@
           "action": "toggle_window",
           "target": "block_inspector",
           "tooltip": "Inspect technical terrain data and generation diagnostics",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            318,
-            358,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_block_inspector.png",
+          "family": "dev"
         },
         {
           "id": "world_info",
@@ -415,13 +401,8 @@
           "action": "toggle_window",
           "target": "world_info",
           "tooltip": "Inspect terrain generation and world-building diagnostics.",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            622,
-            358,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_world_build.png",
+          "family": "dev"
         },
         {
           "id": "cave_development",
@@ -429,13 +410,8 @@
           "action": "toggle_window",
           "target": "caves_dev",
           "tooltip": "Highlight caves, jump to their depth and preview interiors",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            926,
-            358,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_cave_explorer.png",
+          "family": "dev"
         },
         {
           "id": "dwarf_development",
@@ -443,13 +419,8 @@
           "action": "toggle_window",
           "target": "dwarves_dev",
           "tooltip": "Spawn dwarves, test walking and exercise work/rest behavior",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            1230,
-            358,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_dwarf_tools.png",
+          "family": "dev"
         },
         {
           "id": "water_development",
@@ -457,13 +428,8 @@
           "action": "toggle_window",
           "target": "water_dev",
           "tooltip": "Inspect spring, waterfalls and outlet; test a dam and finite withdrawals.",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            14,
-            674,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_water.png",
+          "family": "dev"
         },
         {
           "id": "arrival_status_development",
@@ -471,27 +437,26 @@
           "action": "panel_action",
           "target": "world_events",
           "tooltip": "Show wildlife arrival opportunities and their last results.",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            318,
-            674,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_arrival_status.png",
+          "family": "dev"
         },
         {
           "id": "item_stamper",
           "label": "Item stamper",
           "action": "toggle_window",
           "target": "item_stamper",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            622,
-            674,
-            294,
-            288
-          ],
-          "tooltip": "DEV: Put any item on a floor: pick it, set the amount and wood, then click floors. Dwarves carry goods to storage."
+          "tooltip": "DEV: Put any item on a floor: pick it, set the amount and wood, then click floors. Dwarves carry goods to storage.",
+          "icon": "res://assets/ui/icons/dev_item_stamper.png",
+          "family": "dev"
+        },
+        {
+          "id": "remove_objects",
+          "label": "Remove objects",
+          "action": "activate_tool",
+          "target": "dev_remove",
+          "tooltip": "DEV: Remove trees, stones, bushes and flowers at once, without drops. Click one or drag an area; Esc to finish. There is no Undo.",
+          "icon": "res://assets/ui/icons/dev_remove_objects.png",
+          "family": "dev"
         },
         {
           "id": "time_weather_development",
@@ -499,13 +464,8 @@
           "action": "toggle_window",
           "target": "time_weather_dev",
           "tooltip": "Advance game time or cycle weather to test seasonal and weather systems.",
-          "icon": "res://assets/ui/dock/utilities_atlas.png",
-          "icon_region": [
-            1230,
-            674,
-            294,
-            288
-          ]
+          "icon": "res://assets/ui/icons/dev_time_weather.png",
+          "family": "dev"
         }
       ],
       "illustrated": true,

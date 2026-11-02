@@ -9,6 +9,7 @@
   "things": {
     "base:furniture:log_bed": {"picture": "res://assets/ui/furniture/log_bed.png"},
     "base:furniture:log_chair": {"picture": "res://assets/ui/furniture/log_chair.png"},
+    "base:furniture:stone_stool": {"picture": "res://assets/ui/furniture/stone_stool.png"},
     "base:furniture:bench": {"picture": "res://assets/ui/furniture/bench.png"},
     "base:furniture:log_table": {"picture": "res://assets/ui/furniture/log_table.png"},
     "base:furniture:board_game_table": {"picture": "res://assets/ui/furniture/board_game_table.png"},

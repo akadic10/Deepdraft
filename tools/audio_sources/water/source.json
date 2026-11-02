@@ -1,0 +1,353 @@
+{
+  "sources": [
+    {
+      "kind": "shoreline",
+      "title": "Water,Lapping,Rocky,Beach,Ambiance.wav",
+      "author": "Filipe Chagas",
+      "id": "91919",
+      "description": "Water lapping on a small rocky beach, recorded with a pair of Shure SM81 microphones and a Sound Devices 702T.",
+      "page": "https://freesound.org/people/Filipe%20Chagas/sounds/91919/",
+      "download": "https://cdn.freesound.org/previews/91/91919_1512131-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "9a416875ae895fb391795cf04d3689ac149242306214f96ce2fea555c6c08b5e",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 121.57979166666667,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "rocky_beach.wav",
+      "master_sha256": "dc383db3ff81bb15cdb051d39e3f2721c78d6528c3a48635e5cd2325fbd2d615",
+      "master_region_in_download_seconds": [
+        0,
+        90.0
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.444023831979359,
+      "source_channel_correlation": 0.8600572363087199,
+      "selected_source_channel": "both",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Stereo preserved with joint gain",
+        "48000 to 22050 Hz with normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "drip",
+      "title": "Many drops of water in a big cave (Karstic system Ojo Guare\u00f1a, Burgos, Spain)",
+      "author": "nomadas",
+      "id": "609161",
+      "description": "Real cave drips in Cacique hall in the Ojo Guare\u00f1a cave system, Spain, recorded with Sony PCM-D50; natural cave reverberation.",
+      "page": "https://freesound.org/people/nomadas/sounds/609161/",
+      "download": "https://cdn.freesound.org/previews/609/609161_938246-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "61e2afed409f0db538dd38770cbf1dfe617e9908b5f4054454c781a2c29acf32",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 47.56908333333333,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "cave_drips.wav",
+      "master_sha256": "4b21e87a0f0190d4fcfe362df2f2e87192c8f3893c45a8266204ba98cdece6ca",
+      "master_region_in_download_seconds": [
+        0,
+        47.56908333333333
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 6.158700788539751,
+      "source_channel_correlation": -0.3438058169225925,
+      "selected_source_channel": "left",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Left microphone retained to avoid cancellation of cave reverberation",
+        "48000 to 22050 Hz with normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "river",
+      "title": "Small brook, stream, water sound",
+      "author": "SamsterBirdies",
+      "id": "584269",
+      "description": "Water flowing through a small brook at Kettle Falls, Washington, recorded with Primo EM272 capsules and a Tascam DR100mkIII.",
+      "page": "https://freesound.org/people/SamsterBirdies/sounds/584269/",
+      "download": "https://cdn.freesound.org/previews/584/584269_5487341-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "7b9d46c587902cd2cb2a65b2bbf69ba8c870b568e16c812ed094a60a0660e723",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 72.79775,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "small_brook.wav",
+      "master_sha256": "ed2027f14c49456196ae27ce0c8b75d638f2ad69d57f034416cb65cc83586649",
+      "master_region_in_download_seconds": [
+        0,
+        50.0
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 2.21506097054771,
+      "source_channel_correlation": 0.16450071265450555,
+      "selected_source_channel": "mono average",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Stereo averaged to mono for spatial playback",
+        "48000 to 22050 Hz with normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "waterfall",
+      "title": "Waterfall_Small",
+      "author": "Brikaro",
+      "id": "855677",
+      "description": "A small waterfall draining onto rock, recorded with a Zoom H1 Essential.",
+      "page": "https://freesound.org/people/Brikaro/sounds/855677/",
+      "download": "https://cdn.freesound.org/previews/855/855677_16235608-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "2dd511f4d1065ea87a9726b8624c7d342a0c2a5c47bed5bc4dc8d4f37938a961",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 77.5756875,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "small_waterfall.wav",
+      "master_sha256": "11a19705b67c4d648e9a60951843e27bb6ab7777b250cd9dce10625c671a51b6",
+      "master_region_in_download_seconds": [
+        0,
+        50.0
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.1411685428088125,
+      "source_channel_correlation": 0.5630044187124379,
+      "selected_source_channel": "mono average",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Stereo averaged to mono for spatial playback",
+        "48000 to 22050 Hz with normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "duck_splash",
+      "author": "vero.marengere",
+      "id": "524524",
+      "page": "https://freesound.org/people/vero.marengere/sounds/524524/",
+      "download": "https://cdn.freesound.org/previews/524/524524_6605732-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "6bc8b7ec7f0a81c151842fe807ab32da44a2c40d96b1b5397952ac9d90261a67",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 15.375,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "title": "Water Splash in Lake 05.wav",
+      "description": "Recorded splashes in a lake, captured with Zoom H4N Pro and processed by the uploader with accusonus Noise Remover. Excerpts used as duck splash foley; the source does not claim recorded ducks.",
+      "master": "water_splashes.wav",
+      "master_sha256": "a7247ab753b2c4a76775c3b4a6353db6e30d2fdd4d1475a8855334ac8dc53928",
+      "master_region_in_download_seconds": [
+        0,
+        15.375
+      ],
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.152688737940771,
+      "source_channel_correlation": 0.8812020251735011,
+      "selected_source_channel": "mono average",
+      "master_conversion": [
+        "HQ MP3 preview decoded to float PCM",
+        "Stereo averaged to mono for spatial playback",
+        "Native 48000 Hz retained"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "shoreline": {
+      "master": "rocky_beach.wav",
+      "channels": 2,
+      "rate": 22050,
+      "region_seconds": [
+        52,
+        87
+      ],
+      "loop": true,
+      "loop_seconds": 33,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 100,
+      "low_pass_hz": 8500,
+      "target_rms": 0.04895152324812334,
+      "peak_ceiling": 0.65,
+      "output": "assets/audio/ambience/environment/shoreline.wav"
+    },
+    "river": {
+      "master": "small_brook.wav",
+      "channels": 1,
+      "rate": 22050,
+      "region_seconds": [
+        17,
+        48
+      ],
+      "loop": true,
+      "loop_seconds": 29,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 70,
+      "low_pass_hz": 6000,
+      "soft_peak_rms": 4,
+      "target_rms": 0.11997546916981461,
+      "peak_ceiling": 0.76,
+      "output": "assets/audio/ambience/water/river.wav"
+    },
+    "waterfall": {
+      "master": "small_waterfall.wav",
+      "channels": 1,
+      "rate": 22050,
+      "region_seconds": [
+        12,
+        45
+      ],
+      "loop": true,
+      "loop_seconds": 31,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 60,
+      "low_pass_hz": 8000,
+      "target_rms": 0.1799930452057803,
+      "peak_ceiling": 0.76,
+      "output": "assets/audio/ambience/water/waterfall.wav"
+    },
+    "drip_01": {
+      "master": "cave_drips.wav",
+      "channels": 1,
+      "rate": 22050,
+      "region_seconds": [
+        4.45,
+        6.45
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        0.2
+      ],
+      "high_pass_hz": 150,
+      "low_pass_hz": 8000,
+      "target_rms": 0.033056381594729775,
+      "peak_ceiling": 0.6,
+      "output": "assets/audio/ambience/environment/drip_01.wav"
+    },
+    "drip_02": {
+      "master": "cave_drips.wav",
+      "channels": 1,
+      "rate": 22050,
+      "region_seconds": [
+        8.4,
+        10.4
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        0.2
+      ],
+      "high_pass_hz": 150,
+      "low_pass_hz": 8000,
+      "target_rms": 0.0330411125896886,
+      "peak_ceiling": 0.6,
+      "output": "assets/audio/ambience/environment/drip_02.wav"
+    },
+    "drip_03": {
+      "master": "cave_drips.wav",
+      "channels": 1,
+      "rate": 22050,
+      "region_seconds": [
+        20.4,
+        22.4
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        0.2
+      ],
+      "high_pass_hz": 150,
+      "low_pass_hz": 8000,
+      "target_rms": 0.03269583848648097,
+      "peak_ceiling": 0.6,
+      "output": "assets/audio/ambience/environment/drip_03.wav"
+    },
+    "duck_splash_01": {
+      "master": "water_splashes.wav",
+      "channels": 1,
+      "rate": 48000,
+      "region_seconds": [
+        0.32,
+        0.9
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.005,
+        0.06
+      ],
+      "high_pass_hz": 100,
+      "low_pass_hz": 14000,
+      "target_rms": 0.057916341771385,
+      "peak_ceiling": 0.32,
+      "output": "assets/audio/wildlife/duck_splash_01.wav"
+    },
+    "duck_splash_02": {
+      "master": "water_splashes.wav",
+      "channels": 1,
+      "rate": 48000,
+      "region_seconds": [
+        3.31,
+        3.95
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.005,
+        0.06
+      ],
+      "high_pass_hz": 100,
+      "low_pass_hz": 14000,
+      "target_rms": 0.05823809198709214,
+      "peak_ceiling": 0.32,
+      "output": "assets/audio/wildlife/duck_splash_02.wav"
+    },
+    "duck_splash_03": {
+      "master": "water_splashes.wav",
+      "channels": 1,
+      "rate": 48000,
+      "region_seconds": [
+        7.72,
+        8.42
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.005,
+        0.06
+      ],
+      "high_pass_hz": 100,
+      "low_pass_hz": 14000,
+      "target_rms": 0.055520628562633144,
+      "peak_ceiling": 0.32,
+      "output": "assets/audio/wildlife/duck_splash_03.wav"
+    }
+  },
+  "production_script": "tools/generate_water_audio.py",
+  "environmental_entry_points": [
+    "tools/generate_environment_details.py delegates shoreline and all three drip variants",
+    "tools/generate_duck_audio.py delegates all three splash variants"
+  ],
+  "processing": "DC removal, zero-phase high/low-pass filtering, gain toward previous RMS subject to peak ceilings, two-second equal-power crossfades for the three loops and edge fades for cues. River uses tanh soft peak control at four times its RMS before looping, so rare close-mic transients do not force the whole bed too quiet. Cave excerpts retain natural reverberation and background drips. Duck cues use recorded lake-water splashes as foley, not recorded ducks. Original speed and pitch retained; no synthesis, pitch shifting, time stretching or added reverb. Shared environment writer adds final DC correction and 10 ms edge fades."
+}

@@ -1,0 +1,46 @@
+{
+  "sources": [
+    {
+      "kind": "glockenspiel",
+      "author": "schreibsel",
+      "id": "539915",
+      "title": "Chime",
+      "description": "A chord performed on a real glockenspiel and recorded with a Blue Snowball iCE microphone.",
+      "page": "https://freesound.org/people/schreibsel/sounds/539915/",
+      "download": "https://cdn.freesound.org/previews/539/539915_7898982-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "7b26ed17fb3011780ca7effb4fe81c32cff92ea5bb74a1d9346408ae89a0969b",
+      "rate": 44100,
+      "channels": 1,
+      "seconds": 1.4164172335600906,
+      "preview": "Public HQ MP3 preview; the original upload is also MP3. The original upload was not downloaded.",
+      "original_upload_format": "MP3",
+      "master": "glockenspiel.wav",
+      "master_sha256": "5cafe62bc596c2ee6e4dc7ed14556290d99288c1ac6926c65f0516781f63499f",
+      "master_rate": 44100,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 9.063196591621281,
+      "master_conversion": "Complete HQ MP3 preview decoded in floating point, retaining the original mono channel and 44100 Hz rate. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "clip": {
+    "master": "glockenspiel.wav",
+    "output": "assets/audio/ui/promotion.wav",
+    "region_seconds": [
+      0.095,
+      1.345
+    ],
+    "high_pass_hz": 80,
+    "low_pass_hz": 7000,
+    "fade_in_seconds": 0.003,
+    "fade_out_seconds": 0.08,
+    "target_rms": 0.12769301666326657,
+    "peak_ceiling": 0.519989013671875
+  },
+  "production_script": "tools/generate_promotion_audio.py",
+  "processing": "Trim one continuous glockenspiel chord, remove DC, gently filter, fade the edges and match the previous cue RMS subject to its peak ceiling. No synthesis, added notes, pitch shifting, time stretching, reverb or denoising."
+}

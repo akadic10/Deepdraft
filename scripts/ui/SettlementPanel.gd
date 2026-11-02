@@ -225,8 +225,8 @@ static func read_colony(tree: SceneTree) -> Dictionary:
 		if int(room.get("owner_id", -1)) >= 0: owners[int(room.owner_id)] = true
 	for agent: DwarfAgent in agents:
 		if owners.has(agent.dwarf_id): colony.beds = int(colony.beds) + 1
-	for zone: StorageComponent in StockpileManager.get_zones():
-		colony.used = int(colony.used) + zone.stored_entries().size()
+	for zone: StorageComponent in StockpileManager.get_stores():
+		colony.used = int(colony.used) + zone.storage_used()
 		colony.capacity = int(colony.capacity) + zone.storage_capacity()
 		var held := zone.contents()
 		for key: String in held: colony.items = int(colony.items) + int(held[key])

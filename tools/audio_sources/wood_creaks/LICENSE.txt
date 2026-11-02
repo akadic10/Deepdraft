@@ -1,0 +1,29 @@
+Deepdraft - recorded tree creaks
+
+All three recordings were released under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+tree_creak_1
+Author: Comradar
+Source: https://freesound.org/people/Comradar/sounds/797991/
+Preview: https://cdn.freesound.org/previews/797/797991_17170252-hq.mp3
+Local master: tree_creak_1.wav
+The uploader identifies these as trees creaking in windy weather.
+
+tree_creak_2
+Author: Comradar
+Source: https://freesound.org/people/Comradar/sounds/797992/
+Preview: https://cdn.freesound.org/previews/797/797992_17170252-hq.mp3
+Local master: tree_creak_2.wav
+The uploader identifies these as trees creaking in windy weather.
+
+tree_creak_4
+Author: Comradar
+Source: https://freesound.org/people/Comradar/sounds/797994/
+Preview: https://cdn.freesound.org/previews/797/797994_17170252-hq.mp3
+Local master: tree_creak_4.wav
+The uploader identifies these as trees creaking in windy weather.
+
+Masters retain the complete public HQ MP3 previews, decoded, averaged to mono and resampled to 22.05 kHz PCM16 with anti-alias filtering. Original lossless uploads were not downloaded. Source/master hashes, master gains and clip settings are in source.json. Each game cue is a different tree-creak recording; full durations, natural speed and pitch are preserved. Preparation removes DC, filters gently, fades boundaries and matches previous average levels subject to the former peak ceiling. No synthesized layers, time stretching, pitch shifting, added reverb or denoising.

@@ -1,0 +1,108 @@
+{
+  "sources": [
+    {
+      "kind": "mlsulli",
+      "author": "mlsulli",
+      "id": "234867",
+      "title": "Snoring.wav",
+      "description": "The uploader identifies this as a recording of a person snoring while asleep.",
+      "page": "https://freesound.org/people/mlsulli/sounds/234867/",
+      "download": "https://cdn.freesound.org/previews/234/234867_3883507-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "3006b20031311dfb17f0e48428b74f102b1f33d48d132195ebaf1c1198cc6124",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 25.267791666666668,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "sleeping_mlsulli.wav",
+      "master_sha256": "53edec6b3b4447af85a7ece92743d0edf04979621a0b5fa1ce5562213c571780",
+      "master_rate": 24000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.255402169672013,
+      "source_channel_correlation": null,
+      "master_conversion": "Full HQ MP3 preview decoded, stereo averaged to mono where applicable, then resampled to 24000 Hz with normalized 256-tap rational-phase Kaiser sinc (radius 128, beta 8.6, 10800 Hz cutoff, reflect padding). Gain normalizes the complete master peak to 0.8. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "mffm",
+      "author": "mffm",
+      "id": "236288",
+      "title": "human snore.wav",
+      "description": "The uploader documented an adult snoring with a Zoom H4n field recorder.",
+      "page": "https://freesound.org/people/mffm/sounds/236288/",
+      "download": "https://cdn.freesound.org/previews/236/236288_3840145-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "c67632cbb74e7302fd455d7ca2d9ce6005ff20446737763dafae2695cb4b1969",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 87.96009070294785,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "sleeping_mffm.wav",
+      "master_sha256": "6a61217ab3c74f741684090cfc3e7b7d0885ecfeeb77aac3313506ab4e00843b",
+      "master_rate": 24000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.634664468687412,
+      "source_channel_correlation": 0.07984958295088233,
+      "master_conversion": "Full HQ MP3 preview decoded, stereo averaged to mono where applicable, then resampled to 24000 Hz with normalized 256-tap rational-phase Kaiser sinc (radius 128, beta 8.6, 10800 Hz cutoff, reflect padding). Gain normalizes the complete master peak to 0.8. Original speed and pitch retained.",
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "clips": [
+    {
+      "master": "sleeping_mffm.wav",
+      "region_seconds": [
+        1.0,
+        2.84
+      ],
+      "leading_silence_seconds": 0.04,
+      "trailing_silence_seconds": 0.27,
+      "output": "assets/audio/dwarves/snore_01.wav",
+      "target_rms": 0.057098700141336174,
+      "peak_ceiling": 0.3814697265625,
+      "high_pass_hz": 60,
+      "low_pass_hz": 6000,
+      "fade_in_seconds": 0.045,
+      "fade_out_seconds": 0.07
+    },
+    {
+      "master": "sleeping_mffm.wav",
+      "region_seconds": [
+        4.28,
+        6.14
+      ],
+      "leading_silence_seconds": 0.04,
+      "trailing_silence_seconds": 0.42,
+      "output": "assets/audio/dwarves/snore_02.wav",
+      "target_rms": 0.044559210912931656,
+      "peak_ceiling": 0.3814697265625,
+      "high_pass_hz": 60,
+      "low_pass_hz": 6000,
+      "fade_in_seconds": 0.045,
+      "fade_out_seconds": 0.07
+    },
+    {
+      "master": "sleeping_mlsulli.wav",
+      "region_seconds": [
+        19.25,
+        22.05
+      ],
+      "leading_silence_seconds": 0.04,
+      "trailing_silence_seconds": 0,
+      "output": "assets/audio/dwarves/snore_03.wav",
+      "target_rms": 0.05592762804539747,
+      "peak_ceiling": 0.3814697265625,
+      "high_pass_hz": 60,
+      "low_pass_hz": 6000,
+      "fade_in_seconds": 0.045,
+      "fade_out_seconds": 0.07
+    }
+  ],
+  "production_script": "tools/generate_snore_audio.py",
+  "processing": "Three separate snore events from two real sleeping-person recordings. Trim, DC removal, gentle high/low-pass filtering, short edge fades, small silence margins and gain toward each former RMS with its former peak as a ceiling. No synthesis, pitch shifting, time stretching, extra reverberation or denoising."
+}

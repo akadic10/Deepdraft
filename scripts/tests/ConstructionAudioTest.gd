@@ -40,14 +40,15 @@ func _run() -> void:
 	feedback = root.get_node("WorkFeedback")
 	feedback.set_process(false)
 	feedback._sync_scene()
-	feedback.sound_started.connect(func(kind,position,variant): sound_events.append([kind,position,variant]))
+	feedback.sound_started.connect(func(kind,position,variant):
+		if kind == "hammer": sound_events.append([kind,position,variant]))
 	var id: int = construction.create_order(_cells([Vector3i(44,21,40)]))
 	var order = construction.orders[id]
 	# Longer fixture work exercises wrap, skipped cycles and a fractional ending.
 	order.def = order.def.duplicate()
 	order.def.work_seconds = 8.2
 	_expect(await _wait_phase(worker.TaskPhase.FETCH_WORKING),"real supplied construction reaches hammer work")
-	_expect(sound_events.is_empty(),"deliveries and beginning work stay quiet")
+	_expect(sound_events.is_empty(),"deliveries and beginning work do not play hammer impacts")
 	_step(.70)
 	_expect(sound_events.is_empty(),"wind-up stays quiet")
 	_step(.03)

@@ -18,7 +18,7 @@
     "stages": {
       "shrub": {
         "clearance_height": 1,
-        "growth_duration_days": 3,
+        "growth_duration_days": 2.25,
         "models": {
           "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_spring.glb",
           "summer": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_young_summer.glb",
@@ -51,7 +51,7 @@
             }
           ],
           "work_seconds": 3.0,
-          "regrow_days": 2.0
+          "regrow_days": 1.5
         },
         "picked_models": {
           "spring": "res://assets/models/flora/bushes/wild_strawberry/wild_strawberry_spring_picked.glb",

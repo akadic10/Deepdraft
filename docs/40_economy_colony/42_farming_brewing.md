@@ -18,6 +18,12 @@ pasture entries beside live Storage (doc 23, "Navigation Groups"). Both
 are explicitly planned and only explain their status; no farm or pasture zones,
 worker jobs, livestock ownership or crop cultivation are enabled by this UI pass.
 
+**Spoilage (2026-10-29, doc 282 phase 2):** stored, loose and carried fruit spoils by
+temperature and open sky, and rots at the end; cool cellars keep it longest. See "Spoilage".
+
+**Tree planting (2026-10-29, doc 284):** tree seeds plant through Place → Plants and grow to
+ancient. See Surface Trees, "Planting Seeds".
+
 **Food foundation, 2026-10-12 (doc 131):** dwarves eat fresh fruit, and berry bushes
 give repeat crops. Dwarves prefer reachable stored food, then allowed loose portions.
 Famished dwarves may pick a ripe, unclaimed bush within 24 blocks of routed travel when
@@ -26,7 +32,11 @@ portion is carried for eating, surplus berries remain haulable, and interrupted 
 saves on the plant. The picker never clears or uproots the bush or skips its regrowth.
 Dining and hunger penalties are live; the eating and dining rules are in doc 41.
 Edibility/nutrition are explicit item data, so later cooked food and edible meats can
-share the same behavior.
+share the same behavior. Fish are food the same way: perch, trout, char and cave fish keep 2
+days at 20°C, and a drying rack turns two of a kind into two dried fish that keep 30 (doc 289).
+At night a hungry dwarf grills a fresh fish on a burning campfire and eats it there, a meal by
+the fire (doc 290, `food.grill` marks the fish that grill); dried fish and fruit are eaten as
+they are.
 
 ## Overview
 
@@ -79,7 +89,7 @@ or permanently cleared. Harvest takes three seconds and keeps the plant; clearin
 takes two seconds and yields one cutting on completion (100% for all three
 species, configured in `wild.clearing.yields[].chance`). Berry harvest yields
 blueberry 3 in summer, elderberry 4 in autumn, and strawberry 3 in spring/summer.
-As of milestone 131, berries regrow after two planted days in eligible seasons;
+As of milestone 131, berries regrow after 1.5 planted days in eligible seasons (two before the 21-day calendar, doc 281);
 off-season and packed intervals pause progress. Picked visuals, crop progress,
 separate partial work and removals save. Moving a bush cannot refresh its crop.
 Fruit enters the existing loose produce-crate and hauling pipeline. All four
@@ -106,8 +116,8 @@ of world-generation habitat bands.
 cutting per young shrub, with three seconds of worker planting. Each planting
 takes one cutting from its crate (pickup, cancelling and the final site check are
 in doc 31, "Cutting planting"). Cuttings use the mature transplant's placement rules, with clearance
-checked for the mature plant. Blueberry/strawberry need 3 growth days and
-elderberry 4 (`stages.shrub.growth_duration_days`). JSON seasonal multipliers
+checked for the mature plant. Blueberry/strawberry need 2.25 growth days and
+elderberry 3 (`stages.shrub.growth_duration_days`; ¾ of the values before the 21-day calendar, doc 281). JSON seasonal multipliers
 (`wild.planting.seasonal_growth`) are spring 1.2, summer 1.0, autumn 0.8 and
 winter 0.0. Age is the plant's `growth_credit` plus
 `WorldClock.seasonal_days_between()` since its `planted_at` day: one growth day
@@ -118,6 +128,71 @@ seasonal harvest and mature Move/Uproot. Until then a young plant can only be
 cleared, which returns one cutting; construction or support loss removes it
 without a drop. Inspector **DEV: Grow to maturity** adds growth credit to that
 plant only, leaving the calendar and other crops unchanged.
+
+## Spoilage
+
+Live 2026-10-29 (doc 282 phase 2; `scripts/components/FoodSpoilage.gd`, owned by
+StockpileManager). Fruit spoils once harvested; fruit on the bush never does.
+- **Spoil.** Each food stack carries `spoil`, 0 fresh to 1 rotten: a stored stack in its
+  storage entry (`cell_stacks`, shown on its crate's node), a loose crate or a portion in hand
+  on its node (`ItemDropManager.spoil_of`). Splitting a stack copies it; putting goods
+  together (a deposit topping up a stack, fresh fruit landing on a loose crate, a basket
+  collecting another) averages it by count.
+- **Crates of different freshness stay apart** (owner, 2026-10-29): goods further apart in
+  spoil than `merge_band` (0.25, a quarter of their life) never share a crate while room
+  allows, so fresh fruit never takes on a rotting crate's clock.
+  - A stockpile deposit tops up a crate of like freshness, else takes an empty cell. Only
+    when the stockpile has no empty cell does it top up the crate closest in freshness,
+    rather than leave the fruit outside (`StorageStackSlots.reserve`).
+  - Fresh harvest landing on a loose crate spoilt past the band starts a crate of its own.
+  - A hauler's basket collects only crates within the band of its first.
+  - Hauling still asks only "is there room for apples?"; that answer never depends on
+    freshness, so no hauler waits on fruit that has nowhere to go.
+- **Speed**, worked out each game hour at the stack's place: where it is stored, where it
+  lies, or where its carrier stands. T is that place's temperature now (doc 34):
+
+```
+speed  = 2.5 ^ ((T − 20) / 10)           1 at 20°C; ×2.5 for every 10°C warmer
+speed  = 0.05 when T ≤ 0°C under a roof  frozen nearly stops
+speed += 1.0 under the open sky          1.5 in rain, storm or snow, frozen or not
+spoil += speed / (24 × keeps_days) each game hour
+```
+
+- **Keeping time** is item data: `food.keeps_days` in `resources.json`, the days a food
+  lasts at 20°C under a roof. Wild strawberry 2, elderberry 2, blueberry 4, apple 15,
+  juniper berry 40; each fresh fish 2 and dried fish 30 (doc 289). The rest is
+  `food.spoilage` in `task_config.json`.
+- **Rotting.** At 1 the units nobody has claimed are gone. Units claimed for a meal or a haul,
+  and food in hand, stay until used; food put down rots at the next hour if due (Hard Rule
+  12 holds). Events says so, one line for each food in each place: "24 blueberries rotted in
+  Stockpile 1.", "5 apples rotted on the ground."
+- **Warning.** As a stack passes 75%, Events warns with the days it has left there:
+  "Blueberries in Stockpile 1 are going bad: less than a day left."
+- **Eating order** prefers older food (doc 41 "Eating").
+- **The hourly pass** runs over frames, at most 0.5 ms a frame (`budget_usec`), and covers
+  the hours since the last pass; after a load the hours start afresh.
+- **Saves:** `spoil` saves with zone stacks, loose goods and carried goods.
+- **Seen** (doc 23):
+  - a food crate's status tag: Fresh, Spoiling (from half its life), Going bad (from three
+    quarters) or Frozen, with its days left there (`FoodSpoilage.freshness`);
+  - the storage window's Keeping list: each food's stalest crate, the soonest to rot first;
+  - the Temperature view's hover card: "Blueberries keep about 11 days here."
+
+What it gives, with blueberries keeping 4 days and apples 15 days at 20°C:
+
+| Place | Temperature | Blueberries keep | Apples keep |
+|---|---|---|---|
+| Valley yard, summer | ~21°C | ~2 days | ~7 days |
+| The same in rain | ~20°C | ~1.6 days | ~6 days |
+| Valley yard, winter | ~−3°C | ~3.5 days | ~13 days |
+| Tunnel, 6 blocks in, summer | ~15°C | ~6 days | ~24 days |
+| Valley larder, or a tunnel 12+ blocks in | ~9°C | ~11 days | ~41 days, two seasons |
+| Cellar just under the summit | ~2°C | ~21 days, a season | ~78 days, most of a year |
+
+Elderberries keep about 5 days in a valley larder and 10 in the cellar under the summit:
+not a whole winter, which leaves room for brewing them into wine later. Kept cool, apples and
+juniper berries (about 110 days in a valley larder) last the winter. Today too few grow near
+a start to feed one (doc 282, "Open").
 
 ## Agricultural Cycles
 
@@ -207,8 +282,8 @@ only. Stages advance in the order the crop file lists them.
 
 | Crop | Stages | After harvest |
 |---|---|---|
-| Plump helmet | sprouting (6 days) → mature | FALLOW, then automatically re-seeds to sprouting with no dwarf and no seed item; needs no light |
-| Pig tail | seedling (8 days) → mature | FALLOW; re-seed from pig tail seed |
+| Plump helmet | sprouting (4.5 days) → mature | FALLOW, then automatically re-seeds to sprouting with no dwarf and no seed item; needs no light |
+| Pig tail | seedling (6 days) → mature | FALLOW; re-seed from pig tail seed |
 | Hops | seedling → climbing → mature | FALLOW; re-seed from hops cuttings |
 | Grape vine | cutting → fruiting | Persists |
 
@@ -329,25 +404,32 @@ and use are implemented. Carpentry quantities and work times remain to be define
 no rack furniture definition or placed model in the game yet; the recipes and
 temperature-dependent batch behavior described below are planned too.
 
-For the full temperature system — sealed rooms, heat sources, the depth-temperature gradient, and the Frozen Vault — see [`34_temperature.md`](../30_simulation_systems/34_temperature.md).
+For the full temperature system — the climate, sealed rooms, heat sources and the Frozen Vault — see [`34_temperature.md`](../30_simulation_systems/34_temperature.md).
 
 ### Temperature Requirement
 
-The aging cellar block must be placed inside a **sealed room** whose computed temperature falls within the recipe's required range. Temperature is derived from the room's mean floor Y (deeper = colder) plus any heat bonus from torches or braziers placed inside the sealed room.
+The aging cellar block must be placed inside a **sealed room** whose computed temperature
+falls within the recipe's required range. The room's temperature is the climate's (doc 34):
+higher is colder, a degree for every 12 blocks; the rock over the room damps the seasons; a
+burning hearth adds heat.
 
 There is no hard Y placement constraint on the block itself — temperature is the gating factor. A cellar placed in a room that is too warm or too cold simply shows its affected recipes as unavailable until temperature is corrected.
 
-| Aged Drink | Required Temp | Baseline Depth | Notes |
+| Aged Drink | Required Temp | Baseline Height | Notes |
 |---|---|---|---|
-| Aged Dark Stout | 3–7°C | Y 47–64 | Cold Cave zone; accessible without extreme depth |
-| Vintage Wine | 6–10°C | Y 57–75 | Cool Cave zone; the shallowest aging recipe |
-| Reserve Gin | 1–4°C | Y 37–56 | Deep Cold zone; a torch converts a near-frozen room into a gin cellar |
+| Vintage Wine | 6–10°C | Y 7–55 | Valley and foothill cellars; the most accessible aging recipe |
+| Aged Dark Stout | 3–7°C | Y 43–91 | The mountain's middle shelves |
+| Reserve Gin | 1–4°C | Y 79–115 | Cold stone high in the mountain; a hearth warms a freezing summit cellar into range |
 
-**Warming a room:** place torches or braziers inside the sealed room to raise its temperature. The heat bonus scales inversely with room volume — compact aging rooms (4×4×4 to 8×8×4) respond strongly to a single torch; large caverns need several.
+The baseline height is where a well-covered room's yearly mean falls in the range.
 
-**Cooling a room:** there is no cooling mechanic. If a room is too warm for a recipe, build a new aging cellar at greater depth.
+**Warming a room:** a burning hearth adds heat units ÷ room volume (doc 34), so compact aging rooms respond strongly to one hearth and large caverns need several. A log torch adds little.
 
-**Seasonal variation:** rooms above Y 30 experience a gentle seasonal and daily temperature curve — up to ±2°C total swing at Y 75, fading to zero at Y 30 and below. The baseline aging depths in the table therefore retain some seasonal influence; only rooms at Y ≤ 30 are unaffected. A wine cellar at mid-depth with torches may briefly pause in peak summer as the seasonal warmth nudges it above 10°C; removing a torch in early summer prevents this. See `34_temperature.md` for the full formula.
+**Cooling a room:** there is no cooling mechanic. If a room is too warm for a recipe, build a new aging cellar higher in the mountain.
+
+**Seasonal variation:** rock damps the seasons. Under 12 solid blocks a room swings about
+±2.7°C over the year, under 24 about ±0.6°C. A shallow wine cellar may pause at the height of
+summer as the warmth nudges it above 10°C; dig further into the rock for a steadier one.
 
 ### Aging Progress and Temperature
 
@@ -375,9 +457,9 @@ Only **one batch per cellar block** can be in progress at a time. Build addition
 
 Planned recipe values. Loading takes 1 hour, cut by 4% per Brewer level above 1;
 Min Skill is the minimum Brewer level. When the room is out of range the batch
-shows a tooltip: stout "Too warm for stout — lower temperature or build deeper.",
-wine "Temperature out of range for wine — adjust heat sources or depth.", gin
-"Too warm for gin — this recipe needs deep cold stone." UI categories are
+shows a tooltip: stout "Too warm for stout — lower the heat or build higher in the mountain.",
+wine "Temperature out of range for wine — adjust heat sources or height.", gin
+"Too warm for gin — this recipe needs cold stone high in the mountain." UI categories are
 `aged_ale`, `aged_wine` and `aged_spirit`.
 
 | Recipe ID | Inputs | Output | Aging Time | Temp Range | Min Skill |
@@ -388,9 +470,14 @@ wine "Temperature out of range for wine — adjust heat sources or depth.", gin
 
 ### Frozen Vault and Food Preservation
 
-A sealed room whose computed temperature is ≤ 0°C becomes a **Frozen Vault** — approximately Y ≤ 35 on the unheated baseline, with the actual result depending on heat and seasonal variation. Planned food preservation will prevent spoilage in its food stockpiles. The Frozen Vault zone is too cold for any aging recipe (minimum 1°C required), so planned aging progress pauses until the room is warmed into range.
+A sealed room whose computed temperature is ≤ 0°C becomes a **Frozen Vault**. In today's
+climate only cellars just under the summit freeze, for about two weeks around winter's first
+day; nothing freezes all year (ice to keep a cellar frozen is a later idea, doc 282). Food
+there spoils at a twentieth of its 20°C speed while it stays frozen ("Spoilage"). The Frozen Vault is too
+cold for any aging recipe (minimum 1°C required), so planned aging progress pauses until the
+room is warmed into range.
 
-A heavily torched frozen vault can be warmed above 0°C, converting it from a freezer into a potential Reserve Gin cellar — but the freezing benefit is lost. The tradeoff is intentional.
+A hearth can warm a frozen vault above 0°C, converting it from a freezer into a potential Reserve Gin cellar — but the freezing benefit is lost. The tradeoff is intentional.
 
 ---
 
@@ -420,7 +507,9 @@ Surface trees are **world objects, not farm crops**. They are the only surface e
 partial progress, designations and felled records persist; authored felling drops
 enter the normal hauling system. Manual annual apple and juniper picking is live
 through **Orders → Harvest plants** and explorer actions (rules under Fruit Trees
-below). Growth timers and forestry zones remain planned.
+below). Tree seeds plant through Place → Plants and grow to ancient (2026-10-29, doc 284;
+rules under Planting Seeds). Wild trees keep their seeded stage; forestry zones remain
+planned.
 
 ### Collision Rule
 
@@ -452,28 +541,94 @@ All trees share the same three-stage pattern:
 
 - **Sapling** — `collision: "clutter"`, no `CollisionShape3D`. Appears via planting or world-gen.
 - **Mature** — primary harvest target; full canopy collision. First harvestable stage.
-- **Ancient** — world-gen only, never planted; largest visual and collision footprint.
+- **Ancient** — largest visual and collision footprint. Wild ancients come from world-gen;
+  planted trees grow into it (Planting Seeds below).
 
 ### Footprint Table
 
-| Species | Sapling | Mature | Ancient | Primary yield |
-|---|---|---|---|---|
-| Oak (`base:flora:oak_tree`) | clutter | 3×3 | 5×5 (world-gen) | Oak log |
-| Juniper (`base:flora:juniper_tree`) | clutter | 1×1 | 2×2 (world-gen) | Juniper berry |
-| Apple (`base:flora:apple_tree`) | clutter | 3×3 | 5×5 (world-gen) | Apple (fruit harvest) |
-| Pine (`base:flora:pine_tree`) | clutter | 2×2 | 3×3 (world-gen) | Pine log |
+| Species | Sapling | Mature | Ancient | Planting area | Primary yield |
+|---|---|---|---|---|---|
+| Oak (`base:flora:oak_tree`) | clutter | 3×3 | 5×5 | 13×13 | Oak log |
+| Juniper (`base:flora:juniper_tree`) | clutter | 1×1 | 3×3 | 7×7 | Juniper berry |
+| Apple (`base:flora:apple_tree`) | clutter | 3×3 | 5×5 | 13×13 | Apple (fruit harvest) |
+| Pine (`base:flora:pine_tree`) | clutter | 2×2 | 3×3 | 7×7 | Pine log |
+
+Crowns overhang their trunks (measured from the models, widest season and variant, in
+blocks): oak mature 12 × 11 and ancient 18.5 × 17, 23.5 high; apple 12 × 11 and 18.5 × 17,
+17.5 high; pine 6 × 6 and 8 × 8, 27 high; juniper 6 × 6 and 9 × 8, 16 high. Below four blocks
+a mature or ancient tree is only its trunk.
 
 **Oak** is a spreading broadleaf. Mature oaks (3×3) are the primary surface obstacle and supply oak logs, which a carpenter will turn into staves for aging casks. Felling can also yield acorns, but never finished staves. Full schema: `data/entities/flora/oak_tree.json`.
 
-**Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 2×2. Full schema: `data/entities/flora/juniper_tree.json`.
+**Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 3×3: an odd trunk, so a planted juniper stays centred on its seed (owner, 2026-10-29; it was 2×2, and the models' root flare follows the footprint). Full schema: `data/entities/flora/juniper_tree.json`.
 
 **Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Mature and ancient trees support perennial autumn picking, described above, with distinct ripe and picked visuals. Full apple schema: `data/entities/flora/apple_tree.json`.
 
 **Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner`; placement across species is described under World placement below. Full schema: `data/entities/flora/pine_tree.json`.
 
+### Felling Yields
+
+A felled tree gives logs by its size (owner, 2026-10-28). Bigger trees give more, and an
+ancient tree gives about 2.5× its mature stage. Apple gives less than its size: felling it
+ends a fruit tree, and applewood is the most valuable wood. Saplings give nothing. Seeds
+are a separate chance roll, and the counts live in each stage's `harvest.yields`.
+
+| Species | Mature | Ancient |
+|---|---|---|
+| Oak | 6 | 16 |
+| Pine | 4 | 10 |
+| Apple | 3 | 8 |
+| Juniper | 2 | 5 |
+
+- **The logs lie one to a tile over the cleared footprint**, nearest its centre first
+  (`ItemDropManager.spawn_spread`). A tile holding a solid block is passed over; logs beyond
+  the open tiles share them. A seed crate drops on the open tile nearest the centre.
+- **A dwarf carries four logs a trip**, as with stones (log `carry_cost` 1, doc 31).
+- **Each log takes its own stockpile tile**, so 16 is the most one tree gives.
+
+### Planting Seeds
+
+Live 2026-10-29 (doc 284). Each species' `planting` block in its JSON makes a Place → Plants
+entry: Oak acorn, Apple seed, Pine cone, Juniper seed. The plan runs like a cutting's (doc 31,
+"Cutting planting"): one seed from its crate, `planting.work_seconds` of planting, and the
+seed is kept if the plan is cancelled. `TreePlanting` holds the rules below;
+`SurfaceFloraSpawner` owns the planted trees.
+
+- **Two squares, both centred on the seed:**
+  - *The trunk ground* is the ancient footprint (by its `clearance_height`), so the trunk
+    never runs out of room. At planting it must be level, solid and open to the sky, with no
+    plant, stone, furniture or stockpile, and no bush or flower may be planted on it later.
+    The seed cell needs a `planting.ground_kinds` block (grass, dirt, soil).
+  - *The planting area* (`planting.area`) is the mature crown (owner, 2026-10-29: the
+    ancient crown, 19 × 19 for oak, was too big). No other tree may stand in it: a wild
+    trunk, counted from the seeded candidates so trees not yet streamed in count too, or
+    another planted or queued tree's area. Areas may touch but never overlap, so mature
+    crowns never meet; ancient crowns may overlap by up to about 5½ blocks for oak and apple,
+    2 for juniper and 1 for pine, about as much as the wild forest's. Below four blocks a tree
+    is only its trunk (doc 63's walking clearance), so bushes, flowers, furniture and paths
+    still go under the crown.
+- **The trunk grows round the seed.** Odd footprints stay centred on it; the one even
+  footprint, the pine's mature 2 × 2, takes the seed's +X/+Z side until the 3 × 3 ancient
+  trunk centres again.
+- **Growth** follows `stages.*.growth_duration_days` (sapling → mature, mature → ancient),
+  weighted by `planting.seasonal_growth` (spring 1.2, summer 1, autumn 0.8, winter 0), as
+  cuttings do: saved `growth_credit` plus `WorldClock.seasonal_days_between()` since
+  `planted_at`, checked on the hour. A clock jump can take two stages at once.
+- **Growth waits for room.** A new stage needs its footprint × `clearance_height` to be level
+  ground and open air with no blocks, furniture, stockpile, loose items, dwarves or animals
+  in it; the tree's own trunk doesn't count. The panel says what is in the way. Growth also
+  waits while a felling or picking order is on the tree.
+- **Planted trees are trees.** They fell, drop logs and seeds, pick fruit and block dwarves
+  like wild ones. A planted tree's id is its seed's column; its saved change carries
+  `planted`, `anchor` (the seed cell), `planted_at` and `growth_credit`. A seed may go where
+  a felled tree stood, and the wild tree of that column never returns. Seed drops roll on the
+  planting hour as well as the column, so a replanted spot rolls afresh.
+- **Not built:** wild trees don't grow, and a sapling, wild or planted, floats if the ground
+  under it is mined.
+
 ### World placement
 
-The settlement plain is fully forested: trees grow everywhere suitable, and the player clears land to build. There is no special forest belt at the map edge; the normal rules run to the border. Apples grow wild in groves; player planting of apple saplings is planned (no tree-planting work exists yet).
+The settlement plain is fully forested: trees grow everywhere suitable, and the player clears land to build. There is no special forest belt at the map edge; the normal rules run to the border. Apples grow wild in groves; players plant them from seeds (Planting Seeds above).
 
 Each species has an elevation, domain and moisture niche, and all species share one scatter grid (`SurfaceFloraSpawner.scatter_cell_size`). Each cell holds at most one tree: every species is scored for suitability there, and one is chosen by a seeded weighted pick, or the cell is left open. This blends species across the gradients and prevents overlapping trunks. Placement is a pure function of `world_seed` and column position, so it needs no save data; saves store only changed trees (felled, designated, harvested). Moisture is a seeded noise map that reads drier with altitude and wetter beside water (`WorldGenerator.get_moisture`). Per-species keys (domains, height band, moisture band, `base_density`, slope and edge limits, footprints, stage weights) live in the `placement` block of each `data/entities/flora/*_tree.json`. Apple suitability is also gated by a grove mask, so wild apples cluster into groves.
 

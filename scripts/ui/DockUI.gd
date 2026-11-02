@@ -46,6 +46,7 @@ var _block_inspector_overlay: CanvasLayer
 var _slice_controller: Node = null
 var _xray_controller: Node = null
 var _appeal_view: Node = null
+var _temperature_view: Node = null
 var _flag_controller: Node = null
 var _stockpile_controller: Node = null
 var _furniture_controller: Node = null
@@ -166,6 +167,7 @@ func _build_toasts() -> void:
 	toast_root.add_child(_view_banner)
 	_view_banner.toasts = _toasts
 	if _appeal_view != null: _view_banner.bind("appeal", _appeal_view)
+	if _temperature_view != null: _view_banner.bind("temperature", _temperature_view)
 	if _xray_controller != null: _view_banner.bind("xray", _xray_controller)
 
 
@@ -521,6 +523,7 @@ func _build_time_slice_hud() -> void:
 	_time_slice_hud.tower.visibility_changed.connect(_fit_selection_panel)
 	_time_slice_hud.xray_panel.visibility_changed.connect(_fit_selection_panel)
 	_time_slice_hud.appeal_panel.visibility_changed.connect(_fit_selection_panel)
+	_time_slice_hud.temperature_panel.visibility_changed.connect(_fit_selection_panel)
 	_time_slice_hud.speed_requested.connect(_set_clock_speed)
 	_time_slice_hud.slice_toggle_requested.connect(_toggle_slice_tool)
 	_speed_buttons = _time_slice_hud.speed_buttons
@@ -528,6 +531,7 @@ func _build_time_slice_hud() -> void:
 	if _slice_controller != null: _time_slice_hud.bind_slice(_slice_controller)
 	if _xray_controller != null: _time_slice_hud.bind_xray(_xray_controller)
 	if _appeal_view != null: _time_slice_hud.bind_appeal(_appeal_view)
+	if _temperature_view != null: _time_slice_hud.bind_temperature(_temperature_view)
 	get_viewport().size_changed.connect(_position_time_slice_hud)
 	_fit_dock()
 	_update_navigation_status()
@@ -1002,6 +1006,16 @@ func register_appeal_view(controller: Node) -> void:
 		_position_time_slice_hud.call_deferred()
 
 
+## The Temperature view (TemperatureViewController) shows its button between Appeal's and
+## X-ray's.
+func register_temperature_view(controller: Node) -> void:
+	_temperature_view = controller
+	if _view_banner != null: _view_banner.bind("temperature", controller)
+	if _time_slice_hud != null:
+		_time_slice_hud.bind_temperature(controller)
+		_position_time_slice_hud.call_deferred()
+
+
 func _toggle_slice_tool() -> void:
 	if _slice_controller == null:
 		push_warning("DockUI: slice button pressed but no SliceController is registered.")
@@ -1065,6 +1079,13 @@ func register_stockpile_controller(controller: Node) -> void:
 	_stockpile_controller = controller
 	_connect_tool_active(controller)
 	if _orders != null: _orders.bind_controller("storage_zone", controller)
+	_bind_tool(controller)
+
+
+## Push-registration from FishingSystem (doc 289): Zones → Fishing toggles its tool.
+func register_fishing_controller(controller: Node) -> void:
+	_connect_tool_active(controller)
+	if _orders != null: _orders.bind_controller("fishing_zone", controller)
 	_bind_tool(controller)
 
 
@@ -1189,6 +1210,9 @@ func _locate_inventory_item(key: String, storage_only: bool) -> void:
 		if storage_only:
 			if location.kind == "stockpile" and _stockpile_controller != null:
 				inspected = _stockpile_controller.inspect_storage(location.owner)
+			elif location.kind == "container" and location.owner.window_opener.is_valid():
+				location.owner.window_opener.call()   # a furniture container's own window (doc 294)
+				inspected = true
 			if not inspected: continue
 		if rig == null and not inspected: continue
 		if rig != null: rig.locate_position(location.position)
@@ -1319,8 +1343,8 @@ func _bind_tool(controller: Node) -> void:
 	elif not _bar_tools.has(controller): _bar_tools.append(controller)
 
 
-## What the tool bar keeps clear of: the time controls, the slice tower and the X-ray and
-## Appeal options while they are open, and the compact panel.
+## What the tool bar keeps clear of: the time controls, the slice tower, the X-ray options and
+## the Appeal and Temperature scales while they are open, and the compact panel.
 func _bar_reserved_rects() -> Array:
 	var rects: Array = _time_slice_hud.occupied_rects() if _time_slice_hud != null else []
 	var panel := _selection_view()

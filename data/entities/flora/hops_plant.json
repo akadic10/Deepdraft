@@ -20,7 +20,7 @@
 
       "seedling": {
         "clearance_height": 1,
-        "growth_duration_days": 4,
+        "growth_duration_days": 3,
         "models": {
           "summer": "res://assets/models/flora/crops/hops/hops_seedling.glb"
         },
@@ -31,7 +31,7 @@
 
       "climbing": {
         "clearance_height": 2,
-        "growth_duration_days": 7,
+        "growth_duration_days": 5.25,
         "models": {
           "summer": "res://assets/models/flora/crops/hops/hops_climbing.glb"
         },

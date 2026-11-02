@@ -178,8 +178,7 @@ func _profile_lifecycle() -> void:
 	var table=_piece(LOG_TABLE,origin)
 	_expect(not furniture._seating.chair_settings(seats[0]).face_nearby_fire,"installing the table refreshes the cached close seating profile")
 	var fire=_piece("base:furniture:campfire",Vector3i(42,20,38))
-	worker._idle_behavior._furniture=furniture
-	var facing: Dictionary=worker._idle_behavior._seat_facing(seats[0])
+	var facing: Dictionary=furniture._seating.facing(seats[0],6.0)
 	_expect(facing.get("yaw")==slots[0].yaw and not facing.has("fire_id"),"close dining stools keep their safe inward pose beside a fire")
 	furniture.dev_remove_installed(fire.installed_id)
 	furniture.dev_remove_installed(table.installed_id)

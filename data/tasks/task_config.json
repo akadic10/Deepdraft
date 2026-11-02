@@ -39,12 +39,32 @@
     "search_budget_usec": 250,
     "search_nodes": 64,
     "forage_distance": 24,
-    "dining_distance": 16,
+    "dining_distance": 32,
     "dining_search_seconds": 2.0,
     "hungry_work_multiplier": 0.9,
     "famished_work_multiplier": 0.75,
     "hungry_mood_penalty": 0.05,
-    "famished_mood_penalty": 0.15
+    "famished_mood_penalty": 0.15,
+    "grilling": {
+      "__comment": "Grilling a fresh fish at a burning campfire (doc 290), read by DwarfFoodBehavior. The fish browns after browned_at of grill_seconds (real seconds at x1, as eat_seconds), then is eaten off the stick. The meal adds rest to the Rest (sleep) meter; the sheet says Rested by the fire for rested_hours game hours after.",
+      "grill_seconds": 10.0,
+      "browned_at": 0.6,
+      "rest": 0.05,
+      "rested_hours": 2.0
+    },
+    "spoilage": {
+      "__comment": "Food spoilage (doc 42 'Spoilage', doc 282), read by StockpileManager's FoodSpoilage. A stack's spoil runs 0 to 1, gaining speed / (24 x keeps_days) each game hour (keeps_days per food in resources.json). speed = rate_per_10c ^ ((T - reference_c) / 10) at the place's temperature T; frozen_speed under a roof at or below temperature.json's frozen_at_c; open sky adds open_sky_speed, or wet_speed in rain, storm or snow. At 1 the unclaimed units rot; Events warns as a stack passes warn_at. The readouts call a stack Fresh below spoiling_at, Spoiling below warn_at, then Going bad, and Frozen while it keeps at frozen_speed. Crates further apart in spoil than merge_band stay apart: a deposit tops up a crate of like freshness, else takes an empty cell, and only with no empty cell tops up the crate closest in freshness; fresh harvest never joins a loose crate spoilt past it, nor a hauler's basket a crate further off. The food search prefers older food: a fully spoilt stack counts route_margin_blocks nearer. The hourly pass spends at most budget_usec a frame.",
+      "reference_c": 20.0,
+      "rate_per_10c": 2.5,
+      "frozen_speed": 0.05,
+      "open_sky_speed": 1.0,
+      "wet_speed": 1.5,
+      "spoiling_at": 0.5,
+      "warn_at": 0.75,
+      "merge_band": 0.25,
+      "route_margin_blocks": 12,
+      "budget_usec": 500
+    }
   },
   "scheduler": {
     "scheduler_budget_usec": 1000,
@@ -65,9 +85,34 @@
     "planning_quantum_slices": 8,
     "maximum_search_nodes": 24000,
     "ingredient_planning_budget_usec": 250,
-    "ingredient_planning_node_cap": 32
+    "ingredient_planning_node_cap": 32,
+    "trip_extra_budget_usec": 1000
+  },
+  "__comment_fishing": "Fishing (doc 289). waters: each generated water a zone can fish, its catch and name, in the order a cast cell is matched (the lake, the tarn, the spring cave's pool, then the river). Its stock is stock_per_cell fish for each cell of it: the lake's and tarn's surface columns (lake 12,000-27,000, so 150-330 perch; a tarn about 900, so 60 char), the river's columns (2,000-3,200, so 60-95 trout) and the spring cave's water cells (31-37, so about 20 cave fish). It regrows regrowth_per_day of that maximum a day, continuously. Below fished_out_share of its maximum a water is Fished out and its zones post no work. A catch takes catch_hours of game time on a full water in spring, divided by season_speed, up to low_stock_factor times as long near Fished out, give or take catch_spread (seeded); Wisdom speeds it (stats.json). A zone keeps keep_default fish in store unless changed, by keep_step up to keep_max. A spot needs water at least min_depth deep within reach blocks of it, from its feet down to bank_drop blocks below them.",
+  "fishing": {
+    "waters": {
+      "lake": {"name": "Lowland lake", "item": "base:resources:fish:perch", "stock_per_cell": 0.012},
+      "tarn": {"name": "Mountain tarn", "item": "base:resources:fish:char", "stock_per_cell": 0.067},
+      "spring_cave": {"name": "Spring cave pool", "item": "base:resources:fish:cave_fish", "stock_per_cell": 0.6},
+      "river": {"name": "River", "item": "base:resources:fish:trout", "stock_per_cell": 0.03}
+    },
+    "season_speed": {"spring": 1.0, "summer": 0.85, "autumn": 1.0, "winter": 0.5},
+    "bank_drop": 4,
+    "regrowth_per_day": 0.03,
+    "fished_out_share": 0.1,
+    "catch_hours": 1.0,
+    "low_stock_factor": 3.0,
+    "catch_spread": 0.2,
+    "keep_default": 20,
+    "keep_step": 5,
+    "keep_max": 200,
+    "min_depth": 0.5,
+    "reach": 2,
+    "max_zone_extent": 16
   },
   "static_priorities": {
+    "FISH": 42,
+    "COLLECT": 47,
     "MINE": 50,
     "HAUL": 40,
     "FETCH_BUILD": 45,
@@ -82,8 +127,8 @@
     "UPROOT_SHRUB": 50,
     "HARVEST_TREE": 50
   },
-  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in resources.json: stone/ore 1, raw timber 2, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
-  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Bridges/ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
+  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in resources.json: stone, ore and raw timber 1, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
+  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
   "furniture": {
     "uninstall_time_s": 2.0,
     "wall_reach_up_blocks": 5
@@ -110,12 +155,26 @@
     "stride_length": 1.05,
     "foot_lift": 0.22
   },
+  "health": {
+    "__comment": "Dwarf health (doc 41), read by DwarfHealth. Whole hit points: base_hit_points at Average in `stat`, per_step more or less for each step above or below. Healing is a share of the maximum each game hour, asleep or awake. Words by the share left: Healthy at hurt_below and above, Hurt down to badly_hurt_below, Badly hurt under it, which also brings the Injured thought (injured_mood_penalty). Nothing hurts a dwarf yet, and health never drops below `minimum` points; dev_hurt is what DEV: hurt a dwarf takes.",
+    "stat": "base:stat:toughness",
+    "base_hit_points": 100,
+    "per_step": 15,
+    "heal_asleep_per_hour": 0.04,
+    "heal_awake_per_hour": 0.01,
+    "hurt_below": 0.75,
+    "badly_hurt_below": 0.5,
+    "injured_mood_penalty": 0.08,
+    "minimum": 1,
+    "dev_hurt": 30
+  },
   "rest": {
     "search_radius": 8,
     "candidates_per_tick": 12,
     "transition_seconds": 1.1,
     "snore_interval_seconds": 7.0,
-    "bed_search_radius": 48
+    "bed_search_radius": 48,
+    "bedtime_fire_hours": 2.0
   },
   "mood": {
     "baseline": 0.5,
@@ -150,6 +209,12 @@
       "solo_bonus": 0.04,
       "duration_hours": 12.0
     },
+    "grilled": {
+      "__comment": "A fish grilled and eaten at a campfire (doc 290): alone, or with another dwarf grilling or sitting at the same fire. Only the stronger counts.",
+      "bonus": 0.06,
+      "together_bonus": 0.08,
+      "duration_hours": 12.0
+    },
     "room_appeal": {
       "__comment": "After a sleep, a meal or a game in a sealed room, the room's appeal word gives its points (data/rooms/appeal.json) for these game hours (doc 41). The next sleep, meal or game replaces it.",
       "slept_hours": 24.0,
@@ -164,8 +229,9 @@
     "refresh_seconds": 0.2
   },
   "hauling": {
-    "__comment_route_cache": "Bounded shared pickup/delivery searches. Identical geometry resumes across leases and stock changes; navigation changes invalidate proofs. Evicted leases retain their own unfinished frontier.",
+    "__comment_route_cache": "Bounded shared pickup/delivery searches. Identical geometry resumes across leases and stock changes; navigation changes invalidate proofs. Evicted leases retain their own unfinished frontier. pickup_search_cells: one pickup search ends at whichever of this many nearest loads lying the same way it reaches first (StorageComponent.pickup_group).",
     "route_cache_entries": 64,
+    "pickup_search_cells": 16,
     "max_haulers_per_zone": 4,
     "carry_speed_mult_heavy": 0.7,
     "carry_capacity": 4,

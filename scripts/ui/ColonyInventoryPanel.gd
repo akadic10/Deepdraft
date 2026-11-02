@@ -379,7 +379,8 @@ func _entry(key: String) -> Dictionary:
 	if is_instance_valid(controller):
 		for design: Dictionary in UIRegistry.get_place_catalog().get("items", []):
 			var furniture_def: Dictionary = controller.get_defs().get(design.key, {})
-			if furniture_def.get("item_key", "") != key: continue
+			# Tree seeds plant through Place but stay goods here: Food & seeds (doc 284).
+			if furniture_def.get("item_key", "") != key or furniture_def.has("tree_species"): continue
 			entry.label = design.label
 			entry.category = UIRegistry.get_inventory_catalog().get("furniture_categories", {}).get(design.category, "furniture")
 			entry.texture = "res://assets/ui/furniture/%s.png" % String(design.key).get_slice(":", 2)

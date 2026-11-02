@@ -1,6 +1,6 @@
 extends SceneTree
 ## Native run also records ONLY game output (Master bus), never a microphone.
-const Synth := preload("res://scripts/components/WaterAudioSynth.gd")
+const Bank := preload("res://scripts/components/WaterAudioBank.gd")
 const OUTPUT := "res://tmp/water_review/audio"
 class Terrain extends Node3D:
 	var slice_y := 127
@@ -43,10 +43,14 @@ func _run() -> void:
 	gen._maps_ready = true
 	var start := Time.get_ticks_usec()
 	for kind in ["waterfall","river"]:
-		var wav := Synth.stream(kind)
+		var path: String = gen.water_profile.audio[kind].stream
+		var wav := Bank.stream(path)
 		var data := wav.data
-		check(wav==Synth.stream(kind),"synthesis must be cached")
-		wav.save_to_wav(OUTPUT+"/"+kind+"_synth.wav")
+		check(wav==Bank.stream(path),"recorded bank must be cached")
+		check(not wav.stereo and wav.format==AudioStreamWAV.FORMAT_16_BITS and wav.mix_rate==22050,"spatial mono PCM bank: "+kind)
+		check(wav.loop_mode==AudioStreamWAV.LOOP_FORWARD and wav.loop_begin==0 and wav.loop_end==roundi(wav.get_length()*wav.mix_rate),"recorded loop covers full file: "+kind)
+		check(wav.get_length()>20 and data==(load(path) as AudioStreamWAV).data,"recorded asset reaches bank unchanged: "+kind)
+		wav.save_to_wav(OUTPUT+"/"+kind+"_recorded.wav")
 		var energy := 0.0
 		var peak := 0.0
 		var difference := 0.0
@@ -61,11 +65,11 @@ func _run() -> void:
 			previous = sample
 		check(peak<0.8 and sqrt(energy/count)>0.08,"audible bank with headroom: "+kind)
 		check(seam<sqrt(difference/count)*4.0,"loop seam is not an impulse: "+kind)
-		# The wrap must retain ambience rather than dip to silence every nine seconds.
+		# The wrap must retain ambience rather than fade to silence.
 		var edge_energy := 0.0
 		for i in 2205: edge_energy += pow(float(data.decode_s16(i*2))/32768.0,2)
 		check(sqrt(edge_energy/2205)>sqrt(energy/count)*0.7,"no loop fade hole: "+kind)
-	print("Water bank synthesis usec=",Time.get_ticks_usec()-start)
+	print("Water bank loading usec=",Time.get_ticks_usec()-start)
 	var scene := Node3D.new()
 	root.add_child(scene)
 	current_scene = scene
@@ -86,6 +90,8 @@ func _run() -> void:
 	sound.water_view = view
 	view.add_child(sound)
 	while not sound._streams_ready: await process_frame
+	for kind: String in ["waterfall","river"]:
+		check(sound.voices[kind].player.stream==Bank.stream(String(gen.water_profile.audio[kind].stream)),"configured recording reaches spatial player: "+kind)
 	await process_frame
 	# Query the actual selector and fade code, including hidden/sliced/dry cases.
 	sound.set_process(false)

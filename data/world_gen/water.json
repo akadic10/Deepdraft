@@ -63,6 +63,7 @@
     "scan_seconds": 0.25,
     "fade_seconds": 0.7,
     "waterfall": {
+      "stream": "res://assets/audio/ambience/water/waterfall.wav",
       "level_db": -19.0,
       "near_radius": 10.0,
       "far_radius": 65.0,
@@ -71,6 +72,7 @@
       "max_zoom": 180.0
     },
     "river": {
+      "stream": "res://assets/audio/ambience/water/river.wav",
       "level_db": -17.0,
       "near_radius": 5.0,
       "far_radius": 30.0,

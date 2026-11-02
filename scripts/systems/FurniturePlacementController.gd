@@ -43,8 +43,6 @@ const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _ladders: Node3D
-var _bridges: Node3D
-var _bridge_aim_revision := -1
 const Seating = preload("res://scripts/components/FurnitureSeating.gd")
 var _seating := Seating.new(self)
 var _games: RefCounted
@@ -72,8 +70,12 @@ var _require_stock := false
 var _moving_shrub := ""
 var _moving_furniture := -1
 var _moves := preload("res://scripts/components/FurnitureMoves.gd").new(self)
+var _fires := preload("res://scripts/components/FurnitureFires.gd").new(self) # nightly fires (doc 279)
+var _storage := preload("res://scripts/components/FurnitureStorage.gd").new(self) # containers (doc 294)
+var _sliced_lights := preload("res://scripts/components/SlicedFurnitureLights.gd").new(self) # doc 287
 const MovePlan = preload("res://scripts/components/FurnitureMovePlan.gd")
 const PlantPlan = preload("res://scripts/components/ShrubPlantingComponent.gd")
+const TreePlanting = preload("res://scripts/components/TreePlanting.gd")
 
 var _moving_water_stone := ""
 var _defs: Dictionary = ContentRegistry.furniture.duplicate(true) # own copy: furniture_key -> def
@@ -98,6 +100,7 @@ var _installed: Dictionary = {}       # id -> InstalledFurnitureComponent
 var _cell_to_installed: Dictionary = {}   # Vector3i -> installed id
 var _wall_to_ghost: Dictionary = {}      # Vector4i(placement reference x,y,z,yaw) -> ghost id
 var _wall_to_installed: Dictionary = {}  # separate from floor reservations
+var _wall_backed: Dictionary = {}        # installed id -> true: floor_wall pieces (the tool rack)
 var _wall_dirty: bool = false
 
 # ── Work-source plumbing (doc 19 Phase 3) ─────────────────────────────────────
@@ -137,8 +140,6 @@ func _ready() -> void:
 	add_child(fire_sound)
 	_ladders = preload("res://scripts/systems/LadderSystem.gd").new()
 	add_child(_ladders)
-	_bridges = preload("res://scripts/systems/BridgeSystem.gd").new()
-	add_child(_bridges)
 	_dock_ui = get_node_or_null(dock_ui_path)
 	if _dock_ui != null:
 		if _dock_ui.has_method("register_furniture_controller"):
@@ -154,6 +155,11 @@ func _ready() -> void:
 	StockpileManager.stockpile_changed.connect(func(_k: String, _d: int) -> void: _mark_lease_dirty())
 	WorldData.chunk_dirtied.connect(_on_terrain_changed, CONNECT_DEFERRED)
 	WorldClock.season_changed.connect(_refresh_plant_models)
+	# A restored or skipped clock settles nightly fires at once, not on the next frame.
+	WorldClock.hour_changed.connect(func(_hour: int) -> void: _fires.tick())
+	# A room's heat or shape changing re-checks which fires it needs tonight (doc 34).
+	RoomManager.room_updated.connect(func(_id: int) -> void: _fires.rooms_changed())
+	RoomManager.room_removed.connect(func(_id: int) -> void: _fires.rooms_changed())
 	PlacedEntityRegistry.occupancy_changed.connect(func(_lo: Vector3i, _size: Vector3i): _seating.dirty = true)
 	_window.build()
 
@@ -166,6 +172,8 @@ func get_defs() -> Dictionary:
 func get_installed(id: int) -> InstalledFurnitureComponent: return _installed.get(id)
 func get_ghost(id: int) -> FurnitureGhostComponent: return _ghosts.get(id)
 func get_installed_pieces() -> Array: return _installed.values()
+## Furniture containers (doc 294): their windows and how full they are.
+func get_furniture_storage() -> RefCounted: return _storage
 func get_ghost_pieces() -> Array: return _ghosts.values()
 func get_installed_ids() -> Array: return _installed.keys()
 func get_installed_at(cell: Vector3i) -> InstalledFurnitureComponent: return _installed.get(int(_cell_to_installed.get(cell, -1)))
@@ -173,9 +181,10 @@ func get_ghost_at(cell: Vector3i) -> FurnitureGhostComponent: return _ghosts.get
 func get_seating() -> Seating: return _seating
 func get_slice_y() -> int: return _slice_y
 func get_ladders() -> Node3D: return _ladders
-func get_bridges() -> Node3D: return _bridges
 func install_now(key: String, origin: Vector3i, yaw: int) -> void: _install(key, _defs[key], origin, yaw)
 func get_moves() -> RefCounted: return _moves
+func get_fires() -> RefCounted: return _fires
+func fire_status(piece: InstalledFurnitureComponent) -> Dictionary: return _fires.status(piece)
 func get_board_games() -> RefCounted: return _games
 func get_drop_manager() -> Variant: return _drop_manager # may be a freed node; callers check
 func get_dock_ui() -> Node: return _dock_ui
@@ -217,10 +226,6 @@ func get_catalog_stock() -> Dictionary:
 		var ladder_stock: Dictionary = _ladders.pending_sections()
 		pending[_ladders.definition.item_key] = ladder_stock.pending
 		requested[_ladders.KEY] = ladder_stock.requested
-	if is_instance_valid(_bridges):
-		var bridge_stock: Dictionary = _bridges.pending_kits()
-		pending[_bridges.definition.item_key] = bridge_stock.pending
-		requested[_bridges.KEY] = bridge_stock.requested
 	for key: String in _defs:
 		var item_key := String(_defs[key].item_key)
 		result[key] = {"available": maxi(0, int(loose.get(item_key, 0)) + StockpileManager.get_available_total(item_key)
@@ -254,8 +259,6 @@ func get_catalog_location(key: String) -> Dictionary:
 	return {"state": "unavailable"}
 
 func has_pending_placement(ghost_id: int) -> bool:
-	if ghost_id < -1_000_000:
-		return is_instance_valid(_bridges) and _bridges.routes.get(-ghost_id-1_000_000,{}).get("mode","") == "build"
 	return _ghosts.has(ghost_id)
 
 func mark_catalog_dirty() -> void:
@@ -338,7 +341,7 @@ func get_stats() -> Dictionary:
 ## Zone/furniture mutual exclusion (doc 19 Phase 2 acceptance): the zone
 ## tool rejects cells covered by any ghost footprint or installed piece.
 func blocks_zone_cell(cell: Vector3i) -> bool:
-	if is_instance_valid(_bridges) and _bridges.reserves(AABB(Vector3(cell)+Vector3.UP,Vector3.ONE)): return true
+	if _fences.reserves(AABB(Vector3(cell)+Vector3.UP,Vector3.ONE)): return true
 	return _cell_to_ghost.has(cell) or _cell_to_installed.has(cell) \
 		or (is_instance_valid(_ladders) and _ladders.reserves(AABB(Vector3(cell) + Vector3.UP, Vector3.ONE)))
 
@@ -395,6 +398,7 @@ func _exit_tree() -> void:
 		for game in _games.games.values(): game.cancel()
 
 func _process(delta: float) -> void:
+	if _sliced_lights.dirty: _sliced_lights.refresh(_slice_y)
 	if _fence_support_dirty:
 		_fence_support_dirty = false
 		_fences.revalidate_support()
@@ -412,6 +416,7 @@ func _process(delta: float) -> void:
 	if _wall_dirty:
 		_wall_dirty = false
 		_revalidate_wall_mounts()
+	_fires.tick()
 	if _lease_dirty:
 		_lease_accum += delta
 		if _lease_accum >= LEASE_REFRESH_S:
@@ -419,6 +424,7 @@ func _process(delta: float) -> void:
 			_lease_dirty = false
 			for ghost_id: int in _ghosts:
 				(_ghosts[ghost_id] as FurnitureGhostComponent).update_lease()
+			_fires.update_leases()
 	if not _active:
 		return
 	_update_hover()
@@ -448,7 +454,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			deactivate()
 			get_viewport().set_input_as_handled()
 		elif key.keycode == KEY_R:
-			_yaw = 0 if GridFence.is_post(_defs.get(_active_key,{})) else (_yaw + 1) % 4
+			# Fence posts and seeds have no facing: a planted tree never turns.
+			_yaw = 0 if GridFence.is_post(_defs.get(_active_key,{})) or _defs.get(_active_key,{}).has("tree_species") else (_yaw + 1) % 4
 			_update_hover(true)
 			get_viewport().set_input_as_handled()
 		return
@@ -483,27 +490,13 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 			if _visuals.preview!=null: _visuals.preview.hide()
 			_visuals.hint_text = ""
 			return
-		var camera := get_viewport().get_camera_3d()
-		var point := camera.project_ray_origin(pointer)+camera.project_ray_normal(pointer)*float(hit.distance)
-		var vertex := Vector3i(roundi(point.x),int(hit.y),roundi(point.z))
-		if vertex==_hover_cell and not force and not _seating.dirty: return
+		var origin := GridFence.aim_origin(_defs[_active_key],Vector3i(int(hit.x),int(hit.y),int(hit.z)),_yaw)
+		if origin==_hover_cell and not force and not _seating.dirty: return
 		_seating.dirty = false
-		_hover_cell = vertex
-		_hover_valid = _placement_valid(vertex)
-		_position_preview(vertex)
-		if _visuals.preview!=null: _fences.preview(_defs[_active_key],vertex,_yaw,_visuals.preview,_visuals.material)
-		return
-	if _active_key == _bridges.KEY and not hit.is_empty():
-		var raw_cell := Vector3i(hit.x,hit.y,hit.z)
-		if raw_cell == _seating.aim and not force and not _seating.dirty and _bridge_aim_revision == NavGrid.navigation_revision:
-			return
-		_seating.resolve(raw_cell)
-		_bridge_aim_revision = NavGrid.navigation_revision
-		var aim: Dictionary = _bridges.from_hit(hit,_yaw)
-		_yaw = aim.yaw
-		_hover_cell = aim.base
-		_hover_valid = _placement_valid(_hover_cell)
-		_position_preview(_hover_cell)
+		_hover_cell = origin
+		_hover_valid = _placement_valid(origin)
+		_position_preview(origin)
+		if _visuals.preview!=null: _fences.preview(_defs[_active_key],origin,_yaw,_visuals.preview,_visuals.material)
 		return
 	if _active_key == _ladders.KEY:
 		var aim: Dictionary = _ladders.from_hit(hit, _yaw)
@@ -540,9 +533,6 @@ func _update_hover(force: bool = false, screen_pos: Vector2 = Vector2.INF) -> vo
 func _placement_valid(origin: Vector3i) -> bool:
 	_invalid_reason = ""
 	var def: Dictionary = _defs.get(_active_key, {})
-	if _active_key == _bridges.KEY:
-		_invalid_reason = _bridges.placement_reason(origin,_yaw)
-		return _invalid_reason.is_empty()
 	if _active_key == _ladders.KEY:
 		_invalid_reason = _ladders.placement_reason(origin, _yaw)
 		return _invalid_reason.is_empty()
@@ -574,7 +564,7 @@ func visual_bounds(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
 func _on_terrain_changed(_cx: int, _cy: int, _cz: int) -> void:
 	_fence_support_dirty = true
 	_seating.dirty = true
-	if not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty():
+	if not _wall_to_ghost.is_empty() or not _wall_to_installed.is_empty() or not _wall_backed.is_empty():
 		_wall_dirty = true
 	if _active:
 		_hover_cell = Vector3i(-1, -1, -1) # refresh stationary cursor after mining
@@ -588,6 +578,11 @@ func _revalidate_wall_mounts() -> void:
 	for id: int in _wall_to_installed.values():
 		var piece: InstalledFurnitureComponent = _installed[id]
 		if not _rules.wall_structure_valid(piece.def, piece.origin_cell, piece.yaw_steps):
+			_teardown_installed(id, true)
+	# A floor_wall piece falls when its wall is mined, its goods and itself dropped in front.
+	for id: int in _wall_backed.keys():
+		var piece: InstalledFurnitureComponent = _installed[id]
+		if not _rules.has_wall_behind(piece.def, piece.origin_cell, piece.yaw_steps):
 			_teardown_installed(id, true)
 
 
@@ -650,6 +645,24 @@ func make_ghost_material() -> StandardMaterial3D:
 	return Visuals.make_ghost_material()
 
 
+## A workshop's batch (its `batch_model`) while a Worker works it, as CraftingManager says: the
+## fish hung on the drying rack (doc 289). Laid over the piece's own model at its origin.
+func show_batch(installed_id: int, shown: bool) -> void:
+	var piece := get_installed(installed_id)
+	if piece == null or not is_instance_valid(piece.node) or not piece.def.has("batch_model"): return
+	var batch: Node3D = piece.node.get_node_or_null("Batch")
+	if batch == null:
+		if not shown: return
+		batch = (load(String(piece.def.batch_model)) as PackedScene).instantiate()
+		batch.name = "Batch"
+		apply_material(batch, make_solid_material())
+		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(batch, true)
+		piece.node.add_child(batch)
+		CraftMaterials.apply_palette(batch, piece.def, piece.material_id)
+		preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(batch)
+	batch.visible = shown
+
+
 func make_solid_material() -> StandardMaterial3D:
 	return Visuals.make_solid_material()
 
@@ -665,13 +678,6 @@ func apply_material(node: Node, mat: Material) -> void:
 # ── Ghost lifecycle ───────────────────────────────────────────────────────────
 
 func _confirm_ghost(definition: Dictionary = {}, restored_move_id: String = "") -> void:
-	if _active_key == _bridges.KEY:
-		var id: int = _bridges.place(_hover_cell,_yaw)
-		if id > 0:
-			ghost_placed.emit(-1_000_000-id)
-			_placed(-1_000_000-id)
-		_update_hover(true)
-		return
 	if _active_key == _ladders.KEY:
 		_ladders.place(_hover_cell, _yaw)
 		_update_hover(true)
@@ -745,10 +751,6 @@ func _confirm_ghost(definition: Dictionary = {}, restored_move_id: String = "") 
 
 
 func cancel_ghost(ghost_id: int) -> void:
-	if ghost_id < -1_000_000:
-		_bridges.perform_explorer_action(-ghost_id-1_000_000,"cancel")
-		ghost_cancelled.emit(ghost_id)
-		return
 	_seating.dirty = true
 	if not _ghosts.has(ghost_id):
 		return
@@ -797,6 +799,9 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 	if ghost.def.has("water_stone"):
 		WaterManager.place_stone(ghost.fetched_instance_id,ghost.origin_cell+Vector3i.UP)
 		furniture_installed.emit(ghost.furniture_key,ghost.origin_cell)
+	elif ghost.def.has("tree_species"):
+		get_tree().get_first_node_in_group("surface_flora").plant_tree(String(ghost.def.tree_species), ghost.origin_cell)
+		furniture_installed.emit(ghost.furniture_key, ghost.origin_cell)
 	elif bool(ghost.def.get("plant", false)):
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if bool(ghost.def.get("from_cutting", false)):
@@ -819,6 +824,9 @@ func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if ghost.def.has("water_stone"):
 		var stones := get_tree().get_first_node_in_group("water_stones")
 		return WaterManager.stones.has(ghost.fetched_instance_id) and not WaterManager.stones[ghost.fetched_instance_id].placed and stones != null and stones.placement_reason(ghost.origin_cell).is_empty()
+	elif ghost.def.has("tree_species"):
+		var flora := get_tree().get_first_node_in_group("surface_flora")
+		return flora != null and flora.planting_reason(String(ghost.def.tree_species), ghost.origin_cell, ghost.ghost_id).is_empty()
 	elif bool(ghost.def.get("plant", false)):
 		var plants := get_tree().get_first_node_in_group("surface_details")
 		if plants != null and bool(ghost.def.get("from_cutting", false)):
@@ -830,7 +838,8 @@ func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 		if _moves.records.has(ghost.required_instance_id):
 			for cell: Vector3i in ghost.footprint_cells():
 				if not NavGrid.is_walkable(cell) or _cell_to_installed.has(cell): return false
-			if String(ghost.def.get("placement","floor")) == "floor_wall" and not _rules.has_wall_behind(ghost.def,ghost.origin_cell,ghost.yaw_steps): return false
+		# A floor_wall piece (the tool rack, doc 294) needs its wall still standing behind it.
+		if String(ghost.def.get("placement","floor")) == "floor_wall" and not _rules.has_wall_behind(ghost.def,ghost.origin_cell,ghost.yaw_steps): return false
 		if Seating.is_chair(ghost.def):
 			for cell: Vector3i in ghost.footprint_cells():
 				if not NavGrid.is_walkable(cell):
@@ -893,6 +902,7 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int, material
 		else:
 			preload("res://scripts/components/UndergroundLighting.gd").bind_world_tree(node)
 		node.visible = _piece_visible(def, origin, yaw)
+		if def.has("light_source"): _sliced_lights.dirty = true
 	# Occupancy: one box per collision region (footprint-local block coords;
 	# origin (0,0,0) = bottom-front-left at floor+1). NavGrid invalidates on
 	# occupancy_changed (the flag precedent). Offset regions rotate with the model.
@@ -915,12 +925,16 @@ func _install(key: String, def: Dictionary, origin: Vector3i, yaw: int, material
 	if WallMount.is_wall(def):
 		_wall_to_installed[Rules.wall_key(origin, yaw)] = component.installed_id
 		_wall_dirty = true
+	elif String(def.get("placement", "floor")) == "floor_wall":
+		_wall_backed[component.installed_id] = true
+	_storage.installed(component)
 	print("FurniturePlacementController: installed %s at %s." % [key, str(origin)])
 	furniture_installed.emit(key, origin)
 	# doc 22: RoomManager tracks door/heat-source cells by direct call, not by
 	# subscribing to this signal — it's an autoload and this is a scene node,
 	# so the call has to go this direction (see RoomManager's file header).
 	RoomManager.on_furniture_changed(key, room_cells(component), def, true)
+	_fires.installed(component)
 	_next_installed_id += 1
 
 
@@ -956,12 +970,16 @@ func _teardown_installed(installed_id: int, cancel_lease: bool, dwarf_id: int = 
 		_cell_to_installed.erase(cell)
 	if WallMount.is_wall(component.def):
 		_wall_to_installed.erase(Rules.wall_key(component.origin_cell, component.yaw_steps))
+	_wall_backed.erase(installed_id)
 	if component.node != null and is_instance_valid(component.node):
+		_sliced_lights.removed(component.node) # a light lifted beside a sliced piece goes too
 		component.node.visible = false # switch light off immediately, before queue_free
 		component.node.queue_free()
+	_storage.removed(component)
 	_installed.erase(installed_id)
 	if GridFence.applies(component.def): _fences.sync()
 	furniture_uninstalled.emit(component.furniture_key, component.origin_cell)
+	_fires.removed(component)
 	RoomManager.on_furniture_changed(component.furniture_key, room_cells(component), component.def, false)
 	if _drop_manager != null and is_instance_valid(_drop_manager) and not component.item_key.is_empty():
 		var cell := component.origin_cell
@@ -1017,12 +1035,17 @@ func serialize_state() -> Dictionary:
 			"material_id": component.material_id,
 		}
 		if component.def.has("sleep_surface"): entry["assigned_dwarf_id"] = component.assigned_dwarf_id
+		if not component.fire_log.is_empty():
+			entry["fire_log"] = component.fire_log
+			entry["fire_log_material"] = component.fire_log_material
+		_storage.save(component, entry)
 		saved_installed.append(entry)
 	return { "ghosts": saved_ghosts, "installed": saved_installed, "moves": _moves.serialize() }
 
 
 func restore_state(state: Dictionary) -> void:
 	_fences.suspended = true
+	_fires.restoring = true
 	_drop_manager = ItemDropManager.find(get_tree())
 	_moves.restore(state.get("moves",{}))
 	for raw in state.get("ghosts", []):
@@ -1047,6 +1070,9 @@ func restore_state(state: Dictionary) -> void:
 			RoomManager.on_bed_assignment_changed(component.origin_cell,component.assigned_dwarf_id)
 		if bool(entry.get("flagged_uninstall", false)):
 			component.set_uninstall(true)
+		_fires.restore(component, String(entry.get("fire_log", "")), String(entry.get("fire_log_material", "")))
+		_storage.restore(component, entry.get("storage", {}))
+	_fires.restoring = false
 	_fences.suspended = false
 	_fences.sync()
 
@@ -1111,6 +1137,7 @@ func _on_slice_changed(new_slice_y: int) -> void:
 		var component: InstalledFurnitureComponent = _installed[installed_id]
 		if component.node != null and is_instance_valid(component.node):
 			component.node.visible = _piece_visible(component.def, component.origin_cell, component.yaw_steps)
+	_sliced_lights.refresh(_slice_y) # sliced-away lights keep burning (doc 287)
 	if _active:
 		_update_hover(true)
 
@@ -1218,12 +1245,23 @@ func plant_area_reserved(area: AABB, ignore_ghost := -1) -> bool:
 	if is_instance_valid(_ladders) and _ladders.reserves(area): return true
 	for ghost: FurnitureGhostComponent in _ghosts.values():
 		if ghost.ghost_id == ignore_ghost: continue
-		if bool(ghost.def.get("plant", false)):
+		if ghost.def.has("tree_species"): # A queued seed keeps its grown trunk's ground (doc 284).
+			if area.intersects(TreePlanting.trunk_box(ContentRegistry.tree_species(String(ghost.def.tree_species)), ghost.origin_cell)): return true
+		elif bool(ghost.def.get("plant", false)):
 			var plant := SurfaceDetailRegistry.get_definition(String(ghost.def.plant_definition))
 			if area.intersects(preload("res://scripts/components/SurfaceDetailPlacement.gd").planting_area(plant, ghost.origin_cell)): return true
 		else:
 			for cell: Vector3i in ghost.footprint_cells():
 				if area.intersects(AABB(Vector3(cell) + Vector3.UP, Vector3(1, int(ghost.def.get("footprint", {}).get("height", 1)), 1))): return true
+	return false
+
+
+## A queued seed keeps its grown tree's area from other trees, as a planted one does.
+func tree_area_reserved(area: AABB, ignore_ghost := -1) -> bool:
+	for ghost: FurnitureGhostComponent in _ghosts.values():
+		if ghost.ghost_id != ignore_ghost and ghost.def.has("tree_species") \
+				and area.intersects(TreePlanting.area_box(ContentRegistry.tree_species(String(ghost.def.tree_species)), ghost.origin_cell)):
+			return true
 	return false
 
 func spare_materials(item_key: String) -> Dictionary:
@@ -1246,13 +1284,12 @@ func get_material_stock(key: String) -> Dictionary:
 		if ghost.furniture_key != key or ghost.has_committed_item() or ghost.required_material_id.is_empty(): continue
 		var id := ghost.required_material_id
 		result[id] = maxi(0, int(result.get(id, 0)) - 1)
-	for system in [_ladders, _bridges]:
-		if not is_instance_valid(system) or system.KEY != key: continue
-		for route: Dictionary in system.routes.values():
+	if is_instance_valid(_ladders) and _ladders.KEY == key:
+		for route: Dictionary in _ladders.routes.values():
 			var id := String(route.get("required_material_id", ""))
 			if route.mode != "build" or id.is_empty(): continue
-			var pending: int = system.sections(route.height) - system.sections(route.built) if system == _ladders else 1
-			if system.work.has(route.id) and system.work.get_source(route.id).has_committed_item(): pending -= 1
+			var pending: int = _ladders.sections(route.height) - _ladders.sections(route.built)
+			if _ladders.work.has(route.id) and _ladders.work.get_source(route.id).has_committed_item(): pending -= 1
 			result[id] = maxi(0, int(result.get(id, 0)) - pending)
 	var total := int(get_catalog_stock().get(key, {}).get("available", 0))
 	for id: String in result: result[id] = mini(int(result[id]), total)

@@ -1,0 +1,64 @@
+{
+  "sources": [
+    {
+      "kind": "isolated",
+      "title": "Small Frog Croaks",
+      "author": "clif_creates",
+      "id": "802737",
+      "description": "One small frog isolated with a shotgun microphone in Ojai, California; author applied iZotope RX noise reduction.",
+      "page": "https://freesound.org/people/clif_creates/sounds/802737/",
+      "download": "https://cdn.freesound.org/previews/802/802737_3530854-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "9ebfe9893a5008b0088c60011dba2ff9fbbd5d30cf71e9356b39ff2d5daac7ff",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 3.4226666666666667,
+      "preview": "Public HQ MP3 preview, not the original uploaded WAV.",
+      "master": "frog_croaks.wav",
+      "master_sha256": "9ca0d3351b00a45a1df2a0c95d00bfcea92bbd1ae8621d04f8a0a24c8cd4d729",
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.325157427154901,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "mono preserved",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "frog": {
+      "master": "frog_croaks.wav",
+      "rate": 22050,
+      "regions_seconds": [
+        [
+          0.29,
+          0.86
+        ],
+        [
+          1.41,
+          1.95
+        ],
+        [
+          2.25,
+          2.77
+        ]
+      ],
+      "high_pass_hz": 140,
+      "low_pass_hz": 7500,
+      "fades_seconds": [
+        0.008,
+        0.035
+      ],
+      "target_rms": 0.0365,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_frog_audio.py",
+  "environmental_entry_point": "tools/generate_environment_details.py delegates frog preparation to the same recorded sound function",
+  "processing": "Separate real excerpts, zero-phase light band limiting, edge fades, per-bank RMS target with peak cap; the existing environment writer adds its usual final DC correction and edge fades. No pitch shifting, time stretching, voice synthesis or added reverb."
+}

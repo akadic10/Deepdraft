@@ -33,30 +33,47 @@ func has_any_room() -> bool:
 	return false
 
 
-func reserve(key: String, amount: int, owner: int, near: Vector3i, empty_only: bool = false, material_id: String = "") -> Variant:
-	# Top up a matching crate before claiming another physical slot.
-	for partial in [true, false]:
-		if partial and empty_only: continue
+## Top up a matching crate before claiming another physical slot. Food that spoils (`spoil`
+## 0 to 1; -1 for goods that never do) tops up only a crate within `band` of its freshness
+## while an empty slot is left, so fresh fruit never joins a rotting crate (doc 42
+## "Spoilage"). With no empty slot it tops up the crate closest in freshness rather than
+## wait outside.
+func reserve(key: String, amount: int, owner: int, near: Vector3i, empty_only: bool = false, material_id: String = "",
+		spoil: float = -1.0, band: float = 1.0) -> Variant:
+	for pass_name: String in ["like", "empty", "closest"]:
+		if pass_name != "empty" and empty_only: continue
+		if pass_name == "closest" and spoil < 0.0: continue
 		var best: Variant = null
-		var best_distance := INF
+		var best_rank := INF
 		for slot in slots:
-			if (entries.has(slot) or reservations.has(slot)) != partial or room(key, slot, material_id) <= 0:
+			if (entries.has(slot) or reservations.has(slot)) != (pass_name != "empty") or room(key, slot, material_id) <= 0:
 				continue
+			var gap := absf(_slot_spoil(slot) - spoil) if spoil >= 0.0 else 0.0
+			if pass_name == "like" and gap > band: continue
 			var distance := 0.0
 			if slot is Vector3i:
 				var delta: Vector3i = slot - near
 				distance = float(absi(delta.x) + absi(delta.z))
-			if distance < best_distance:
+			# The closest in freshness, then the nearest.
+			var rank := gap * 1000000.0 + distance if pass_name == "closest" else distance
+			if rank < best_rank:
 				best = slot
-				best_distance = distance
+				best_rank = rank
 		if best == null:
 			continue
 		var count := mini(amount, room(key, best, material_id))
-		var claim: Dictionary = reservations.get(best, {"item": key, "count": 0, "material_id": material_id})
+		var claim: Dictionary = reservations.get(best, {"item": key, "count": 0, "material_id": material_id, "spoil": spoil})
 		claim.count = int(claim.count) + count
 		reservations[best] = claim
 		return {"slot": best, "count": count, "owner": owner, "item": key, "material_id": material_id, "active": true}
 	return null
+
+
+## A slot's freshness: its stack's spoil, else what is on its way to it.
+func _slot_spoil(slot: Variant) -> float:
+	var stack: Dictionary = entries.get(slot, {})
+	if not stack.is_empty(): return float(stack.get("spoil", 0.0))
+	return maxf(0.0, float(reservations.get(slot, {}).get("spoil", 0.0)))
 
 
 func release(token: Dictionary) -> void:
@@ -76,6 +93,10 @@ func commit(token: Dictionary, key: String) -> void:
 	var stack: Dictionary = entries.get(token.slot, {"item": key, "count": 0})
 	assert(int(stack.count) == 0 or String(stack.get("material_id", "")) == String(token.get("material_id", "")))
 	stack["disallowed"] = false
+	# Food joining a stack averages its spoil by count (doc 42 "Spoilage").
+	var spoil := ItemDropManager.blend_spoil(float(stack.get("spoil", 0.0)), int(stack.count), float(token.get("spoil", 0.0)), int(token.count))
+	if spoil > 0.0: stack["spoil"] = spoil
+	else: stack.erase("spoil")
 	stack.count = int(stack.count) + int(token.count)
 	assert(int(stack.count) <= int(capacity_for.call(key)))
 	if token.has("instance_id"): stack["instance_id"] = token.instance_id

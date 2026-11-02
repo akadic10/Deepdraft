@@ -19,7 +19,11 @@ func _run() -> void:
 	old_script.source_code = FileAccess.get_file_as_string("res://docs/00_dev_roadmap/concepts/room_rebuild_20261014/RoomManager.before.txt")
 	_expect(old_script.reload() == OK, "frozen reference compiles")
 	reference = old_script.new()
-	reference.temperature_config = rooms.temperature_config
+	# The frozen detector reads the climate keys it was written with. Its climate fields are
+	# not compared (doc 34's climate replaced them on 2026-10-29); its geometry and bedrooms are.
+	reference.temperature_config = {"rock_temperature_c": 10.0, "seasonal_swing_c": 6.0, "daily_swing_c": 2.0,
+		"sealed_exposure": 0.25, "cover_damping_blocks": 16.0, "minimum_heated_volume": 128.0,
+		"cold_below_c": 8.0, "comfortable_min_c": 16.0, "comfortable_max_c": 26.0}
 	reference.appeal_config = rooms.appeal_config
 	rooms.detection_config = {"rebuild_budget_ms": 0.01, "budget_check_operations": 1}
 	rooms.room_updated.connect(_observe_commit)
@@ -141,9 +145,30 @@ func _drain_and_compare(label: String) -> void:
 	_expect(reference.get_rooms().size() == rooms.get_rooms().size(), label + ": exact room count")
 	_expect(reference._cell_to_room.size() == rooms._cell_to_room.size(), label + ": exact cell count")
 	for room: Dictionary in rooms.get_rooms().values():
-		var other: Dictionary = reference.get_room_at(room.cells.keys()[0])
-		_expect(room == other, label + ": exact geometry, climate and bedroom fields")
+		var other: Dictionary = reference.get_room_at(room.cells.keys()[0]).duplicate()
+		var mine: Dictionary = room.duplicate()
+		# Tended fires (2026-10-30) make the heat bonus follow the climate too.
+		for key in ["seasonal_influence", "temp_c", "is_frozen_vault", "own_form", "temp_form", "heat_bonus_c", "heat_cap_c"]:
+			other.erase(key)
+			mine.erase(key)
+		_expect(mine == other, label + ": exact geometry, heat and bedroom fields")
+		_expect(is_equal_approx(float(room.seasonal_influence), _expected_influence(room)), label + ": the season reaches the room through its cover")
+		_expect(is_equal_approx(rooms.climate.form_temperature(room.own_form), rooms.climate.temperature(float(room.mean_floor_y), float(room.seasonal_influence), 0.0) + float(room.heat_bonus_c)),
+			label + ": on its own the room is the climate's plus its heat")
+		_expect(is_equal_approx(float(room.temp_c), rooms.climate.form_temperature(room.temp_form)), label + ": the room's temperature is its form's after the doors leak")
 	comparisons += 1
+
+## The season's share by the climate's rule: the mean over the room's columns of its rock
+## share under the solid blocks over the column's lowest air.
+func _expected_influence(room: Dictionary) -> float:
+	var lowest := {}
+	for cell: Vector3i in room.cells:
+		var column := Vector2i(cell.x, cell.z)
+		if not lowest.has(column) or cell.y < int(lowest[column]): lowest[column] = cell.y
+	var total := 0.0
+	for column: Vector2i in lowest:
+		total += rooms.climate.rock_share(rooms.climate.cover_above(Vector3i(column.x, int(lowest[column]), column.y)))
+	return total / maxi(1, lowest.size())
 
 func _observe_commit(_id: int) -> void:
 	commits += 1

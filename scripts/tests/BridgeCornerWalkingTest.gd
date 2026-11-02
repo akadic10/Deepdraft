@@ -2,6 +2,8 @@ extends "res://scripts/tests/HaulingAnimationTest.gd"
 
 ## Reproduces Bogorn's bridge-corner fall: the shortcut is legal from the cell
 ## centre but crosses water from the actor's fractional position near its edge.
+## The crossing is a two-block deck of solid blocks over a trench, as a row of
+## built logs over a river is.
 var nav
 var excavated: Array[Vector3i] = []
 const CENTRE := Vector3i(64,20,64)
@@ -16,19 +18,16 @@ func _run() -> void:
 	for yaw in range(4):
 		for cell in excavated: world.set_block(cell.x,cell.y,cell.z,rock)
 		excavated.clear()
-		nav.remove_bridge(991)
 		for x in range(4,124):
 			for z in range(51,56):
 				for y in range(19,21):
 					var cell := _cell(Vector3i(x,y,z),yaw)
 					world.set_block(cell.x,cell.y,cell.z,blocks.AIR_ID)
 					excavated.append(cell)
-		var deck: Array[Vector3i] = []
-		var exits: Array[Vector3i] = []
 		for x in [59,60]:
-			for z in range(51,56): deck.append(_cell(Vector3i(x,20,z),yaw))
-			for z in [50,56]: exits.append(_cell(Vector3i(x,20,z),yaw))
-		nav.set_bridge(991,deck,exits)
+			for z in range(51,56):
+				var deck := _cell(Vector3i(x,20,z),yaw)
+				world.set_block(deck.x,deck.y,deck.z,rock)
 		await process_frame
 		var offset_start := _point(Vector3(60.8574,21,51.9883),yaw)
 		var goal := _cell(Vector3i(62,20,42),yaw)
@@ -48,7 +47,6 @@ func _run() -> void:
 		worker.position = offset_start
 		worker.walk_nearby(goal)
 		_expect(not worker.is_walking(), "leisure rejects unsafe direct crossing: %d" % yaw)
-	nav.remove_bridge(991)
 	for failure in failures: push_error(failure)
 	print("BridgeCornerWalkingTest: ", "PASS" if failures.is_empty() else str(failures))
 	quit(0 if failures.is_empty() else 1)

@@ -221,7 +221,7 @@ func _footprint(cell: Vector3i, forward: Vector3i, style: String) -> Array[Vecto
 
 func _clear(cell: Vector3i) -> bool:
 	if not Privacy.allowed(cell,agent.dwarf_id,true) or RoomManager.is_door_cell(cell): return false
-	if not NavGrid.is_walkable(cell) or NavGrid.bridge_supports(cell): return false
+	if not NavGrid.is_walkable(cell): return false
 	for offset: Vector3i in [Vector3i.ZERO,Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
 		if not NavGrid.ladder_at(cell+offset).is_empty(): return false
 	for zone in StockpileManager.get_zones():

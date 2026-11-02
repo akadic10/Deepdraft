@@ -1,0 +1,22 @@
+Deepdraft - recorded sleeping/snoring sources
+
+Both recordings were released under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+Snoring.wav
+Author: mlsulli
+Source: https://freesound.org/people/mlsulli/sounds/234867/
+Preview: https://cdn.freesound.org/previews/234/234867_3883507-hq.mp3
+Local master: sleeping_mlsulli.wav
+The uploader identifies this as a recording of a person snoring while asleep.
+
+human snore.wav
+Author: mffm
+Source: https://freesound.org/people/mffm/sounds/236288/
+Preview: https://cdn.freesound.org/previews/236/236288_3840145-hq.mp3
+Local master: sleeping_mffm.wav
+The uploader documented an adult snoring with a Zoom H4n field recorder.
+
+Masters retain the complete public HQ MP3 previews, decoded and resampled to mono 24 kHz PCM16 with anti-alias filtering. Original lossless uploads were not downloaded. Source/master hashes, master gains, exact crop regions and clip settings are in source.json. The first two cues are different breaths from mffm; the third is a longer snore from mlsulli. Natural speed and pitch are preserved. Preparation removes DC, filters gently, fades boundaries, adds small silence margins and matches previous average levels subject to the former peak ceiling. No synthesized layers, time stretching, pitch shifting, added reverb or denoising.

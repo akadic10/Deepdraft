@@ -11,6 +11,7 @@
   "icons": {
     "food": "res://assets/ui/icons/food.png",
     "rest": "res://assets/ui/icons/rest.png",
+    "health": "res://assets/ui/icons/health.png",
     "mood": "res://assets/ui/icons/mood_unhappy.png"
   }
 }

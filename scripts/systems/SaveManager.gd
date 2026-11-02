@@ -841,13 +841,18 @@ func _capture_catalogs() -> Dictionary:
 		blocks[String(key)]={"kind":String(BlockRegistry.get_def(key).get("kind","void")),
 			"solid":BlockRegistry.is_solid(BlockRegistry.get_id(key))}
 	var construction := {}
-	for key in BlockRegistry.construction_keys(): construction[key]={"logs":String(BlockRegistry.get_construction_def(key).get("logs",""))}
+	# Each kind's good, a log's by its wood's, so a crate's staged goods check against their blocks.
+	for key in BlockRegistry.construction_keys(): construction[key]={"logs":String(BlockRegistry.get_construction_def(key).get("logs","")),
+		"item":String(BlockRegistry.get_construction_def(key).get("item_key",""))}
 	var woods := {}
-	for wood in BlockRegistry.woods(): woods[wood]=true
+	for wood in BlockRegistry.woods(): woods[wood]=String(BlockRegistry.get_wood(wood).get("item_key",""))
 	var materials := {"":true}
 	for key in CraftMaterials.definitions: materials[key]=true
+	var stats := {}
+	for id in DwarfAssets.stat_ids(): stats[id]=true
 	var catalogs := ContentRegistry.save_catalogs()
-	catalogs.merge({"blocks":blocks,"construction":construction,"woods":woods,"materials":materials,"appeal_words":RoomManager.appeal_word_ids()})
+	catalogs.merge({"blocks":blocks,"construction":construction,"woods":woods,"materials":materials,"appeal_words":RoomManager.appeal_word_ids(),
+		"stats":stats,"stat_steps":DwarfAssets.stat_steps()})
 	return catalogs
 
 

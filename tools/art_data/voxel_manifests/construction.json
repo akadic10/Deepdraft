@@ -35,13 +35,13 @@
       "parts": [
         {
           "name": "h00_p0",
-          "cells": 3624,
-          "visual_triangles": 396,
+          "cells": 3712,
+          "visual_triangles": 292,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 134
+            "stride": 4,
+            "retained_volume": 0.8275862068965517,
+            "triangles": 36
           },
           "min": [
             0.0,
@@ -56,13 +56,13 @@
         },
         {
           "name": "u00_p0",
-          "cells": 3624,
-          "visual_triangles": 396,
+          "cells": 3712,
+          "visual_triangles": 204,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 132
+            "stride": 4,
+            "retained_volume": 0.8275862068965517,
+            "triangles": 36
           },
           "min": [
             0.0,
@@ -77,13 +77,13 @@
         },
         {
           "name": "j0010_p0",
-          "cells": 3762,
-          "visual_triangles": 576,
+          "cells": 3848,
+          "visual_triangles": 404,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8633705475810739,
-            "triangles": 186
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -98,13 +98,13 @@
         },
         {
           "name": "j0001_p0",
-          "cells": 3806,
-          "visual_triangles": 476,
+          "cells": 3848,
+          "visual_triangles": 404,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7230688386757751,
-            "triangles": 78
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -119,13 +119,13 @@
         },
         {
           "name": "j0011_p0",
-          "cells": 3944,
-          "visual_triangles": 616,
+          "cells": 3984,
+          "visual_triangles": 516,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7302231237322515,
-            "triangles": 86
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
           },
           "min": [
             0.0,
@@ -140,789 +140,12 @@
         },
         {
           "name": "h01_p0",
-          "cells": 3612,
-          "visual_triangles": 498,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8349944629014396,
-            "triangles": 160
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u01_p0",
-          "cells": 3612,
-          "visual_triangles": 494,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8349944629014396,
-            "triangles": 154
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0110_p0",
-          "cells": 3750,
-          "visual_triangles": 678,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8554666666666667,
-            "triangles": 212
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0101_p0",
-          "cells": 3805,
-          "visual_triangles": 550,
+          "cells": 3700,
+          "visual_triangles": 374,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7064388961892247,
-            "triangles": 92
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0111_p0",
-          "cells": 3943,
-          "visual_triangles": 690,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.714177022571646,
-            "triangles": 100
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h10_p0",
-          "cells": 3613,
-          "visual_triangles": 512,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.834763354553003,
-            "triangles": 160
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u10_p0",
-          "cells": 3613,
-          "visual_triangles": 508,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.834763354553003,
-            "triangles": 156
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1010_p0",
-          "cells": 3751,
-          "visual_triangles": 692,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8552386030391895,
-            "triangles": 212
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1001_p0",
-          "cells": 3806,
-          "visual_triangles": 544,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7230688386757751,
-            "triangles": 78
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1011_p0",
-          "cells": 3944,
-          "visual_triangles": 684,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7302231237322515,
-            "triangles": 86
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h11_p0",
-          "cells": 3601,
-          "visual_triangles": 614,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8264371008053318,
-            "triangles": 186
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u11_p0",
-          "cells": 3601,
-          "visual_triangles": 606,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8264371008053318,
-            "triangles": 178
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1110_p0",
-          "cells": 3739,
-          "visual_triangles": 794,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8472853704198984,
-            "triangles": 238
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1101_p0",
-          "cells": 3805,
-          "visual_triangles": 618,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7064388961892247,
-            "triangles": 92
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1111_p0",
-          "cells": 3943,
-          "visual_triangles": 758,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.714177022571646,
-            "triangles": 100
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h00_p1",
-          "cells": 3624,
-          "visual_triangles": 396,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 132
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u00_p1",
-          "cells": 3624,
-          "visual_triangles": 396,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 134
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0010_p1",
-          "cells": 3788,
-          "visual_triangles": 456,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.675818373812038,
-            "triangles": 82
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0001_p1",
-          "cells": 3788,
-          "visual_triangles": 450,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6927138331573389,
-            "triangles": 78
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0011_p1",
-          "cells": 3952,
-          "visual_triangles": 510,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7935222672064778,
-            "triangles": 88
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h01_p1",
-          "cells": 3612,
-          "visual_triangles": 494,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8349944629014396,
-            "triangles": 150
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u01_p1",
-          "cells": 3612,
-          "visual_triangles": 490,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8349944629014396,
-            "triangles": 148
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0110_p1",
-          "cells": 3776,
-          "visual_triangles": 554,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6440677966101694,
-            "triangles": 92
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0101_p1",
-          "cells": 3787,
-          "visual_triangles": 524,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6759968312648534,
-            "triangles": 92
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0111_p1",
-          "cells": 3951,
-          "visual_triangles": 584,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7775246772968869,
-            "triangles": 102
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h10_p1",
-          "cells": 3613,
-          "visual_triangles": 504,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.836977580957653,
-            "triangles": 148
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u10_p1",
-          "cells": 3613,
-          "visual_triangles": 500,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.836977580957653,
-            "triangles": 148
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1010_p1",
-          "cells": 3777,
-          "visual_triangles": 564,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6608419380460683,
-            "triangles": 90
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1001_p1",
-          "cells": 3787,
-          "visual_triangles": 526,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6759968312648534,
-            "triangles": 90
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1011_p1",
-          "cells": 3951,
-          "visual_triangles": 586,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7775246772968869,
-            "triangles": 100
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h11_p1",
-          "cells": 3601,
-          "visual_triangles": 602,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8286587059150236,
-            "triangles": 166
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u11_p1",
-          "cells": 3601,
-          "visual_triangles": 594,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8286587059150236,
-            "triangles": 162
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1110_p1",
-          "cells": 3765,
-          "visual_triangles": 662,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6289508632138114,
-            "triangles": 100
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1101_p1",
-          "cells": 3786,
-          "visual_triangles": 600,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.659270998415214,
-            "triangles": 104
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1111_p1",
-          "cells": 3950,
-          "visual_triangles": 660,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.7615189873417721,
-            "triangles": 114
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h00_p2",
-          "cells": 3624,
-          "visual_triangles": 396,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 132
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u00_p2",
-          "cells": 3624,
-          "visual_triangles": 396,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 132
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0010_p2",
-          "cells": 3792,
-          "visual_triangles": 518,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6582278481012658,
+            "retained_volume": 0.7783783783783784,
             "triangles": 56
           },
           "min": [
@@ -937,14 +160,14 @@
           ]
         },
         {
-          "name": "j0001_p2",
-          "cells": 3776,
-          "visual_triangles": 534,
+          "name": "u01_p0",
+          "cells": 3700,
+          "visual_triangles": 302,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6440677966101694,
-            "triangles": 96
+            "retained_volume": 0.7783783783783784,
+            "triangles": 54
           },
           "min": [
             0.0,
@@ -958,13 +181,223 @@
           ]
         },
         {
-          "name": "j0011_p2",
-          "cells": 3944,
-          "visual_triangles": 616,
+          "name": "j0110_p0",
+          "cells": 3836,
+          "visual_triangles": 486,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7302231237322515,
+            "retained_volume": 0.8175182481751825,
+            "triangles": 80
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0101_p0",
+          "cells": 3848,
+          "visual_triangles": 438,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0111_p0",
+          "cells": 3984,
+          "visual_triangles": 550,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h10_p0",
+          "cells": 3700,
+          "visual_triangles": 366,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7783783783783784,
+            "triangles": 56
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u10_p0",
+          "cells": 3700,
+          "visual_triangles": 300,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7783783783783784,
+            "triangles": 54
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1010_p0",
+          "cells": 3836,
+          "visual_triangles": 478,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8175182481751825,
+            "triangles": 80
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1001_p0",
+          "cells": 3848,
+          "visual_triangles": 430,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1011_p0",
+          "cells": 3984,
+          "visual_triangles": 542,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h11_p0",
+          "cells": 3688,
+          "visual_triangles": 448,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7288503253796096,
+            "triangles": 62
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u11_p0",
+          "cells": 3688,
+          "visual_triangles": 398,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7288503253796096,
+            "triangles": 58
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1110_p0",
+          "cells": 3824,
+          "visual_triangles": 560,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7698744769874477,
             "triangles": 86
           },
           "min": [
@@ -979,56 +412,14 @@
           ]
         },
         {
-          "name": "h01_p2",
-          "cells": 3612,
-          "visual_triangles": 500,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.832779623477298,
-            "triangles": 160
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u01_p2",
-          "cells": 3612,
-          "visual_triangles": 496,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.832779623477298,
-            "triangles": 156
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0110_p2",
-          "cells": 3780,
-          "visual_triangles": 622,
+          "name": "j1101_p0",
+          "cells": 3848,
+          "visual_triangles": 464,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6095238095238096,
-            "triangles": 76
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -1042,14 +433,14 @@
           ]
         },
         {
-          "name": "j0101_p2",
-          "cells": 3776,
-          "visual_triangles": 598,
+          "name": "j1111_p0",
+          "cells": 3984,
+          "visual_triangles": 576,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6440677966101694,
-            "triangles": 96
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
           },
           "min": [
             0.0,
@@ -1063,14 +454,14 @@
           ]
         },
         {
-          "name": "j0111_p2",
-          "cells": 3944,
-          "visual_triangles": 680,
+          "name": "h00_p1",
+          "cells": 3703,
+          "visual_triangles": 346,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7302231237322515,
-            "triangles": 86
+            "retained_volume": 0.7777477720766945,
+            "triangles": 44
           },
           "min": [
             0.0,
@@ -1084,56 +475,14 @@
           ]
         },
         {
-          "name": "h10_p2",
-          "cells": 3612,
-          "visual_triangles": 500,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.832779623477298,
-            "triangles": 160
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u10_p2",
-          "cells": 3612,
-          "visual_triangles": 496,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.832779623477298,
-            "triangles": 156
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1010_p2",
-          "cells": 3780,
-          "visual_triangles": 622,
+          "name": "u00_p1",
+          "cells": 3703,
+          "visual_triangles": 258,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6095238095238096,
-            "triangles": 72
+            "retained_volume": 0.7777477720766945,
+            "triangles": 46
           },
           "min": [
             0.0,
@@ -1147,202 +496,13 @@
           ]
         },
         {
-          "name": "j1001_p2",
-          "cells": 3775,
-          "visual_triangles": 610,
+          "name": "j0010_p1",
+          "cells": 3839,
+          "visual_triangles": 458,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6272847682119206,
-            "triangles": 112
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1011_p2",
-          "cells": 3943,
-          "visual_triangles": 692,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.714177022571646,
-            "triangles": 102
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h11_p2",
-          "cells": 3600,
-          "visual_triangles": 600,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8222222222222222,
-            "triangles": 184
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u11_p2",
-          "cells": 3600,
-          "visual_triangles": 592,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8222222222222222,
-            "triangles": 176
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1110_p2",
-          "cells": 3768,
-          "visual_triangles": 722,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8598726114649682,
-            "triangles": 210
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1101_p2",
-          "cells": 3775,
-          "visual_triangles": 670,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.6272847682119206,
-            "triangles": 112
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j1111_p2",
-          "cells": 3943,
-          "visual_triangles": 752,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.714177022571646,
-            "triangles": 102
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "h00_p3",
-          "cells": 3624,
-          "visual_triangles": 396,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 132
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "u00_p3",
-          "cells": 3624,
-          "visual_triangles": 396,
-          "occlusion": true,
-          "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8432671081677704,
-            "triangles": 136
-          },
-          "min": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "max": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "j0010_p3",
-          "cells": 3786,
-          "visual_triangles": 454,
-          "occlusion": true,
-          "shadow": {
-            "stride": 4,
-            "retained_volume": 0.659270998415214,
+            "retained_volume": 0.8168793956759572,
             "triangles": 68
           },
           "min": [
@@ -1357,14 +517,14 @@
           ]
         },
         {
-          "name": "j0001_p3",
-          "cells": 3790,
-          "visual_triangles": 452,
+          "name": "j0001_p1",
+          "cells": 3848,
+          "visual_triangles": 418,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7092348284960422,
-            "triangles": 92
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -1378,13 +538,286 @@
           ]
         },
         {
-          "name": "j0011_p3",
-          "cells": 3952,
-          "visual_triangles": 510,
+          "name": "j0011_p1",
+          "cells": 3984,
+          "visual_triangles": 530,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7935222672064778,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h01_p1",
+          "cells": 3691,
+          "visual_triangles": 428,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7282579246816581,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u01_p1",
+          "cells": 3691,
+          "visual_triangles": 356,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7282579246816581,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0110_p1",
+          "cells": 3827,
+          "visual_triangles": 540,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7692709694277502,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0101_p1",
+          "cells": 3848,
+          "visual_triangles": 452,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0111_p1",
+          "cells": 3984,
+          "visual_triangles": 564,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h10_p1",
+          "cells": 3691,
+          "visual_triangles": 422,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7282579246816581,
+            "triangles": 58
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u10_p1",
+          "cells": 3691,
+          "visual_triangles": 356,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7282579246816581,
+            "triangles": 58
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1010_p1",
+          "cells": 3827,
+          "visual_triangles": 534,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7692709694277502,
+            "triangles": 82
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1001_p1",
+          "cells": 3848,
+          "visual_triangles": 446,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1011_p1",
+          "cells": 3984,
+          "visual_triangles": 558,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h11_p1",
+          "cells": 3679,
+          "visual_triangles": 502,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6784452296819788,
+            "triangles": 62
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u11_p1",
+          "cells": 3679,
+          "visual_triangles": 452,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6784452296819788,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1110_p1",
+          "cells": 3815,
+          "visual_triangles": 614,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7213630406290956,
             "triangles": 86
           },
           "min": [
@@ -1399,14 +832,581 @@
           ]
         },
         {
-          "name": "h01_p3",
-          "cells": 3612,
-          "visual_triangles": 500,
+          "name": "j1101_p1",
+          "cells": 3848,
+          "visual_triangles": 478,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.832779623477298,
-            "triangles": 158
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1111_p1",
+          "cells": 3984,
+          "visual_triangles": 590,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h00_p2",
+          "cells": 3704,
+          "visual_triangles": 322,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7775377969762419,
+            "triangles": 44
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u00_p2",
+          "cells": 3704,
+          "visual_triangles": 234,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7775377969762419,
+            "triangles": 46
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0010_p2",
+          "cells": 3848,
+          "visual_triangles": 394,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0001_p2",
+          "cells": 3840,
+          "visual_triangles": 434,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8166666666666667,
+            "triangles": 68
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0011_p2",
+          "cells": 3984,
+          "visual_triangles": 506,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h01_p2",
+          "cells": 3692,
+          "visual_triangles": 406,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7280606717226435,
+            "triangles": 64
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u01_p2",
+          "cells": 3692,
+          "visual_triangles": 334,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7280606717226435,
+            "triangles": 62
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0110_p2",
+          "cells": 3836,
+          "visual_triangles": 478,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8175182481751825,
+            "triangles": 80
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0101_p2",
+          "cells": 3840,
+          "visual_triangles": 470,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8166666666666667,
+            "triangles": 68
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0111_p2",
+          "cells": 3984,
+          "visual_triangles": 542,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h10_p2",
+          "cells": 3692,
+          "visual_triangles": 400,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7280606717226435,
+            "triangles": 64
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u10_p2",
+          "cells": 3692,
+          "visual_triangles": 334,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7280606717226435,
+            "triangles": 64
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1010_p2",
+          "cells": 3836,
+          "visual_triangles": 472,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8175182481751825,
+            "triangles": 80
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1001_p2",
+          "cells": 3836,
+          "visual_triangles": 486,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7841501564129302,
+            "triangles": 80
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1011_p2",
+          "cells": 3980,
+          "visual_triangles": 558,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8683417085427135,
+            "triangles": 96
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h11_p2",
+          "cells": 3680,
+          "visual_triangles": 480,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6782608695652174,
+            "triangles": 70
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u11_p2",
+          "cells": 3680,
+          "visual_triangles": 430,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6782608695652174,
+            "triangles": 66
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1110_p2",
+          "cells": 3824,
+          "visual_triangles": 552,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7698744769874477,
+            "triangles": 86
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1101_p2",
+          "cells": 3836,
+          "visual_triangles": 518,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7841501564129302,
+            "triangles": 80
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j1111_p2",
+          "cells": 3980,
+          "visual_triangles": 590,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8683417085427135,
+            "triangles": 96
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h00_p3",
+          "cells": 3712,
+          "visual_triangles": 314,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8275862068965517,
+            "triangles": 36
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "u00_p3",
+          "cells": 3712,
+          "visual_triangles": 228,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8275862068965517,
+            "triangles": 36
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0010_p3",
+          "cells": 3848,
+          "visual_triangles": 426,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0001_p3",
+          "cells": 3848,
+          "visual_triangles": 426,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "j0011_p3",
+          "cells": 3984,
+          "visual_triangles": 538,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
+          },
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "h01_p3",
+          "cells": 3700,
+          "visual_triangles": 392,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7783783783783784,
+            "triangles": 56
           },
           "min": [
             0.0,
@@ -1421,13 +1421,13 @@
         },
         {
           "name": "u01_p3",
-          "cells": 3612,
-          "visual_triangles": 496,
+          "cells": 3700,
+          "visual_triangles": 322,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.832779623477298,
-            "triangles": 158
+            "stride": 4,
+            "retained_volume": 0.7783783783783784,
+            "triangles": 54
           },
           "min": [
             0.0,
@@ -1442,13 +1442,13 @@
         },
         {
           "name": "j0110_p3",
-          "cells": 3774,
-          "visual_triangles": 558,
+          "cells": 3836,
+          "visual_triangles": 504,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6274509803921569,
-            "triangles": 78
+            "retained_volume": 0.8175182481751825,
+            "triangles": 80
           },
           "min": [
             0.0,
@@ -1463,13 +1463,13 @@
         },
         {
           "name": "j0101_p3",
-          "cells": 3789,
-          "visual_triangles": 528,
+          "cells": 3848,
+          "visual_triangles": 454,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.692531010820797,
-            "triangles": 106
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -1484,13 +1484,13 @@
         },
         {
           "name": "j0111_p3",
-          "cells": 3951,
-          "visual_triangles": 586,
+          "cells": 3984,
+          "visual_triangles": 566,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7775246772968869,
-            "triangles": 100
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
           },
           "min": [
             0.0,
@@ -1505,13 +1505,13 @@
         },
         {
           "name": "h10_p3",
-          "cells": 3613,
-          "visual_triangles": 510,
+          "cells": 3700,
+          "visual_triangles": 388,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.834763354553003,
-            "triangles": 154
+            "stride": 4,
+            "retained_volume": 0.7783783783783784,
+            "triangles": 56
           },
           "min": [
             0.0,
@@ -1526,13 +1526,13 @@
         },
         {
           "name": "u10_p3",
-          "cells": 3613,
-          "visual_triangles": 506,
+          "cells": 3700,
+          "visual_triangles": 324,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.834763354553003,
-            "triangles": 156
+            "stride": 4,
+            "retained_volume": 0.7783783783783784,
+            "triangles": 54
           },
           "min": [
             0.0,
@@ -1547,12 +1547,12 @@
         },
         {
           "name": "j1010_p3",
-          "cells": 3775,
-          "visual_triangles": 568,
+          "cells": 3836,
+          "visual_triangles": 500,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6442384105960265,
+            "retained_volume": 0.8175182481751825,
             "triangles": 80
           },
           "min": [
@@ -1568,13 +1568,13 @@
         },
         {
           "name": "j1001_p3",
-          "cells": 3789,
-          "visual_triangles": 532,
+          "cells": 3848,
+          "visual_triangles": 452,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.692531010820797,
-            "triangles": 106
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -1589,13 +1589,13 @@
         },
         {
           "name": "j1011_p3",
-          "cells": 3951,
-          "visual_triangles": 590,
+          "cells": 3984,
+          "visual_triangles": 564,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7775246772968869,
-            "triangles": 100
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
           },
           "min": [
             0.0,
@@ -1610,13 +1610,13 @@
         },
         {
           "name": "h11_p3",
-          "cells": 3601,
-          "visual_triangles": 614,
+          "cells": 3688,
+          "visual_triangles": 466,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8242154956956401,
-            "triangles": 180
+            "stride": 4,
+            "retained_volume": 0.7288503253796096,
+            "triangles": 62
           },
           "min": [
             0.0,
@@ -1631,13 +1631,13 @@
         },
         {
           "name": "u11_p3",
-          "cells": 3601,
-          "visual_triangles": 606,
+          "cells": 3688,
+          "visual_triangles": 418,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.8242154956956401,
-            "triangles": 178
+            "stride": 4,
+            "retained_volume": 0.7288503253796096,
+            "triangles": 58
           },
           "min": [
             0.0,
@@ -1652,13 +1652,13 @@
         },
         {
           "name": "j1110_p3",
-          "cells": 3763,
-          "visual_triangles": 672,
+          "cells": 3824,
+          "visual_triangles": 578,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.6122774382141908,
-            "triangles": 90
+            "retained_volume": 0.7698744769874477,
+            "triangles": 86
           },
           "min": [
             0.0,
@@ -1673,13 +1673,13 @@
         },
         {
           "name": "j1101_p3",
-          "cells": 3788,
-          "visual_triangles": 608,
+          "cells": 3848,
+          "visual_triangles": 480,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.675818373812038,
-            "triangles": 120
+            "retained_volume": 0.8648648648648649,
+            "triangles": 60
           },
           "min": [
             0.0,
@@ -1694,13 +1694,13 @@
         },
         {
           "name": "j1111_p3",
-          "cells": 3950,
-          "visual_triangles": 666,
+          "cells": 3984,
+          "visual_triangles": 592,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7615189873417721,
-            "triangles": 114
+            "retained_volume": 0.8995983935742972,
+            "triangles": 84
           },
           "min": [
             0.0,
@@ -1714,8 +1714,8 @@
           ]
         }
       ],
-      "bytes": 5904776,
-      "sha256": "5be6aa9b47539e6a692d0688be6096681d436f64d57f43a0bf0da1fc5b557738",
+      "bytes": 4506744,
+      "sha256": "2ec00b324dbd89f46c54d8983a381a1e5c0492bca1327a81f1f34df3d58ab37c",
       "path": "assets/models/construction/logs.glb",
       "authoring": {
         "source": "tools/voxel_assets/built_logs.py",

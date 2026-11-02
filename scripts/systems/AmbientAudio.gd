@@ -16,6 +16,8 @@ var _flora: Node
 var _slice: Node
 var _scan_left := 0.0
 var _call_left := {"birds": 6.0, "owls": 50.0}
+var _thunder_due := -1.0  # seconds until a struck flash's thunder; negative when none waits
+var _thunder_bank := "thunder"  # close cracks ("thunder_near") or distant rumbles
 var _last_variant := {}
 var _context: Dictionary = {}
 var _exposure := 1.0
@@ -47,11 +49,17 @@ func _ready() -> void:
 		_streams[kind] = stream
 	for kind: String in config.calls:
 		_call_left[kind] = _interval(kind, 0)
-		var bank: Array[AudioStream] = []
-		for file: String in config.calls[kind].streams:
-			bank.append(load("res://assets/audio/ambience/environment/" + file + ".wav"))
-		_streams[kind] = bank
+		_streams[kind] = _load_bank(config.calls[kind].streams)
+		# Thunder also has close cracks for the nearest strikes.
+		if config.calls[kind].has("near_streams"): _streams[kind + "_near"] = _load_bank(config.calls[kind].near_streams)
 	reload_preferences()
+
+
+func _load_bank(files: Array) -> Array[AudioStream]:
+	var bank: Array[AudioStream] = []
+	for file: String in files:
+		bank.append(load("res://assets/audio/ambience/environment/" + file + ".wav"))
+	return bank
 
 
 func _bus(channel: String) -> int:
@@ -173,6 +181,7 @@ func clear_scene() -> void:
 	_habitat.clear()
 	_context.clear()
 	_scan_left = 0
+	_thunder_due = -1.0
 	for kind: String in _call_left: _call_left[kind] = _interval(kind, 0)
 
 
@@ -228,6 +237,7 @@ func _process(delta: float) -> void:
 		voice.gain = lerpf(voice.gain, float(targets[voice.kind]), blend)
 		voice.player.volume_db = linear_to_db(maxf(voice.gain, .0001)) + float(config.calls[voice.kind].level_db)
 	if paused: return
+	_tick_thunder(delta)
 	for kind: String in _call_left:
 		if float(targets[kind]) < .01:
 			_call_left[kind] = _interval(kind, float(targets.dawn))
@@ -235,8 +245,28 @@ func _process(delta: float) -> void:
 		# Less activity in cold/murky weather as well as lower call volume.
 		_call_left[kind] -= delta * clampf(float(targets[kind]), .2, 1.0)
 		if _call_left[kind] <= 0:
-			_start_call(kind)
+			if kind == "thunder": _strike()
+			else: _start_call(kind)
 			_call_left[kind] = _interval(kind, float(targets.dawn))
+
+
+## Thunder is a lightning strike: the sky flashes now and the thunder follows, as
+## from a strike further off. Nearer strikes flash brighter and rumble sooner; the
+## nearest crack instead of rumbling. `far` runs from 0 (overhead) to 1; random if negative.
+func _strike(far := -1.0) -> void:
+	if far < 0.0: far = _rng.randf()
+	var thunder: Dictionary = config.calls.thunder
+	var lead: Array = thunder.get("flash_lead", [0.0, 0.0])
+	SkyController.flash_lightning(lerpf(1.0, .55, far))
+	_thunder_due = lerpf(float(lead[0]), float(lead[1]), far)
+	_thunder_bank = "thunder_near" if far < float(thunder.get("near_share", 0.0)) and _streams.has("thunder_near") else "thunder"
+
+
+## Counts down to a struck flash's thunder; paused time holds it.
+func _tick_thunder(delta: float) -> void:
+	if _thunder_due < 0.0: return
+	_thunder_due -= delta
+	if _thunder_due < 0.0: _start_call("thunder", _thunder_bank)
 
 
 func _scan_environment() -> void:
@@ -321,7 +351,9 @@ func _interval(kind: String, dawn: float) -> float:
 	return _rng.randf_range(profile.interval[0], profile.interval[1]) * lerpf(1.0, float(profile.dawn_interval_multiplier), dawn)
 
 
-func _start_call(kind: String) -> bool:
+## Plays one phrase of `kind` from its own sounds, or from `bank` (e.g. near thunder).
+func _start_call(kind: String, bank_name := "") -> bool:
+	if bank_name == "": bank_name = kind
 	if float(targets.get(kind, 0)) < .01: return false
 	if kind in ["wolves", "creaks"] and not _habitat.get(kind, {}).has("node"): return false
 	if kind in ["frogs", "drips"] and not _habitat.has(kind): return false
@@ -334,10 +366,10 @@ func _start_call(kind: String) -> bool:
 		voice.kind = kind
 		if _habitat.get(kind, {}).has("node"): voice.source = _habitat[kind].node
 		if not _voice_source_valid(voice): return false
-		var bank: Array = _streams[kind]
+		var bank: Array = _streams[bank_name]
 		var variant := _rng.randi_range(0, bank.size() - 1)
-		if variant == int(_last_variant.get(kind, -1)): variant = (variant + 1) % bank.size()
-		_last_variant[kind] = variant
+		if variant == int(_last_variant.get(bank_name, -1)): variant = (variant + 1) % bank.size()
+		_last_variant[bank_name] = variant
 		var player: AudioStreamPlayer3D = voice.player
 		player.bus = config.calls[kind].get("bus", config.bus)
 		player.stream = bank[variant]

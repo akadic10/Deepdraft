@@ -9,6 +9,1797 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**The raw materials crate (2026-11-02):** Doc [294](294_storage_furniture.md), step 4.
+- Crafters → Carpenter → Storage: a raw materials crate from two matching logs at the carpenter's
+  bench. It is the log crib (concept A, the owner's change from C). Place → Storage sets it on the
+  floor over 2 × 2 cells.
+- It holds twelve raw goods, three of one good to each quarter: Rough Stone, the ores and coal,
+  and soil. It starts at priority 4, so these go to it before ground storage, and stones already
+  on the ground move up to it. Each filled quarter shows one of its goods over the rim.
+- Its window counts goods ("Used 8 / 12 goods"); narrowed to one good, its title names it
+  ("Raw Materials Crate · Iron Ore"). The tool rack's window now says "Used 2 / 3 hooks".
+- Restart Play. No reload needed.
+
+---
+
+**Storage priority and the tool rack (2026-11-02):** Doc [294](294_storage_furniture.md), steps 2
+and 3.
+- **Storage priority.** Every storage zone has a priority from 1 (filled first) to 5 (last), set
+  in its storage window. Zones start at 5. Goods go to the best store with room and move up to
+  better ones, never between stores of the same priority. Taking goods out still takes the
+  nearest.
+- **The tool rack.** Crafters → Carpenter → Storage: a tool rack from one log at the carpenter's
+  bench. Place → Storage hangs it against a wall at least 3 blocks high. It holds three tools,
+  hung on its pegs, and starts at priority 4, so tools go to it before ground storage. Its
+  window's Storage button lists only tools. Uninstalled, moved or with its wall mined, it drops
+  its tools in front of it.
+- Restart Play. No reload needed.
+
+---
+
+**Storage furniture, picks and a storage priority (2026-11-02):** No change in play. The owner
+picked the designs:
+- the tool rack is B, the pegged board;
+- the raw materials crate is C, the slab box;
+- the finished goods pallet is A, log skids.
+
+The owner also added a 1 to 5 priority for every store. Ground zones start at 5 (last) and
+containers at 4, and players can change either. Goods go to the best store with room, and move up
+to better ones, never between equals. Doc [294](294_storage_furniture.md) records the picks and the
+priority design, and builds the priority first, then the tool rack. No restart or reload needed.
+
+---
+
+**Storage furniture, planned with concepts (2026-11-02):** No change in play. The Carpenter's
+first piece is a wall-mounted tool rack that holds the colony's tools (owner: "Hold tools"), and
+the owner added a raw materials crate and a finished goods pallet. Doc
+[294](294_storage_furniture.md) plans all three as the first storage furniture since barrels and
+chests were removed, under the owner's container rule. It has three concepts each, photographed
+in a copy of the colony with the game's own tools and raw goods
+(`tmp/storage_concepts_20261102/world/`), and picks with my recommendations. The finished goods
+pallet waits for its goods (bars, dressed stone, planks), which need iron tools. No restart or
+reload needed.
+
+---
+
+**The Stonemason and the Carpenter, step 3: the stone stool (2026-11-01):** The Stonemason's
+first piece (doc [293](293_stonemason_and_carpenter.md), "Built: step 3").
+- **Crafters → Stonemason → Dining:** a stone stool from one Rough Stone at the mason's bench.
+  The stone lies on the slab while the maul knocks it square. Place → Dining installs it.
+- **It seats as the log stool does:** by a fire, at a dining table's guides and at the board.
+- **Tables take any stool:** the dining table and the board mix log and stone stools. The Place
+  cards and the board's window now say "stools".
+- **Goods on the long benches** lie on the slab nearest the worker, never over its edge.
+
+Restart Play; no project reload is needed.
+
+---
+
+**The Stonemason and the Carpenter, step 2 (2026-11-01):** Both careers now craft, and each
+makes its own workbench first (doc [293](293_stonemason_and_carpenter.md), "Built: step 2").
+- **The Stonemason is a career.** Workers make a crude masonry kit at the crude workbench
+  (Starter tools: a log and a Rough Stone). Choose Stonemason and the dwarf collects it.
+- **Crafters → Carpenter and Crafters → Stonemason are live,** laid out as Rudimentary:
+  - the carpenter's bench (three matching logs) is the peeled log workbench from the owner's
+    picture;
+  - the mason's bench (a log and three Rough Stones) is the split slab on two stumps, 3 × 1;
+  - only that career makes its bench, at the crude workbench, and Place → Workshops installs it.
+- **Crafting first:** a Carpenter or Stonemason takes an order from their own page before any
+  other work, and otherwise works as a Worker does.
+- **Levels:** one experience a batch; levels at 10, 50, 150 and 400 batches, each 5% less
+  crafting time. The bar reads "1 batch made", "12 batches made".
+- **Strength speeds the Stonemason's crafting**, Wits the Carpenter's.
+- **Tools in hand:** the Carpenter swings a stone adze and the Stonemason a maul, which knocks
+  like the builder's hammer.
+
+Nothing is made at the new benches yet: the stone stool and the Carpenter's first goods are
+step 3. Restart Play; no project reload is needed.
+
+---
+
+**Stonemason and Carpenter, the pieces settled (2026-11-01):** No change in play. From the
+owner, with a picture of a log workbench: "Wooden workbench, try something like this image. The
+masons bench B looks good but make it 1x3. The Stone stool looks good in B". Doc
+[293](293_stonemason_and_carpenter.md) records the settled pieces:
+- **The carpenter's bench** follows the picture: a thick slab hewn flat on top, on four thick log
+  legs with low log rails, the slab running past the legs at both ends. It is 3 × 1 and takes
+  three logs, and its logs are peeled, as in the picture (owner: "Peeled, A"; B kept the
+  bark on).
+- **The mason's bench** is the slab on stumps, now 3 × 1, from a log and three Rough Stones.
+- **The stone stool** is B, the rough block.
+
+Still to choose: the Carpenter's first goods. The new sheets are `sheets3/` and
+`world/benches3.png` and `poses/poses3.png` in `tmp/mason_carpenter_concepts_20261101/`. No
+restart or reload needed.
+
+---
+
+**Stonemason and Carpenter, rough tools only (2026-11-01):** No change in play. From the owner:
+"we have to remember that Dwarves have very basic tools and they can't quite make the things
+you're presenting with a chisel". The owner chose the masonry kit (A), the hewing cradle (C,
+"more rudimentary") and the slab on stumps (B). Planks, dressed stone, Build's blocks and the
+plank stool wait for iron tools. Each career's crafting page looks like the Rudimentary page.
+Doc [293](293_stonemason_and_carpenter.md) is trimmed to match, and the rough pieces are
+redrawn:
+- **The cradle,** in two takes: rough bolsters with chopped notches, and the log hewn in axe
+  strokes. My pick is C2, the bolsters on a sill, so it stands as one piece when idle.
+- **The slab on stumps,** with a split slab rather than a dressed one.
+- **The stone stool,** in three takes, all the log stool's size: a Rough Stone knocked square
+  with the maul. My pick is A, the squared stone with a foot like the log stool's root flare.
+
+Still to choose: the Carpenter's first goods, since nothing on the first list can be made
+without a saw. The new sheets are in `tmp/mason_carpenter_concepts_20261101/` (`sheets2/`,
+`world/benches2.png`, `world/stools2.png`, `poses/poses2.png`). No restart or reload needed.
+
+---
+
+**Stonemason and Carpenter concepts (2026-11-01):** No change in play. From the owner: "Draw
+concepts". Step 1 of [293](293_stonemason_and_carpenter.md) is drawn over a copy of the owner's
+colony, with three options each and my recommendation first:
+- **The masonry kit:** A · maul and point, bound. B · a hammerstone and points. C · the mason's
+  pick.
+- **The carpenter's bench:** A · the split-log bench. B · trestles and a plank. C · the hewing
+  cradle.
+- **The mason's bench:** A · the dry-stone banker. B · a slab on stumps. C · a boulder banker.
+- **The stools:** the plank stool's B · board ends, and the stone stool's A · dressed block.
+- **The goods:** planks as C · a waney board, and dressed stone as B · the drafted block.
+- **Build's blocks:** dressed stone B · coursed, and planked A · boards.
+- **The pages:** A · a WITH IRON TOOLS box, as the Ranger's page has. B · the joiner's bench,
+  locked. C · the ladder across the top.
+- **At work:** the Worker's swing with the new tools.
+
+The sheets are in `tmp/mason_carpenter_concepts_20261101/` (`sheets/`, `world/`, `pages/`,
+`poses/`). No restart or reload needed.
+
+---
+
+**The Stonemason and the Carpenter, the plan (2026-11-01):** No change in play. From the owner:
+"Review the professions in the game, I think I am ready to start the Stonemason and the
+carpenter and each will have to craft their starting workbench, later as better tools become
+available they will be able to craft more advanced workbenches". Doc
+[293](293_stonemason_and_carpenter.md) reviews the professions and plans both careers:
+- **The review.** A Carpenter today collects a kit and then works as a Worker who can't craft;
+  the Stonemason has no kit, recipes or promotion yet.
+- **A ladder for each.** A kit that Workers make, then a starter workbench the career makes for
+  itself at the crude workbench, then an advanced workbench that needs the Blacksmith's iron
+  tools (the joiner's bench, the carver's bench). Every later career makes its own first
+  workbench from raw goods.
+- **The Stonemason promotes with a new crude masonry kit.** Both careers craft their own pages
+  first, then do a Worker's work.
+- **Planks and dressed stone** become goods for Tier 2 · Carpenter Era pieces and for Build's
+  planked and dressed stone blocks, and finished blocks add room appeal.
+- **The first pieces:** the plank dining table and a plank stool from the Carpenter, and a stone
+  stool from the Stonemason. Table guides will take any stool, not only the log stool.
+
+The owner took the picks with one change: "all good except the stone door, let's make a stone
+stool instead for now". The stool is the first stone piece dwarves use, an exception to doc
+62's rule that such furniture is wood. Still open: the plank bed's blanket, stone kinds, the
+stone economy and the icons. Concepts are next. No restart or reload needed.
+
+---
+
+**Real drying (2026-11-01):** From the owner: "the fish dried instantly, I don't think we want it
+to work that way", then "Build it". Fish now dry on the rack:
+- **Hang.** A Ranger hangs two fish of one kind (12 seconds, as before). That finishes the
+  order's batch, so it can move on to another free rack.
+- **Dry.** They hang there, on show, for a game day. A rack holds one batch, so more racks dry
+  more at once; an order with every rack busy says "Waiting for a free drying rack · about 14
+  hours". Fish on a rack don't spoil and count toward a Keep target.
+- **Take down.** Once dry, a Ranger takes them down: two dried fish land beside the rack, and
+  their catch log counts them. Rangers now take dry fish down first, then hang fresh ones,
+  then fish, then haul.
+- **Where to see it.** The rack's window says "Any Ranger" and shows a Drying row; its line reads
+  "Drying 2 trout · about 14 hours left", then "2 dried fish · waiting for a Ranger". The
+  crafting window lists DRYING batches under the queue.
+- **Saves** keep each batch. A rack removed before its fish come down drops them beside it.
+
+See [292](292_ranger.md) ("Real drying") and [44](../40_economy_colony/44_crafting_workshops.md).
+`FishDryingTest` checks it. Gate 55/55; the lint finds nothing new. Restart Play; no project
+reload needed.
+
+---
+
+**Rangers dry before they fish (2026-11-01):** From the owner: "Durek, our ranger keeps fishing
+and not making the dried fish, can we review his priorities". Drying already outranked
+fishing, but finding two matching fish and a route to the rack takes the scheduler a few
+passes, and the fishing spot at the Ranger's feet claimed them in between, after every catch.
+A Ranger now does their work in order: drying, then fishing, then hauling. A Ranger whom a
+drying order waits for finishes the current catch, then dries before casting again. Workers
+and Miners are unchanged. A replay of the owner's quicksave shows Durrek drying two trout
+right after his catch. See [292](292_ranger.md) ("Rangers dry before they fish").
+`FishDryingTest` checks it. Gate 55/55; the lint finds nothing new. Restart Play; no project
+reload needed.
+
+---
+
+**The drying rack is the Ranger's workbench (2026-11-01):** From the owner: "I think the
+drying rack should move under the rangers menu as a workbench, the ranger may have more
+workbenches later such as drying leather". The rack's recipe moved from Rudimentary → Food to
+Crafters → Ranger, under Workshops above Dried fish. Rangers make it, still from two matching
+logs at the crude workbench; with no Ranger its order waits as "Needs a Ranger". Rudimentary
+no longer has a Food group. Place still files the rack under Food. The Ranger page's "With
+hunting" box now names more workbenches to come, such as a rack for drying hides into
+leather. See [292](292_ranger.md) ("The rack as the Ranger's workbench") and
+[44](../40_economy_colony/44_crafting_workshops.md). `FishDryingTest` checks it. Gate 55/55;
+the lint finds nothing new. Restart Play; no project reload needed.
+
+---
+
+**The Ranger's kit (2026-11-01):** From the owner: "the promotion tool is still a spear, while
+the rangers new icon is a combination of a spear and a fishing pole", then "Build A". The
+hunting spear is now the Ranger's kit: the spear and a peeled fishing rod bound side by side
+with rope, the line wound on the rod and the float tied on at its tip. Workers make it at the
+crude workbench as before (a log and a Rough Stone, Starter tools), and a dwarf promoted to
+Ranger collects it. The Equipment view says they fish with its rod and the spear waits for
+hunting. The kit replaces the spear everywhere: Inventory, storage, the crafting list and the
+career map. The spear's model and picture are deleted; their `.import` files are left for the
+owner to remove. None of the owner's saves held a hunting spear, so they all still load. See
+[292](292_ranger.md) ("The Ranger's tool"). `RangerTest` promotes with the kit; the art,
+fishing, crafting and save tests pass. Gate 55/55; the lint finds nothing new. Restart Play;
+no project reload needed.
+
+---
+
+**The chosen recipe's ring shows whole (2026-11-01):** From the owner: "can you fix the
+yellow outline cutting off". The hay ring around the chosen tile was cut off along the
+list's edge, most visibly on the left of the first column (the crude workbench, Dried
+fish). The ring stands 4 px outside its tile, so every picture grid now leaves that room
+at its sides and below its last row, and a list that scrolls to the chosen recipe brings
+the whole ring into view. The same fix covers the other windows built on the shared grid:
+Place, Inventory, storage, the room window, Blueprints and the DEV item stamper. No milestone doc;
+the rule is in [23](../20_player_interface/23_user_interface.md) (Picture grid).
+`CraftingBrowserTest` checks every recipe's ring on both pages at three screen sizes, and
+`WindowStyleTest` checks the grid's edges. Gate 55/55; the lint finds nothing new. Restart
+Play; no project reload needed.
+
+---
+
+**The career map follows the selected dwarf (2026-11-01):** From the owner: "when looking for
+the most suitable dwarf for the ranger, I think the left menu should update when I select a
+new dwarf in the right menu". With the career map open, picking another dwarf in Colony
+Dwarves or in the world now moves the map to them, and the career you were looking at stays
+chosen. Pick Ranger once, then click down the roster to compare each dwarf's fit and
+requirements. The character sheet already followed the selection this way. No milestone doc;
+the rule is in [23](../20_player_interface/23_user_interface.md) (the career map,
+"Following"). `DwarfRosterTest` checks it. Gate 55/55; the lint finds nothing new. Restart
+Play; no project reload needed.
+
+---
+
+**The Ranger (2026-11-01):** From the owner: "Build the Ranger". Step 2 of
+[292](292_ranger.md):
+- **The Hunter is now the Ranger,** promoted by collecting a hunting spear (Wisdom, then
+  Agility), with the new spear-and-rod icon.
+- **Only Rangers fish and dry fish.** Workers no longer fish; Rangers fish, dry and haul, and
+  never mine, fell or build. Labor greys out the boxes a career can't use. A zone's window
+  says "No Ranger yet: promote one to fish here".
+- **Dried fish moved to Crafters → Ranger,** the Ranger's own page, which the rack's Dry fish
+  opens. With no Ranger its order waits as "Needs a Ranger", and it never holds up the
+  Workers' orders below it.
+- **Rangers get better with every catch:** levels at 10, 50, 150 and 400 catches. From level
+  2 some catches are big fish (one in six, then one in three, then nearly every other): two
+  fish land for one taken from the water, and a big fish of its own hangs on the line. From
+  level 3 winter slows them half as much.
+- **The character sheet** shows a Ranger's catch log: fish by kind, big fish, the best day,
+  fish dried and the next reward.
+
+In your colony, fishing pauses until you promote a Ranger, and the Keep 2 dried fish order
+waits for one. Four of your five dwarves have Fish unticked in Labor. The career map warns
+if you promote one of them; Grunbur already has Fish ticked. Captures over a copy of the colony
+are in `tmp/ranger_build_20261101/shots/`. Gate 55/55; the lint finds nothing new. Restart
+Play; no project reload needed.
+
+---
+
+**Ranger concepts (2026-11-01):** No change in play. From the owner: "Draw concepts", then, for
+the four recommendations, "Take them all". Step 1 of [292](292_ranger.md), drawn over a copy
+of the owner's colony with the Hunter made the Ranger in memory only and Grunbur standing in:
+- **The picture:** A · both tools (spear and rod crossed), B · the catch (a perch hung from
+  the spear), C · the creel. Taken: A.
+- **The crafting page:** A · the Ranger's own page, B · a page led by the rack, C · the drying
+  order on the rack's card. Taken: A, the plan as written.
+- **The sheet:** A · the Miner's list of rewards, B · the odds drawn as six catches, C · a
+  catch log of the Ranger's own record. Taken: C.
+- **The big catch:** A · the same fish scaled up, B · a big fish of its own, C · two on the
+  line. Taken: B.
+
+The sheets are in `tmp/ranger_concepts_20261101/` (`icon_review.png`, `ui/`, `fish/`), at
+1920×1080 and 7680×2160. No restart or reload needed.
+
+---
+
+**The Ranger, the plan (2026-11-01):** No change in play. From the owner, evaluating fishing:
+"Fishing should feel fun and rewarding for the player and it feels like a skill the dwarves
+should gain experience on". Of the drying rack: "it feels weird being nested under the
+rudimentary workbench". Shown four ways to go, the owner chose the Hunter taking fishing
+and named the career: "Yes, as Ranger". Doc [292](292_ranger.md) plans it with the owner's
+picks: those two, then every recommendation for the rest ("Take them all"):
+- **The Hunter becomes the Ranger.** It fishes now and will hunt once hunting is built.
+  Rangers promote with the hunting spear.
+- **Fishing and drying become Ranger work.** Only Rangers fish and dry. Dried fish moves
+  from the workbench's Rudimentary page to Crafters → Ranger, which the rack's Dry fish will
+  open.
+- **Rangers get better with every catch,** with levels at 10, 50, 150 and 400 catches. Levels
+  make catches bigger, not faster: big fish worth two portions, patience in winter and rare
+  fish. Each water's stock limits fishing, not the fisher's time.
+- **Catches worth telling.** Each fish gets a trait of its own, rare catches go in the
+  journal, and fishing lifts the Ranger's mood.
+
+Four steps: concepts, the Ranger, fish that differ, then rare fish. Hunting is a later
+milestone. Docs 41 and 289 note the plan. No restart or reload needed.
+
+---
+
+**Coal reads as blocks (2026-11-01):** From the owner: "The coal voxel in our game looks like a
+void", then "Build option A". No milestone doc; the rule is in
+[63](../60_asset_creation/63_shared_art_standard.md#world-and-effect-boundaries).
+- **Each coal block now shows its outline:** a lighter one-cell rim and fine seam, so a coal vein,
+  or a pit dug into one, reads as blocks instead of a black hole.
+- **Coal takes the mined coal's colour** (`#29343D`, was `#021C24`) and is still the darkest block.
+- **Unchanged:** stone, soil, grass and the other ores. Data only: coal's colour in
+  `terrain_blocks.json` and a new `coal` profile in `appearance_profiles.json`.
+
+New `TerrainArtTest` (art area) fails on the old coal and passes now. Gate 55/55; the lint finds
+nothing new. Captures over
+a copy of the owner's quicksave, before and after, are in `tmp/coal_look_20261101/`
+(`compare_close.png`, `built_close_crop.png`). Restart Play; no project reload needed.
+
+---
+
+**Near lightning cracks (2026-11-01):** From the owner: "does the lightning and thunder have in
+game sound files, if not, can you review claude.md and import some". Part of
+[291 — Rain and snow](291_rain_and_snow.md), "Thunder sounds".
+- **Thunder already had sounds:** three real CC0 recordings of distant thunder from 2026-10-28.
+  They are unchanged and still play for most strikes.
+- **New:** the nearest 30% of lightning strikes now play one of three recorded close thunder
+  cracks, 0.5–1.1 s after the flash.
+  - Sources: CC0 recordings by cognito perceptu (2) and TRP, from Freesound.
+  - Prepared like the existing thunder, with credits, hashes and settings in
+    `tools/audio_sources/rain_thunder/`; the generator rebuilds them without a download.
+- **Listening review** (not yet listened to): `tmp/thunder_near_20261101/review.html`.
+
+`StormLightningTest` checks near strikes crack and far ones rumble. Gate 55/55; the lint finds
+nothing new; the five existing rain and thunder files are byte-identical. Restart Play; no
+project reload needed.
+
+---
+
+**Storm lightning (2026-11-01):** From the owner: "Add lightning". Part of
+[291 — Rain and snow](291_rain_and_snow.md).
+- **Each storm thunder now comes with a strike:** one to three blue-white flickers light the
+  sky, the clouds, the distant fog and open ground.
+- **The thunder follows 0.5–2.5 s later;** a nearer strike flashes brighter and rumbles sooner.
+- **Rooms under a roof stay dark,** even when the slice hides the roof.
+- **Unchanged:** how often thunder comes (35–85 s apart in storms) and its sounds and volume.
+
+New `StormLightningTest` (sky area). Gate 55/55; the lint finds nothing new. A capture of a night storm over a copy of the
+owner's quicksave shows the calm night, the flash and its fade a quarter second later, with the
+house interior unchanged (`tmp/lightning_capture_20261101/`). Restart Play; no project reload
+needed.
+
+---
+
+**Rain and snow across the whole view (2026-11-01):** From the owner: "it appears the rain only
+falls in the center section. are there better rain and snow animations to consider?" They took
+the recommended drop field drawn by the graphics card: "Yes, build it".
+[291 — Rain and snow](291_rain_and_snow.md).
+- **Rain and storms fall over the whole view,** at every zoom and on any screen shape. Before,
+  every drop fell within 24 blocks of the screen centre, about 8% of the view at the default
+  zoom on a 32:9 screen. Drops keep their places as the camera moves and fall smoothly at the
+  full frame rate; a storm is heavier and slants more.
+- **Snow falls:** small spinning square flakes flutter down, rest a moment and fade.
+- **Splashes:** a small ring where rain hits the ground and a wider ripple on water; rain
+  stops at the water surface, not the riverbed.
+- **Weather fades** out and in over 4 s each, and drops dim at night.
+- **Under the slice,** on just above the ground, the space under the cut stays full of rain;
+  a room whose roof the slice hides still stays dry.
+
+New `WeatherPrecipitationTest` (sky area) replaces the rain checks in `EnvironmentDetailsTest`.
+Gate 55/55; the lint finds nothing new. The sky area, `EnvironmentDetailsTest`, `AmbientAudioTest` and `SkyDialTest` pass.
+Captures over a copy of the owner's quicksave (slice on at 47) show rain by day at three zooms, a
+storm at night and snow at three zooms, each at the 60 fps cap (`tmp/weather_capture_20261101/`).
+Restart Play; no project reload needed.
+
+---
+
+**Recorded sound workflow (2026-11-01):** Added the ongoing sound workflow to
+[CLAUDE.md](../../CLAUDE.md#sound-workflow), the existing agent guide.
+Use real recordings by default, prefer original lossless sources, document any
+MP3-preview fallback or substitute foley, retain source licenses and reproducible
+edit settings, and provide before/after listening comparisons. Documentation only;
+no restart or project reload is needed.
+
+---
+
+**The drying rack is bare until fish dry (2026-10-31):** From the owner: "the drying rack should
+not display fish if no fish are drying". The rack's model is now its posts and pole alone; the
+three hanging fish are a separate part (`parts/drying_rack_fish`) laid over it only while a
+Worker dries a batch there, and gone again when the batch is done. Its Place picture shows the
+bare rack. Any workshop can do this with a `batch_model` (doc 44). `FishDryingTest` checks the
+bare rack, the fish while drying and the bare rack after. Gate 55/55; the lint finds nothing
+new; the fishing, crafting, furniture and art areas pass. A capture over a copy of the owner's
+earlier colony shows the rack bare, then with fish while Runbrin dries a batch, then bare again.
+Restart Play; no project reload needed.
+
+---
+
+**Grilling fish on the campfire (2026-10-31):** From the owner: "A · On a stick". Step 2 of
+[290](290_campfire_grilling.md).
+- **At night by a burning campfire,** a hungry dwarf takes a fresh fish (perch, trout, char or
+  cave fish) to a stool facing the fire, or a place at its side, grills it on a stick and eats
+  it off the stick there. With no fresh fish, no room, a cold fire or one too far off, they eat
+  as before.
+- **What it gives:** food as the raw fish (0.6), 0.05 Rest ("Rested by the fire" on the
+  sheet), and "Grilled fish by the fire", +6 for 12 game hours, or "Grilled fish with
+  company", +8, when another dwarf grills or sits at the same fire. No "Ate without a table"
+  memory. Afterwards a seated dwarf sits on by the fire.
+- **New Hearthblock art:** each fresh fish on its stick, raw and grilled.
+- Step 3 saves still load.
+
+New `CampfireGrillTest` (fishing area); `ColonyJournalTest` knows the two new thoughts. Gate
+55/55; the lint finds nothing new; the dwarves, fishing, furniture, ui, saves, art, crafting and
+rooms areas pass. A capture over a copy of the owner's earlier colony at night shows a dwarf
+grilling a perch on a stool at the campfire and eating it off the stick, nothing posed. Not
+looked at in Play yet. Restart Play; no project reload needed.
+
+---
+
+**Grilling concepts (2026-10-31):** No change in play. From the owner: "Draw concepts". Step 1
+of [290](290_campfire_grilling.md): three ways to grill a perch, built as Hearthblock models and
+posed on real dwarves at the campfire of a copy of the owner's colony at night, one on a stool
+and one standing:
+- **A · On a stick:** a whole perch on a peeled green stick, held over the flames, then eaten
+  off the stick.
+- **B · Split:** the perch split open and pinned flat on a forked stick, flesh to the fire.
+- **C · Propped:** A's stick pushed into the ground at the fire's edge, leaning in over the
+  flames, while the dwarf sits back with hands on knees.
+
+Each fish raw and grilled: it browns, scorched along the belly, and its eye turns white. The
+pictures are in `tmp/grill_concepts_20261031/` (`model_sheet.png`, `fire_sheet.png`). No
+restart or reload needed.
+
+---
+
+**Grilling fish on the campfire, the plan (2026-10-31):** No change in play. From the owner:
+"dwarves may take a fresh fish and grill it on the campfire, which should replenish their
+hunger, give them some rest and make them happy". Doc [290](290_campfire_grilling.md) plans
+it with the owner's picks:
+- **A meal by the fire, not a craft.** At night, while a campfire burns and has a free spot,
+  a hungry dwarf takes a fresh fish to it, grills it on a stick for about 20 game minutes
+  and eats it there. By day, or with no fire, fish or spot near, dwarves eat as now.
+- **What it gives:** food as a raw fish (0.6), 0.05 Rest, and "Grilled fish by the fire",
+  +6 for 12 game hours or +8 with company, in place of the dining memory.
+- **The campfire first;** the hearth may follow. Dried fish and fruit aren't grilled.
+
+Two steps: concepts (the stick, the poses, the browned fish), then the meal. Docs 41, 42 and
+289 note the plan. No restart or reload needed.
+
+---
+
+**The drying rack moves to Food (2026-10-31):** From the owner, after a look in Play: "the
+drying rack is not a workshop, can we move it into some kind of food category". Craft →
+Rudimentary → Food now offers the Drying Rack beside Dried fish, and Place has a new Food
+group, after Dining, that holds the rack. Workshops keeps the crude workbench. Nothing else
+changes ([289](289_fishing.md)). `FishDryingTest` checks both menus. Gate 55/55; the lint
+finds nothing new; the crafting, furniture, ui, fishing and saves areas pass. Restart Play; no
+project reload needed.
+
+---
+
+**Fishing, step 3: the drying rack (2026-10-31):** From the owner: "Build step 3". The last
+step of [289](289_fishing.md).
+- **A Drying Rack** (Tier 1): Workers make it from two logs at the crude workbench (Craft →
+  Rudimentary → Workshops) and it is placed from Place → Workshops. Its window's Dry fish
+  opens the recipe.
+- **Dried fish** (Rudimentary → Food): two fresh fish of one kind make two dried fish at a
+  rack in 12 seconds, hung by hand. Dried fish keep 30 days at 20°C, where fresh fish keep 2.
+- **Fish words:** the order waits "for 2 matching fish" or "for 2 perch", never for wood.
+- **The catch dries where it lies:** a Worker takes fish out of a crate one at a time and
+  carries both fish of a batch in one trip, so a crate at the shore needs no hauling first.
+  Any good in crates now works this way in crafting.
+- **New Hearthblock art:** the rack and its picture, and dried fish in crates, on the table
+  and as an inventory picture.
+- Step 1 and 2 saves still load.
+
+New `FishDryingTest`; `CraftingSelectionTest`, `DwarfFoodTest`, `FurnitureArtTest`, `ItemArtTest`
+and `CraftingBrowserTest` know the rack and dried fish. Gate 55/55; the lint finds nothing new;
+twelve areas pass except `ShrubPilotTest`, which has failed since 2026-10-29. A capture over a
+copy of the owner's earlier colony shows a Worker drying two perch at a rack in a hall. Not
+looked at in Play yet. Restart Play; no project reload needed.
+
+---
+
+**Fishing, step 2: every water (2026-10-31):** From the owner, at a river the Fishing tool
+refused: "how do we fix this?", then "proceed with the next step then". Step 2 of
+[289](289_fishing.md).
+- **Every water has fish:** perch in the lake, trout in the river, char in a mountain tarn,
+  and pale cave fish in the spring cave's pool once the cave is found.
+- **Banks:** a spot reaches water up to four blocks below it, since rivers run in channels.
+- **Clearer refusals:** "No water in front", or "This water has no fish" for water the colony
+  dug or flooded.
+- **Seasons:** fish bite at full speed in spring and autumn, a little slower in summer and at
+  half speed in winter.
+- **Wisdom** now speeds fishing, "Fishes 6% faster" a step: its first live work.
+- **Sounds:** the float's plop, the bite and the landing, from the recorded duck splashes.
+- **New Hearthblock art:** trout, char and cave fish in crates, on the line and as inventory
+  pictures.
+- Step 1 saves still load.
+
+`FishingTest` adds the river, the colony's own water, each water's fish, sounds, seasons and
+Wisdom; `DwarfFoodTest` and `ItemArtTest` count the new fish. Gate 55/55; the lint finds
+nothing new; eleven areas pass except `ShrubPilotTest`, which failed before. A capture over a
+copy of the owner's earlier colony shows a dwarf fishing a trout from a river bank. Not looked
+at in Play yet. Restart Play; no project reload needed.
+
+---
+
+**Fishing, step 1: the lake (2026-10-31):** From the owner: "A · Zone window" (the zone card
+from three concepts; the fish took look A, Chunky, the recommendation). Step 1 of
+[289](289_fishing.md).
+- **Zones → Fishing** paints teal spots along a shore. Its tag counts the spots, or says why a
+  cell can't be fished from. View and Undo work as for Storage.
+- **The zone's window** shows the lake and its perch, the stock with a bar ("Plenty · 153 of
+  154"), how fast it regrows, Keep with − and +, who is fishing, and Remove zone.
+- **Labor has a Fish column.** A dwarf allowed to fish walks to a free spot, casts, waits,
+  feels the bite and lands a perch at its feet. Haulers store perch; dwarves eat them raw.
+  A perch keeps 2 days at 20°C, longer kept cool.
+- **The lake's stock** comes from its size: 154 perch in the owner's world, regrowing about 5
+  a day. Below a tenth it is Fished out and the zones wait.
+- **New Hearthblock art:** perch crates, the fish on the table, the rod, float and caught
+  perch, and the Fishing zone's picture.
+- **Saves from before this change won't load; start a new world.**
+
+New `FishingTest` (fishing area); `DwarfFoodTest` and `ItemArtTest` count perch. Gate 55/55; the
+lint finds nothing new; the fishing, ui, flora, saves, art, dwarves, storage, furniture and
+rooms areas pass except `ShrubPilotTest`, which failed before this work. A capture over a copy
+of the owner's colony shows a real drag making the zone and a dwarf fishing a perch. Not
+looked at in Play yet. Restart Play; no project reload needed.
+
+---
+
+**Fishing, the plan (2026-10-31):** No change in play. From the owner: "when Stonehearth was
+abandoned by its developers, an ACE mod introduced things like fishing, does that fit our
+game". Doc [289](289_fishing.md) plans it with the owner's picks:
+- **A Fishing zone** in Zones, painted along a shore. Any dwarf may fish, under a new Fish
+  permission in Labor. Each zone keeps 20 fish by default and pauses while the colony has them.
+- **Each water holds a stock** set by its size, about 200 in the lake, 80 in the river, 60 in
+  the tarn and 20 in the spring cave, regrowing 3% of it a day. A water below a tenth is
+  Fished out until it recovers.
+- **Four fish:** perch, trout, char and a pale cave fish. Each is a portion, eaten raw, and
+  keeps 2 days at 20°C. A Tier 1 drying rack will make dried fish that last the winter.
+- **Seasons and Wisdom:** bites come quickest in spring and autumn and at half speed in
+  winter. Wisdom speeds fishing, its first live work.
+
+Three steps: the lake, every water, then the drying rack, with concepts first. Saves from
+before step 1 won't load. Docs 23, 33, 41, 42 and 62 now note the plan. Doc 23's list of
+dock menus now counts eight Craft entries, which the Weaponsmith and Armorsmith change
+missed. No restart or reload needed.
+
+---
+
+**Weaponsmith and Armorsmith removed (2026-10-31):** From the owner: "I want to first remove
+the "Weaponsmith, Armorsmith" professions from the game, I think Blacksmith is enough". The
+Blacksmith is now the colony's one metalworking profession: it will forge weapons and armor as
+well as tools and hardware.
+- **Career map:** Worker over six specialists. The row under the Blacksmith is gone, and the
+  map is now only as tall as its lowest row.
+- **Crafters:** eight professions, in one row (two rows of four on a small screen). The
+  Blacksmith's preview reads Metal refining, Tool upgrades and fittings, Weapons and armor.
+- **Art:** the two profession icons are gone from `icons.mjs`, the art data and
+  `assets/ui/icons/`. Their `weaponsmith.png.import` and `armorsmith.png.import` are left for
+  the owner to delete.
+- **Docs:** 44 gives the Forge's weapon and armour recipes to the Blacksmith and drops the
+  specialisation rules; 41, 52 and 23 follow, and CLAUDE.md records the decision.
+- A small change, so there is no milestone doc. Restart Play to see it; no project reload
+  needed.
+
+---
+
+**Dwarf stats and hit points retired (2026-10-31):** From the owner: "Retire doc 287". No change
+in play. All four steps are built, so the milestone doc is gone.
+- **Its lasting rules are in the design docs:**
+  - 41 Dwarf Agents: "Stats" (the owner's picks, the rolls and odds, traits' shapes, every
+    profession's main and second stat, work speed, what each stat will do later, saves and
+    the testing notes) and "Health" (one health model, the most, healing, words, the Injured
+    thought, the DEV tool, saves);
+  - 45 Wildlife: animal hit points, with the Hunter's plan;
+  - 52 Combat & Military: invaders break doors, what a broken or damaged door does, and the
+    body stats in combat;
+  - 62 Furniture Catalog: door hit points and the planned better doors;
+  - 23 User Interface, 13 Architecture and 61 Voxel Art Guide now cite those docs.
+- **Unfinished** is in `00_todo.md`, "Stats and hit points left for later": calling traits
+  and stats, sorting Colony Dwarves by fit, Agility's and Wisdom's first live jobs, Charisma,
+  the Hunter, combat (door locking and repair cost among it), a Medic and better doors.
+- **A clash of numbers, put right.** This milestone took 287, which the sliced-torches
+  milestone had already used and retired on 2026-10-30. Its changelog entries now say 288,
+  and its code and data comments cite the design docs, so "doc 287" means sliced torches
+  only.
+- Docs and comments only. No restart or reload needed.
+
+---
+
+**Animal and door hit points, step 4 (2026-10-31):** From the owner: "Start step 4". The last
+step of [288](288_stats_and_hit_points.md).
+- **Animals:** rabbit 10, duck 8, deer 40, wolf 60. Their panel's badge shows the number
+  beside a red heart, with "Healthy · 40 hit points" on hover.
+- **Doors and the log gate:** the design's hit points times the wood's toughness. Log doors
+  have 150 in pine or applewood, 165 in juniper and 180 in oak; the gate has 100 in pine.
+  An installed door's panel says "Intact · 180 hit points".
+- **The Place card** shows a door's hit points on a shield chip under appeal: "150–180"
+  across the woods, or the chosen wood's.
+- **Nothing hurts an animal or breaks a door yet.** Hunting and invaders will; iron's
+  toughness (5) is set for a later iron door of about 750.
+
+Rules in doc 45 (wildlife), doc 62 (doors), doc 23 (the panels and the Place card) and doc 13.
+New `DoorHitPointsTest`, added to the furniture area in `tools/test_suite.json`;
+`DeerWildlifeTest` checks the badge. Gate 55/55; the lint finds nothing new; the furniture,
+wildlife and ui areas pass (16/16, 14/14, 33/33). A capture over a copy of the owner's colony
+shows the Place card's chip, an oak door's panel and a rabbit's badge. Not looked at in Play
+yet. Restart Play; no reload needed.
+
+---
+
+**Fire sound tests pass again (2026-10-31):** No change for the player. The fire sound keeps
+quiet for a cold nightly fire ([279](279_nightly_fires.md)) by asking
+`FurnitureFires.burning()`, which takes the real installed piece the game hands it.
+`AudioListeningPointTest` and `FireAudioTest` still handed it dictionaries, so both stopped
+with a script error. They now build real `InstalledFurnitureComponent` pieces, loaded at run
+time because the class names autoloads. `FireAudioTest`'s campfire is now a nightly fire
+burning a log, as in the game, and a new cold case checks that an unlit one stays silent. Both
+pass, the gate is 55/55 and the lint finds nothing new. Neither test is in the gate or an
+area, so only `-All` runs catch them. Test files only: no restart or reload needed.
+
+---
+
+**Dwarf stats at work, step 3 (2026-10-31):** From the owner: "Start step 3". Strength and
+Wits now change how fast dwarves work (step 3 of [288](288_stats_and_hit_points.md)).
+- **6% a step from Average:** Excellent works at ×1.12, Good ×1.06, Fair ×0.94, Poor ×0.88.
+- **Strength:** mining (each swing is shorter, for Miners and Workers alike), felling trees
+  and clearing stones. **Wits:** crafting at the bench, and building blocks and ladders.
+  Swings and hammer strikes keep time with the work, so a strong dwarf visibly swings faster.
+- **It stacks** with hunger's slowdown and the Miner's levels: a level-5 Miner with Excellent
+  Strength swings in about 71% of the plain time (0.8 ÷ 1.12).
+- Gathering, planting, hauling, walking and furniture work keep their speed.
+- **The Traits tab says how much:** "Digs, fells and clears stones 6% faster", "Crafts and
+  builds at the usual speed".
+
+Rules in doc 41, "Stats", with doc 23. `MinerProfessionTest` (gate) checks an Excellent-Strength
+swing on top of the Miner's levels; `DwarfStatsTest` checks the rates and the lines. The
+fixtures that time work (`HaulingAnimationTest`, `TreeFellingTest`, `MiningAnimationTest`,
+`WorkFeedbackTest`) now give their dwarf Average stats. Every test: 205/208, the gate among
+them, and the lint finds nothing new. The three that fail failed before this change:
+`AudioListeningPointTest` and `FireAudioTest` (the fire sound now calls
+`FurnitureFires.burning()` with the tests' dictionary pieces) and `ShrubPilotTest` (berries
+rot over its season jumps). Not looked at in Play yet. Restart Play; no reload needed.
+
+---
+
+**Dwarf health, step 2 (2026-10-31):** From the owner, after seeing the stats in Play:
+"proceed to the next step". Every dwarf now has hit points (step 2 of
+[288](288_stats_and_hit_points.md)).
+- **Toughness sets the most:** 100 at Average and 15 a step, so 70 to 130. The Traits tab's
+  Toughness line now says so: "115 hit points; Average is 100".
+- **Where it shows:** a heart and "Healthy · 115 of 115 hit points" under the level on the
+  character sheet, on every tab; a Health bar in heart red under Rest and Food; and, while a
+  dwarf is hurt, a heart and "40/100" on the compact panel.
+- **Hurt below three quarters, Badly hurt below half.** Badly hurt brings the Injured thought
+  (−8 happiness) and a heart badge over the head.
+- **Healing:** 4% of the most each game hour asleep, 1% awake.
+- **Nothing hurts a dwarf yet.** Development → Dwarf tools → **DEV: hurt a dwarf** takes 30
+  hit points from the selected dwarf, so you can watch it; health never drops below 1.
+- **Saves:** a dwarf saves its health only while hurt, so saves from step 1 still load.
+- Found on the way: the concern badges loaded only the food, rest and mood pictures; they
+  now load every picture `dwarf_indicators.json` names.
+
+Rules in doc 41, "Health", with doc 23 (the sheet, the compact panel and the concern badges)
+and doc 13. New `DwarfHealthTest` (dwarves area); `SaveManagerRoundTripTest` (gate) round-trips
+health and rejects a value under one; `ColonyJournalTest` knows the Injured thought. Gate
+55/55; the lint finds nothing new; the dwarves, ui and saves areas pass (59/59). A capture over
+a copy of the owner's new colony shows each piece with a dwarf at 40 of 100. Not looked at in
+Play yet. Restart Play; no reload needed.
+
+---
+
+**Dwarf stats, step 1 (2026-10-31):** every dwarf now has six stats (step 1 of
+[288](288_stats_and_hit_points.md)). The owner picked the ledger from three concepts drawn
+over the colony (A ledger, B shape, C suited for).
+- **Strength, Agility and Toughness; Wits, Wisdom and Charisma,** each Poor, Fair, Average,
+  Good or Excellent. They are rolled at birth from the world's seed and never change.
+  Every dwarf has the same total in a different shape, so each is best at something.
+- **Iron Constitution keeps Toughness Good or better, and Frail Fair or worse.** The two
+  traits can no longer meet in one dwarf.
+- **The character sheet's Traits tab** opens with the stats: Body and Mind as two columns,
+  each stat with its picture, pips, word and a line on what it does. Each line says "Not
+  active yet" for now; health and work speed come in steps 2 and 3.
+- **The career map** tags each profession with the dwarf's fit (moss Good, hay Average, rust
+  Poor or Fair), and the appointment card names the two stats behind it: "Average fit ·
+  Strength, then Toughness".
+- **Six new Hearthblock pictures:** a fist, a winged boot, a shield, dividers, an owl and a
+  handshake.
+- **Saves:** dwarves now save their stats, so saves from before this change no longer load;
+  start a new world.
+
+Rules in doc 41, "Stats", with doc 23 (the sheet and the career map) and doc 13. New
+`DwarfStatsTest` (dwarves area); `SaveManagerRoundTripTest` (gate) round-trips stats and
+rejects a missing, unknown or out-of-range one. Gate 55/55; the lint finds nothing new; the
+dwarves, ui, saves, crafting and mining areas pass (84/84). Not looked at in Play yet. Restart
+Play; no reload needed.
+
+---
+
+**Dwarf stats and hit points, the plan (2026-10-31):** No change in play. From the owner:
+dwarves need a health bar and a few basic RPG stats, so some jobs suit some dwarves better;
+animals need hit points for hunting, and doors need them because invading orcs may charge
+for the doors. Doc [288](288_stats_and_hit_points.md) plans it with the owner's picks:
+- **Six stats, rolled at birth and kept for life:** Strength, Agility and Toughness; Wits,
+  Wisdom and Charisma. Each shows as five pips and a word, Poor to Excellent, never as a
+  number. Every dwarf has the same total in a different shape.
+- **Stats change how well work goes,** about 6% a step, never who may do a job. Strength
+  digs and fells faster, Wits crafts and builds faster, and Toughness gives more health. The
+  career map shows each profession's fit.
+- **Hit points for everything that can be hurt or broken:** dwarves 70–130 by Toughness,
+  shown from the start; animals (rabbit 10, deer 40, wolf 60) for the Hunter; log doors 150
+  and an iron door about 750.
+- **Invaders will break doors instead of opening them,** and a broken door unseals its room.
+  Nothing hurts anyone until hunting and combat arrive; a DEV tool hurts a dwarf to show the
+  health bar working.
+
+Four steps: stats, health, stats at work, then animal and door hit points. Saves made before
+step 1 won't load. Docs 23, 41, 45, 51, 52 and 62 now note the plan beside today's rules. No
+restart or reload needed.
+
+---
+
+**Sleeping fills the Rest meter (2026-10-30):** From the owner: while Furin slept, his Rest
+meter stayed at 25% and would only fill when he woke; later events may wake dwarves for
+emergencies, so the meter should fill during sleep.
+- **The meter now rises while the dwarf sleeps,** evenly from where it lay down to full as
+  the six hours end. A dwarf that went to bed at 25% shows about 62% halfway through.
+- **Waking keeps the meter as it is.** A whole rest still ends at 100%. A dwarf woken early,
+  which nothing does yet, keeps the sleep it had and tires again sooner.
+- Sleep still lasts six game hours, walking to bed still restores nothing, and saves are
+  unchanged: a loaded sleeper goes on filling from its saved meter.
+
+Rules in doc 41, "Biological Limits". `DwarfRestTest` (dwarves area) checks that half the rest
+fills half the missing sleep, that a loaded sleeper goes on filling, and that a dwarf woken
+early keeps its meter; each fails on the old code. Eight tests that tired a dwarf and woke it
+straight away now give it a full meter first, since waking no longer fills it. Gate 55/55;
+the lint finds nothing new; the jobs, hauling, crafting, flora, mining, construction,
+navigation, dwarves, rooms and furniture areas pass (124/125) except `ShrubPilotTest`, whose
+berries rot over its season jumps, as before. Not looked at in the game yet. Restart Play; no
+reload needed.
+
+---
+
+**Stronger, tended hearths (2026-10-30):** From the owner: "Stronger hearths", after a lit
+hearth only took Furin's 605-cell bedroom from 10.8 °C to 13.4 °C, still Chilly.
+- **A hearth now gives 9600 heat units, six times as much,** enough for a bedroom of about
+  600 cells through the winter. In the quick save, lit, Furin's bedroom reaches 17.9 °C on
+  this summer night; on the coldest night of the year it would be 16.8 °C. Both Comfortable.
+- **Fires are tended.** Together a room's fires warm it to 18 °C before its doors leak, and
+  no further, so a small room is never overheated by its fires. A room can still be Hot from
+  its own rock on a summer day.
+- **Doors still leak.** A hearth bedroom whose door opens straight onto a winter night drops
+  to about 15.7 °C, Chilly, so entry rooms are still worth building; behind an entry room it
+  stays 17–17.6 °C all year.
+- **A second hearth is for a big room.** Up to about 600 cells one hearth already holds the
+  room at 18 °C, so a second stays unlit and its panel says "Unlit · another fire already
+  heats the room". Past that size it helps.
+- **Outdoors a fire adds at most 11 °C,** so a hearth in an unsealed hall is no warmer than
+  before. The hearth panel's "This hearth +X°C" is now its share of the room's heat, or what
+  it would add while lit.
+
+Rules in doc 34, "Tended fires", with doc 44 and the furniture catalog. `HearthRoomTest`
+(gate) now checks that one hearth keeps a 605-cell bedroom comfortable on the hottest and
+the coldest day; the old hearth fails it (13.3 °C and 3.7 °C). `ClimateTest`,
+`FireLightingTest`, `TemperatureViewTest` and `RoomRebuildSchedulingTest` follow the tended
+model. For agents: `RoomManager._recompute_temp` gives a room its fires can hold at
+`tended_fire_c` a flat form, so forms still stay fixed as the clock moves and change only when
+the season moves a room across the cap; `heat_kept(air, units, burning)`. Gate 55/55; the
+lint finds nothing new; the rooms, furniture, dwarves, storage and UI areas pass (68/68). Not
+looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Dwarves light their bedroom fire before bed (2026-10-30):** From the owner: Furin was asleep
+in a cold room; he should have lit the fire before going to bed.
+- **Why.** Fires were only lit at dusk, by any free worker. On a summer evening dusk is
+  22:00, and Furin went to bed at about 20:40, so his hearth was still cold.
+- **Now a tired dwarf lights it first.** A dwarf going to bed in a sealed room whose fire is
+  cold and needed fetches a log, sets it in the fire and lights it, then lies down, at any
+  hour. Replaying the quick save, Furin carries a pine log from the stockpile, lights his
+  hearth at 22:20 and is asleep by 22:28.
+- **It goes to bed anyway** if another worker is already bringing the log, there is no log,
+  or the trip runs past 2 game hours. Ordinary hunger still waits until it wakes.
+- **A fire lit by day burns while someone sleeps in its room,** and goes out, its log spent,
+  when the last sleeper wakes or at dawn. Loading a save never puts it out early.
+- **Furin's room stays Chilly.** The bedroom holds 605 cells, so a lit hearth adds only
+  2.6 °C: 10.8 °C becomes 13.4 °C, still below Comfortable (16 °C), and he still gets the
+  −5 chilly-sleep thought. Two hearths would just reach 16 °C; one hearth adds about 11 °C
+  to a 6 × 6 × 4 room.
+- The hearth's panel reads "Cold · lit at dusk or at bedtime" by day, and "Burning while a
+  dwarf sleeps here" while a bedtime fire burns.
+
+Rules in doc 34, "Bedtime fires", and doc 41. `FireLightingTest` (furniture area) adds a
+bedtime case: with no log the dwarf goes straight to bed; with one it lights the hearth
+before sleeping, the fire burns on by day and goes out when it wakes. For agents: new
+`TaskManager.assign_to` and `DwarfBedRest.ranked_beds`; `FurnitureFires` puts fires out only
+at dawn or on a wake. Gate 55/55; the lint finds nothing new; the rooms, furniture and
+dwarves areas pass (40/40). Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Dwarves carry meals to the table (2026-10-30):** From the owner: Runbrin ate and complained
+"Ate without a proper place" with a free table a few steps away.
+- **Why.** A dwarf looks for a place to eat only near where it took its food, and that reach
+  was 16 walking blocks. In the lobby the strawberries everyone took lie 17–20 blocks from
+  the table and its four stools, so all five dwarves in the quick save ate standing at the
+  stockpile (−8 for 8 hours).
+- **The reach is now 32 walking blocks,** about one hall across. Replaying the quick save,
+  all five dwarves carry their food to the table and sit down, at ×1 and ×3.
+- **The nearest seats are checked first,** and the first seat at a table found is used. A
+  room full of stools no longer runs out the two-second seat search at ×3 before the table is
+  reached.
+- A table more than 32 walking blocks from the food, such as one in the next hall, is still
+  skipped. Thoughts already in the save fade as usual; the next meal at the table clears them.
+
+Rules in doc 41, "Dining". `DwarfDiningTest` (gate) now puts the table past the old reach and
+adds a crowded room at ×3; each check fails on the old code. For agents: `DwarfDining` sorts
+seats by distance and routes a seat at a table before checking the rest. Gate 55/55; the lint
+finds nothing new; the dwarves area, `LogDiningTableTest`, `LogStoolTest` and
+`ColonyJournalTest` pass (17/17). Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Craft trips carry a load (2026-10-30):** From the owner: Tekak carried a Log bed's logs to
+the bench one at a time, when a hauler carries four.
+- **A Worker gathers a trip's worth.** After picking up an ingredient, they also take the next
+  ones the batch needs that lie within 8 blocks, loose or in the stockpile, up to the hauling
+  limit (four stones or logs). Then they set the load down beside the bench together.
+- **A load that completes the batch keeps its last log in hand,** and work starts at once. A
+  Log bed now takes one trip instead of four; a hearth two (four stones, then two logs)
+  instead of six.
+- **An ingredient that is gone or out of reach is skipped;** the trip goes on with the rest.
+- An interrupted Worker's whole load stays with the order when it lands beside the bench, as
+  in "Interrupted crafts keep their goods" below.
+
+Rules in doc 44, "Trips", and doc 31. New `CraftTripTest` (crafting area) fails on
+one-at-a-time trips: 4 trips for the bed and 6 for the hearth. For agents: a fetch is now torn
+down before a haul (`DwarfWorkExecution.clear_task_state`), so a craft keeps a whole load.
+Gate 55/55; the lint finds nothing new; the crafting, hauling, furniture and dwarves areas,
+`TimberBatchTest`, `BedroomTest` and both save tests pass (58/58), as does
+`DwarfInspectorTest`. Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Interrupted crafts keep their goods (2026-10-30):** From the owner: Runtris was carrying
+the next item's supplies back to storage. In the quick save, Runbrin had fallen asleep at the
+bench 1.7 s into the hearth's work. That released all six of its stones and logs as ordinary
+loose goods, so a hauler stored them while another Worker began gathering them again.
+- **The goods stay with the order.** Everything set down beside the bench is claimed by the
+  order, not the Worker. So is the stone or log in the Worker's hands when it lands there.
+  Sleep, a meal or a broken route stop the Worker only: no hauler or other order takes the
+  goods, and the order keeps its progress.
+- **The bench goes to the next order in turn** (the owner's pick over finishing first). The
+  interrupted order waits for its own bench,
+  "Next in line" while another order uses it. When its turn comes, a Worker brings only what
+  is missing, or lifts the last log when everything is there, and finishes the work.
+- **Pausing or cancelling the order still releases the goods,** as do removing its bench,
+  excluding its wood or meeting its stock target. A save keeps them with the order, and a
+  load claims them again.
+- Goods released before this change (the hearth's, in the current quick save) stay ordinary
+  goods; the fix applies from the next interruption.
+
+Rules in doc 44, "Interruption", and doc 31. New `CraftInterruptTest` (crafting area) fails on
+the old code: the goods lose their claim and the next Worker carries all six again.
+`WorkerCraftingTest` now expects sleep to keep the log for its order. Gate 55/55; the lint
+finds nothing new; the crafting area, `TimberBatchTest`, `LogDiningTableTest`,
+`LogFurnitureTest`, `BedroomTest` and both save tests pass. Not looked at in the game yet.
+Restart Play; no reload needed.
+
+---
+
+**Crafting orders wait their turn (2026-10-30):** From the owner: queued crafts said
+"Waiting for a free workbench", which made no sense; the player should be able to queue.
+- **A busy workbench is not a missing one.** Orders behind the bench say their turn on a
+  moss tag: "Next in line", "2nd in line" and so on. Their recipes stay ready to queue (no
+  hay "!"), and the board's tag says "✓ A crude workbench". "Needs a crude workbench" now
+  appears only when the colony has no usable bench of that kind.
+- **Orders go from the top down.** The freed bench goes to the top-most order that can
+  start. Before, once a Worker took an order below the top (the orders above it briefly
+  out of reach), every later pick started from that point in the list, so lower orders
+  went first. That is likely why the Log bed, third in the screenshot, was at the bench
+  while the two orders above it waited. An order whose wood arrives late now also keeps
+  its place ahead of the orders below it.
+- Orders still waiting for wood, stone or a met stock target are passed over, so later
+  orders can go ahead of them. One Worker per bench is unchanged.
+
+Rules in doc 44, "The queue", and doc 31, "Craft queue order". New `CraftingQueueTest`
+(crafting area) fails on the old code at the freed bench and the late wood;
+`WorkerCraftingTest` and `CraftingBrowserTest` now expect "Needs a crude workbench". Gate
+55/55; the lint finds nothing new; the crafting area passes. Not looked at in the game yet.
+Restart Play; no reload needed.
+
+---
+
+**Sliced torches milestone retired (2026-10-30):** No change in play. The owner confirmed the
+lit lobby in Play ("its working"), so doc 287 is retired. Its rules, cost and limits are in doc
+24, "Sliced lights". Left for later: furniture above the cut casts no shadow for a sliced
+light, now in `00_todo.md` (Rendering). Code comments still cite doc 287, as they cite other
+retired milestones. No restart or reload needed.
+
+---
+
+**Sliced torches keep burning (2026-10-30, [287](287_sliced_torches.md)):** From the owner:
+torches hung higher than the slice disappeared with it, and the hall below went dark.
+- **The slice hides the torch, not its light.** A sliced-away torch, campfire or hearth is
+  still hidden and can't be clicked, but its light burns on at the same spot and keeps
+  flickering, so the room under the cut stays lit.
+- **The light still stops at the walls.** The rock the slice hides is kept as invisible,
+  shadow-only rock around those lights, so they don't light the next room or the cut rock
+  past their own walls. The sun ignores that rock, so the rest of the slice view looks as
+  before.
+- **On the owner's save** (the lobby at slice 59, 22:03), all 11 sliced torches are lit
+  before the loading screen closes. The hall floor goes from near-black to warmly lit, and
+  nothing around it changes. The rock is built a little each frame (84 chunks there, about
+  0.6 ms each), and a step down never waits for it.
+- **Limit:** furniture above the cut casts no shadow while sliced, so a door above the cut no
+  longer stops a sliced torch.
+
+New `SlicedTorchLightTest` (furniture area). Gate 55/55; the lint finds nothing new; the
+furniture area, `FireArtTest` and `ProfessionCraftingTest` pass. `FireAudioTest` fails on the
+uncommitted nightly-fires code, not on this change: its stand-in pieces are dictionaries, and
+`FurnitureFires.burning` now takes a real piece. Looked at in a windowed render of the owner's
+save, not yet in Play. Restart Play; no reload needed.
+
+---
+
+**DEV: Remove objects (2026-10-30):** From the owner: a DEV item that removes trees, stones,
+bushes and flowers without drops.
+- **Development → Remove objects** has its own Hearthblock picture: a pine coming apart into
+  cubes inside a red outline. A click removes the tree, boulder, scree, bush, flower or reed
+  under the pointer, outlined in red; a drag removes everything in the area, by the same
+  rules as Chop trees and Clear stones.
+- **At once, without drops,** and a save keeps it gone. A marked tree or plant loses its
+  order, and a dwarf at work on it lets go.
+- **No Undo;** the tool bar says what the last click or drag removed. Dwarves, animals,
+  furniture and loose goods are left alone. Rules in doc 23, "Remove objects".
+- For agents: a tree's untouched saved state now comes from `TreePlanting.base_state`,
+  shared by wild and planted trees (no change in play). `SurfaceFloraSpawner.gd` is at 1,499
+  of the lint's 1,500 lines, so its next growth needs a split.
+
+New `DevRemoveObjectsTest` (flora and ui areas) drives it with real clicks and a drag;
+`ItemStamperTest` no longer pins Development at eight entries. Gate 55/55; the lint finds
+nothing new; the flora and ui areas pass except `ShrubPilotTest` (its berries rot over its
+season jumps, as before). The red hover outline can't be checked headless (no pointer), and
+nothing has been looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Hauling loads behind a long detour (2026-10-30, [286](286_far_haul_loads.md)):** From the
+owner: in their latest quick save the dwarves said Ready for work but left the loose lumber
+on the shelf.
+- **The logs weren't forgotten, just slow to plan.** The only way onto the shelf is the
+  stairs at its far end. The scheduler searched each dwarf's route to each log separately, a
+  few nodes per frame in turn, so at 60 fps the first load was assigned 75 s after loading.
+- **Now one search per dwarf covers the logs lying the same way** and ends at whichever it
+  reaches first, which is also the nearest by the route. A log on another level or the other
+  side keeps its own search, so a log with no route still never holds up one with a route.
+- **The dwarf takes the log its search reached**, not the one nearest in a straight line.
+- **Claims elsewhere no longer restart a dwarf's search.** A later dwarf is also never sent
+  off with a route to a log someone else has already taken.
+- **On the owner's save:** the first shelf load goes after about 13–15 s, and all five dwarves
+  are hauling by about 24 s.
+
+New `HaulingFarLoadsTest` (hauling area): the old code needed 1,427 scheduler wakes for the
+first load, now 158. Gate 55/55; the lint finds nothing new; the hauling, jobs, storage and
+construction areas pass. Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Replacing blocks (2026-10-29, [285](285_replace_blocks.md), the owner's pick):** From the
+owner: a block you don't like, such as a copper spot in a wall, should be replaceable with
+normal stone or dirt.
+- **Build → Replace (F, or the bar's switch).** A click or drag picks the blocks themselves,
+  and the material row says what goes in. It takes only blocks with an open face and leaves
+  blocks that already match, so stone dragged over a whole wall swaps only its ore, gem and soil
+  spots.
+- **A block's panel has Replace….** It lists Build's materials with their stock; picking one
+  plans that block.
+- **One job per block.** Once the goods are in the crate, a builder digs the old block with the
+  pick, then hammers the new one in. The cell never opens, so no water gets in, nothing on it
+  floats and nothing behind it shows. The old block drops what mining it would, at the
+  builder's feet.
+
+New `ReplaceBlocksTest` (construction area). `ConstructionInputTest` drives Replace with the real
+F key and mouse, and `MiningAreaGuideTest` finds the guide by id now that Replace is Build's first
+switch. Gate 55/55; the construction, UI and mining areas pass (62/62); the lint finds nothing
+new. Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**The ancient juniper's trunk is 3 × 3 (2026-10-29, [284](284_tree_planting.md), the owner's
+pick):** It was 2 × 2, which can't centre on a seed, so a planted juniper's trunk sat off-centre
+in its 7 × 7 area.
+- **An ancient juniper now stands on 3 × 3, centred on its seed,** planted or wild. The
+  collision box is about half a block wider than the bark.
+- **The eight ancient juniper models were rebuilt** for the wider base (root flare and walking
+  clearance follow the footprint); the crowns are unchanged. Reviewed in the native gallery,
+  installed and imported; `build.py trees --check` and the art pipeline's 65 tests pass.
+- **Worlds shift slightly:** an ancient juniper now needs level 3 × 3 ground, so a few on rough
+  ground are gone, the rest stand half a block further south-east, and a stone or two near
+  them is no longer placed. `SurfaceDetailLayoutTest`'s pinned boulder and scree counts are
+  re-pinned (1–2 fewer on six of eight seeds; it passes with the old footprint, so nothing
+  else changed).
+
+`TreePlantingTest` checks the centred trunk. Gate 55/55, the lint finds nothing new, and the
+flora, art and world areas pass except `ShrubPilotTest` (berries rot over its season jumps, as
+before). Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Smaller tree planting areas (2026-10-29, [284](284_tree_planting.md), the owner's pick):** The
+owner planted an oak and found its 19 × 19 area too big.
+- **A seed now keeps its tree's mature crown free of other trees:** oak and apple 13 × 13,
+  pine and juniper 7 × 7 (were 19, 19, 9 and 11). Mature crowns never meet; grown ancients
+  may overlap a few blocks, as wild trees do.
+- **The inner square is unchanged:** the ancient trunk's ground (oak and apple 5 × 5, pine
+  3 × 3, juniper 2 × 2).
+- Doc 284 lists every tree's measured size at each stage.
+
+`TreePlantingTest` updated. Gate 55/55, the lint finds nothing new, and the flora area passes
+except `ShrubPilotTest` (its berries rot over its season jumps, as before). Trees already
+planted take the new sizes at once. Restart Play; no reload needed.
+
+---
+
+**Planting tree seeds (2026-10-29, [284](284_tree_planting.md)):** From the owner: tree seeds
+dropped when felling couldn't be planted.
+- **Place → Plants lists Oak acorn, Apple seed, Pine cone and Juniper seed.** A dwarf takes
+  one seed from its crate and plants it, as with cuttings. Bush cuttings could already be
+  planted (doc 80); hops, grape and pig tail seeds wait for farm plots.
+- **Saplings grow to mature and then ancient** by each tree's growth days, faster in spring
+  and paused in winter. Every species reaches ancient within one spring; the oak takes the
+  longest, about 15 days.
+- **Each seed keeps room for its ancient tree** (the recommendation): the ancient crown as an
+  area no other tree may stand in (oak and apple 19 × 19, pine 9 × 9, juniper 11 × 11), and the
+  ancient trunk's ground kept level, open and free of other plants (oak and apple 5 × 5,
+  pine 3 × 3, juniper 2 × 2). Bushes, furniture and paths still fit under the crown. The ghost
+  outlines both.
+- **Growth waits for room:** blocks, furniture, a stockpile, loose items, a dwarf or an animal
+  where the new trunk would go hold it, and the tree's panel says what is in the way.
+- Planted trees fell, give logs and seeds, bear fruit and save like wild ones.
+
+Four questions wait on the owner (doc 284, "Open"): the sizes, the growth speed, seed returns
+and wild tree growth. New `TreePlantingTest` (flora area). Gate 55/55, the lint finds nothing
+new, and the flora, furniture, saves, ui, dwarves, storage and hauling areas pass except
+`ShrubPilotTest`: its harvested berries now rot over the test's season jumps (the spoilage
+work), which planting doesn't touch. Not looked at in the game yet. Restart Play; no reload
+needed.
+
+---
+
+**Heat spreads (2026-10-29, [282](282_temperature_and_spoilage.md), phase 3, the owner's rules):**
+- **Fires warm the air round them.** A lit campfire warms the open air by 6°C at the fire,
+  fading to nothing 5 steps out. A hearth outside a room gives about 11°C over 4 steps, a
+  torch half a degree. Walls and doors stop it, and a dwarf sleeping by a lit campfire
+  sleeps warmer.
+- **Doors leak.** Each door pulls its room a tenth of the way toward the other side, less
+  for rooms over 128 cells. A hearth room warms the room next door by about a degree and
+  loses about as much. A door to the outside lets a little of the day and weather in.
+- **One you'll notice:** a one-hearth 6 × 6 × 4 bedroom whose door opens straight outside
+  now drops to 15°C (Chilly) on the coldest winter nights; it was 17°C. Behind an entry room
+  it stays Comfortable, just (16.3°C). The valley larder runs 5 to 13°C instead of 6 to 12.
+  You kept it ("Keep it"), so entry rooms and second hearths are worth building.
+- **The Temperature view shows both.** Floors round a fire take its warmth, and the card
+  says "A fire nearby adds 4.8°C." or "Its doors make it 1.1°C warmer." "Its fires add" and
+  the hearth panel's "This hearth" give what the room keeps of the heat past its doors.
+
+ClimateTest, HearthRoomTest, TemperatureViewTest and RoomRebuildSchedulingTest grew. Gate
+55/55. The lint finds nothing new and recorded 3 old violations already fixed in the working
+tree. The rooms, furniture, dwarves, storage and ui areas pass. Not looked at in the game
+yet. Restart Play; no reload needed.
+
+**How fresh is it? (2026-10-29, [282](282_temperature_and_spoilage.md), the owner's pick "A tag + B list"):**
+- **A food crate's panel** says how fresh it is on its status tag, in its colour: "Fresh ·
+  about 44 days left", "Spoiling · about 6 days left", "Going bad · less than a day left",
+  or "Frozen".
+- **The storage window's Contents** opens with a Keeping list: how the store keeps food
+  ("Keeping · 7°C in a sealed room"), then a bar for each food with its days left, the
+  soonest to rot first. An empty store says how long blueberries would keep there.
+- Both follow each hour's spoilage.
+
+`FoodSpoilageTest` covers it. Gate 55/55, the lint finds nothing new, and the storage, ui,
+dwarves and saves areas pass. Not looked at in the game yet. Restart Play; no reload needed.
+
+**Fresh and old fruit kept in separate crates (2026-10-29, [282](282_temperature_and_spoilage.md), the owner's pick):**
+- Fruit further apart in freshness than a quarter of its life no longer shares a crate.
+- Fresh apples go to their own crate or an empty cell instead of topping up a crate that's
+  nearly rotten, so they keep their full keeping time for winter.
+- Fresh harvest landing on an old loose crate starts its own, and a hauler's basket picks up
+  only crates of like freshness.
+- Only a stockpile with no empty cell left tops up the crate closest in freshness, so fruit
+  never waits outside.
+
+`FoodSpoilageTest` covers it. Gate 55/55, the lint finds nothing new, and the hauling,
+storage, construction and saves areas pass. Not looked at in the game yet. Restart Play; no
+reload needed.
+
+**Food spoils (2026-10-29, [282](282_temperature_and_spoilage.md), phase 2, the rules):**
+- **Harvested fruit spoils** by the temperature where it is and the open sky over it, and
+  rots at the end. Fruit on the bush never spoils.
+  - Blueberries left in a summer yard last about 2 days.
+  - They keep about 11 days in a valley larder and a season in a cellar just under the summit.
+  - Apples and juniper berries keep many times longer.
+  - Rain speeds it up; frozen food under a roof nearly stops.
+- **Events tells you:** "Blueberries in Stockpile 1 are going bad: less than a day left."
+  as a stack passes 75%, and "24 blueberries rotted in Stockpile 1." when it goes.
+  Food a dwarf has claimed or holds is kept until eaten or hauled.
+- **Dwarves eat older food first** unless it is much farther away.
+- **The Temperature view's card** says how long blueberries keep at the spot.
+- **Winter supply:** near real starts there's about a twentieth of the food a winter needs,
+  so colonies go hungry in winter, cellar or not. That's a supply question for you; the
+  numbers are in the milestone doc. The storage window's and the inspectors' freshness
+  readouts come after a concept pick.
+
+New `FoodSpoilageTest` (storage and dwarves areas); SaveManagerRoundTripTest saves a
+part-spoiled crate. Gate 55/55 and the lint finds nothing new; the storage, dwarves, rooms,
+saves, hauling, crafting, furniture and construction areas pass. FruitHaulingTest fails about
+two runs in five even alone: its fruit route planner sometimes claims a walled-in basket, which
+spoilage doesn't touch. Older saves load with all food fresh. Not looked at in the game yet.
+Restart Play; no reload needed.
+
+**The Temperature view (2026-10-29, [282](282_temperature_and_spoilage.md), phase 1 step 3):**
+The owner's pick from the concepts: A, the wash, with the probe's details on its card.
+- **A new view toggle** between Appeal and X-ray, the thermometer, on T. The world dims and
+  every floor in view takes its temperature word's colour: Frozen ice white, Cold blue,
+  Chilly teal, Comfortable green, Hot orange. That covers the open ground, and under the
+  slice the tunnels and rooms below. Cut rock stays dim, and caves not yet found stay rock.
+- **Its scale** rises above the dock with each word's range; the banner names the view.
+- **Hovering** gives the spot's temperature and word, what sets it and its range over a year:
+  - a room: how much of the season reaches it and what its fires add (its year is given
+    without them);
+  - a tunnel: its steps from open air and the blocks overhead;
+  - cut rock: what a room dug there would be.
+  Clicking a room opens the room window.
+- **Takes turns with Appeal:** turning one on turns the other off.
+- **Not taxing:** nothing is built while it is off. While on, the floors round the camera
+  fill in about three seconds at 2 ms a frame. The clock and the weather only change two
+  shader values; edits rebuild only nearby tiles.
+- **The climate reads columns 18 times faster** (a chunk at a time), with the same
+  results, so rooms and the view both gain.
+
+New `TemperatureViewTest` (rooms and ui areas); TimeSliceHUDTest and GameMenuTest know the
+new button and key. Gate 55/55, the rooms and ui areas 40/40, and the lint finds nothing
+new. Seen in a copy of the owner's colony at both sizes, not yet in Play by the owner.
+Reload the project (Project → Reload Current Project), so the editor knows the new
+`view_temperature` input action in `project.godot` and never saves the file without it;
+then restart Play.
+
+**The climate (2026-10-29, [282](282_temperature_and_spoilage.md), phase 1 steps 1–2):** From
+the owner's plan: every spot has a temperature now, not only sealed rooms.
+- **Higher is colder,** a degree for every 12 blocks, for air and rock alike. Over a year the
+  valley runs from about −8°C on a clear winter night to 26°C on a summer afternoon; the
+  summit is about 8°C colder. Before, everywhere stayed within 2–18°C.
+- **Rock damps the seasons:**
+  - an unheated cellar under 12 solid blocks runs 6–12°C in the valley and −1 to 5°C just
+    under the summit, where it freezes for about two weeks around winter's first day;
+  - deep under the mountain stays at 9°C.
+- **Tunnels follow the outside near their mouth:** outside air reaches about 12 blocks in,
+  fading on the way, and a door stops it. Day and night travel only through open air.
+- **Weather counts:** rain cools by 1°C, storms and snow by 2°C, and cloud, rain and snow
+  narrow the gap between day and night. Sealed rooms never feel the weather.
+- **Cover is the solid blocks overhead,** built roofs included, so stone stacked on a hut
+  insulates and mining above a room thins its cover. Caves not yet found count as rock, so
+  temperature never gives one away.
+- **Sleep:**
+  - an unheated bedroom turns Cold in deep winter, where it was Chilly all year;
+  - one hearth keeps a 6 × 6 × 4 valley cellar Comfortable all year;
+  - a hut under a one-block roof follows the seasons, about −2 to 19°C unheated.
+- **Warm rooms keep their fires unlit** (the owner's pick): a fire in a sealed room is lit
+  at dusk only while the room is below Comfortable without it. A second hearth stands down
+  once the first has warmed the room, a summer hut keeps its log instead of overheating to
+  30°C, and the panel says "Unlit · the room is warm enough". The campfire outdoors is lit
+  every dusk as before.
+- **DEV:** the block inspector prints any spot's climate: temperature, word, what sets it
+  and its range over a year.
+
+New `ClimateTest` (rooms area) measures every target in doc 282 at the year's extremes and
+the inspector's line. The comfort tests stack stone on their rooms so they stand for cellars,
+and HearthRoomTest breaches a wall instead of the buried roof. FireLightingTest covers warm
+rooms: a hut's two hearths through a summer, a spring and a winter night. The job gate passes
+55/55, the rooms, furniture, dwarves and sky areas pass, and the lint finds nothing new. The
+full run passes 193 of 196:
+- `FireAudioTest` and `AudioListeningPointTest` still fail on the unfinished fire work.
+- `FruitHaulingTest` failed only under the full run's load; it passes alone and in the gate.
+
+Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Temperature and food spoilage, the plan (2026-10-29):** No change in play. From the owner:
+temperature only works in rooms and only touches sleep; berries should spoil, fastest outside
+in the weather and slower the cooler they are kept. Doc [282](282_temperature_and_spoilage.md)
+reviews what is built and plans the rest with the owner's picks:
+- **Higher is colder:** 1°C per mountain shelf, for air and rock alike, and rock damps the
+  seasons. Over a year the valley runs from about −8 to 26°C and the summit from −16 to
+  18°C; today everywhere stays within 2–18°C.
+- **Food spoils** faster the warmer it is, nearly stops when frozen under a roof, and spoils
+  faster under the open sky, more in rain or snow. Rotten food is gone, with an Events line.
+- **Heat and cold travel a short way through open air:** outside air about 12 blocks into a
+  tunnel, a fire's warmth a few blocks. Doors and rock stop them; a closed door leaks a little.
+- **A Temperature view,** asked the same day: a heat map on T, following the Appeal view.
+  Nothing in it runs every frame: a shader follows the clock, and floors are rebuilt only
+  when blocks, doors, heat, the slice or the view change.
+- **Found on the way:** the Frozen vault label can't appear today, since the coldest sealed
+  room is 8°C, and doc 42's aging cellar still describes the old lower-is-colder model. Docs
+  34 and 42 now note the plan beside today's rules.
+
+Three phases: the climate with the view, spoilage, then spreading. Four questions wait on the
+owner (doc 282, "Open"). No restart or reload needed.
+
+---
+
+**Seated dwarves face the campfire or table (2026-10-29):** From the owner: a dwarf sat
+down to eat on a campfire stool facing away from the fire; tables should count too, and
+the campfire draws its stools by day as well.
+- **A dwarf eating on a stool without a table now turns to face a campfire** within six
+  blocks on its level, as idle sitters already did at night, and keeps facing it (head
+  turn included) while resting on after the meal. Before, a meal kept the stool's placed
+  facing.
+- **By day too:** a cold campfire now turns its stools as a lit one does, for meals and
+  rest; doc 279 had stools ignore it until dusk. Light, heat and crackle still wait for
+  the night's log.
+- **An idle dwarf on a stool beside a table now faces the table**, before any fire: a stool
+  with one free tile between it and the table, whose front can meet the tabletop
+  squarely. Eating there already faced the table.
+- Each turn is used only when the seated head and hands fit; otherwise the stool keeps
+  its placed facing. Stools in a table's own guides keep facing it, and benches keep
+  their placed facing.
+
+`DwarfDiningTest` covers meals by a cold and by a burning fire, the rest after each and a
+table beside a fire. The job gate passes 55/55, the furniture and dwarves areas 27/27, and
+the lint finds nothing new. Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Shorter days and seasons (2026-10-29, [281](281_shorter_days_and_seasons.md)):** From the
+owner: a 24-minute day with 28-day seasons felt long. After a comparison with nine other
+colony sims, the owner chose 12-minute days and 21-day seasons, close to RimWorld's pace.
+- **A day now takes 12 minutes at ×1 (6 at ×2), a season 4 h 12 min and a year 16 h 48 min.**
+  A new game reaches its first winter after 8 h 20 min at ×1 (4 h 10 min at ×2). Nights and
+  naps last half as long in real time.
+- **Dwarves still sleep once a night.** Tiredness now drains per game hour; it drained per
+  real second, which on the shorter clock would have kept them up a day and a half.
+- **Room temperature follows the calendar**: warmest on summer's first day, coldest on
+  winter's, with no jump when the season changes.
+- **Timings counted in days shrank to ¾ with the season:** cuttings grow in 2.25 days
+  (elderberry 3), berries regrow in 1.5, and rabbits, deer, ducks and wolves arrive every
+  1.5–3, 3–5.25, 3–5.25 and 5.25–9 days. Tree and crop growth days (not live yet) are
+  scaled too.
+- Dwarves get half as much done per day, and berries and animals come a third more often
+  per day than before.
+
+The full run passes except `FireAudioTest` and `AudioListeningPointTest`, which fail on the
+unfinished fire work (`FurnitureFires.burning()` is handed a Dictionary), not on this
+change. The job gate passes 55/55 and the lint finds nothing new. Not looked at in the game
+yet. Restart Play; no reload needed. Start a new game to judge the pace: an older save's
+days clamp to 21 and its stored dates were counted in 112-day years.
+
+---
+
+**Fire-back hearth (2026-10-29, [279](279_nightly_fires.md)):** From the owner: the campfire
+looks really nice, but the hearth was still the old box with its logs taken out. Of four
+rudimentary stone hearths drawn in real cells (a heat mound, a fire-back, a horseshoe kerb
+and a smoke hood), the owner chose the fire-back.
+- **The Rudimentary hearth is now an open fire on four flagstones against a fire-back**:
+  three stacked slabs that shield the wall and throw the heat into the room, with low wing
+  stones at the back corners. The flagstones are scorched round the ash, and soot is black
+  by the fire and fades up the slabs.
+- **The night's log lies on the ash in front of the fire-back**, and its flame is taller and
+  stands in front of the slabs, well below their top. Heat, size, placement and the nightly
+  rules are unchanged; put the fire-back to a wall, as the placement note now says.
+- Its menu picture was rendered again; recipe and placement texts speak of a fire-back.
+
+`FireLightingTest`, the art, furniture and rooms areas (32/32) and the job gate (55/55)
+pass, the furniture art build verifies and its 65 unit tests pass, and the lint finds
+nothing new. Not looked at in the game yet. Restart Play; no reload needed.
+
+---
+
+**Recorded promotion chime (2026-10-28):** Completed profession changes now play
+a real glockenspiel chord, replacing the three synthesized mallet notes. The
+cue keeps its 1.25-second length, recorded pitch and natural decay. Its sharper
+strike stays within the former peak ceiling, with an average level 3.3 dB lower.
+The CC0 recording by schreibsel, credits and edit profile are in
+`tools/audio_sources/promotion/`; `tools/generate_promotion_audio.py` rebuilds
+the installed cue exactly. See [promotion feedback](../10_core_foundation/13_architecture.md).
+`EquipmentFeedbackTest` passes after Godot reimport; the other 115 game WAVs
+are unchanged. All 116 game WAVs now use recordings. Listening acceptance is
+pending at `tmp/audio_audit_20261028/promotion/review.html`, with before/after
+and configured-level players. Restart Play; no project reload or save migration
+is needed.
+
+---
+
+**Recorded chopping and mining (2026-10-28):** All eighteen axe, stone-pick and
+soil-mining cues now use separate recorded contacts: axes striking dry wood,
+a garden pickaxe hitting rock, and shovel entries into dirt as soil-mining foley.
+The shared axe bank also updates crafting and mining built wood. Short natural
+tails, contact-aligned starts and the former peak ceilings preserve the work
+rhythm. CC0 masters by xkeril, Sadiquecat and RavenWolfProds, credits and edit
+profiles live in `tools/audio_sources/chopping_mining/`. The existing generators
+delegate to `tools/generate_chopping_mining_audio.py` and its shared processing
+helper. See [work audio](../10_core_foundation/13_architecture.md).
+All 25 work WAVs rebuild identically; the other 98 game WAVs are unchanged.
+`WorkFeedbackTest`, `MiningFeedbackTest` and `WorkerCraftingAudioTest` pass after
+Godot reimport. Listening acceptance is pending at
+`tmp/audio_audit_20261028/chopping_mining/review.html`, with before/after players.
+115 of 116 game WAVs now use recordings; only the promotion chime is synthesized.
+Restart Play; no project reload or save migration is needed.
+
+---
+
+**Recorded stone hammering and tree felling (2026-10-28):** Six stone-hammer
+cues now use separate recorded stone-on-stone contacts, and tree-felling
+completion uses a real tree's crack, crash and settling tail. Hammer cues last
+0.28–0.33 seconds; the tree fall lasts 4.52 seconds. Contact timing, triggers,
+voice limits and mixing remain in use. CC0 masters by xtra1 and ecfike, credits
+and edit profiles are in `tools/audio_sources/hammer_tree/`; the hammer and
+chopping generators delegate to `tools/generate_recorded_work_audio.py`.
+See [work audio](../10_core_foundation/13_architecture.md). All 25 work WAVs
+rebuild identically, including the unchanged axe and pick banks; the other 109
+game WAVs are unchanged. `ConstructionAudioTest`, `WorkFeedbackTest` and
+`TreeFellingTest` pass after Godot reimport. Listening acceptance is pending at
+`tmp/audio_audit_20261028/hammer_tree/review.html`, with before/after players.
+Restart Play; no project reload or save migration is needed.
+
+---
+
+**Recorded wood creaks (2026-10-28):** All three environmental tree creaks now
+use real trees creaking in wind, recorded by Comradar. The complete events retain
+natural pitch and speed, with gentle filtering, edge fades and the former peak
+ceilings. Existing tree eligibility, weather response and timing remain in use.
+CC0 masters, credits and edit profiles live in `tools/audio_sources/wood_creaks/`;
+`tools/generate_wood_creak_audio.py` replaces the last synthesis branch in the
+environment generators. See [environmental audio](../10_core_foundation/13_architecture.md).
+Both environment generators rebuild all 37 WAVs identically; the other 113 game
+WAVs are unchanged. `AmbientAudioTest` and `EnvironmentDetailsTest` pass after
+Godot reimport. Listening acceptance is pending at
+`tmp/audio_audit_20261028/wood_creaks/review.html`, with before/after players.
+Restart Play; no project reload or save migration is needed.
+
+---
+
+**Recorded snoring (2026-10-28):** All three dwarf snore cues now use real
+sleeping-person recordings by mffm and mlsulli, with separate breaths, natural
+speed/pitch, edge fades and matched average levels. The clips last 2.15, 2.32 and
+2.84 seconds; their peaks are lower than the synthetic versions. Existing sleep,
+mixing and wake rules remain in use. Complete CC0 source masters, credits and edit
+profiles are in `tools/audio_sources/snoring/`; `tools/generate_snore_audio.py`
+rebuilds all three identically. See [dwarf sleep](../40_economy_colony/41_dwarf_agents.md).
+`DwarfRestTest` and `WorkFeedbackTest` pass after Godot reimport; the other 113 game
+WAVs are unchanged. Listening acceptance is pending at
+`tmp/audio_audit_20261028/snoring/review.html`, with before/after players and an
+offline sleeping sequence. Restart Play; no project reload or save migration is needed.
+
+---
+
+**Nightly fires (2026-10-28, [279](279_nightly_fires.md)):** From the owner: review the
+campfire and hearth art and make them require a log, as Stonehearth's fire pit draws no
+wood and is lit at night with a placed log. The owner chose dusk to dawn for the hearth too.
+- **The campfire and hearth hold no wood.** By day they are cold: stone and ash, no flame,
+  light, heat or crackle, and stools don't turn to face them.
+- **At dusk a worker brings any log** (oak included), sets it in each cold fire and lights
+  it; the fire shows that log in its own wood. **At dawn** it goes out and the log is gone:
+  one log per fire per night. No log, no fire, and the panel says so. A hearth is fed through
+  its opening.
+- **A hearth heats only while it burns**, so a dwarf sleeping by day in a hearth room can
+  sleep chilly. A cold fire still counts as its room's light, so bedrooms keep their kind.
+- **Art:** the drawn logs and embers are gone; soot darkens the stone facing each flame, so
+  the fire no longer washes its own stone out; the campfire's ash is grey with a charred
+  centre; the hearth's framed soot rectangle is gone. Both menu pictures were rendered again,
+  burning a pine log.
+
+`FireLightingTest` (new, furniture area) covers the night's job from dusk to dawn. The job
+gate (55/55), the rooms, furniture, dwarves, UI, saves, art and crafting areas (85/85), the
+furniture art build check and the 65 art unit tests pass, and the lint finds nothing new. Not looked at in
+the game yet. Saves keep a burning fire's log; restart Play, no reload needed.
+
+---
+
+**Recorded footsteps (2026-10-28, [280](280_recorded_footsteps.md)):** Walking
+dwarves now have 22 recorded step variations for stone, earth, grass and wood.
+Foot contacts drive the cues, with the actual supporting block choosing the
+surface. Earth uses gravel foley; grass is recorded thud/grass foley. Footsteps
+share a three-voice cap, nearby range and the existing Effects volume control.
+Sources, CC0 credits and edit profiles are in `tools/audio_sources/footsteps/`.
+All 22 WAVs rebuild exactly; the 94 existing WAVs are unchanged. Seven focused
+audio tests pass and lint reports no new violations. The gate passed 54/55:
+`SaveManagerRoundTripTest` failed its autosave-state comparison; a diagnostic retry
+passed that comparison, then failed installed light/heat restoration. The separate
+camera-audio test hit a `FurnitureFires.burning` fixture type error during concurrent
+nightly-fire work. Those failures are documented in the listening review at
+`tmp/audio_audit_20261028/footsteps/review.html`. Godot imported all new one-shots.
+Restart Play; no project reload or save migration is needed.
+
+---
+
+**Recorded fire (2026-10-28):** Campfire/hearth and torch now use two separate CC0
+wood-fire recordings. Campfire has a 29-second loop; torch uses a quieter,
+filtered log-fire passage as small-flame foley in a 12-second loop. Both have
+two-second crossfades. Campfire peak control tames close-mic pops, and the torch
+has less bass and upper crackle. Source masters, credits and edit profiles are in
+`tools/audio_sources/fire/`; `tools/generate_fire_audio.py` rebuilds both offline.
+See [audio architecture](../10_core_foundation/13_architecture.md).
+`FireAudioTest` and `AudioListeningPointTest` pass, both WAVs rebuild identically,
+and the other 92 game WAVs are unchanged. Godot has reimported both assets with
+their existing settings. Listening acceptance remains pending at
+`tmp/audio_audit_20261028/fire/review.html`, with before/after players, loop
+boundaries and a source-level comparison. Restart Play; no project reload or
+save migration is needed.
+
+---
+
+**Recorded water (2026-10-28):** Shoreline, three cave-drip phrases and three duck
+splashes now use CC0 recordings. Shoreline comes from a rocky beach; the drips
+retain real cave reverberation from Ojo Guareña, Spain. Duck splash cues use
+recorded lake-water foley; quacks are unchanged. River and waterfall now load
+29/31-second recorded loops through `WaterAudioBank`, replacing runtime synthesis.
+Their paths live in `data/world_gen/water.json`; the existing spatial, visibility,
+pause and volume rules remain. All three loops have two-second crossfades.
+River peak control keeps its former average level; shoreline, waterfall and
+splashes are quieter on average to retain headroom for natural transients.
+Source masters, CC0 credits and edit profiles are in `tools/audio_sources/water/`.
+The water, environment and duck generators rebuild identical outputs. See
+[audio architecture](../10_core_foundation/13_architecture.md),
+[water](../30_simulation_systems/33_water_simulation.md) and
+[wildlife](../40_economy_colony/45_wildlife.md).
+All four focused tests pass; 51 generated files reproduce exactly, the imported
+river/waterfall PCM matches the installed assets, and 85 other game WAVs are
+unchanged. The job gate passed 54/55 with no new lint violations: the previously
+documented `FruitHaulingTest` blocked-side-basket failure also occurred in a
+focused retry. Listening acceptance remains pending at
+`tmp/audio_audit_20261028/water/review.html`, with before/after and loop-boundary
+players. The new water assets were imported through Godot as PCM. Let remaining
+reimports finish, then restart Play. No save migration is needed.
+
+---
+
+**Recorded rain and thunder (2026-10-28):** Replaced the two rain loops and three
+thunder cues with real CC0 recordings: VanEngelen's rain without thunder,
+xkeril's roof rain heard from inside, and three separate thunder events from
+Emulius. Rain keeps its 35/37-second stereo loops and average levels, with
+two-second crossfades. The mono thunder cues retain natural dynamics and peak
+headroom, with trimmed lengths of 4.40/9.20/10.35 seconds; their average levels
+are 0.8–6.1 dB below the synthetic versions. Existing weather and enclosure
+rules remain in use. Source masters and credits are in `tools/audio_sources/rain_thunder/`;
+the dedicated rain/thunder generator and existing details generator produce
+identical files. See [environmental audio](../10_core_foundation/13_architecture.md).
+Both ambience tests pass, all 37 environmental WAVs rebuild exactly, and all
+87 other game WAVs are unchanged. Owner listening acceptance is pending at
+`tmp/audio_audit_20261028/rain_thunder/review.html`, including before/after
+players and rain-loop boundaries. Let Godot reimport the five WAVs, then restart
+Play. No save migration is needed.
+
+---
+
+**Log yields by tree size, four logs a trip (2026-10-28):** From the owner: an ancient tree
+gave only 8 logs, too few for an oak; and dwarves carry 4 stones, so they should carry 4 logs.
+- **Felled trees give logs by size.** Oak 6 mature / 16 ancient (was 4 / 8), pine 4 / 10
+  (was 4 / 8), apple 3 / 8 (was 2 / 3), juniper 2 / 5 (was 4 / 8). An ancient tree gives about
+  2.5× its mature stage, and apple less than its size, as the cider tree with the most
+  valuable wood. Saplings, seeds and felling times are unchanged.
+- **A dwarf carries four logs a trip**, as with stones, held as a 2×2 bundle (picture in
+  `tmp/log_carry_20261028/`). Stockpile hauling and deliveries to build sites take half the
+  trips; crafting and furniture still fetch one log at a time. No tree takes more hauling
+  trips than before.
+- **Felled logs lie one to a tile over the stump**, nearest its centre first, instead of in
+  one heap on the centre tile. A tile holding a block is passed over.
+
+The rules are in docs 42 (Felling Yields) and 31. `TreeFellingTest` covers the spread, and it
+and the juniper, apple and work-feedback tests read the yields from data. `HaulingCapacityTest`,
+`HaulingSelectionTest` and `HaulingSharedRoutesTest` expect four-log loads. The job gate
+(55/55) and the construction, storage, flora and felling tests pass, and the lint finds nothing
+new. `FruitHaulingTest` fails on and off in focused runs (it passed in the gate), and fails the
+same way with logs back at two a trip. Saves are unaffected. Not looked at in the game yet.
+Restart Play; no reload needed.
+
+---
+
+**Recorded wind and foliage (2026-10-28):** Replaced the five synthesized wind,
+foliage, autumn-leaf, winter-wind and sheltered-air loops with CC0 field recordings.
+Sources are YannSauvin's mountain wind, teadrinker's tree wind, Stek59's autumn
+leaves and klangfabrik's window wind. Winter and shelter use different excerpts;
+shelter is filtered for enclosed space. All five retain stereo 22.05 kHz PCM16,
+their original lengths and average levels, with two-second loop crossfades.
+Source masters, credits and edit profiles live in `tools/audio_sources/wind_foliage/`;
+the new `generate_wind_foliage_audio.py` and both existing environment generators
+rebuild identical outputs. All 87 other WAVs are unchanged, and all 37 environment
+assets regenerate exactly. See [environmental audio](../10_core_foundation/13_architecture.md).
+AmbientAudioTest and EnvironmentDetailsTest pass. Owner listening acceptance is
+pending at `tmp/audio_audit_20261028/wind_foliage/review.html`, with before/after
+players and loop-boundary previews. Let Godot reimport the five WAVs, then restart
+Play. No save migration is needed.
+
+---
+
+**Recorded crickets and insects (2026-10-28):** Replaced the night cricket loop,
+daytime insect loop and all three short chirps with CC0 recordings. Night uses
+johnnydekk's crickets, daytime uses floft's forest cicadas, and the short cues
+use three pairs of HECKFRICKER's recorded cricket chirps. The stereo loops keep
+their 37/31-second lengths with 1.5-second crossfades; chirps remain mono.
+Average levels and playback settings are preserved. Masters, licenses and edit
+profiles live in `tools/audio_sources/insects/`; the dedicated insect generator
+and both environment generators reproduce the same files. All other WAVs are
+unchanged. See [environmental audio](../10_core_foundation/13_architecture.md).
+AmbientAudioTest and EnvironmentDetailsTest pass; owner listening acceptance is
+pending at `tmp/audio_audit_20261028/insects/review.html`, including loop-boundary
+previews. Let Godot reimport the five WAVs, then restart Play. No save migration
+is needed.
+
+---
+
+**Recorded frog calls (2026-10-28):** Replaced all three synthesized frog phrases
+with distinct real croaks from clif_creates' CC0 field recording. The natural
+calls last 0.52–0.57 seconds; average level stays near the previous bank.
+Source master, license and edit regions live in `tools/audio_sources/frog/`.
+`generate_frog_audio.py` and `generate_environment_details.py` rebuild identical
+recorded calls. Existing warm-night/water eligibility, intervals and other WAVs
+are unchanged. See [environmental audio](../10_core_foundation/13_architecture.md).
+EnvironmentDetailsTest passes; owner listening acceptance is pending at
+`tmp/audio_audit_20261028/frog/review.html`. Let Godot reimport the three WAVs,
+then restart Play. No save migration is needed.
+
+---
+
+**Recorded birds and owls (2026-10-28):** Replaced six daytime bird phrases with
+separate songs from richwise's CC0 blackbird recording, and three owl phrases
+with real hooting sequences from DreamSavvyr's CC0 recording. Source masters,
+licenses and edit regions live in `tools/audio_sources/birds_owls/`.
+`generate_bird_audio.py` and `generate_environment_audio.py` rebuild identical
+recorded banks; existing environment loops and all other WAVs are unchanged.
+Mono 22.05 kHz format, approximate average levels and playback settings are
+preserved. See [environmental audio](../10_core_foundation/13_architecture.md).
+AmbientAudioTest passes; owner listening acceptance is pending at
+`tmp/audio_audit_20261028/birds_owls/review.html`. Let Godot reimport the nine WAVs,
+then restart Play. No save migration is needed.
+
+---
+
+**Recorded rabbit audio (2026-10-28):** Replaced all six rabbit WAVs with different
+excerpts of davi-sh's CC0 recording of a real rabbit eating cucumber. Selection
+uses short nibble fragments; grazing uses longer chewing phrases. The master,
+license and edit regions are retained under `tools/audio_sources/rabbit/`, and
+`generate_rabbit_audio.py` rebuilds the bank offline. Its shared duck splash
+helper remains intact; duck regeneration and all other WAVs are unchanged.
+See [rabbit audio](../40_economy_colony/45_wildlife.md). RabbitAudioTest passes;
+owner listening acceptance is pending in the before/after comparison at
+`tmp/audio_audit_20261028/rabbit/review.html`. Let Godot reimport the six WAVs,
+then restart Play. No save migration is needed.
+
+---
+
+**Recorded deer audio (2026-10-28):** Replaced all six deer WAVs. Selection now
+uses three separate calls from msantoro11's CC0 deer recording; grazing uses
+three excerpts of gibarroule's CC0 horse grass-chewing recording as herbivore
+foley. The source masters, licenses and edit regions are retained under
+`tools/audio_sources/deer/`, and `generate_deer_audio.py` rebuilds the bank
+offline. Average levels stay close to the previous bank; playback settings and
+other audio are unchanged. See [deer audio](../40_economy_colony/45_wildlife.md).
+DeerWildlifeTest passes; owner listening acceptance is pending in the before/after
+comparison at `tmp/audio_audit_20261028/deer/review.html`. Let Godot reimport the
+six WAVs, then restart Play. No save migration is needed.
+
+---
+
+**Recorded wolf audio (2026-10-28):** Replaced all nine wolf WAVs: three selection
+cues, three eating cues and three howls. Howls are excerpts of Paresh's CC0 wolf
+sanctuary recording; selection and eating use credited CC0 dog sniffing/chewing
+as canine foley. The masters, licensing and edit regions are retained under
+`tools/audio_sources/wolf/`. Both audio generators rebuild the recorded howls;
+playback settings and other audio are unchanged. See
+[wolf audio](../40_economy_colony/45_wildlife.md). WolfWildlifeTest and
+EnvironmentDetailsTest pass; owner listening acceptance is pending in the
+before/after comparison at `tmp/audio_audit_20261028/wolf/review.html`.
+Let Godot reimport the nine WAVs, then restart Play. No save migration is needed.
+
+---
+
+**The 32 × 32 guide while building (2026-10-28):** From the owner: the guide that Mine blocks
+offers should be in the build menu as well.
+- **Build, Shapes, Copy and placing a blueprint show the 32 × 32 guide's switch** on their
+  tool bar, after their own switches. It is Mine blocks' switch: turned on while building,
+  the guide is on while mining too, and the other way round. The guide shows while any of
+  these tools is on, stays on screen from one to the next, and goes with the last.
+- Their cards say what it guides: "… while building" (Build and Shapes), "while copying" or
+  "while placing", then "A guide only: nothing snaps to it."
+- **The tool bar holds several switches:** Shapes shows Filled beside the guide, and Copy
+  With floor.
+- **A bar wider than the screen** (Build at 960 × 540, with the new switch) now trims its
+  status line and drops View, as a bar blocked by the slice tower already did.
+
+The rules are in docs 23 and 24. `MiningAreaGuideTest` covers the five tools and
+`ToolBarTest` the switches. The job gate (55/55) and the construction, mining and UI tests
+(60/60) pass, and the lint finds nothing new. Not looked at in the game yet. Restart Play;
+no reload needed.
+
+---
+
+**Recorded duck quacks (2026-10-28):** Replaced the three synthetic two-tone quacks
+with three separate calls from gibarroule's CC0 duck field recording. The source
+master, license and edit provenance are retained, and `generate_duck_audio.py`
+rebuilds the bank offline. Calls have short edge fades and match the previous
+bank's average level; splashes and playback settings are unchanged. See
+[wildlife audio](../40_economy_colony/45_wildlife.md). The before/after listening
+comparison is in `tmp/duck_quack_20261028/`; owner listening acceptance is pending.
+Let Godot reimport the changed WAVs, then restart Play; no save migration is needed.
+
+---
+
+**Peeled logs (2026-10-28):** From the owner: log builders always seem to remove the bark.
+Of the two peeled looks proposed, the owner chose A with every recommendation (doc
+[278](278_peeled_logs.md)).
+- **Built logs are peeled** in all four woods, upright and horizontal, with the same shape,
+  pieces and joints. Lying logs have lit upper corners and shaded lower ones, so each course
+  reads apart; knots and drying checks replace the bark plates; the ends keep their rings.
+  A cabin now reads as built at the default camera distance instead of sinking into the trees.
+- **The Log Fence Post** is a peeled 6 × 6 pole with an earth-dark foot and a flat top
+  showing its rings, and no rope bands: the peeled split rails go straight into it.
+- **The Log Gate** is peeled, with one slimmer brace, rope only at the hinge and latch, and a
+  one-cell gap at the latch. Its hinge sits on the post's face (`hinge_inset` 0.1875).
+- Fence and gate now use the built logs' palette, so a pine fence matches a pine cabin.
+  Stockpile logs keep their bark, as felled, and so does the Tier 1 furniture.
+- Build's log pictures, the Place pictures of the post and gate, and the Animal pasture icon
+  were rendered again. **Build's own icon** shows a peeled log where it still showed the plank
+  block that doc 275 retired.
+
+Saves are unaffected. `test_furniture.py` pins the new post and rails. The art tests (9/9), the
+construction tests (17/17) and the job gate (55/55) pass, and the lint finds nothing new. Seen
+in the game on a copy of the owner's autosave. Restart Play; no reload needed.
+
+---
+
+**Development's pictures are Hearthblock (2026-10-27):** From the owner: the DEV icons never
+got the Hearthblock treatment. Of three proposals (Hearthblock pictures on the DEV tile, the
+live pictures with a DEV badge, or words only), the owner chose the first.
+- **The Development menu's eight tools show Hearthblock pictures on the DEV tile**, and the
+  dock's Development button sits on that tile too, as every menu shares its button's tile.
+  Block inspector is a stone block under a glass; World Build a cut of the world; Cave
+  explorer a cave mouth traced in the explorer's highlight; Dwarf tools an elder dwarf with
+  a cog; Water a waterfall with a sluice gate; Arrival status the deer's head beside a tally
+  board; Item stamper a stamp over goods it set down; Time & weather an hourglass by the Sky
+  Dial's rain cloud. Hover cards carry the DEV colour.
+- **The last painted sheet is gone** (`assets/ui/dock/utilities_atlas.png`), with the
+  atlas-region path in `UIRegistry.get_dock_icon` and the time and slice buttons' clipped
+  drawing that only painted art used. Every UI icon is now Hearthblock (doc 64).
+- The models are in `icons.mjs` under "Development". `write_data.py` adds 16 icon colours:
+  the world's water, the cave highlight, the Sky Dial's storm cloud, rain, snow and pine
+  (`ICON_SKY`), and an elder's white hair (`hair3`).
+
+Players see no change: the menu exists only with DEV tools on. `UiIconDataTest` now checks
+that Development and its tools use Hearthblock icons on the DEV tile. The job gate passes
+(55/55), the lint finds nothing new and the voxel Python tests pass. The menu was checked in
+the game over a copy of the owner's autosave. Restart Play; no reload needed.
+
+---
+
+**Log bridge retired (2026-10-27):** From the owner: now that Build lays logs, the log bridge
+can go.
+- **Rivers are crossed on built logs.** In Build, lay Horizontal logs from bank to bank. Each
+  log needs a solid neighbour, so the deck grows out from a bank, and the builder stands on the
+  last log to lay the next. Logs never go into water: where a river is level with its banks,
+  the deck goes a block higher, with a log step on each bank. A crossing can be any width and
+  length; the bridge was two wide and spanned at most five.
+- **Gone:** the Log bridge under Place → Access, the Log bridge kit recipe at the crude
+  workbench, the kit, their models and pictures, and the deck supports and closing-bridge
+  escape that only the bridge used.
+- **Unlike the bridge,** a log deck costs a log a block (a 2 × 5 crossing is 10 logs; a kit was
+  1). It is solid ground, so animals can cross it too, and water flows beneath it but cannot
+  rise through it.
+
+Saves holding a bridge kit or a kit order won't load; a bridge built in an older save is gone
+when it loads. The rules are in docs 32 ("River crossings"), 33 and 62. `LogCrossingTest` is
+new in the construction tests: a real builder lays a 2 × 5 deck over a river, dwarves cross
+it, and a deck a block above its banks is reached by a step at each end. `LogBridgeTest` and
+`BridgePlacementInputTest` went with the bridge, and `BridgeCornerWalkingTest` now crosses a
+deck of solid blocks. The job gate passes (55/55), and the lint finds nothing new. Not checked
+in the running game. Restart Play; no reload needed.
+
+---
+
+**Fence posts and gates on tiles (2026-10-27):** From the owner: putting posts on grid
+corners, between voxels, was a mistake; the post and the gate should sit centred on a voxel
+(doc [277](277_tile_centred_fences.md)).
+- **A Log Fence Post stands in the middle of the tile you click** and blocks that tile. The
+  tiles beside it stay walkable, and neighbouring posts join with the same two rails, so a
+  fence line now uses a row of tiles.
+- **The Log Gate covers three tiles:** a post, one open tile and a post. Aim at the open
+  tile. It still reuses existing posts and never seals a room. Deer and wolves no longer
+  fit through.
+- The thin barriers that only fences used are gone from navigation, animals and dwarf
+  movement. The models are unchanged.
+
+Fences in older development saves load half a tile off; re-place them. `GridFenceTest` was
+rewritten. The navigation, wildlife, furniture and construction tests pass (52/52), the job
+gate passes (55/55), and the lint finds nothing new. Restart Play; no reload needed.
+
+---
+
+**A plan's Materials card (2026-10-27):** From the owner: a way to see which materials still
+need delivering, by type, in the Hearthblock style. Three concepts were drawn over the owner's
+colony and the owner picked C (doc [276](276_blueprint_projects.md), "The Materials card,
+built").
+- **Every construction plan's panel** has a Materials tile beside Cancel. It opens a card above
+  the panel with a row for each good:
+  - its picture;
+  - "28 of 247 delivered · 4 on the way";
+  - its stock on a tag: All in, "12 in stock", or None in stock in rust when none is coming.
+- **Under the rows** it says who is hauling. Stock counts goods stored or lying loose that no
+  one has claimed. The card updates while open.
+- **A plan of several goods** names the goods still short in its status ("Waiting for oak logs
+  and soil"), without the count that had been cut short.
+
+`ConstructionInputTest` clicks the tile for real. The job gate passes (55/55), the construction
+tests pass (18/18), and the lint finds nothing new. Restart Play; no reload needed.
+
+---
+
+**Blueprints are one project (2026-10-27):** Doc [276](276_blueprint_projects.md), phases 1
+and 2, built with the owner's picks.
+- **One placement, one project.** Placing a blueprint makes one plan of all its materials,
+  named for the blueprint, with one materials crate and one panel. Cancel construction takes
+  the whole placement back. The Log cabin and the Garden terrace, which split into two crates
+  of the same goods, now make one.
+- **The roof gets its crate.** The crate is sited from the placement's base, so a material that
+  starts high, such as Blueprint 7's grass roof, no longer sits on "No delivery access".
+  Builders still reach only 5 blocks above their floor, so that roof still needs DEV: Finish
+  construction (doc 276, "Not in this milestone").
+- **Each good on its own.**
+  - The crate stages each good up to what its own blocks need, with up to two haulers for
+    each good still short.
+  - A good's blocks are built once all of it is in, so a cabin's walls go up while its soil
+    is still arriving.
+  - One builder works the plan.
+- **The panel** names the blueprint, waits for the goods still short ("Waiting for oak logs
+  and soil") and gives a row for each good ("Oak logs", "0 / 247 delivered").
+- **Copy and saves** keep each block's material. Saves from before still load.
+- **Boxed-in blocks get built,** in every plan: Build, Shapes and blueprints (doc 276, "Boxed-in
+  blocks, built").
+  - Dwarves build the blocks boxed in by their own plan first, from the middle outward. They
+    stand under the plan's unbuilt blocks nearer the edge.
+  - The starter Log cabin's crossed corners, the Garden terrace's inside and the middle of a
+    thick platform now get finished; before, they never did, or only by a lucky order.
+  - The blocks round a boxed-in block wait while a dwarf stands in it or its good is still
+    coming, so it is never closed off.
+  - Blocks more than 5 above a builder's floor are still out of reach, Blueprint 7's roof among
+    them.
+
+New checks are in `BlueprintTest`, `BuildMaterialsTest`, `SaveManagerRoundTripTest` and the new
+`ConstructionEnclosedTest`. The job gate passes (55/55), and the lint finds nothing new. Not
+yet checked in the running game. Restart Play; no reload needed.
+
+---
+
+**Blueprints as one project, the plan (2026-10-27):** No change in play. From the owner:
+placing a blueprint of two materials "spawns two collection boxes and splits the work". It
+plans one job a material, each with its own crate, haulers, builder and panel; the Log cabin
+and Garden terrace starters split the same way. The owner decided that one placement is one
+project: one plan, one crate on the ground, one panel named after the blueprint with each
+good's delivery, and one Cancel. Doc [276](276_blueprint_projects.md) is the plan; two picks
+wait on the owner (when building starts, and the crew).
+- **Found on the way:** a material that starts high, such as a grass roof, never gets a crate
+  and stays on "No delivery access"; one project per placement removes that. Builders also
+  reach only 5 blocks above their floor, which leaves a tall blueprint's roof unbuildable.
+  That is a separate question (doc 276, "Not in this milestone").
+- **Docs:** doc 23 ("Copy and Blueprints") and doc 31 ("Stone construction") record the
+  decision beside today's behaviour. Doc 13's blueprint file example named the retired `wood`
+  kind and now shows a log.
+
+No restart or reload needed.
+
+---
+
 **Wood's card names the material (2026-10-26):** From the owner, hovering Wood in Build: the
 card was titled "Upright oak log". Stone's and Wood's cards are now titled "Stone" and "Wood".
 The body then names the chosen type and says what it does: "Upright oak log. Stands on end.

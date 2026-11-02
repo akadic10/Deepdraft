@@ -1,0 +1,117 @@
+{
+  "sources": [
+    {
+      "kind": "select",
+      "title": "Deer Meewing 01.wav",
+      "author": "msantoro11",
+      "id": "351113",
+      "description": "Real deer calls recorded at a nature park.",
+      "page": "https://freesound.org/people/msantoro11/sounds/351113/",
+      "download": "https://cdn.freesound.org/previews/351/351113_4790684-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "86edd367a4bc85320f643c866fc6f779973841c52194d1ea82fa10f042c0802b",
+      "rate": 44100,
+      "channels": 1,
+      "seconds": 15.80408163265306,
+      "preview": "Public HQ MP3 preview, not the original uploaded WAV.",
+      "master": "deer_calls.wav",
+      "master_sha256": "16b122686f014c536d3b66755be29a0d0c6849eb92cc425f9c7f5cfaa426381b",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 6.250506746912784,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "mono preserved",
+        "44100 to 48000 Hz with normalized 64-tap Lanczos-windowed sinc interpolation, radius 32, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "graze",
+      "title": "Horse Eating",
+      "author": "gibarroule",
+      "id": "365138",
+      "description": "Horse eating and chewing grass outdoors; recorded herbivore foley for deer grazing.",
+      "page": "https://freesound.org/people/gibarroule/sounds/365138/",
+      "download": "https://cdn.freesound.org/previews/365/365138_6659813-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "76c591024c9c78f1c6cb3044d0209b3266635e1f2703616398580da15da015c0",
+      "rate": 48000,
+      "channels": 1,
+      "seconds": 25.891333333333332,
+      "preview": "Public HQ MP3 preview, not the original uploaded WAV.",
+      "master": "horse_grass_chewing.wav",
+      "master_sha256": "84281c78c7b44600d616f9ead965cd96b99b39af2cdfa90168a27df15d266243",
+      "master_rate": 48000,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.6048967038018056,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "mono preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "select": {
+      "master": "deer_calls.wav",
+      "rate": 48000,
+      "regions_seconds": [
+        [
+          0.45,
+          1.03
+        ],
+        [
+          1.69,
+          2.23
+        ],
+        [
+          8.72,
+          9.29
+        ]
+      ],
+      "high_pass_hz": 100,
+      "low_pass_hz": 10000,
+      "fades_seconds": [
+        0.012,
+        0.045
+      ],
+      "target_rms": 0.045,
+      "peak_ceiling": 0.6
+    },
+    "graze": {
+      "master": "horse_grass_chewing.wav",
+      "rate": 48000,
+      "regions_seconds": [
+        [
+          1.7,
+          2.6
+        ],
+        [
+          3.15,
+          4.2
+        ],
+        [
+          13.3,
+          14.4
+        ]
+      ],
+      "high_pass_hz": 130,
+      "low_pass_hz": 8500,
+      "fades_seconds": [
+        0.015,
+        0.045
+      ],
+      "target_rms": 0.04,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_deer_audio.py",
+  "processing": "Separate real excerpts, zero-phase light band limiting, edge fades, per-bank RMS target with peak cap. No pitch shifting, time stretching, voice synthesis or added reverb."
+}

@@ -18,12 +18,26 @@
     "cool_glow": "#7d8cff99",
     "refresh_seconds": 1.0
   },
+  "temperature": {
+    "__note": "The Temperature view (doc 23), read by TemperatureViewController: the dim as the Appeal view's, how strongly each word's colour tints a floor, and the colours themselves (the words' edges are temperature.json's). Floors are built in 16-column tiles within range_tiles of the point the camera looks at (checked every range_seconds), spending at most budget_ms a frame; changes gather for settle_seconds before tiles are built again, and the hover card is worked out every hover_seconds (real seconds).",
+    "dim_keep_colour": 0.35,
+    "dim_brightness": 0.62,
+    "tint_alpha": 0.6,
+    "colours": {"frozen": "#e6f4ff", "cold": "#4a83e0", "chilly": "#46c2b4", "comfortable": "#9bcf5c", "hot": "#e8743f"},
+    "range_tiles": 4,
+    "range_seconds": 0.25,
+    "budget_ms": 2.0,
+    "settle_seconds": 0.5,
+    "hover_seconds": 0.1,
+    "keeping_food": "base:resources:flora:blueberry"
+  },
   "buttons": {
     "pause": {"label": "Pause / resume", "tooltip": "Pause the settlement, or resume at the previous speed.", "key_action": "time_pause", "icon": "res://assets/ui/icons/pause.png", "family": "system"},
     "play": {"label": "Normal speed · 1×", "tooltip": "Resume the settlement at normal speed.", "key_action": "time_normal", "icon": "res://assets/ui/icons/play.png", "family": "system"},
     "fast": {"label": "Fast speed · 2×", "tooltip": "Resume the settlement at twice normal speed.", "key_action": "time_fast", "icon": "res://assets/ui/icons/fast.png", "family": "system"},
     "slice": {"label": "Slice view", "tooltip": "Cut the world away above a level. Your previous level is remembered. Scroll over the height tower for one level; Ctrl + scroll for four.", "key_action": "slice_toggle", "icon": "res://assets/ui/icons/slice.png", "family": "system"},
     "appeal": {"label": "Appeal", "tooltip": "See how your dwarves find each room. The world dims and each sealed room's floor shows its appeal: Horrid, Plain, Pleasant or Beautiful. Hover a room for its parts; click it for the room.", "key_action": "view_appeal", "icon": "res://assets/ui/icons/appeal.png", "family": "system", "view_name": "Appeal view", "view_line": "How each room feels to the dwarves"},
+    "temperature": {"label": "Temperature", "tooltip": "See how warm each place is now: Frozen, Cold, Chilly, Comfortable or Hot. Higher ground is colder, rock keeps out the day and most of the season, and fires warm sealed rooms. Hover a spot for what sets it; click a room for the room.", "key_action": "view_temperature", "icon": "res://assets/ui/icons/thermometer.png", "family": "system", "view_name": "Temperature view", "view_line": "How warm each place is now"},
     "xray": {"label": "X-ray", "tooltip": "See dug rooms through the mountain. While it is on, choose Full or Flat and the lower-level guide.", "key_action": "view_xray", "icon": "res://assets/ui/icons/xray.png", "family": "system", "view_name": "X-ray view", "view_line": "Dug rooms seen through the mountain"},
     "up_four": {"label": "Raise 4 levels", "tooltip": "Show four more levels.", "key_action": "slice_cell_up", "icon": "res://assets/ui/icons/up_four.png", "family": "system"},
     "up_one": {"label": "Raise 1 level", "tooltip": "Show one more level.", "key_action": "slice_single_up", "icon": "res://assets/ui/icons/up_one.png", "family": "system"},

@@ -50,11 +50,15 @@ static func cursor_origin(def: Dictionary, cell: Vector3i, yaw: int) -> Vector3i
 
 func floor_placement_reason(def: Dictionary, origin: Vector3i, yaw: int,
 		moving_water_stone: String, moving_shrub: String) -> String:
-	var bridges: Node3D = controller.get_bridges()
 	var ladders: Node3D = controller.get_ladders()
-	if GridFence.applies(def): return fences.placement_reason(def,origin,yaw)
+	if GridFence.applies(def):
+		var reason: String = fences.placement_reason(def,origin,yaw)
+		if not reason.is_empty(): return reason
+		# Fence tiles take the floor-furniture tile rule; shared gate-end posts are already settled.
+		for tile: Vector3i in fences.new_tiles(def,origin,yaw):
+			if not is_valid_cell(tile): return "cell"
+		return ""
 	if fences.reserves(visual_bounds(def,origin,yaw)): return "overlap"
-	if is_instance_valid(bridges) and bridges.reserves(visual_bounds(def,origin,yaw)): return "overlap"
 	if def.has("water_stone"):
 		if cell_to_ghost.has(origin) or cell_to_installed.has(origin): return "overlap"
 		if is_instance_valid(ladders) and ladders.reserves(visual_bounds(def,origin,yaw)): return "overlap"
@@ -76,6 +80,9 @@ func floor_placement_reason(def: Dictionary, origin: Vector3i, yaw: int,
 	if (not wall_to_ghost.is_empty() or not wall_to_installed.is_empty()) \
 			and intersects_wall_piece(visual_bounds(def, origin, yaw)):
 		return "overlap"
+	if def.has("tree_species"):
+		var flora: Node = controller.get_tree().get_first_node_in_group("surface_flora")
+		return flora.planting_reason(String(def.tree_species), origin) if flora != null else "plant_soil"
 	if bool(def.get("plant", false)):
 		var plants: Node = controller.get_tree().get_first_node_in_group("surface_details")
 		return plants.planting_reason(String(def.plant_definition), origin, moving_shrub) if plants != null else "plant_soil"
@@ -119,10 +126,7 @@ func wall_structure_reason(def: Dictionary, origin: Vector3i, yaw: int) -> Strin
 
 ## Why a wall-mounted piece may not go here, or "" when it may.
 func wall_placement_reason(def: Dictionary, origin: Vector3i, yaw: int) -> String:
-	var bridges: Node3D = controller.get_bridges()
 	var ladders: Node3D = controller.get_ladders()
-	if is_instance_valid(bridges) and bridges.reserves(visual_bounds(def,origin,yaw)):
-		return "overlap"
 	if is_instance_valid(ladders) and ladders.reserves(visual_bounds(def, origin, yaw)):
 		return "overlap"
 	var reason := wall_structure_reason(def,origin,yaw)
@@ -220,6 +224,9 @@ func is_valid_cell(cell: Vector3i) -> bool:
 	if zone_controller != null and zone_controller.has_method("is_zone_cell") \
 			and bool(zone_controller.call("is_zone_cell", cell)):
 		return false
+	var fishing: Node = controller.get_tree().get_first_node_in_group("fishing_system")
+	if fishing != null and fishing.is_zone_cell(cell):
+		return false   # a fishing spot (doc 289)
 	# A cave not yet found is rock to every tool: nothing stands in it (Hard Rule 11).
 	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP):
 		return false
@@ -227,15 +234,18 @@ func is_valid_cell(cell: Vector3i) -> bool:
 	return NavGrid.is_walkable(cell)
 
 
-## floor_wall pieces (the shelf): every BACK-row cell needs a solid block
-## directly behind the back face at standing height. Back = local -Z rotated
-## by yaw (yaw 0 backs onto north/-Z).
+## floor_wall pieces (the tool rack, doc 294): every cell needs solid blocks directly behind
+## its back face, from standing height to the piece's top, so it never hangs off a wall that
+## isn't there. Back = local -Z rotated by yaw (yaw 0 backs onto north/-Z).
 func has_wall_behind(def: Dictionary, origin: Vector3i, yaw: int) -> bool:
 	var back: Vector3i = [Vector3i(0,0,-1), Vector3i(-1,0,0), Vector3i(0,0,1), Vector3i(1,0,0)][posmod(yaw,4)]
+	var height := 1
+	for region: Dictionary in def.get("collision_regions", []): height = maxi(height, int(region.max[1]))
 	for cell: Vector3i in footprint_cells(def, origin, yaw):
 		var wall := cell + back
-		if not BlockRegistry.is_solid(controller.terrain_block_id(wall.x, wall.y + 1, wall.z)):
-			return false
+		for y in range(1, height + 1):
+			if not BlockRegistry.is_solid(controller.terrain_block_id(wall.x, wall.y + y, wall.z)):
+				return false
 	return true
 
 

@@ -16,6 +16,8 @@ const FellingPose = preload("res://scripts/components/DwarfFellingPose.gd")
 const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
 const ConstructionPose = preload("res://scripts/components/DwarfConstructionPose.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
+const FishingPose = preload("res://scripts/components/DwarfFishingPose.gd")
+const GrillPose = preload("res://scripts/components/DwarfGrillPose.gd")
 const ShadowSetup = preload("res://scripts/components/VoxelShadowSetup.gd")
 
 var agent: DwarfAgent
@@ -29,6 +31,8 @@ var felling_pose: RefCounted
 var mining_pose: RefCounted
 var construction_pose: RefCounted
 var carry_pose: RefCounted
+var fishing_pose: RefCounted
+var grill_pose: RefCounted
 ## What the hands hold: [[node: Node3D, item_key: String], ...]. The work
 ## executor owns the pickup/set-down rules; the body only presents the cargo.
 var carried_entries: Array = []
@@ -53,12 +57,20 @@ func build() -> void:
 	mining_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
 	carry_pose = CarryPose.new()
 	carry_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
+	fishing_pose = FishingPose.new()
+	fishing_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
+	grill_pose = GrillPose.new()
+	grill_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
 
 
 func reset_part_offsets() -> void:
 	climbing = false
 	if felling_pose != null:
 		felling_pose.reset()
+	if fishing_pose != null:
+		fishing_pose.reset()
+	if grill_pose != null:
+		grill_pose.reset()
 	if mining_pose != null:
 		mining_pose.reset()
 	if construction_pose != null:

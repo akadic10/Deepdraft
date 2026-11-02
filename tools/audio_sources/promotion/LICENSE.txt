@@ -1,0 +1,14 @@
+Recorded promotion chime source
+
+Chime by schreibsel
+https://freesound.org/people/schreibsel/sounds/539915/
+License: CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The uploader describes a chord played on a glockenspiel, recorded with a Blue Snowball iCE microphone.
+Downloaded public HQ MP3 preview on 2026-10-28:
+https://cdn.freesound.org/previews/539/539915_7898982-hq.mp3
+The original upload is also MP3; this master was decoded from the public preview, not the original upload.
+The complete preview is retained as glockenspiel.wav, mono 44100 Hz PCM16 with whole-master peak normalization.
+Trim one continuous glockenspiel chord, remove DC, gently filter, fade the edges and match the previous cue RMS subject to its peak ceiling. No synthesis, added notes, pitch shifting, time stretching, reverb or denoising.
+Exact source region, processing settings and SHA-256 provenance are recorded in source.json.

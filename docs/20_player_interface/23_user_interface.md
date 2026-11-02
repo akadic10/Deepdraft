@@ -1,5 +1,16 @@
 # 23 — User Interface
 
+**DEV Remove objects (2026-10-30):** Development has a ninth tool, Remove objects. A click on
+a tree, stone, bush or flower, or a drag over an area, removes them at once, without drops,
+and a save keeps them gone. See "Remove objects".
+
+**The Temperature view (2026-10-29, 282):** a new view toggle between Appeal and X-ray, on T.
+The world dims and every floor in view takes the colour of its temperature word (Frozen,
+Cold, Chilly, Comfortable, Hot), from the open ground down to tunnels and rooms under the
+slice. Its scale rises above the dock; hovering a spot gives its temperature, what sets it
+(steps from open air, rock overhead, a room's fires and doors, a fire nearby) and its range
+over a year; clicking a room opens the room window. See "The Temperature view".
+
 **The Sky Dial: the sky window (2026-10-26, 272):** the dial is Hearthblock. A stone
 window under a hewn-oak lintel shows the sky at this hour and the season's land. The sun
 crosses it from sunrise to sunset, and the moon by night, with the weather in it. A plate
@@ -105,10 +116,13 @@ See [Live Status HUD](#live-status-hud).
 **Dwarf concern badges (2026-10-17, 214):** serious hunger, exhaustion and unhappiness
 (Unhappy or Miserable on the character sheet's mood scale) show one small icon above the
 animated head. The character sheet's Right now gives the reason and an action, and the
-compact panel shows the icon beside the activity. A scene-owned CanvasLayer projects the
+compact panel shows the icon beside the activity; while a dwarf is Hurt or Badly hurt it
+also shows a heart and the hit points beside the profession ("40/100", doc 41 "Health"). A
+scene-owned CanvasLayer projects the
 icons, respects terrain/slices/loading, and fades them at distant zooms.
 - **One concern at a time** (`DwarfConcern`), the first that applies: Famished; exhausted
   (rest at 15% or less, or a rest search or trip still unresolved after six seconds);
+  Badly hurt, under half the hit points (2026-10-31, doc 41 "Health"), with the points left;
   Hungry after a food search actually failed; Unhappy or Miserable, naming the strongest
   bad thought. A hungry dwarf still looking for food shows nothing. A reserved portion
   reads "Collecting food" and a meal in hand "Has a meal"; exhaustion clears once the
@@ -122,19 +136,29 @@ icons, respects terrain/slices/loading, and fades them at distant zooms.
   `data/ui/dwarf_indicators.json` (UIRegistry).
 - **Pictures** (2026-10-26): each badge is its concern's Hearthblock icon on a people tile,
   as the world order markers sit on theirs: an apple for food, a crescent moon with two Zs
-  for rest, and the mood scale's Unhappy face for mood. The character sheet and the compact
-  panel show the same pictures. `dwarf_indicators.json` names them and the tile's `family`.
+  for rest, a red heart for health, and the mood scale's Unhappy face for mood. The
+  character sheet and the compact panel show the same pictures. `dwarf_indicators.json`
+  names them and the tile's `family`; UIRegistry loads every picture it names.
 
-**Optional mining guide (2026-10-17, 208; dotted lines 2026-10-26):** Mine blocks no
+**Optional mining guide (2026-10-17, 208; dotted lines 2026-10-26; Construction
+2026-10-28):** Mine blocks no
 longer automatically outlines individual terrain voxels. The tool bar's **32 × 32 guide**
 switch, off by default, draws thick lines on the world X/Z multiples of 32, counted from
 the world origin, and thinner dotted lines halfway between them, on the other multiples of
 16, so each 32 × 32 square shows its four 16 × 16 quarters. Its card reads "Thicker lines
 every 32 blocks and dotted lines every 16 while mining. A guide only: mining still marks
 single blocks." It is an alignment aid only: it never snaps, resizes or changes
-designations, orders or the cursor. The choice holds when switching tools or
-reopening Mine blocks, a newly loaded scene starts with it off, and the guide shows
-only while mining. Doc 24 has how it draws.
+designations, orders or the cursor. Doc 24 has how it draws.
+- **Construction (owner, 2026-10-28):** Build, Shapes, Copy and placing a blueprint show the
+  same switch, last among their switches. It is one switch for all five tools: turned on in
+  Build, the guide is on in Mine blocks too. Their cards read "… while building" (Build and
+  Shapes), "while copying" or "while placing", then "A guide only: nothing snaps to it."
+- The choice holds when switching tools or reopening one, and a newly loaded scene starts
+  with it off. The guide shows only while Mine blocks or a Construction tool is on, and
+  stays on screen from one of them to the next.
+- `MiningDesignationController` keeps the guide and its switch (`area_guide_toggle`); a tool
+  joins with `offer_area_guide(tool)`, as `ConstructionController` does for itself and its
+  `BlueprintController`. `MiningAreaGuideTest` covers the five tools.
 
 **DEV construction and plants (2026-10-17, 207):** select a stone blueprint or
 its materials crate for **DEV: Finish construction** (its rules are under
@@ -263,10 +287,16 @@ harvesting/storage-access guidance, until they eat (see "Toasts and the event lo
 food and dining rules are in doc 41.
 
 **Development menu (2026-10-12):** Development is its own dock entry at the far
-right, after Menu. It opens directly with no parent/back link. Its eight actions
+right, after Menu. It opens directly with no parent/back link. Its nine actions
 are Block inspector, World Build, Cave explorer, Dwarf tools, Water tools,
-Arrival status, Item stamper and Time & weather (the stamper replaced Spawn Drops, Spawn
-Furniture and Spawn Bushes on 2026-10-25). The last panel
+Arrival status, Item stamper, Remove objects and Time & weather (the stamper replaced Spawn
+Drops, Spawn Furniture and Spawn Bushes on 2026-10-25; Remove objects came on 2026-10-30).
+Since 2026-10-27 each shows a Hearthblock
+picture on the DEV tile (`dev_*` in `assets/ui/icons/`), and the dock's Development
+button sits on that tile too. The pictures are a stone block under a glass, a cut of the
+world, a cave mouth traced in the explorer's highlight, an elder dwarf with a cog, a
+waterfall with a sluice gate, the deer's head beside a tally board, a stamp, a pine coming
+apart into cubes inside a red outline, and an hourglass by a rain cloud. The last panel
 owns +1 Hour, +1 Season and weather cycling; the player clock shows facts only.
 Block Inspector moved here in 130; World Build and time/weather tests in 140.
 All 15 cycling locator commands and their runtime handlers/state
@@ -338,6 +368,26 @@ each holds construction kinds from `data/construction/blocks.json` (those whose 
 - Each material plans, stages its good, builds, mines and saves as a stone block does
   (`BuildMaterialsTest`); a log plan also keeps its wood and each log's direction.
 
+**Replace (2026-10-29, doc 285):** Build's switch, with F, swaps blocks for the chosen material.
+- **Picking:** a click or drag takes the blocks pointed at, not the air in front of them, and
+  the bar names the tool Replace with its own keys (`construct_replace` in `tool_bar.json`).
+  Height reaches up a wall, the preview is green cells (no ghost logs), and the tag, Undo and
+  Ctrl + drag work as in Build. Build always opens with Replace off, and Shapes has none.
+- **What it takes** (`ConstructionController.replace_reason`): a solid block with an open face,
+  air the colony knows beside it. So a drag across a wall takes its face, never the rock behind,
+  and a cave or deposit not yet found reads as the rock around it (Hard Rule 11). Blocks that
+  already match are left: natural rock for stone, dirt for dirt, grass for grass, a log of the
+  same wood for logs. Refused: bedrock's layers, air and water, a block marked for mining, a
+  planned block, and grass anywhere but under open sky.
+- **The block's panel** (a click on terrain, `TerrainExplorerProvider`) has **Replace…** when
+  the block can be replaced: a list of Build's materials, each as its chosen type with its picture
+  and stock ("Native stone · 6 in stock"). Picking one plans that block and shows the plan. It
+  doesn't open the tool, since the pointer is on the panel. A block the panel shows as strata
+  offers none.
+- **The plan** is "Replace with native stone" and so on, blue over its blocks, with its crate,
+  Materials card, Cancel and DEV finish (which drops nothing). Its status says "Replacing". The
+  work and the drops are in docs 31 and 43.
+
 **Shapes (2026-10-26, doc 273):** the shelf's second entry lays Build's materials out as a
 shape, each block still planned, built and mined on its own. The tool bar shows the
 shape (Tab, Shift + Tab back) and the material (Q and E) as rows of pictures:
@@ -390,8 +440,18 @@ shape (Tab, Shift + Tab back) and the material (Q and E) as rows of pictures:
   it; R turns it a quarter (Shift + R back), a lying log turning with it. Blocks in the way show in rust and are left out;
   unexplored space shows as rock does; the slice hides what is above it. The tag gives the
   turned size, the blocks and each material against the stock, and what is in the way. A
-  click plans it, one plan a material, and one Undo takes the placement back whole. Esc or
-  Done ends placing.
+  click plans it, and one Undo takes the placement back whole. Esc or Done ends placing.
+- **A placement is one project** (owner, 2026-10-27; doc 276): one plan holding all its
+  blocks, whatever their material, named for the blueprint.
+  - The plan's own material is the one with the most blocks; every other block keeps its own
+    kind and wood (`ConstructionWork.own`).
+  - It has one materials crate, sited from its base, so a roof five blocks up still gets its
+    goods.
+  - Its panel shows the blueprint's name and the Blueprints picture. Its status names the
+    goods still short, without a count ("Waiting for oak logs and soil"); its Materials card
+    counts each (see "Compact object panel").
+  - Cancel construction takes the whole placement back, as Undo does; Ctrl + drag still takes
+    blocks out one by one.
 - **Files:** one JSON file a blueprint in `user://blueprints/` (see `BlueprintLibrary` in
   doc 13), its picture beside it. To share one, copy its file; a friend's dropped into the
   folder appears the next time the window opens. `BlueprintTest` covers the files, Copy
@@ -408,6 +468,9 @@ Cancel construction, on the plan's panel, and Undo still take back a whole plan.
 Click a terrain face or drag a footprint to plan full voxels in adjoining air.
 Every block is planned, built and mined on its own, and a finished block is ordinary
 terrain: Deepdraft never makes a building object (owner, 2026-10-23).
+Dwarves build a plan's boxed-in blocks first, from the middle outward, so a thick platform's
+middle, a log cabin's crossed corners and a terrace's inside get finished (owner, 2026-10-27;
+doc 31, "Boxed-in blocks").
 Designing is building: a shape or a blueprint becomes plans at once, in the world, beside
 the rock, ore and furniture it has to fit. The 2026-10-26 concept also drew a drafting
 board in a window, laid out in the world later; it was not taken, and there is no design
@@ -423,8 +486,10 @@ Done ends the tool. Click a blue cell or the project's materials crate, during
 construction mode or afterward, to select its whole pending area: the outline marks it,
 and the compact panel's status names the stage (Waiting for stone, Delivering
 materials, No delivery access, Waiting for builder, Building, Needs attention) with
-the stone delivered or blocks built so far. The crate shows up to six stones; the
-status holds the exact count. **Cancel construction** removes the
+the stone delivered or blocks built so far; a plan of several goods names the goods still
+short instead of counting them. The crate shows up to six stones; the status holds the exact
+count. The plan's **Materials** tile opens a card of its goods (see "Compact object panel").
+**Cancel construction** removes the
 remaining plan while keeping completed stone and unconsumed materials. With DEV tools
 on, the plan (or its materials crate) also offers **DEV: Finish construction** (doc 207):
 it builds the plan at once, even while paused, spending the staged stone first and
@@ -446,8 +511,13 @@ Crafting keeps the browser open and updates the order count. Materials and
 descriptions scroll independently of the fixed wood, quantity, Queue and Place
 controls. Live stock changes preserve focused icons, order rows and scrolling.
 Planned professions retain their preview without recipe/order tabs or actions.
-As of 2026-10-13, Rudimentary uses Workshops, Lighting, Access, Rooms, Dining and
-Starter tools. Rooms groups beds, hearths and doors; Dining groups stools and
+Rudimentary uses Workshops, Lighting, Access, Rooms, Dining, Starter tools and
+Recreation. The Ranger's page lists their workbench, the drying rack, under Workshops and
+dried fish under Food (owner, 2026-11-01). The Carpenter's and the Stonemason's pages
+(doc 293) are laid out as Rudimentary, each with its career's own bench under Workshops. Under the queue, DRYING lists each batch drying on
+the page's workshops ("Drying Rack · 2 trout · about 14 hours left"), since an order is done
+once its fish hang (doc 44). A workshop's window names the career that crafts there ("Any
+Ranger" at the rack) and, while a batch hangs, a Drying row with the time left. Rooms groups beds, hearths and doors; Dining groups stools and
 benches; Lighting groups torches and campfires, matching their Place categories
 (doc 114). The window was rebuilt on 2026-10-24: see "The crafting window".
 
@@ -509,11 +579,12 @@ Interaction principles every surface keeps:
 things work, never for how they look. Each idea is redrawn in Hearthblock and in
 Deepdraft's own terms (doc 64), never copied as it is. Not taken:
 - multiplayer;
-- trapping grounds (hunting is the planned Hunter's work, doc 45);
+- trapping grounds (hunting is the Ranger's planned work, docs 45 and 292);
 - net worth and town tiers;
 - military strength (combat's UI is doc 52's);
 - settlement-wide bonuses;
-- citizen attribute numbers.
+- citizen attribute numbers: the dwarf stats show as five-step pips and words
+  instead (doc 41, "Stats").
 
 **Screen shapes (owner, 2026-10-26):** the HUD keeps its corners at every width. The Sky Dial
 and its time controls stay top right at 21:9 and 32:9, while the dock, the tool bar, the
@@ -543,7 +614,7 @@ the dock. That covers:
 - dwarves;
 - trees, shrubs, flowers, reeds, boulders and scree;
 - wildlife;
-- ladders, bridges and water stones;
+- ladders and water stones;
 - construction plans and terrain faces.
 
 **Tools keep their clicks:** while a tool is on, the explorer leaves world clicks to it.
@@ -579,19 +650,44 @@ storage or mining zone opens that zone's window, never the panel. The rules:
       material, and packed goods read "Appeal when installed" (doc 118);
     - a ripe crop (fruit or berries) or a stone's clearing yield;
     - a floor plan's room appeal;
+    - an animal's hit points beside a red heart, "Healthy · 40 hit points" on hover
+      (2026-10-31, doc 45);
   - the object's picture on a tile in the family colour, like the dock's icons, and one
     flavour line (the description's first sentence; the full description shows on hover
     when it is longer):
-    - furniture, goods, ladders, bridges, water stones and plans use their thumbnail
+    - furniture, goods, ladders, water stones and plans use their thumbnail
       or construction icon;
     - trees, plants, stones and wildlife show a live portrait of the object itself;
     - terrain has no picture;
   - the status on a tag in its tone: moss when fine, hay when waiting, rust when
     blocked. A tag holds its whole text up to the text column's width;
+    - food that spoils gives its freshness instead of where it lies (2026-10-29, the
+      owner's pick from concepts, doc 282): "Fresh · about 44 days left" (moss), "Spoiling ·
+      about 6 days left" (hay, from half its life), "Going bad · less than a day left"
+      (rust, from three quarters), or "Frozen · …" in its spoil's tone while it nearly
+      keeps. A disallowed loose crate still says so first;
+    - an installed door or log gate says "Intact · 180 hit points" (2026-10-31, doc 62),
+      and its rows give the sum (150 design × 1.2 oak);
   - Hearthblock icon tiles. DEV actions sit on DEV tiles at the right edge and only
     show with the DEV switch on;
   - Assign owner opens a list of dwarf portraits, drawn like a hover card with the
     work family's colour behind its title.
+  - **Materials** (owner, 2026-10-27; option C of three concepts in doc 276, the others a
+    goods strip on the panel and a split badge):
+    - Every construction plan's panel has a Materials tile, the goods picture
+      (`stocks.png`), beside Cancel. It opens a card above the panel, drawn like the owner
+      list, and stays lit while the card is open.
+    - The card has a row for each good, the good with the most blocks first:
+      - its picture on a work tile;
+      - its name over "28 of 247 delivered · 4 on the way";
+      - a tag: All in (moss), "12 in stock" (hay), or None in stock (rust, when none is
+        coming either).
+    - Under the rows, who is hauling ("No one is hauling").
+    - Stock counts what the colony holds that no one has claimed: stored and not on its way
+      out, or lying loose (`ColonyInventory.available`).
+    - The card follows the panel's refresh while open. It closes with its tile, another
+      selection, or the panel. A provider gives it as a `card` on the action and its content
+      under `cards`.
 - **No Details button (owner, 2026-10-23).** A Details tile was built, then removed:
   the owner judged that it repeated the panel. The panel carries the facts that matter
   on its band, badge, status and flavour. The explorer rows stay in the provider data
@@ -602,9 +698,10 @@ storage or mining zone opens that zone's window, never the panel. The rules:
   - a plan's required item, footprint and wall mount level;
   - shrub harvest seasons;
   - wildlife appetite, rest, diet and plumage;
-  - ladder sections and materials, and a bridge's crossing size and kit;
-  - the construction worker, current block, stone on the way, delivery workers and work
-    remaining.
+  - ladder sections and materials;
+  - the construction worker, current block and work remaining. Stone on the way and the
+    delivery workers came back on the Materials card (2026-10-27), which is no Details tile:
+    it shows what the panel can't, each good's delivery and stock.
 - **Place.** Left of the dock and bottom-aligned when there is room (7680×2160);
   otherwise above the dock's left end. On narrow screens it slides left, or rises, only
   to clear the time controls and the slice tower or X-ray options while they are open.
@@ -616,7 +713,7 @@ storage or mining zone opens that zone's window, never the panel. The rules:
   object replaces it. Scrolling over the panel never zooms the world.
 - **Family colours.** Each provider names its `family`, matching the dock menu where
   the player finds the thing:
-  - settlement (terracotta) for furniture and its plans, goods, ladders, bridges and
+  - settlement (terracotta) for furniture and its plans, goods, ladders and
     water stones;
   - work (blue) for trees, plants, stones, terrain, construction plans and wildlife;
   - people (teal) for dwarves.
@@ -802,6 +899,8 @@ window's shape:
   - its picture;
   - its facts as stone chips (footprint, wall mounted, seats, planting area);
   - its appeal once installed: the chosen wood's, or the range across its woods;
+  - for a door or the log gate, its hit points once installed on a shield chip, the same
+    way: "150–180" across the woods (2026-10-31, doc 62);
   - its description and its placement note;
   - its wood as pictures with counts: Any first, the chosen one ringed. A click sets the
     wood to place;
@@ -831,12 +930,15 @@ window's shape:
 
 ### Dining seat placement
 
-Tables declare their seat slots in JSON under `seating`: a `chair_key`, a
+Tables declare their seat slots in JSON under `seating`: `chair_keys`, the stools the
+guides take (any of them; they share one footprint and seat height), a
 `snap_radius`, a `max_chairs` limit and a list of `slots`, each with a
 footprint-local `chair_origin` and an inward quarter-turn `yaw`. The Log Dining
 Table has four slots, one against the middle of each side, so table and stools fill
 5 × 5 (`max_chairs: 4`); the Board-game Table has two opposite slots
-(`max_chairs: 2`). Both use the Log Stool. All four table rotations transform the
+(`max_chairs: 2`). Both take the log stool and the stone stool (doc 293), mixed as the
+player likes; a stool that fits a table's guides says "Snaps to tables" on its Place card.
+All four table rotations transform the
 whole chair rectangle, so every slot stays on whole grid cells
 (`FurnitureSeating.slots_for_layout`).
 
@@ -863,7 +965,8 @@ whole chair rectangle, so every slot stays on whole grid cells
   slots (same origin and facing) of an installed or planned table. Both tables have
   one: it raises the resting hands and the beard region clear of the tabletop, lifts
   the hands for meals (`meal_hand_lift`) and keeps the stool facing the table
-  (`face_nearby_fire: false`), where a free-standing stool turns toward a nearby fire.
+  (`face_nearby_fire: false`), where a free-standing stool turns toward a table it meets
+  or a campfire, lit or cold (doc 41, "Idle activity").
   It is worked out at runtime (`FurnitureSeating.chair_definition`), never written
   into the shared stool definition or saved, and cached per piece until furniture
   changes (doc 232).
@@ -1034,6 +1137,10 @@ scripts in `scripts/ui/` share the work:
     the click did.
   - A mark stands above its tile (`MARK_RISE`). A first row with no heading above it
     leaves that room, so a scroll never cuts the mark off.
+  - The hay ring stands outside its tile (`RING_OUT`, 4 px). Every row leaves that room at
+    its sides and below it, headings included, so the edge of a list never cuts the ring
+    off, even in the first column (the owner saw it cut, 2026-11-01). A list that scrolls
+    to the chosen tile scrolls to `get_reveal()`, the tile with its ring.
   - A captioned row lets each name use its tile's gap, so names wrap between words and
     tiles stay square.
 
@@ -1097,9 +1204,10 @@ Layout pitfalls met building these windows:
   If it names an autoload, the test loads it at runtime instead (`ToastStack`), or the
   script fetches the autoload from the tree (`DockIconButton`).
 
-Canvas layers: dwarf concern badges 19, dock with the Appeal, X-ray and Slice toggles and
-the compact object panel 20, the Sky Dial with the time controls, the slice tower, the
-X-ray options and the Appeal view's scale 21, all windows and the Appeal view's room card 22 (ordered by child order within the
+Canvas layers: dwarf concern badges 19, dock with the Appeal, Temperature, X-ray and Slice
+toggles and the compact object panel 20, the Sky Dial with the time controls, the slice
+tower, the X-ray options and the Appeal and Temperature views' scales 21, all windows and
+the Appeal and Temperature views' hover cards 22 (ordered by child order within the
 layer), dock menus 23, toasts 24, hover tooltips and the compact panel's owner list 30,
 loading screen 128. Windows sit above the dock and the status layer;
 ordinary windows make room for the dial and the time controls under it.
@@ -1133,14 +1241,15 @@ and weather; pause and speed hang under it, and Appeal, X-ray and Slice end the 
 The bottom-centered **floating dock** is a Hearth & iron bar on a `CanvasLayer`.
 Its eleven entries show Hearthblock icons (`assets/ui/icons/`, doc 259), with names
 on hover or keyboard focus. Each icon sits on a notched tile in its command family's
-colour (`data/ui/icon_families.json`; work, settlement, people, system), drawn by
-`UITheme.icon_tile_style`: hover lightens the tile, and planned or disabled entries dim
-it. The menus use Hearthblock icons on their dock button's tile too: Orders, Zones and
-Construction on the work tile, Crafters on the settlement tile, and Colony's page entries on
-the people tile. The family colours are the only family mark. A pattern per family was
+colour (`data/ui/icon_families.json`; work, settlement, people, system, and dev for
+Development), drawn by `UITheme.icon_tile_style`: hover lightens the tile, and planned or
+disabled entries dim it. The menus use Hearthblock icons on their dock button's tile too:
+Orders, Zones and Construction on the work tile, Crafters on the settlement tile, Colony's
+page entries on the people tile, and Development's DEV tools on the DEV tile, as is
+Development itself (owner, 2026-10-27). The family colours are the only family mark. A pattern per family was
 drawn and skipped (owner, 2026-10-26, 272): zone pictures on a dotted boundary in their
 world colour, and Construction's on a blueprint outline. The colours already group the
-commands, and the Orders pictures already match their markers in the world. Development keeps the illustrated atlas art; Menu opens the game menu
+commands, and the Orders pictures already match their markers in the world. Menu opens the game menu
 directly, and Colony and Events their own pages. Place
 and Inventory have no category pictures, as their categories are their group headings. An open group stays highlighted, including while a submenu is
 open. Only one action menu opens at a time; a second click or Escape closes it,
@@ -1240,33 +1349,46 @@ keeps Craft highlighted. Orders shown belong to the selected section, while
 switching menus preserves the actual production queue and chosen Worker recipe.
 
 **The crafting window** is built around the item and its ingredients:
-- **Header.** The profession on the people tile ("Rudimentary · Worker") and the
-  Crafters row: a tile per profession, lit when it can craft today, the shown one ringed
-  in hay. It switches professions without leaving the window.
+- **Header.** The profession on the people tile ("Rudimentary · Worker", or "Ranger" with
+  its line on the Ranger's page) and the Crafters row: a tile per profession, lit when it
+  can craft today (Rudimentary, the Carpenter, the Stonemason and the Ranger), the shown one
+  ringed in hay. It switches
+  professions without leaving the window. A live page with more to come names it in a box
+  under its recipes, from its section's `later` (the Ranger's: WITH HUNTING, concept A of
+  doc 292).
 - **Recipes.** One grouped picture grid with a search field. The groups are the
   recipes' `category` values, so a recipe added anywhere in `worker_crafting.json` joins
   its group. Search matches names and categories, ignoring case; empty groups hide, the
   first match is chosen, and with no match nothing can be queued. A recipe link clears a
   search that would hide it (doc 114). A recipe that could not
-  start now is dimmed with a hay "!", and its tooltip says why: no allowed wood in stock,
-  a missing material, or no free workbench (`CraftingManager.recipe_waiting_reason()`).
+  be made now is dimmed with a hay "!", and its tooltip says why: no allowed wood in stock,
+  a missing material, or no workbench of its kind (`CraftingManager.recipe_waiting_reason()`).
+  A busy workbench doesn't count: the order just waits its turn.
   The chosen recipe is ringed in hay.
 - **The board.** The chosen recipe on the pine board:
   - its name, its picture, and badges for the work time (a brass clock), the yield and the
     appeal (a range when the allowed woods differ);
   - its ingredients as pictures: every wood the recipe takes with its stock, ticked when
-    allowed (click one to allow or stop it), then fixed materials such as Rough Stone;
+    allowed (click one to allow or stop it), then fixed materials such as Rough Stone. A
+    recipe with `ingredient_words` names its own goods: Dried fish shows the four fish,
+    "A batch is two fish of one kind" (doc 44);
   - its description and purpose (`purpose_short` on small screens, where a recipe has
     one), and its flavour line (`flavour` in
     `worker_crafting.json`). A recipe's `purpose` never repeats its description;
     `CraftingBrowserTest` checks every board gives it once;
-  - tags for what it needs: the workshop, and Any Worker.
+  - tags for what it needs: the workshop ("✓ A crude workbench" once one is installed,
+    busy or not, else "Needs a crude workbench"), and who makes it: Any Worker on
+    Rudimentary, else the section's career ("✓ A Ranger · Grunbur", "✓ 2 Rangers", or
+    "Needs a Ranger" while the colony has none, when the order waits too).
 - **Orders.** Make ‹ n › now or Keep ‹ n › in stock, and one Queue button in the family
   block. Place · n ready opens placement for finished furniture; other goods say how many
   the stores hold.
 - **Queue.** Always in view beside the board. Each order shows its picture, its count
   ("Log torch ×4", or "= 4" for a stock target), its status on a tag in its tone, its
-  wood checklist, and pause, move and cancel. The search never filters it.
+  wood checklist, and pause, move and cancel. The search never filters it. An order
+  behind a busy workbench says its turn, "Next in line" or "2nd in line", on a moss tag;
+  hay is for what is missing ("Waiting for Pine", "Waiting for 2 matching fish", "Needs a
+  crude workbench").
 - **Sizes.** Large from 1300 px tall (the 7680×2160 screen), small below 650 px. Below
   1200 px across, or on small screens, the queue folds into an Orders tab under the
   recipes, and on small screens Make and Keep drop their trailing words. The window is
@@ -1282,20 +1404,35 @@ button, or from Colony Dwarves' Details card. `DwarfInspectorPanel.gd` reads
   - The profession on its tile with its level, the experience bar and the way to the next
     level. Only the Miner earns experience today; the other professions say their levels
     are planned.
+  - Health (2026-10-31, doc 41 "Health"): the heart and "Healthy · 115 of 115 hit points", moss
+    while Healthy, hay while Hurt and rust while Badly hurt, on every tab.
   - The traits as tags: moss for good ones, rust for bad ones, the description on hover.
   - The mood banner at the right: the step's face, its word and the happiness.
 - **Tabs:** Overview, Mood, Traits, Equipment, Profession and Tastes (on small screens two
   rows of three).
   - Overview gives what the dwarf is doing and where they are heading, Rest and Food
-    with the pictures from over their head, what they carry as pictures with counts, and
-    the latest two thoughts. The concept's day's work line is left out on purpose, to
-    keep the sheet lean (owner, 2026-10-23).
+    with the pictures from over their head, Health under them (its bar in heart red, "40
+    of 100 · Badly hurt"), what they carry as pictures with counts, and the latest two
+    thoughts. The concept's day's work line is left out on purpose, to
+    keep the sheet lean (owner, 2026-10-23). Rest reads "Rested by the fire" in place of
+    Awake for two game hours after a fish grilled at the campfire (doc 290), and the doing
+    line says "Grilling a fish by the campfire".
   - Mood shows each thought as a card with its hours left and value: what weighs on them
     on the left, what lifts their spirits on the right, strongest first. Under the cards
     are the face, word and line, and the five-step scale with a marker.
-  - Traits describes each trait. Equipment is the tool view.
+  - Traits (2026-10-31, doc 41 "Stats") starts with the dwarf's stats as a ledger, the owner's
+    pick from three concepts: STATS, then Body and Mind as two columns of three rows. Each
+    row has the stat's picture on the people tile, its name with the step's word at the
+    right, five pips filled in hay to the step, and a line on what it does: how much a stat
+    that speeds work changes it ("Digs, fells, clears and shapes stone 6% faster", "Crafts and
+    builds at the usual speed"), Toughness's hit points ("115 hit points; Average is 100"),
+    or a muted "Not active yet: …". The hover adds its description. A TRAITS heading then
+    describes each trait. Equipment is the tool view.
   - Profession gives the level and its rewards, and Change profession opens the career
-    map.
+    map. A Ranger's tab keeps their catch log instead of the list (doc 292, concept C):
+    each fish with its catches (the Ranger's own first, the others dimmed until caught),
+    big fish, the best day and the fish dried, then the next reward with the catches to
+    go.
   - Tastes (2026-10-25, doc 41 "Tastes"):
     - a line on how tastes are found;
     - LOVES, LIKES and DISLIKES (rust) rows of tiles, each with the thing's picture and
@@ -1487,12 +1624,11 @@ and pending placement requests, not UI data.
 `UIRegistry.get_dock_items()` returns the ordered navigation buttons;
 `get_menu(target)` returns a title, optional parent group and validated command
 entries, illustrated state, dock anchor and desktop/compact column limits.
-Buttons require `id`, `label`, `action` and `target`; `icon`, `icon_region`,
-`family`, `tooltip`, `planned`, `preview`, `status_label`, `key_action` and
-`separator_before` (a group gap before the button) supply presentation. An
-`icon_region` cuts a region of a shared sheet as a runtime `AtlasTexture`
-(`UIRegistry.get_dock_icon()`); only Development's painted sheet still uses one.
-Malformed entries are skipped with a warning at load. Place and Inventory categories
+Buttons require `id`, `label`, `action` and `target`; `icon`, `family`, `tooltip`,
+`planned`, `preview`, `status_label`, `key_action` and `separator_before` (a group gap
+before the button) supply presentation. Every `icon` is a whole Hearthblock picture
+(`UIRegistry.get_dock_icon()`); the last painted sheet and its atlas regions went on
+2026-10-27. Malformed entries are skipped with a warning at load. Place and Inventory categories
 carry no pictures.
 
 ### Action Types
@@ -1894,17 +2030,19 @@ stamper. `ToolBar` (preloaded by `DockUI`, on the dock's layer 20) shows the act
 - **Where:** 8 px above the dock, or above the Orders shelf while it is open, centred over
   the dock. It slides aside only as far as it must to clear the slice tower, the X-ray and
   Appeal options and the compact panel. A bar too wide to slide clear (Shapes on a 16:9
-  screen) first narrows its status line, trimmed, and drops View, then drops the status
-  line; only then does it rise above what it cannot pass.
+  screen), or still wider than the screen (Build at 960 × 540), first narrows its status
+  line, trimmed, and drops View, then drops the status line; only then does it rise above
+  what it cannot pass.
 - **Left to right:**
   - the tool's picture on its family tile, its name, and its keys on the hover cards'
     keycaps ("Click or drag to build · Ctrl + Drag takes plans out");
   - its choices as rows of pictures, the chosen one lit: Shapes' shape (Tab) and Build's
     material (Q and E). Stone's and Wood's pictures open their menus (see "Build");
   - its settings as − value + steppers: Build's Height; a hollow rectangle's Door; Mine
-    blocks' Width and Depth, with the 32 × 32 guide's switch; a wall piece's Mount level;
-    Shapes' Filled switch. Each keeps its keys (Alt + wheel, Shift + wheel, F), which its
-    hover card names;
+    blocks' Width and Depth; a wall piece's Mount level. Then its switches: Shapes' Filled,
+    Copy's With floor, Build's Replace, and the 32 × 32 guide's, which Mine blocks and the Construction tools
+    share (see "Optional mining guide"). Each keeps its keys (Alt + wheel, Shift + wheel, F),
+    which its hover card names;
   - a tool's standing numbers: Place's "2 ready" and "0 on their way";
   - the tool's message ("Raise the slice to build above this face", the ghost's hint), else
     what it last said ("No clear cells to build"), else LAST ORDER: the newest order, with
@@ -1951,9 +2089,10 @@ stamper. `ToolBar` (preloaded by `DockUI`, on the dock's layer 20) shows the act
     `family`, `choices` (each with `id`, `label`, `value`, `keys` and `options`, each
     option with `id`, `label`, `picture` and `tooltip`, and optionally `menu`: rows, each
     with `id`, `label`, `value` and `options`, a row's option optionally with `count`,
-    `tone` and `note`), `settings`, `toggle` (with its
-    `keys`), `standing`, `selection` (`count`, `detail`, `short`, `at`), `message` and
-    `undo`. The choices, the steppers and the switch call
+    `tone` and `note`), `settings`, `toggles` (in order, each with `id`, `label`, `on`,
+    `tooltip` and optionally `keys`), `standing`, `selection` (`count`, `detail`, `short`,
+    `at`), `message`, `undo`, and `keys`: another `tool_bar.json` entry whose keys to show,
+    for a tool in another mode (Build's Replace). The choices, the steppers and the switches call
     `set_tool_setting(id, value)`; Done calls `deactivate()`.
   - Orders come as `order_created(receipt)`, with `order_is_pending`, `undo_order` and
     `inspect_order` on the tool. `order_feedback(message)` says what a click did otherwise.
@@ -2000,6 +2139,28 @@ its window, "Stamp an item", in the DEV family's colour.
   one back would not be simple. It was left out on the owner's "keep it simple".
 - **Only with DEV tools on:** without them the tool never registers, and Development is
   hidden.
+
+### Remove objects
+
+A DEV tool (2026-10-30), the DEV Remove mode of `TreeFellingController`, so it takes the
+same gestures as Chop trees and Clear stones. Development → Remove objects starts it; the
+tool bar names it on the DEV tile.
+- **What it takes:** trees at any stage, boulders, loose scree, bushes, flowers and reeds
+  that show under the slice. Dwarves, animals, furniture and loose goods are left alone; the
+  furniture window's DEV: Remove takes furniture.
+- **A click** removes the object under the pointer, which a red outline marks. **A drag**
+  removes everything in the area, by the same rule as the order tools: a tree by its trunk's
+  centre, a stone or plant by its footprint's centre.
+- **At once, without drops.** No logs, seeds, stone, berries or cuttings. The owners record
+  the removal as their own work would: a tree as felled (`dev_remove_tree`), a stone or plant
+  as removed with the reason `dev_removed` (`dev_remove`). A save keeps it gone, and a wild
+  tree never comes back with its column.
+- **Work on it ends.** A marked tree or plant loses its order and marker, and a dwarf at
+  work on it lets go (its job is cancelled; Hard Rule 12).
+- **No Undo.** Nothing is ordered, so the tool bar shows the last removal's count instead.
+- **Only with DEV tools on:** without them the tool never starts, and Development is hidden.
+
+`DevRemoveObjectsTest` drives it with real clicks and a drag through the viewport.
 
 ### Developer cave explorer (2026-10-07)
 
@@ -2174,34 +2335,37 @@ only: the open ground counts for nothing, so a hall needs a door to count.
 
 ### Views
 
-Appeal and X-ray are views: they change how the world looks, and other tools work while
-they are on. Tools name themselves at the bottom (the tool bar); views name themselves at
-the top.
+Appeal, Temperature and X-ray are views: they change how the world looks, and other tools
+work while they are on. Tools name themselves at the bottom (the tool bar); views name
+themselves at the top. Appeal and Temperature take turns (turning one on turns the other
+off); either can be on with X-ray.
 
 **The view banner (2026-10-26, 272;
 `scripts/ui/ViewBanner.gd`, on DockUI's toast layer):**
 - **What it shows:** while a view is on, a slab at the top centre gives it one line. The
   line has the view's picture, its name, and what it shows with how to leave: "Appeal
   view · How each room feels to the dwarves · V or its button to leave".
-- **With both views on,** each has its line.
+- **With two views on** (X-ray and Appeal or Temperature), each has its line.
 - **The words** are each view's `view_name` and `view_line` in
   `data/ui/time_slice.json`, and the key comes from the input map.
 - **While a tool works,** X-ray steps aside (the normal view) and its line goes. Appeal
-  keeps the world dimmed, so its line stays.
+  and Temperature keep the world dimmed, so their lines stay.
 - **The toasts** sit below it, and the mouse passes through.
 - **Sizes** follow the screen's height, as the toasts' do.
 
-**Later views** (temperature or light, say) follow the Appeal view's treatment:
-- dim the world, and colour what counts (cool for bad, warm for good, grey for neutral);
+**Later views** (light, say) follow the Appeal and Temperature views' treatment:
+- dim the world, and colour what counts (cool for bad, warm for good, grey for neutral;
+  the Temperature view's colours are physical, icy to hot);
 - give every number a word;
 - take a line in the banner.
 
 ### The Appeal view
 
 A view toggle (2026-10-25; `AppealViewController`, a scene node), the first of the
-dock's view group, before X-ray: the gold appeal star on the system tile, lit while on.
-It shows room appeal over the world; it is a view, not a tool, so other tools work while
-it is on. Its key is V (see "Keys").
+dock's view group, before Temperature and X-ray: the gold appeal star on the system tile,
+lit while on. It shows room appeal over the world; it is a view, not a tool, so other tools
+work while it is on. Turning it on turns the Temperature view off. Its key is V (see
+"Keys").
 - **Its scale** sits above its button. The owner chose that over a banner holding the
   scale at the top centre (2026-10-25).
 - **The view banner** names the view at the top centre (since 2026-10-26; see "Views").
@@ -2232,16 +2396,71 @@ it is on. Its key is V (see "Keys").
   or X-rayed.
 - **Never saved:** the view starts off in each session.
 
+### The Temperature view
+
+A view toggle (2026-10-29, doc 282; `TemperatureViewController`, a scene node) between
+Appeal and X-ray: the thermometer on the system tile, lit while on. It shows how warm each
+place is now, as the climate works it out (doc 34). Turning it on turns the Appeal view off.
+Its key is T (see "Keys"). The owner chose this format, the wash, over isotherm lines and a
+probe round the cursor (2026-10-29), with the probe's details on the hover card.
+- **The world dims and greys** as in the Appeal view (`temperature` in
+  `data/ui/time_slice.json`).
+- **Every floor in view takes its word's colour** at 60%: Frozen ice white, Cold blue,
+  Chilly teal, Comfortable green, Hot orange. The words' edges are `temperature.json`'s
+  (0, 8, 16 and 26°C). The floors are each column's top floor at or under the slice, and
+  under it the floors of sealed rooms and dug tunnels, which X-ray shows. The cut rock stays
+  dim; its card tells what a room dug there would be.
+- **Hard Rule 11:** a cave nobody has found is rock to the view, as to the climate, until
+  it is found.
+- **The scale** rises above the dock where the Appeal view's does: each word with its
+  colour and range, hottest first ("Hot above 26°C" to "Frozen 0°C and below"), and "Hover
+  a spot for its temperature. Click a room for the room."
+- **Hover:** a card names the spot (the room's title, such as "Bedroom 13", or
+  "Underground", "Under a roof", "Open ground" or "Rock"), gives its temperature and word ("6.9°C · Cold"), what sets it and its
+  range over a year in clear weather:
+  - a room: "A sealed room: day, night and weather stay out, and 32% of the season reaches
+    it.", or with a door to the open air "A sealed room: 89% of the season reaches it, and
+    5% of the day and weather through its doors."; what its fires add after its doors leak
+    some away ("Its fires add 10.1°C."); what its doors add, its own fires left out ("Its
+    doors make it 1.1°C warmer." or "colder", from 0.05°C); and "Click for the room." A
+    heated room's year is given without its fires, which burn only while the room is cold.
+    The three add up: the rock's temperature, plus the fires, plus the doors (2026-10-29,
+    doc 282 phase 3);
+  - under a roof or underground: "6 steps from open air, 10 blocks overhead." (or "No open
+    air within 12 steps");
+  - open ground: "Open sky: the day, the season and the weather all reach it.";
+  - the cut rock: "9 blocks overhead: a sealed room dug here would be about this warm."
+  - near a fire outside a sealed room: "A fire nearby adds 4.8°C.", and the year is given
+    "without the fire" (doc 34 "Heat and cold spreading").
+  Then how long blueberries keep at the spot as it is now (doc 42 "Spoilage";
+  `keeping_food` in the view's data): "Blueberries keep about 11 days here.", or over cut
+  rock "Blueberries would keep about 21 days in a room dug here." (2026-10-29, doc 282
+  phase 2). No card over the interface or while a click tool works. The card is worked out ten times
+  a second and follows the cursor each frame.
+- **Click:** a click on a room's floor opens the room window, as the Appeal view's does.
+- **Not taxing.** Floors are built in 16 x 16-column tiles, nine by nine round the point
+  the camera looks at, nearest first, a column or a floor at a time within 2 ms a frame
+  (`budget_ms`); about three seconds fill the whole range. Each floor quad carries its base
+  temperature and its shares of the season and of the day and weather; the shader turns
+  them into a colour with two values set once a game hour and when the weather changes, so
+  time passing builds nothing. A sealed room's floors carry its numbers after its doors
+  leak, and open floors near a fire carry its warmth. A tile is built again only when it
+  comes into range or the slice moves (keeping its floors' numbers), or when blocks, doors,
+  found caves, a room's heat or a fire's warmth (`RoomManager.warmth_changed`) change within
+  reach of it, gathered for half a second first.
+- **With X-ray and Slice:** as the Appeal view's pieces, on both cameras' layers.
+- **Never saved:** the view starts off in each session. Presentation only.
+
 ### Navigation Groups
 
 | Group | Commands |
 |---|---|
 | Orders | Mine blocks, Chop trees, Clear stones, Harvest plants, Clear plants, Cancel orders |
-| Zones | Storage; planned Farming and Animal pasture |
+| Zones | Storage and Fishing (doc 289); planned Farming and Animal pasture |
 | Rooms | Direct room inspection toggle; active highlight, second click or Escape to exit |
 | Construction | Build (stone, dirt, grass or logs: one rough stone, soil or log a block), Shapes (rectangles, circles and stairs in those materials), Copy and Blueprints (blueprint files to place and share) |
 | Place | Finished furniture catalog: thumbnails, categories, live availability, repeated placement and Undo |
-| Craft | Ten profession entries with Hearthblock icons; working Rudimentary recipes and explicitly marked specialist catalog previews |
+| Craft | Eight profession entries with Hearthblock icons; working Rudimentary recipes and explicitly marked specialist catalog previews |
 | Colony | Its page: the settlement at a glance, with Dwarves, Labor, Settlement flag and planned Trade as entries |
 | Inventory | Colony supplies with real thumbnails, live physical counts, Locate and Inspect storage |
 | Menu | The game menu (also Esc): Resume, Save game, Load game…, New game…, Settings… and Exit game… |
@@ -2303,7 +2522,7 @@ The upper-right Sky Dial (see "The Sky Dial") reads `WorldClock`, `SkyController
 `WeatherManager`. `SkyController` supplies the same seasonal rise/set times used by world
 lighting. Hover or focus shows details; the old Clock window is removed.
 Pause, 1× and 2× hang centred under the Sky Dial, so time is read and set in one
-place. The view toggles Appeal, X-ray and Slice end the main dock as their own group, after
+place. The view toggles Appeal, Temperature, X-ray and Slice end the main dock as their own group, after
 the usual group gap: plain dock icons with no captions, the same size as the others.
 The slice tower rises above Slice, and the X-ray options to its left, only while that
 view is on. All are Hearthblock icons (brass glyphs and blocks of ground) on the
@@ -2313,7 +2532,7 @@ system family tile (doc 259):
 - Hover and focus supply names, as for every dock icon. A view that is on keeps the
   copper frame and notch of an active dock command.
 - Time buttons are 64, 56 or 48 px, following the dial's size. The dock sizes all
-  thirteen icons together.
+  fourteen icons together.
 - The time controls, the tower and the X-ray options share the Sky Dial's status
   layer. Windows sit above them; ordinary windows make room for the dial and the time
   controls. Menus clear all of them.
@@ -2331,11 +2550,12 @@ matched by the key's place on the keyboard, so they sit in the same place on eve
 | Space | `time_pause` | Pause, or resume at the previous speed |
 | 1 / 2 | `time_normal` / `time_fast` | Run at 1× / 2× |
 | V | `view_appeal` | The Appeal view on or off |
+| T | `view_temperature` | The Temperature view on or off |
 | X | `view_xray` | X-ray on or off |
 | `\`, `]` / `[`, `Ctrl+]` / `Ctrl+[` | `slice_toggle`, `slice_cell_up` / `_down`, `slice_single_up` / `_down` | Slice, and its steps (see "The Slice Tool") |
 | Ctrl + Z | `tool_undo` | Take back the newest order, with or without a tool on (see "The tool bar") |
 
-- **Each key does what its button does.** `TimeSliceHUD` handles Space, 1, 2, V and X;
+- **Each key does what its button does.** `TimeSliceHUD` handles Space, 1, 2, V, T and X;
   `SliceController` handles Slice's keys; `ToolBar` handles Ctrl + Z. They match exactly, so Ctrl + X is not X-ray.
 - **Space is heard first** (`_input`), before a focused button can take it as a press, so
   it never presses again the last button clicked. A text field keeps it, and it does
@@ -2351,7 +2571,7 @@ matched by the key's place on the keyboard, so they sit in the same place on eve
 
 | Panel | Contents |
 |---|---|
-| Place | **28 entries** from `data/ui/place_catalog.json`. Dining: Log Dining Table, Log stool, Log bench. Recreation: Board-game Table. Lighting: Log torch, Campfire. Room furnishings: Settlement flag, Log door (2 wide), Log door (3 wide), Double log door (4 wide), Rudimentary hearth, Log bed. Workshops: Crude workbench. Access: Rough wooden ladder, Log bridge, Log Fence Post, Log Gate. Water: Wet stone, Dry stone. Plants: blueberry, elderberry and wild-strawberry bushes, their three cuttings, and three wildflower shapes. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
+| Place | **37 entries** from `data/ui/place_catalog.json`. Storage: Tool rack, Raw materials crate. Dining: Log Dining Table, Log stool, Stone stool, Log bench. Food: Drying rack. Recreation: Board-game Table. Lighting: Log torch, Campfire. Room furnishings: Settlement flag, Log door (2 wide), Log door (3 wide), Double log door (4 wide), Rudimentary hearth, Log bed. Workshops: Crude workbench, Carpenter's bench, Mason's bench. Access: Rough wooden ladder, Log Fence Post, Log Gate. Water: Wet stone, Dry stone. Plants: blueberry, elderberry and wild-strawberry bushes, their three cuttings, four tree seeds and three wildflower shapes. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
 
 Action menus open 8 px above their dock button and keep clear of the compact panel and
 the time and view controls (see "Sizes, states and menus" under "Floating Dock"). Place
@@ -2473,9 +2693,32 @@ Stonehearth's stockpile filter. Its band names the zone ("Storage Zone 2").
     where a click allows or refuses one good: the exceptions both ways.
 - **Under the filter:** All and None, "Used 47 / 80 cells · 95 goods" with its bar, a line
   when goods await relocation or nothing is allowed, and Remove zone.
+- **Priority** (2026-11-02, doc 294): a row of five buttons, 1 to 5, with the store's own pressed
+  and "1 is filled first". Each says on hover what it means. Ground storage starts at 5 and
+  storage furniture at 4 (doc 31, "Storage priority and storage furniture").
+- **Storage furniture** (doc 294, the tool rack and the raw materials crate) opens the same
+  window from the Storage button in its own window, or from Inventory's Locate in storage. The
+  band names the piece, and the good it keeps when narrowed to one. The filter is one grid of its
+  own goods' pictures (the tools; the crate's raw goods), ✓ while kept; a click keeps one or
+  stops ("Click a good to keep it here or not."). It counts its goods: "Used 2 / 3 hooks" on the
+  rack, one tool to a hook, and "Used 9 / 12 goods" on the crate, whose bar says on hover "3
+  goods to each of its quarters." It has no Remove zone: the piece's own window uninstalls it.
 - **Contents:** the same grouped pictures, one per good and material, with their counts
   and a "!" on goods awaiting relocation; the name on hover. A click on a good opens its
   category in the filter.
+- **Keeping** (2026-10-29, doc 282; the owner picked it from three concepts: words, bars and
+  chips): above the pictures on Contents, for a store that takes food
+  (`StorageKeeping.gd`).
+  - Its heading says how the store keeps food: "Keeping · 7°C in a sealed room" ("under a
+    roof", or "under the open sky, in the rain"). The temperature is read at the store's
+    middle cell.
+  - A row for each food that spoils, the soonest to rot first: its picture, its name and its
+    stalest crate's count ("Apple · 9"), a bar of that crate's remaining life in its tone,
+    and its days left. On hover: "9 of 29 apples: Fresh · about 44 days left here."
+  - A store with no such food says how long blueberries would keep there ("Nothing here
+    spoils yet. Blueberries would keep about 13 days here."), which helps in choosing a
+    larder; a store that takes no food shows nothing.
+  - It refreshes after each hourly spoilage pass (doc 42 "Spoilage").
 - **Tabs:** Filter and Contents hang under the window's bottom edge.
 - **Sizes** go by screen height: large from 1300 px (860 px across, as the concept),
   small below 650 px. The body keeps one height from tab to tab, as far as the room above
@@ -2518,7 +2761,12 @@ goes: a cell, or the dwarves concerned.
     the clock being restored;
   - warnings: dwarves who cannot find reachable food (checked once a second, the words
     following the count), and rising water spilling onto dry ground (WaterManager's
-    `flood_warning`, at most once a minute).
+    `flood_warning`, at most once a minute);
+  - food going bad and rotting (doc 42 "Spoilage", 2026-10-29): after each hourly
+    spoilage pass, one line for each food in each place, with the food's picture and the
+    stack's place ("Blueberries in Stockpile 1 are going bad: less than a day left.",
+    "24 blueberries rotted in Stockpile 1.", "5 apples rotted on the ground."). They are
+    plain warning entries, not pinned.
 - **Warnings stay pinned** by their key until resolved: the food warning once no dwarf
   is short, rising water once it has not spilled for `flood_hold_hours` (3 in-game
   hours). Raising a standing warning again updates its words and place without a new
@@ -2589,8 +2837,10 @@ moment it lands, and the player's own messages.
 ## Labor Assignment — live first pass (2026-10-09)
 
 **Colony → Labor** opens the Work view of Colony Dwarves. Haul, Gather, Mine,
-Build and Craft checkboxes control each real dwarf; Craft remains Worker-only (its box is
-disabled for other professions and keeps its setting for a return to Worker).
+Build, Craft and Fish (doc 289) checkboxes control each real dwarf. A box whose work the
+career can't do is disabled and keeps its setting (doc 41): Workers and Rangers craft, only
+Rangers fish, and a Ranger's Gather, Mine and Build stay off (doc 292). The note beside
+them gives a specialist's focus ("Mining focus", "Fishing focus") or that its work is off.
 Transport inside an allowed job and automatic rest are independent of those
 checkboxes. Overview retains its activity/cargo/rest display. **Change profession**
 on the character sheet's Profession tab opens a career map with immediate Worker/Miner changes,
@@ -2600,14 +2850,24 @@ dimmed while the career is planned. The career map is the Professions window
 (`DwarfProfessionPanel`, people family), titled with its dwarf (docs 96, 101):
 - **The map.** Tiles from `promotion_screen` in professions.json, each marked Current,
   Available, Planned or Collecting tool. A line shows `promotes_from` ancestry, not who
-  makes a tool. The map and the descriptions scroll on their own.
+  makes a tool. The map is as tall as its lowest row of tiles. The map and the
+  descriptions scroll on their own.
+- **Fit (2026-10-31, doc 41 "Stats").** Each tile wears a tag at its top right corner with the
+  dwarf's fit for that profession: moss from Good, hay at Average, rust below. The tile's
+  hover names it ("Good fit for Runbrin"), and the appointment card shows the fit with the
+  two stats' pictures: "Average fit · Strength, then Toughness".
 - **The appointment card.** Requirements; for a tool career, the starter tool with its
   available stock and maker (Worker · crude workbench), then the collection message and
   Cancel promotion, or why it waits (no spare tool, the dwarf asleep); the profession's
-  next planned tool, pointing to the Equipment tab; retained experience and, for the
-  Miner, the level rewards and bar.
+  next planned tool, pointing to the Equipment tab; retained experience and, for a career
+  that earns it (the Miner, the Ranger), the level rewards, how it is earned and the bar;
+  and a warning when the career's own work is unticked in Labor.
 - **Acting.** Promote, Resume and Return to Worker work while paused; a tool collection
   starts when the clock runs. A planned career reads "Not yet available".
+- **Following (owner, 2026-11-01).** Picking another dwarf while the map is open, in Colony
+  Dwarves or the world, moves the map to them and keeps the chosen career, so dwarves can be
+  compared for one career, as an open character sheet follows the selection
+  (`DwarfDirector.on_explorer_selected`, `DwarfProfessionPanel.follow`).
 - **Closing.** The window closes when its dwarf leaves the roster or Colony Dwarves
   closes. Esc closes it unless a dock menu is open, and Back to colony returns to the
   dwarf in Colony Dwarves. The rules behind it are in doc 41, Profession System.

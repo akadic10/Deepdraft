@@ -1,24 +1,24 @@
 {
   "__comment": [
-    "Rudimentary room heater — rough stacked fieldstone back and cheeks, open front, logs and glowing coals (doc 199).",
-    "Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs (doc 256); the opening faces local +Z.",
-    "The stone back reaches 1.68 blocks inside the 2x2x2 collision envelope.",
-    "RoomManager counts 1600 heat units once at the origin. Small sealed bedrooms stay comfortable through the seasons.",
-    "Named body/flame meshes and ten low voxel flame frames preserve installed lighting and animation.",
-    "Installed hearths emit warm, gently flickering light. Ghosts and packed items remain unlit.",
+    "Rudimentary room heater — an open fire on four flagstones against a stacked stone fire-back, with low wing stones and no wood of its own (docs 199, 279).",
+    "Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs (doc 256); the fire-back stands at local -Z and the fire faces +Z.",
+    "The fire-back reaches 1.81 blocks inside the 2x2x2 collision envelope.",
+    "RoomManager counts 9600 heat units once at the origin (owner, 2026-10-30: one hearth warms a bedroom of about 600 cells through the winter). Fires are tended to temperature.json's tended_fire_c, so a small room is not overheated.",
+    "Named body/flame meshes and ten voxel flame frames preserve installed lighting and animation; the flame burns below the fire-back's top.",
+    "A lit hearth emits warm, gently flickering light and heats its room; it is lit with a log at dusk, or at bedtime by a dwarf going to sleep in its room, and goes out at dawn or when its sleepers wake by day (doc 34). Ghosts and packed items remain unlit.",
     "The shared packed-furniture item and floor-placement behavior are unchanged."
   ],
   "furniture_key": "base:furniture:hearth",
   "furniture_category": "hearth",
   "display_name": "Rudimentary hearth",
-  "description": "A compact stone room heater with an open firebox. Warms a small enclosed bedroom; larger rooms may need more heat. Face the opening into the room.",
+  "description": "An open fire on flagstones against a stone fire-back that throws its heat into the room. A worker lights it at dusk with a log, and it burns until dawn. Warms a small enclosed bedroom; larger rooms may need more heat.",
   "model": "res://assets/models/furniture/hearth.glb",
   "item_key": "base:resources:furniture:hearth",
   "placement": "floor",
   "yaw_steps": 4,
   "show_placement_area": true,
   "placement_label": "2 × 2 room heater",
-  "placement_note": "Place inside an enclosed room. R turns the opening to face inward.",
+  "placement_note": "Place inside an enclosed room, its fire-back to a wall. R turns the fire to face inward.",
   "room_heater": true,
   "footprint": {
     "width": 2,
@@ -45,8 +45,8 @@
     "attenuation": 1.2,
     "position": [
       0,
-      1.0,
-      0.22
+      1.05,
+      0.1
     ],
     "shadows": true,
     "body_shadows": true,
@@ -87,7 +87,16 @@
     }
   },
   "heat_source": {
-    "heat_units": 1600
+    "heat_units": 9600,
+    "radius": 4
+  },
+  "nightly_fire": {
+    "__comment": "Doc 279: as the campfire. The log lies across the ash before the fire-back, under the flame, set down from in front (light_from).",
+    "fuel_tag": "timber",
+    "light_from": "front",
+    "log_position": [0, 0.25, -0.125],
+    "log_scale": 0.7,
+    "log_yaw_degrees": 90
   },
   "fire_sound": "campfire",
   "appeal": {"design": 2, "material_factor": 0}

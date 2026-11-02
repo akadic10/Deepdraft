@@ -1,15 +1,18 @@
-"""Built logs (doc 275): the loose log stretched to fill its block, as pieces the game picks
-from a log's neighbours (scripts/components/BuiltLogs.gd).
+"""Built logs (doc 275; peeled, doc 278): the loose log stretched to fill its block with its bark
+drawn off, as pieces the game picks from a log's neighbours (scripts/components/BuiltLogs.gd).
 
 The loose log (`log()` in hearthblock_goods.py) is the Tier 1 stool on its side: a 12 x 12 bark
 body with clipped corners, bark plates one cell proud, and at each end a bark rim, a cut face,
-one square growth ring off centre, the pith and a drying split. A built log keeps that recipe
-at block size (owner, 2026-10-26: "stretched just a little to hit the edges"):
+one square growth ring off centre, the pith and a drying split. A built log keeps that shape at
+block size (owner, 2026-10-26: "stretched just a little to hit the edges") and is peeled, as log
+builders peel a log before it goes into a wall (owner, 2026-10-28):
 - the body is 16 x 16, so it reaches every face of its block; its corners clip 3 cells deep;
-- the plates are lighter bark, flush with the face, with a one-cell groove cut round them;
-- the end is the loose log's, scaled up.
+- the surface is peeled wood. On a lying log the upper corner steps catch the light and the lower
+  ones are shaded, so each course reads apart; an upright log keeps plain corners;
+- each variant carries a knot trimmed flush or a drying check, never on a lying log's top;
+- the end is the loose log's, scaled up, with a peeled rim in place of the bark.
 
-Pieces, each in four plate variants (`_p0` to `_p3`), cells in their block from 0 to 15:
+Pieces, each in four variants (`_p0` to `_p3`, the marks), cells in their block from 0 to 15:
 - `h<lo><hi>`: a log lying along X, its -X and +X ends open (1, end grain) or joined (0);
 - `u<lo><hi>`: a log standing up, its foot and top open or joined;
 - `j<lo><hi><zlo><zhi>`: a joint whose top log lies along X with those ends, over a lower log
@@ -25,14 +28,15 @@ N = 16          # cells along a block edge
 CLIP = 3        # the corners' depth (the loose log's 2 at 12 cells)
 WOODS = {'oak': 'base:material:oak', 'pine': 'base:material:pine',
          'juniper': 'base:material:juniper', 'apple': 'base:material:applewood'}
-# The stool's four plates (proposal.mjs), scaled to the block: (along from, along to, across from,
-# across to) on the top, one side, the bottom and the other side.
-PLATES = [(3, 11, 5, 11), (2, 9, 6, 12), (4, 11, 4, 9), (3, 10, 3, 8)]
-SLIDES = (-2, 1, -1, 2)
+# Marks by variant on the long faces: 0 top (v = N-1), 1 side (u = N-1), 2 bottom (v = 0) and
+# 3 side (u = 0); an upright log shows all four. A knot is a notched 4 x 4 from its low corner
+# (along, across); a check is runs of (along from, along to, across), one cell deep.
+KNOTS = {0: [(1, 4, 7)], 1: [(3, 9, 5)], 3: [(1, 10, 8), (2, 6, 6)]}
+CHECKS = {1: [(1, ((3, 8, 6), (8, 12, 7)))], 2: [(3, ((5, 9, 9), (9, 13, 8)))]}
 RING = (3, 10, 4, 11)   # the growth ring's square, off centre: across u, then v
 PITH = (6, 7)
 VARIANTS = 4
-ROLES = ('bark_dark', 'bark', 'bark_light', 'wood_top', 'grain', 'pith', 'riven')
+ROLES = ('bark', 'bark_light', 'wood_top', 'grain', 'pith', 'riven', 'riven_dark')
 
 
 def colours(wood=None):
@@ -50,6 +54,11 @@ def inside(u, v):
     return 0 <= u < N and 0 <= v < N and min(u, N - 1 - u) + min(v, N - 1 - v) >= CLIP
 
 
+def corner(u, v):
+    """The outer layer of a clipped corner: the steps a drawknife leaves as facets."""
+    return inside(u, v) and min(u, N - 1 - u) + min(v, N - 1 - v) == CLIP
+
+
 def place(axis, a, u, v):
     """A log's own cell (along, across, up) in its block. A lying log's v is up."""
     if axis == 'x': return (a, v, u)
@@ -57,27 +66,32 @@ def place(axis, a, u, v):
     return (u, a, v)
 
 
+def face(index, a, w):
+    """The cell at (along, across) on long face `index`."""
+    level = N - 1 if index in (0, 1) else 0
+    return (a, w, level) if index in (0, 2) else (a, level, w)
+
+
 def log_cells(axis, open_lo, open_hi, variant):
-    """One block of log along `axis`: bark body, plates, and end grain on its open ends."""
+    """One block of peeled log along `axis`: the body, its corner facets, the variant's marks and
+    end grain on its open ends."""
     cells = {}
     for a in range(N):
         for u in range(N):
             for v in range(N):
-                if inside(u, v): cells[a, u, v] = 'bark'
-    # One plate a face, lighter bark in a cut groove; each variant leaves one face bare and
-    # turns and slides the rest, so neighbouring blocks differ.
-    for i, (fixed, level) in enumerate((('v', N - 1), ('u', N - 1), ('v', 0), ('u', 0))):
-        if (variant + i) % 4 == 3: continue
-        a0, a1, w0, w1 = PLATES[(i + variant) % 4]
-        slide = SLIDES[(i + variant) % 4]
-        a0, a1 = max(2, a0 + slide), min(N - 2, a1 + slide)
-        if (i + variant) % 2: w0, w1 = N - w1, N - w0
-        for a in range(a0 - 1, a1 + 1):
-            for w in range(w0 - 1, w1 + 1):
-                key = (a, w, level) if fixed == 'v' else (a, level, w)
-                if key not in cells: continue
-                if a in (a0 - 1, a1) or w in (w0 - 1, w1): del cells[key]
-                else: cells[key] = 'bark_light'
+                if not inside(u, v): continue
+                role = 'riven_dark'
+                if axis != 'y' and corner(u, v): role = 'riven' if v >= N // 2 else 'pith'
+                cells[a, u, v] = role
+    for index, a0, w0 in KNOTS.get(variant, ()):           # a knot: a notched 4 x 4, dark at its heart
+        for a in range(a0, a0 + 4):
+            for w in range(w0, w0 + 4):
+                if a in (a0, a0 + 3) and w in (w0, w0 + 3): continue
+                key = face(index, a, w)
+                if key in cells: cells[key] = 'bark' if a0 < a < a0 + 3 and w0 < w < w0 + 3 else 'bark_light'
+    for index, runs in CHECKS.get(variant, ()):             # a drying check with one jog
+        for a0, a1, w in runs:
+            for a in range(a0, a1): cells.pop(face(index, a, w), None)
     for end, opened in ((0, open_lo), (N - 1, open_hi)):
         if not opened: continue
         inward = 1 if end == 0 else -1
@@ -85,7 +99,7 @@ def log_cells(axis, open_lo, open_hi, variant):
             for v in range(N):
                 if not inside(u, v): continue
                 rim = not all(inside(u + du, v + dv) for du, dv in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-                role = 'bark' if rim else 'wood_top'
+                role = 'riven_dark' if rim else 'wood_top'
                 u0, u1, v0, v1 = RING
                 if not rim and u0 <= u < u1 and v0 <= v < v1 and (u in (u0, u1 - 1) or v in (v0, v1 - 1)): role = 'grain'
                 if (u, v) == PITH: role = 'pith'
@@ -97,11 +111,11 @@ def log_cells(axis, open_lo, open_hi, variant):
 
 
 def joint_cells(top_lo, top_hi, arm_lo, arm_hi, variant):
-    """The top log along X, whole; the lower log along Z only as cut shoulders on its arms' sides."""
+    """The top log along X, whole; the lower log along Z only as fresh-cut shoulders on its arms' sides."""
     cells = log_cells('x', top_lo, top_hi, variant)
     for cell in log_cells('z', False, False, variant):
         if cell in cells: continue
-        if (cell[2] < N // 2 and arm_lo) or (cell[2] >= N // 2 and arm_hi): cells[cell] = 'riven'
+        if (cell[2] < N // 2 and arm_lo) or (cell[2] >= N // 2 and arm_hi): cells[cell] = 'wood_top'
     return cells
 
 

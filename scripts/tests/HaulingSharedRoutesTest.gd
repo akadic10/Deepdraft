@@ -79,7 +79,8 @@ func _busy_colony() -> void:
 		stockpiles.register_zone(destination)
 	drops.restore_loose_item(LOG,Vector3(42.5,15,40.5))
 	drops.restore_loose_item(LOG,Vector3(43.5,15,41.5))
-	for i in 8: drops.restore_loose_item(LOG,Vector3(65.5+i*2,21,40.5))
+	# Four loads of four logs: one load for each available dwarf.
+	for i in 16: drops.restore_loose_item(LOG,Vector3(65.5+i,21,40.5))
 	for actor in tasks._agents.values(): actor._food.value=1.0
 	await process_frame; await process_frame
 	tasks._probe_node_cap=8
@@ -100,10 +101,10 @@ func _busy_colony() -> void:
 				if first_assignment<0: first_assignment=tick
 			actor._process(.05) # Includes normal idle movement and real cargo handling.
 		delivered=int(stockpiles.get_stats().stored)
-		if delivered==8: break
+		if delivered==16: break
 		await process_frame
 	_expect(first_assignment>=0 and first_assignment<256,"16 leases find reachable work promptly beside two difficult pickups")
 	_expect(assigned.size()==4,"all four available dwarves receive useful work")
-	_expect(delivered==8 and _loose_units()==2,"all reachable logs reach storage and lower-level items remain intact")
+	_expect(delivered==16 and _loose_units()==2,"all reachable logs reach storage and lower-level items remain intact")
 	_expect(tasks.lifecycle_errors().is_empty(),"ongoing inventory changes preserve task and claim ownership")
 	print("SHARED_HAUL_COLONY first_wake=",first_assignment," workers=",assigned.size()," delivered=",delivered)

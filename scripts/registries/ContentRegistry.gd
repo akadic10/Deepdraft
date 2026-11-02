@@ -1,12 +1,12 @@
 extends Node
 
 ## Sole loader for the static content saves name: furniture pieces (with
-## SurfaceDetailRegistry's plant place entries merged in), items, worker
+## SurfaceDetailRegistry's plant place entries and the tree seed plans merged in), items, worker
 ## recipes and tree species. It exists before any scene so startup resume can
 ## reject saves naming content the game no longer defines. Scene systems read
 ## definitions here and keep their own runtime state. Never mutate the returned
 ## dictionaries.
-const FURNITURE_DIR := "res://data/furniture"
+const FURNITURE_DIR := "res://data/furniture/"
 const ITEMS_PATH := "res://data/entities/items/resources.json"
 const RECIPES_PATH := "res://data/workshops/worker_crafting.json"
 const JsonData = preload("res://scripts/registries/JsonData.gd")
@@ -27,6 +27,7 @@ func _init() -> void:
 	_load_items()
 	_load_recipes()
 	_load_trees()
+	_load_tree_plantings()
 
 
 func furniture_def(key: String) -> Dictionary: return furniture.get(key, {})
@@ -59,7 +60,7 @@ func _read(path: String) -> Variant:
 func _load_furniture() -> void:
 	for file_name in DirAccess.get_files_at(FURNITURE_DIR):
 		if not file_name.ends_with(".json"): continue
-		var def: Variant = _read("%s/%s" % [FURNITURE_DIR, file_name])
+		var def: Variant = _read(FURNITURE_DIR + file_name)
 		if not def is Dictionary: continue
 		var key := String(def.get("furniture_key", ""))
 		if key.is_empty() or not def.has("placement") or not def.has("item_key"):
@@ -109,3 +110,18 @@ func _load_trees() -> void:
 			break
 	found.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	for entry: Array in found: trees[entry[1]] = entry[2]
+
+
+## A species with a "planting" block joins Place → Plants (doc 284): one seed makes
+## a sapling. The plan names its species; SurfaceFloraSpawner owns the planted tree.
+func _load_tree_plantings() -> void:
+	for key: String in trees:
+		var planting: Dictionary = trees[key].get("planting", {})
+		if planting.is_empty(): continue
+		var item_name := String(items.get(String(planting.item), {}).get("display_name", key))
+		var sapling: Dictionary = trees[key].stages.sapling
+		furniture[String(planting.catalog_key)] = {"plant": true, "tree_species": key,
+			"furniture_key": planting.catalog_key, "display_name": item_name.left(1) + item_name.substr(1).to_lower(),
+			"item_key": planting.item, "placement": "floor", "model": sapling.models.summer,
+			"footprint": {"width": 1, "depth": 1, "height": int(sapling.clearance_height)},
+			"collision_regions": [], "planting_seconds": float(planting.work_seconds)}

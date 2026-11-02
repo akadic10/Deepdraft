@@ -96,7 +96,8 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _test_palettes() -> void:
-	for key in [STOOL, "base:furniture:bench", "base:furniture:door", "base:furniture:wooden_torch", "base:furniture:campfire"]:
+	# The campfire holds no wood since doc 279: the night's log shows its own.
+	for key in [STOOL, "base:furniture:bench", "base:furniture:door", "base:furniture:wooden_torch"]:
 		var definition: Dictionary = furniture.get_defs()[key]
 		var original: Node3D = load(String(definition.model)).instantiate()
 		var pine: Node3D = load(String(definition.model)).instantiate()

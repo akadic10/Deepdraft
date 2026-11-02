@@ -93,6 +93,8 @@ var tiles := TileMesher.new(self)
 var cavity_shell := CavityShell.new(self)
 var block_inspector: BlockInspector = null
 var built_logs: Node3D
+## Shadow-only rock for lights above the slice (doc 287); FurniturePlacementController asks.
+var light_occluders: Node3D
 
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
@@ -124,6 +126,8 @@ func _ready() -> void:
 	built_logs.name = "BuiltLogs"
 	built_logs.lighting = underground_lighting
 	add_child(built_logs)
+	light_occluders = preload("res://scripts/components/SliceLightOccluders.gd").new(self)
+	add_child(light_occluders)
 	if UIRegistry.dev_tools_enabled: block_inspector = BlockInspector.new(self)
 
 	WorldData.block_changed.connect(_terrain_block_changed)
@@ -331,11 +335,13 @@ func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 		return
 	tiles.invalidate_cells(blocks)
 	cavity_shell.invalidate_cells(blocks)   # designations and mined holes both shape the shell (SO-2b A)
+	if light_occluders != null: light_occluders.invalidate_cells(blocks)
 
 
 func _invalidate_visual_cut_meshes_global() -> void:
 	cavity_shell.dirty = true
 	tiles.invalidate_global()
+	if light_occluders != null: light_occluders.invalidate_all()
 
 
 ## Shared by natural overview plates and constructed stone cut by the slice.

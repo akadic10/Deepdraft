@@ -5598,6 +5598,8 @@
         "scar"
       ]
     ],
+    "tools/stone_adze": [],
+    "tools/stone_maul": [],
     "tools/felling_axe": [
       [
         "box",
@@ -5805,6 +5807,24 @@
         ],
         "steel"
       ]
-    ]
+    ],
+    "tools/fishing_rod": [],
+    "tools/fishing_float": [],
+    "tools/caught_perch": [],
+    "tools/caught_trout": [],
+    "tools/caught_char": [],
+    "tools/caught_cave_fish": [],
+    "tools/big_perch": [],
+    "tools/big_trout": [],
+    "tools/big_char": [],
+    "tools/big_cave_fish": [],
+    "tools/grill_stick_perch": [],
+    "tools/grill_stick_perch_grilled": [],
+    "tools/grill_stick_trout": [],
+    "tools/grill_stick_trout_grilled": [],
+    "tools/grill_stick_char": [],
+    "tools/grill_stick_char_grilled": [],
+    "tools/grill_stick_cave_fish": [],
+    "tools/grill_stick_cave_fish_grilled": []
   }
 }

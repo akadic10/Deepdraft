@@ -98,24 +98,8 @@ func _run() -> void:
 	for season: String in ["spring","summer","autumn"]:
 		_expect(weather._schedule[season].any(func(e): return e.weather == "base:weather:rain") and weather._schedule[season].any(func(e): return e.weather == "base:weather:storm"), "rain and storm scheduled: " + season)
 	_expect(weather._rng.state == random_before and generator.world_seed == seed_before, "cosmetic additions leave simulation RNG untouched")
-	# Rain geometry respects a physical roof even when that roof is sliced off.
-	var rain = load("res://scripts/components/WeatherPrecipitation.gd").new()
-	scene.add_child(rain)
-	rain.set_process(false)
-	var profile: Dictionary = weather.current_definition().precipitation
-	rain.drops.append({"point":Vector3(49,21.05,42),"phase":.5,"strength":.25})
-	rain._slice = null
-	rain._draw_rain(profile)
-	_expect(rain.visible_streaks == 1, "storm draws precipitation in open space")
-	var slice_stub = load("res://scripts/tests/AudioListeningPointTest.gd").Slice.new()
-	slice_stub.height = 15
-	scene.add_child(slice_stub)
-	rain._slice = slice_stub
-	rain._draw_rain(profile)
-	_expect(rain.visible_streaks == 0, "cutting below physical roof suppresses rain")
+	# Drawing rain and snow, and their roof and slice rules: WeatherPrecipitationTest.
 	weather.set_weather("base:weather:clear")
-	rain._process(.1)
-	_expect(not rain.visual.visible, "clear weather removes precipitation")
 	ambience.clear_scene()
 	for failure in failures: push_error(failure)
 	var report := FileAccess.open(DETAILS_OUT + ("checks.json" if DisplayServer.get_name() == "headless" else "native_pcm.json"),FileAccess.WRITE)

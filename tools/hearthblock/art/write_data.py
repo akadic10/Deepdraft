@@ -41,6 +41,8 @@ ICON_SPECIES = {'rabbit': ['fur', 'cream', 'nose', 'eye', 'glint', 'ear'],
                 'deer': ['coat', 'back', 'cream', 'nose', 'pupil', 'eye', 'ear', 'antler'],
                 'wolf': ['fur', 'light', 'cream', 'nose', 'eye', 'glint', 'shade', 'ear'],
                 'duck': ['male_crown', 'male_bill', 'ring', 'eye']}
+# The Development icons (doc 23) keep the Sky Dial's storm cloud, rain, snow and pine colours.
+ICON_SKY = ['storm', 'storm_shade', 'rain', 'snow', 'snow_shade', 'pine', 'pine_light', 'pine_dark']
 ICON_EXTRA = {'arrow': '5E9B47', 'arrow_light': '86BF63', 'arrow_dark': '3F6E31',      # placement green
               'burlap': 'B0905F', 'burlap_dark': '8A6D45', 'zone_line': 'F0E2BE',     # storage ground
               'brass_light': 'F2CF7A',
@@ -60,7 +62,37 @@ ICON_EXTRA = {'arrow': '5E9B47', 'arrow_light': '86BF63', 'arrow_dark': '3F6E31'
               # Professions: ore glints and turnips
               'ore_copper': 'C0703A', 'ore_gold': 'E0B84C', 'turnip': 'E9E1CF', 'turnip_top': '9B5A8C',
               # Dwarf concerns: the food badge's lit apple
-              'apple_light': 'E2634B'}
+              'apple_light': 'E2634B',
+              # Development: the world's water (data/world_gen/water.json), lit and deepened as
+              # WaterMeshBuilder shades it, and the cave explorer's highlight, a little softer
+              'water': '58AFC4', 'water_light': '8ACFDD', 'water_dark': '3F8799', 'foam': 'C6EDF0',
+              'cave_line': '45DCD2'}
+# Fishing (doc 289): the peeled rod, its line and float, and the chunky perch, for the dwarf
+# tools and the icons that show them.
+FISHING = {'rod_wood': 'D7BC8C', 'rod_knot': '9E7C50', 'rod_bark': '5E3F29', 'rod_bark_light': '7E5838',
+           'rod_line': 'E9DFC6', 'float_wood': 'E2CA97', 'float_red': 'B6452E', 'float_dark': '7B2E20',
+           'fish_eye': '1E1814', 'perch_back': '55632A', 'perch_side': 'A7A646', 'perch_belly': 'EFE8C6',
+           'perch_bar': '343D1D', 'perch_fin': 'D9572E', 'perch_dorsal': '7B8444',
+           # step 2: the river's trout, the tarn's char and the spring cave's fish
+           'trout_back': '6C5C37', 'trout_side': 'BFA261', 'trout_belly': 'F0EBDA', 'trout_spot': '2B241E',
+           'trout_red': 'D1432C', 'trout_fin': '98865C', 'trout_fin_light': 'C9B78A',
+           'char_back': '2C463B', 'char_side': '6E8669', 'char_belly': 'E2642B', 'char_spot': 'F1E2C3',
+           'char_fin': 'DF7036', 'char_edge': 'F8F4EA', 'char_dorsal': '3C5649',
+           'cavefish_body': 'F1DED7', 'cavefish_shade': 'DCC1B8', 'cavefish_belly': 'F8ECE7',
+           'cavefish_gill': 'E29997', 'cavefish_fin': 'E4D0CA', 'cavefish_socket': 'E3C6BE', 'cavefish_line': 'E7CFC7'}
+# The drying rack's dried fish (doc 289, step 3): coppery, redder than any wood swatch, so they
+# never recolour with the rack's wood.
+DRYING = {'dry_skin': '8A4A2A', 'dry_back': '5A321F', 'dry_flesh': 'C27448', 'dry_tail': '6E3E24', 'dry_eye': '24170F'}
+# The Stonemason (doc 293): the mason's bench's split slab in the Rough Stone's own colours
+# (voxel_items.json, mined_styles.rough_stone), never recoloured with a wood, and the stone heads
+# of the crafting tools in the starter tools' stone (hearthblock_goods.STONE).
+ROUGH_STONE = {'rough_stone': '88898B', 'rough_stone_shade': '70767D', 'rough_stone_light': 'ACAAA4',
+               'rough_stone_accent': '97938A', 'rough_stone_cleft': '555D65'}
+TOOL_STONE = {'tool_stone': '7C8587', 'tool_stone_light': '9EA6A6', 'tool_stone_dark': '5E676B'}
+# Grilling (doc 290): the peeled green stick and the roasted fish on it, for the dwarf tools.
+GRILLING = {'stick_bark': '5E6238', 'stick_bark_light': '777A49', 'stick_wood': 'DDD3A3', 'stick_knot': 'A69E70',
+            'stick_char': '3A2A20', 'grill_back': '5C3A22', 'grill_side': 'A9672F', 'grill_side_light': 'C6843F',
+            'grill_belly': 'DAA65D', 'grill_bar': '6F4626', 'grill_fin': '4B2D1B', 'grill_char': '2E211A', 'grill_eye': 'E9E2CD'}
 
 
 def models(dwarf_parts, wildlife_parts, icons, sky):
@@ -71,7 +103,18 @@ def models(dwarf_parts, wildlife_parts, icons, sky):
         # and the stick runs down to the model base like the previous torch.
         ('wall_torch', 'furniture', 'oak', dict(piece='wooden_torch', part='torch_body', drop=FLAMES, offset=[0, 1, 0], occlusion={'wall': 0},
                                                 extra=[['box', [-2, 2, 0, 3, 6, 10], 'wood_side'], ['box', [-1, 1, -1, 0, 7, 9], 'wood_side']])),
-        ('campfire', 'furniture', 'oak', dict(piece='campfire', part='campfire_body', drop=FLAMES, occlusion=GROUND)),
+        # Nightly fires (doc 279): the ring holds no wood. The night's log is the real good a
+        # worker sets on the ash, so the drawn logs, char and embers go. The cold ash is grey
+        # rather than black, soot darkens each stone's face toward the fire, so the fire's own
+        # light no longer bleaches the ring, and a char patch marks the centre.
+        ('campfire', 'furniture', 'oak', dict(piece='campfire', part='campfire_body', occlusion=GROUND,
+                                              drop=FLAMES + ['bark', 'bark_light', 'wood_top', 'char', 'ember'], extra=[
+            ['paint', [-10, 10, 0, 1, -10, 10], 'stone_dark'],
+            ['paint', [9, 11, 1, 6, -4, 4], 'soot'], ['paint', [-11, -9, 1, 6, -4, 4], 'soot'],
+            ['paint', [-4, 4, 1, 6, 9, 11], 'soot'], ['paint', [-4, 4, 1, 6, -11, -9], 'soot'],
+            ['paint', [5, 8, 1, 6, 5, 8], 'soot'], ['paint', [-8, -5, 1, 6, 5, 8], 'soot'],
+            ['paint', [-8, -5, 1, 6, -8, -5], 'soot'], ['paint', [5, 8, 1, 6, -8, -5], 'soot'],
+            ['paint', [-3, 3, 0, 1, -3, 3], 'char']])),
         # Hay inside the sleeper's torso area stays flat and the bed stays 15 cells
         # high (test_furniture contact rules): one dry leaf drops onto the hay.
         ('notched_log_bed', 'furniture', 'oak', dict(piece='log_bed', occlusion=GROUND, extra=[
@@ -79,21 +122,33 @@ def models(dwarf_parts, wildlife_parts, icons, sky):
         ('log_bench', 'furniture', 'hewn', dict(piece='bench', occlusion=GROUND)),
         ('game_table', 'furniture', 'hewn', dict(piece='board_game_table', occlusion=GROUND)),
         ('workbench', 'furniture', 'hewn', dict(piece='crude_workbench', occlusion=GROUND)),
+        ('drying_rack', 'furniture', 'hewn', dict(piece='drying_rack', occlusion=GROUND)),
+        # Its fish, shown only while a batch dries (doc 289): a part over the rack, as the fence rails.
+        ('drying_rack_fish', 'furniture', 'hewn', dict(piece='parts/drying_rack_fish', part='fish')),
+        # The careers' own workbenches (doc 293): the Carpenter's peeled log bench, the
+        # Stonemason's split slab on two stumps.
+        ('carpenter_bench', 'furniture', 'hewn', dict(piece='carpenter_bench', occlusion=GROUND)),
+        ('mason_bench', 'furniture', 'hewn', dict(piece='mason_bench', occlusion=GROUND)),
+        # The Stonemason's stone stool (doc 293, B): a Rough Stone knocked square.
+        ('stone_stool', 'furniture', 'hewn', dict(piece='stone_stool', occlusion=GROUND)),
+        # The tool rack (doc 294, B): hung on a wall, its back at Z-8.
+        ('tool_rack', 'furniture', 'hewn', dict(piece='tool_rack', occlusion={'wall': -8})),
+        # The raw materials crate (doc 294, A): a log crib on the floor, open on top.
+        ('raw_materials_crate', 'furniture', 'hewn', dict(piece='raw_materials_crate', occlusion=GROUND)),
         ('door_2', 'furniture', 'oak', dict(piece='door', part='leaf_left', occlusion=GROUND)),
         ('door_3', 'furniture', 'oak', dict(piece='log_door_3', part='leaf_left', occlusion=GROUND)),
         ('door_4_left', 'furniture', 'oak', dict(piece='log_door_4', part='leaf_left', occlusion=GROUND)),
         ('door_4_right', 'furniture', 'oak', dict(piece='log_door_4', part='leaf_right', occlusion=GROUND)),
-        ('fence_post', 'furniture', 'oak', dict(piece='log_fence', part='post', occlusion=GROUND)),
-        ('gate_post_left', 'furniture', 'oak', dict(piece='log_gate', part='post_left', source='fence_post', offset=[-16, 0, 0], occlusion=GROUND)),
-        ('gate_post_right', 'furniture', 'oak', dict(piece='log_gate', part='post_right', source='fence_post', offset=[16, 0, 0], occlusion=GROUND)),
-        ('gate_leaf', 'furniture', 'oak', dict(piece='log_gate', part='leaf_left')),
-        ('fence_rails', 'furniture', 'oak', dict(piece='parts/log_fence_rails', part='rails')),
+        # Peeled like built logs (doc 278), so they share the built logs' hand-hewn palette.
+        ('fence_post', 'furniture', 'hewn', dict(piece='log_fence', part='post', occlusion=GROUND)),
+        ('gate_post_left', 'furniture', 'hewn', dict(piece='log_gate', part='post_left', source='fence_post', offset=[-16, 0, 0], occlusion=GROUND)),
+        ('gate_post_right', 'furniture', 'hewn', dict(piece='log_gate', part='post_right', source='fence_post', offset=[16, 0, 0], occlusion=GROUND)),
+        ('gate_leaf', 'furniture', 'hewn', dict(piece='log_gate', part='leaf_left')),
+        ('fence_rails', 'furniture', 'hewn', dict(piece='parts/log_fence_rails', part='rails')),
     ]
     rows += [(f'ladder_{h}', 'furniture', 'oak', dict(piece=f'crude_ladder_{h}', occlusion=GROUND)) for h in range(1, 5)]
-    rows += [(f'bridge_{s}', 'furniture', 'oak', dict(piece=f'log_bridge_{s}')) for s in range(1, 6)]
     rows += [
         ('ladder_kit', 'furniture', 'oak', dict(piece='ladder_kit', occlusion=GROUND)),
-        ('bridge_kit', 'furniture', 'oak', dict(piece='bridge_kit', occlusion=GROUND)),
         ('packed_crate', 'furniture', 'oak', dict(piece='packed_furniture', occlusion=GROUND)),
         ('hearth', 'furniture', 'oak', dict(piece='hearth', part='hearth_body', occlusion=GROUND)),
         ('settlement_flag', 'furniture', 'oak', dict(piece='settlement_flag', occlusion=GROUND)),
@@ -130,8 +185,9 @@ def main():
     # Work tools keep the existing tool materials (iron, steel, haft wood, leather wraps).
     dwarf_palette = json.loads((ROOT / 'tools/art_data/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']
     tools = {k: dwarf_palette[k].lstrip('#') for k in ('wood', 'grain', 'tool_leather', 'iron', 'iron_dark', 'steel')}
-    palettes |= {'hewn': HEWN | fixed, 'oak': OAK | fixed,
-                'dwarf': {k: proposal[k].lstrip('#') for k in DWARF_ROLES if k != 'scar'} | {'scar': dwarf_scar.lstrip('#')} | tools}
+    palettes |= {'hewn': HEWN | fixed | DRYING | ROUGH_STONE, 'oak': OAK | fixed,
+                'dwarf': {k: proposal[k].lstrip('#') for k in DWARF_ROLES if k != 'scar'} | {'scar': dwarf_scar.lstrip('#')} | tools
+                         | {'rope': fixed['rope'], 'rope_dark': fixed['rope_dark']} | FISHING | GRILLING | TOOL_STONE}
     skin, hair = ref['tints']['skin'][ICON_TINTS['skin']], ref['tints']['hair'][ICON_TINTS['hair']]
     palettes['icon'] = ({k: v.lstrip('#') for k, v in proposal.items()} | tools | HEWN | fixed
                         | {r: _tint(proposal[r], skin) for r in SKIN_ROLES}
@@ -139,7 +195,10 @@ def main():
                         # a second dwarf for the Dwarves icon: black hair, medium skin
                         | {r.replace('hair', 'hair2', 1): _tint(proposal[r], ref['tints']['hair']['black']) for r in HAIR_ROLES}
                         | {r + '2': _tint(proposal[r], ref['tints']['skin']['medium']) for r in SKIN_ROLES}
-                        | {f'{s}_{r}': wildlife[f'{s}:{r}'].lstrip('#') for s, roles in ICON_SPECIES.items() for r in roles})
+                        # an elder for Development's Dwarf tools: white hair, the medium skin above
+                        | {r.replace('hair', 'hair3', 1): _tint(proposal[r], ref['tints']['hair']['white']) for r in HAIR_ROLES}
+                        | {f'{s}_{r}': wildlife[f'{s}:{r}'].lstrip('#') for s, roles in ICON_SPECIES.items() for r in roles}
+                        | {r: ref['sky_palette'][r].lstrip('#') for r in ICON_SKY} | FISHING)
     palettes['sky'] = {k: v.lstrip('#') for k, v in proposal.items()} | {k: v.lstrip('#') for k, v in ref['sky_palette'].items()}
     out = {}
     for name, group, palette, extra in models(list(ref['dwarf']), list(ref['wildlife']), ref['icon'], ref['sky']):

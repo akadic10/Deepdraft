@@ -278,7 +278,8 @@ When a slice is active, the topmost visible layer should have a subtle highlight
   height, furniture its placed origin (wall pieces their top cell). These read raw `slice_y`
   from `slice_changed`, not the VisibleVolume contract (`24_world_rendering.md`), so cut
   cavities do not cull them. X-ray filters them separately, by camera layer, in
-  `XrayController`.
+  `XrayController`. A hidden torch, campfire or hearth keeps its light burning beside it
+  (doc 24, "Sliced lights").
   A dwarf also reruns its test whenever its transform changes (`DwarfAgent` turns on
   transform notifications when it enters the tree), before the frame draws, and sets
   `visible` only when the answer changes. Walking stairs, climbing a ladder or a position

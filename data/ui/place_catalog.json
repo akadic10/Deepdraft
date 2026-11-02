@@ -6,6 +6,10 @@
       "label": "Dining"
     },
     {
+      "id": "food",
+      "label": "Food"
+    },
+    {
       "id": "recreation",
       "label": "Recreation"
     },
@@ -20,6 +24,10 @@
     {
       "id": "workshops",
       "label": "Workshops"
+    },
+    {
+      "id": "storage",
+      "label": "Storage"
     },
     {
       "id": "plants",
@@ -49,6 +57,11 @@
       "key": "base:furniture:log_chair",
       "category": "dining",
       "label": "Log stool"
+    },
+    {
+      "key": "base:furniture:stone_stool",
+      "category": "dining",
+      "label": "Stone stool"
     },
     {
       "key": "base:furniture:bench",
@@ -91,6 +104,31 @@
       "label": "Crude workbench"
     },
     {
+      "key": "base:furniture:carpenter_bench",
+      "category": "workshops",
+      "label": "Carpenter's bench"
+    },
+    {
+      "key": "base:furniture:mason_bench",
+      "category": "workshops",
+      "label": "Mason's bench"
+    },
+    {
+      "key": "base:furniture:tool_rack",
+      "category": "storage",
+      "label": "Tool rack"
+    },
+    {
+      "key": "base:furniture:raw_materials_crate",
+      "category": "storage",
+      "label": "Raw materials crate"
+    },
+    {
+      "key": "base:furniture:drying_rack",
+      "category": "food",
+      "label": "Drying rack"
+    },
+    {
       "key": "base:flora:blueberry_bush",
       "category": "plants",
       "label": "Blueberry bush"
@@ -121,6 +159,26 @@
       "label": "Strawberry cutting"
     },
     {
+      "key": "base:flora:oak_acorn",
+      "category": "plants",
+      "label": "Oak acorn"
+    },
+    {
+      "key": "base:flora:apple_seed",
+      "category": "plants",
+      "label": "Apple seed"
+    },
+    {
+      "key": "base:flora:pine_cone",
+      "category": "plants",
+      "label": "Pine cone"
+    },
+    {
+      "key": "base:flora:juniper_seed",
+      "category": "plants",
+      "label": "Juniper seed"
+    },
+    {
       "key": "base:detail:flowers_1",
       "category": "plants",
       "label": "Wildflowers · cream"
@@ -139,11 +197,6 @@
       "key": "base:furniture:crude_ladder",
       "category": "access",
       "label": "Rough wooden ladder"
-    },
-    {
-      "key": "base:furniture:log_bridge",
-      "category": "access",
-      "label": "Log bridge"
     },
     {
       "key": "base:water:wet_stone",

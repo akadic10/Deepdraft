@@ -41,6 +41,17 @@ func _run() -> void:
 	worker._process(.1)
 	_expect(worker._sleep_hours_left<remaining,"rest duration advances at simulation speed")
 	clock_node.set_speed(1)
+	# The owner's report (2026-10-30): the meter stayed low all night and filled only on waking.
+	# It fills evenly as the dwarf sleeps, full as the rest ends, and goes on after a load.
+	# A one-hour rest keeps hunger out of it.
+	worker.sleep = worker.SLEEP_THRESHOLD
+	worker._sleep_hours_left = 1.0
+	var hour_seconds: float = 1.0/clock_node.game_hours_per_real_second()
+	worker._process(.5*hour_seconds)
+	_expect(is_equal_approx(worker.sleep,.625) and is_equal_approx(worker._sleep_hours_left,.5),"half the rest fills half the missing sleep: %.3f" % worker.sleep)
+	worker.restore_saved_runtime(worker.serialize_state())
+	worker._process(.25*hour_seconds)
+	_expect(is_equal_approx(worker.sleep,.8125),"a loaded sleeper goes on filling from its saved meter: %.4f" % worker.sleep)
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	var second_data: Dictionary = factory.generate(142,{})
 	second_data.gender = "male"
@@ -70,6 +81,7 @@ func _run() -> void:
 		worker._process(.1)
 		if not worker.is_sleeping(): break
 	_expect(not worker.is_sleeping() and tasks._idle_dwarves.has(worker.dwarf_id),"wake transition returns worker to scheduling")
+	_expect(is_equal_approx(worker.sleep,.8125),"woken early, the dwarf keeps the sleep it had, not a full meter: %.4f" % worker.sleep)
 	_check_empty_pose()
 	_expect(worker._head.get_node("MeshEyes").visible,"waking reopens eyes")
 	_expect(not feedback.play_snore(worker),"awake dwarves cannot snore")
@@ -98,6 +110,8 @@ func _check_awake_fatigue() -> void:
 		var drained: float = 0.9-worker.sleep
 		if speed==1.0: normal_drain = drained
 		_expect(drained>0.0 and is_equal_approx(drained,normal_drain),"one game hour drains equal awake fatigue at x%s" % speed)
+	var rate: float = worker.SLEEP_DRAIN_PER_HOUR
+	_expect(normal_drain > rate*0.89 and normal_drain < rate*1.11,"awake fatigue counts game hours, not seconds (doc 281)")
 	var before: float = worker.sleep
 	clock_node.set_paused(true)
 	worker._process(60)
@@ -107,10 +121,11 @@ func _check_awake_fatigue() -> void:
 	worker._process(60)
 	_expect(worker.sleep==before,"zero game speed freezes awake fatigue")
 	clock_node.set_speed(3)
-	# Enough rest for 1.5 simulation seconds: a one-second x3 tick must interrupt.
-	worker.sleep = worker.SLEEP_THRESHOLD+normal_drain*(1.5/60.0)
+	# Enough rest for half of a one-second x3 tick: that tick must interrupt.
+	worker.sleep = worker.SLEEP_THRESHOLD+normal_drain*0.5*clock_node.game_hours_per_real_second()
 	worker._process(1)
 	_expect(worker.is_sleeping() and not tasks._idle_dwarves.has(worker.dwarf_id),"accelerated fatigue crosses sleep threshold and releases availability")
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 	worker._idle_behavior.cancel()
 	worker.stop_walking()

@@ -70,6 +70,12 @@ var _recipe_scroll: ScrollContainer
 var _recipes
 var _no_results: Label
 var _planned: Label
+var _later: PanelContainer   # what joins a live page later (the Ranger's: hunting, doc 292)
+var _later_heading: Label
+var _later_words: Label
+var _hanging: PanelContainer   # batches drying on this page's workshops (doc 292), under the queue
+var _hanging_heading: Label
+var _hanging_words: Label
 var _middle: VBoxContainer
 var _card_scroll: ScrollContainer
 var _card: PanelContainer
@@ -186,6 +192,17 @@ func _build_recipes() -> Control:
 	list.add_child(_no_results)
 	_planned = _text("", MEDIUM.body)
 	list.add_child(_planned)
+	_later = PanelContainer.new()
+	_later.add_theme_stylebox_override("panel", UITheme.hearth_panel(false))
+	var later := VBoxContainer.new()
+	later.add_theme_constant_override("separation", 4)
+	_later.add_child(later)
+	_later_heading = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
+	UITheme.format_label(_later_heading, true, MEDIUM.small, Color("e2c06a"))
+	later.add_child(_later_heading)
+	_later_words = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
+	later.add_child(_later_words)
+	_left_box.add_child(_later)
 	return _left
 
 
@@ -292,6 +309,17 @@ func _build_queue() -> Control:
 	_queue_scroll.add_child(_queue_list)
 	_empty = _text("No orders yet.\nChoose a recipe, then queue it.", MEDIUM.body, UITheme.HEARTH_MUTED)
 	_queue_list.add_child(_empty)
+	_hanging = PanelContainer.new()
+	_hanging.add_theme_stylebox_override("panel", UITheme.hearth_panel(false))
+	var hanging := VBoxContainer.new()
+	hanging.add_theme_constant_override("separation", 4)
+	_hanging.add_child(hanging)
+	_hanging_heading = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
+	UITheme.format_label(_hanging_heading, true, MEDIUM.small, Color("e2c06a"))
+	hanging.add_child(_hanging_heading)
+	_hanging_words = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
+	hanging.add_child(_hanging_words)
+	_right_box.add_child(_hanging)
 	return _right
 
 
@@ -354,9 +382,10 @@ func _reveal_selected() -> void:
 	_reveal.call_deferred()
 
 
-## Look the tile up when the scroll moves: a refresh in between may rebuild the grid.
+## Look the tile up when the scroll moves: a refresh in between may rebuild the grid. The
+## scroll shows the tile with its ring.
 func _reveal() -> void:
-	var tile: Control = _recipes.get_tile(selected)
+	var tile: Control = _recipes.get_reveal(selected)
 	if tile != null and _recipe_scroll.is_ancestor_of(tile): _recipe_scroll.ensure_control_visible(tile)
 
 
@@ -483,6 +512,12 @@ func _show_recipes(planned: bool, totals: Dictionary) -> void:
 	_recipes.visible = not planned
 	_no_results.visible = not planned and not _has_matches
 	_planned.visible = planned
+	# A live page with more to come says what joins it (concept A: the Ranger's, with hunting).
+	var later: Array = controller.sections[section_id].get("later", [])
+	_later.visible = not planned and later.size() == 2
+	if _later.visible:
+		_later_heading.text = String(later[0])
+		_later_words.text = String(later[1])
 
 
 func _show_planned(section: Dictionary) -> void:
@@ -504,7 +539,10 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	# Ingredients: every wood the recipe takes, allowed or not, then its fixed materials.
 	var extra_counts := {}
 	for key: String in controller.additional_ingredient_keys(recipe): extra_counts[key] = int(extra_counts.get(key, 0)) + 1
-	var heading := "INGREDIENTS · %d timber" % int(recipe.ingredient_count)
+	# Ingredient words come with the recipe (doc 289): timber's, or a fish recipe's.
+	var words: Dictionary = controller.ingredient_words(recipe)
+	var kind := String(words.units) if recipe.has("ingredient_words") else "timber"
+	var heading := "INGREDIENTS · %d %s" % [int(recipe.ingredient_count), kind]
 	var woods: Array = []
 	for key: String in controller.ingredient_keys(recipe):
 		var available := int(totals.get(key, {}).get("available", 0))
@@ -522,11 +560,11 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	var groups: Array = [{"id": "woods", "items": woods}]
 	if not extras.is_empty(): groups.append({"id": "extras", "items": extras})
 	_woods.show_groups(groups)
-	var lines: Array[String] = ["%d timber · %d allowed logs available" % [int(recipe.ingredient_count), controller.ingredient_available(recipe, totals, allowed)]]
-	if int(recipe.ingredient_count) > 1: lines.append("All logs must be the same wood.")
+	var lines: Array[String] = ["%d %s · %d allowed %s available" % [int(recipe.ingredient_count), kind, controller.ingredient_available(recipe, totals, allowed), words.units]]
+	if int(recipe.ingredient_count) > 1: lines.append(String(words.same))
 	for key: String in extra_counts:
 		lines.append("%d %s · %d available" % [int(extra_counts[key]), controller.ingredient_label(key), int(totals.get(key, {}).get("available", 0))])
-	lines.append("Click a wood to allow it.")
+	lines.append(String(words.pick))
 	_requirements.text = "\n".join(lines)
 	_description.text = String(recipe.description)
 	# Small screens take the short purpose, where a recipe has one.
@@ -539,9 +577,17 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	var workshop := String(recipe.workshop)
 	if workshop.is_empty(): tags.append(["✓ No workshop needed", "fine"])
 	else:
-		var bench := String(controller.furniture.get_defs().get(workshop, {}).get("display_name", "workbench")).to_lower() if controller.furniture != null else "workbench"
-		tags.append(["✓ A free " + bench, "fine"] if not controller.bench_target(workshop, Vector3i.ZERO).is_empty() else ["Needs a free " + bench, "waiting"])
-	tags.append(["✓ Any Worker", "fine"])
+		# A busy bench is fine: the order waits its turn in the queue.
+		var bench: String = controller.bench_name(workshop)
+		tags.append(["✓ A " + bench, "fine"] if controller.has_bench(workshop) else ["Needs a " + bench, "waiting"])
+	# Who makes it: any Worker, or the section's own career (doc 292), named while there is one.
+	if section_id == "rudimentary": tags.append(["✓ Any Worker", "fine"])
+	else:
+		var crafters: Array[DwarfAgent] = controller.crafters(recipe)
+		var career: String = controller.crafter_name(recipe)
+		if crafters.is_empty(): tags.append(["Needs a " + career, "waiting"])
+		elif crafters.size() == 1: tags.append(["✓ A %s · %s" % [career, crafters[0].dwarf_name], "fine"])
+		else: tags.append(["✓ %d %ss" % [crafters.size(), career], "fine"])
 	_show_tags(tags)
 	_show_order_choices(recipe)
 	var stock := int(totals.get(String(recipe.output), {}).get("available", 0))
@@ -565,8 +611,8 @@ func _show_order_choices(recipe: Dictionary) -> void:
 		row.count.text = str(entry[2])
 	var output_count := make_count * int(recipe.output_count)
 	var output_name := String(recipe.name).to_lower() if output_count == 1 else String(recipe.get("output_plural", recipe.name))
-	_queue_button.tooltip_text = ("Queue %d %s. The order waits if materials or a workbench are missing." % [output_count, output_name]) if not maintain \
-		else "Keep %d in stock: Workers make more from the allowed wood, in batches of %d, whenever stock falls short. Installed and reserved items do not count." % [keep_count, int(recipe.output_count)]
+	_queue_button.tooltip_text = ("Queue %d %s. Orders are made from the top down, each in its turn at the workbench; an order waits while materials or a workbench are missing." % [output_count, output_name]) if not maintain \
+		else "Keep %d in stock: %ss make more from the allowed %s, in batches of %d, whenever stock falls short. Installed and reserved items do not count." % [keep_count, controller.crafter_name(recipe), controller.ingredient_words(recipe).noun, int(recipe.output_count)]
 	_queue_button.disabled = _draft(selected).is_empty() or controller.orders.size() >= controller.max_orders
 
 
@@ -606,15 +652,20 @@ func _refresh_orders(totals: Dictionary) -> void:
 		row.title.tooltip_text = ("Keep %d spare" % order.quantity) if order.maintain else ("%d batch%s · %d remaining" % [order.quantity, "" if order.quantity == 1 else "es", units])
 		row.picture.texture = _recipe_picture(order.recipe)
 		var status: String = controller.status(order, totals)
-		var tone := "blocked" if order.paused else ("waiting" if status.begins_with("Waiting") or status.begins_with("Choose") else "fine")
+		var tone := "blocked" if order.paused else ("waiting" if status.begins_with("Waiting") or status.begins_with("Choose") or status.begins_with("Needs") else "fine")
 		row.status.text = status
 		row.status.add_theme_color_override("font_color", UITheme.tag_ink(tone))
 		row.tag.add_theme_stylebox_override("panel", UITheme.cell_style("tag_" + tone, 2))
-		_update_wood_menu(row.wood, order.allowed_ingredients, totals)
+		_update_wood_menu(row.wood, order.allowed_ingredients, totals, order.recipe)
 		row.pause.text = "Resume" if order.paused else "Pause"
 		row.up.disabled = ids.front() == order.id or order.worker_id >= 0
 		row.down.disabled = ids.back() == order.id or order.worker_id >= 0
 	_empty.visible = ids.is_empty()
+	# Fish drying on the racks, which no order shows once hung (doc 292).
+	var hanging: Array[String] = controller.section_hanging(section_id)
+	_hanging.visible = _queue_scroll.visible and not hanging.is_empty()
+	_hanging_heading.text = "DRYING · %d batch%s" % [hanging.size(), "" if hanging.size() == 1 else "es"]
+	_hanging_words.text = "\n".join(hanging)
 	_queue_heading.text = "QUEUE · %d order%s" % [ids.size(), "" if ids.size() == 1 else "s"]
 	_orders_tab.text = "Orders (%d)" % ids.size()
 
@@ -702,7 +753,7 @@ func _open_wood_menu(button: MenuButton, order_id: int) -> void:
 	for key: String in keys:
 		popup.add_check_item(controller.ingredient_label(key))
 		popup.set_item_metadata(popup.item_count - 1, key)
-	_update_wood_menu(button, order.allowed_ingredients, controller.stock_snapshot())
+	_update_wood_menu(button, order.allowed_ingredients, controller.stock_snapshot(), order.recipe)
 
 
 func _toggle_wood(button: MenuButton, index: int, order_id: int) -> void:
@@ -716,12 +767,13 @@ func _toggle_wood(button: MenuButton, index: int, order_id: int) -> void:
 	refresh()
 
 
-func _update_wood_menu(button: MenuButton, keys: Array, totals: Dictionary) -> void:
+func _update_wood_menu(button: MenuButton, keys: Array, totals: Dictionary, recipe: Dictionary = {}) -> void:
 	var names: String = controller.ingredient_summary(keys)
 	var caption := "Choose…" if keys.is_empty() else names
 	if keys.size() > 2: caption = "%s + %d" % [controller.ingredient_label(keys[0]), keys.size() - 1]
 	button.text = caption + " ▾"
-	button.tooltip_text = "Allowed wood: %s. Other wood is never substituted." % ("none" if keys.is_empty() else names)
+	var noun := String(controller.ingredient_words(recipe).noun)
+	button.tooltip_text = "Allowed %s: %s. Other %s is never substituted." % [noun, "none" if keys.is_empty() else names, noun]
 	var popup := button.get_popup()
 	for index in range(popup.item_count):
 		var key := String(popup.get_item_metadata(index))
@@ -803,6 +855,7 @@ func _apply_size() -> void:
 	_picture.custom_minimum_size = Vector2(float(s.picture), float(s.picture) * 0.9)
 	_title.add_theme_font_size_override("font_size", s.title)
 	for label: Label in [_description, _requirements, _no_results, _planned, _empty]: label.add_theme_font_size_override("font_size", s.body)
+	for label: Label in [_later_heading, _later_words, _hanging_heading, _hanging_words]: label.add_theme_font_size_override("font_size", s.label)
 	_flavour.add_theme_font_size_override("font_size", int(s.body))
 	_ingredients_heading.add_theme_font_size_override("font_size", s.label)
 	_queue_heading.add_theme_font_size_override("font_size", s.label)

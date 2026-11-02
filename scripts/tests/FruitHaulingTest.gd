@@ -57,18 +57,11 @@ func _run() -> void:
 	_expect(drops.quantity_of(distant)==7,"distant fruit is not reserved or moved")
 	await _fresh(5)
 	var enclosed := _add(APPLE,7,Vector3i(43,20,49))
-	var stone: int=blocks.get_id("base:terrain:rock:rock01")
-	for x in range(42,45):
-		for z in range(48,51):
-			if x==43 and z==49: continue
-			for y in range(21,27): world.set_block(x,y,z,stone)
+	_wall_around(Vector3i(43,20,49),blocks.get_id("base:terrain:rock:rock01"))
 	_expect(await _phase(worker.TaskPhase.HAUL_PICKUP),"blocked case starts the reachable main pickup")
 	_expect(not drops._reserved.has(enclosed),"blocked side basket is never claimed by the optional route planner")
 	_expect(await _delivered(5),"blocked extra does not prevent the original delivery")
-	for x in range(42,45):
-		for z in range(48,51):
-			if x==43 and z==49: continue
-			for y in range(21,27): world.set_block(x,y,z,blocks.AIR_ID)
+	_wall_around(Vector3i(43,20,49),blocks.AIR_ID)
 
 	# Cancellation at each side of the merge contact keeps every unit exactly once.
 	for after_contact in [false,true]:
@@ -124,6 +117,18 @@ func _add(key: String, amount: int, cell: Vector3i) -> Node3D:
 	drops.restore_loose_item(key,Vector3(cell)+Vector3(.5,1,.5),0,amount)
 	expected_units+=amount
 	return drops._loose.keys()[-1]
+
+## Walls the columns around a basket the way construction does, refreshing
+## NavGrid per block. A bare set_block leaves walkability stale until the
+## deferred chunk signal, so the first scheduler tick could plan through it.
+func _wall_around(cell: Vector3i, id: int) -> void:
+	var nav=root.get_node("NavGrid")
+	for x in range(cell.x-1,cell.x+2):
+		for z in range(cell.z-1,cell.z+2):
+			if x==cell.x and z==cell.z: continue
+			for y in range(cell.y+1,cell.y+7):
+				world.set_block(x,y,z,id)
+				nav.refresh_mined_block(Vector3i(x,y,z))
 
 func _tick() -> void:
 	zone.update_leases()

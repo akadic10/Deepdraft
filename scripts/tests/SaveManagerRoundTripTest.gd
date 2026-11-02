@@ -14,6 +14,9 @@ const TEST_AUTOSAVE := TEST_DIRECTORY + "/autosave.json"
 const TEST_AUTOSAVE_BACKUP := TEST_DIRECTORY + "/autosave.backup.json"
 const TEST_AUTOSAVE_TEMP := TEST_DIRECTORY + "/autosave.tmp.json"
 const TEST_AUTOSAVE_BACKUP_STAGE := TEST_DIRECTORY + "/autosave.backup.tmp.json"
+## A dwarf's stats (doc 41 "Stats"): 18 in all, each a step from 1 to 5.
+const STATS := {"base:stat:strength": 4, "base:stat:agility": 2, "base:stat:toughness": 4,
+	"base:stat:wits": 3, "base:stat:wisdom": 3, "base:stat:charisma": 2}
 const TEST_NAMED := TEST_DIRECTORY + "/named"
 const NAMED_ID := "named_before_the_flood"
 const WORLD_TIMEOUT_MSEC := 90000
@@ -301,6 +304,9 @@ func _verify_snapshot_validation() -> String:
 		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"unknown_material":1}}],
 		[["scene","construction","orders",0,"materials"],{"base:resources:unknown":{"":1}}],
 		[["scene","construction","orders",0,"total_blocks"],0],
+		[["scene","construction","orders",0,"cells",0,"kind"],"unknown_kind"],
+		[["scene","construction","orders",0,"totals"],{"base:resources:unknown":1}],
+		[["scene","construction","orders",0,"name"],12],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":-1}]],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":1.5}]],
 		[["scene","water","flow","cells"],[{"cell":[1024,18,10],"units":100}]],
@@ -345,6 +351,13 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "dwarves", "roster", 0, "tastes", "base:furniture:no_such_piece"], "love"],
 		[["scene", "dwarves", "roster", 0, "tastes", "base:furniture:bench"], "adore"],
 		[["scene", "dwarves", "roster", 0, "found_tastes"], ["base:furniture:log_table"]],
+		[["scene", "dwarves", "roster", 0, "stats"], {"base:stat:strength": 3}],
+		[["scene", "dwarves", "roster", 0, "stats", "base:stat:luck"], 3],
+		[["scene", "dwarves", "roster", 0, "stats", "base:stat:strength"], 6],
+		[["scene", "dwarves", "roster", 0, "stats", "base:stat:wits"], 0],
+		[["scene", "dwarves", "roster", 0, "stats", "base:stat:wits"], "clever"],
+		[["scene", "dwarves", "roster", 0, "health"], 0.5],
+		[["scene", "dwarves", "roster", 0, "health"], "hurt"],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 999999],
 		[["scene", "furniture", "installed", 0, "assigned_dwarf_id"], 0],
 		[["scene","furniture","moves","next_id"],1],
@@ -705,12 +718,17 @@ func _build_nonempty_colony_state() -> String:
 	if construction == null: return "construction save owner missing"
 	var standing_stone := _surface_cell(16,4)+Vector3i.UP
 	var pending_stone := _surface_cell(18,4)+Vector3i.UP
+	var pending_grass := _surface_cell(20,4)+Vector3i.UP
 	root.get_node("WorldData").restore_terrain({"edits":[
 		{"cell":_pack_v3i(mined_cell),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(mined_cell)))},
 		{"cell":_pack_v3i(standing_stone),"block":String(root.get_node("BlockRegistry").get_key(_world_generator.construction_stone_id(standing_stone)))},
 		{"cell":_pack_v3i(_surface_cell(16,6)+Vector3i.UP),"block":"base:construction:log:oak:x"},
 		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:log:pine:x"}]})
-	construction.restore_state({"next_id":702,"orders":[{"id":701,"kind":"stone","materials":{"base:resources:stone:rough_stone":{"":1}},"total_blocks":1,"cells":[{"cell":_pack_v3i(pending_stone),"work":.65}]}]})
+	# A placed blueprint's plan of two goods (doc 276): its grass block names its own kind.
+	construction.restore_state({"next_id":702,"orders":[{"id":701,"kind":"stone","name":"Test hut",
+		"totals":{"base:resources:stone:rough_stone":1,"base:resources:soil:soil":1},
+		"materials":{"base:resources:stone:rough_stone":{"":1}},"total_blocks":2,
+		"cells":[{"cell":_pack_v3i(pending_stone),"work":.65},{"cell":_pack_v3i(pending_grass),"work":0.0,"kind":"grass"}]}]})
 	var rebuilt_targets: Array[Vector3i] = [mined_cell]
 	mining._create_zone(rebuilt_targets,102)
 	var caves: Array = _world_generator.get_cave_catalog()
@@ -735,6 +753,12 @@ func _build_nonempty_colony_state() -> String:
 				"item": "base:resources:seed:oak_acorn",
 				"count": 21,
 			}],
+		}, {
+			# A part-spoiled crate keeps its spoil (doc 42 "Spoilage").
+			"id": 205,
+			"cells": [_pack_v3i(_surface_cell(12, 5))],
+			"storage_filter": _accept_all_filter(),
+			"stacks": [{"cell": _pack_v3i(_surface_cell(12, 5)), "item": "base:resources:flora:blueberry", "count": 9, "spoil": 0.375}],
 		}],
 	})
 	furniture.call("restore_state", {
@@ -758,6 +782,8 @@ func _build_nonempty_colony_state() -> String:
 		}, {
 			"id": 403, "key": "base:furniture:campfire", "material_id": "",
 			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0, "flagged_uninstall": false,
+			# Burning before dawn (06:25 in autumn): its log and heat survive the reload (doc 279).
+			"fire_log": "base:resources:wood:pine_log", "fire_log_material": "base:material:pine",
 		}, {
 			"id": 406, "key": "base:furniture:log_bed", "material_id": "", "assigned_dwarf_id": 0,
 			"origin": _pack_v3i(_surface_cell(46, 0)), "yaw": 1, "flagged_uninstall": false,
@@ -772,7 +798,7 @@ func _build_nonempty_colony_state() -> String:
 			"rotation_y": 0.25,
 		}],
 	})
-	for tool in ["stone_hoe", "hunting_spear", "carpentry_kit", "stone_hammer"]:
+	for tool in ["stone_hoe", "ranger_kit", "carpentry_kit", "stone_hammer"]:
 		items.restore_loose_item("base:resources:tools:"+tool, Vector3(item_cell)+Vector3(.5,1,.5),0,1,"",false,"base:material:juniper")
 	dwarves.call("restore_state", {
 		"birth_index": 1,
@@ -795,6 +821,8 @@ func _build_nonempty_colony_state() -> String:
 			"traits": [],
 			"tastes": {"base:furniture:log_bed": "love", "base:material:oak": "like", "base:furniture:bench": "like", "base:material:pine": "dislike"},
 			"found_tastes": ["base:furniture:log_bed"],
+			"stats": STATS,
+			"health": 61.5,
 			"profession": "base:profession:miner",
 			"profession_experience": { "base:profession:worker": 7, "base:profession:miner": 123 },
 			"work_permissions": {"haul": false, "mine": true, "gather": false},
@@ -812,6 +840,7 @@ func _build_nonempty_colony_state() -> String:
 	var carpenter_state: Dictionary = dwarves.serialize_state().roster[0].duplicate(true)
 	carpenter_state.id = 1
 	carpenter_state.name = "Toolur"
+	carpenter_state.erase("health")   # a full dwarf, which saves no health
 	carpenter_state.profession = "base:profession:carpenter"
 	carpenter_state.equipment = {"tool":"base:resources:tools:carpentry_kit", "pending_role":"", "material_id":"base:material:applewood"}
 	var pending_state: Dictionary = carpenter_state.duplicate(true)
@@ -848,7 +877,6 @@ func _build_nonempty_colony_state() -> String:
 	_add_permission_fixtures(furniture, items)
 	_add_furniture_moves(furniture)
 	if not _add_ladder_fixtures(): return "could not find two natural ladder sites"
-	if not _add_bridge_fixtures(): return "could not find three natural bridge sites"
 	var wildlife := _owner("wildlife")
 	if wildlife == null: return "wildlife save owner missing"
 	if not wildlife.initialized: wildlife.initialize_population()
@@ -942,29 +970,6 @@ func _build_nonempty_colony_state() -> String:
 	if event_log.post("discovery", "Cavern discovered. Bring light to explore it.", {"place": Vector3i(40, 20, 40)}) <= 0 			or event_log.raise("save_fixture", "A save fixture warning stays pinned.", {"dwarves": [1]}) <= 0:
 		return "event log fixture was not recorded"
 	return ""
-
-
-func _add_bridge_fixtures() -> bool:
-	var bridges := _owner("bridges")
-	if bridges == null: return false
-	var entries: Array = []
-	for wet: Vector2i in _world_generator.river_layout.columns:
-		for yaw in range(4):
-			var base: Vector3i = Vector3i(wet.x,0,wet.y)-bridges.facing(yaw)
-			base.y = _world_generator.get_surface_y(base.x,base.z)
-			var nearby := false
-			for entry: Dictionary in entries:
-				if Vector3(base-root.get_node("SaveManager").unpack_v3i(entry.base)).length()<12: nearby = true
-			if nearby: continue
-			var spec: Dictionary = bridges.describe(base,yaw)
-			if not String(spec.reason).is_empty(): continue
-			entries.append({"id":entries.size()+1,"key":"base:furniture:log_bridge","base":_pack_v3i(base),
-				"yaw":yaw,"span":int(spec.span),"built":not entries.is_empty(),
-				"mode":["build","ready","remove"][entries.size()],"progress":.7})
-			if entries.size()==3:
-				bridges.restore_state({"routes":entries,"next_id":4})
-				return true
-	return false
 
 
 func _add_ladder_fixtures() -> bool:
@@ -1167,7 +1172,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var scene_state := _collect_scene_state()
 	var expected_keys := [
 		"mining", "flora", "settlement_flag", "stockpiles", "furniture",
-		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders", "bridges",
+		"items", "dwarves", "camera", "slice", "worker_crafting", "surface_details", "ladders",
 		"wildlife", "world_events", "construction",
 	]
 	for key in expected_keys:
@@ -1180,8 +1185,12 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if (scene_state["mining"] as Dictionary).get("zones", []).size() != 2:
 		return "mining zones did not round-trip"
 	var construction_state: Dictionary = scene_state.construction
-	if construction_state.has("built") or construction_state.orders.size()!=1 or not is_equal_approx(construction_state.orders[0].cells[0].work,.65):
+	var pending: Array = construction_state.orders[0].cells if construction_state.orders.size()==1 else []
+	if construction_state.has("built") or pending.size()!=2 or not pending.any(func(entry: Dictionary) -> bool: return is_equal_approx(entry.work,.65)):
 		return "built blocks or unfinished construction did not round-trip"
+	if construction_state.orders[0].get("name","")!="Test hut" or construction_state.orders[0].get("totals",{}).size()!=2 \
+			or not pending.any(func(entry: Dictionary) -> bool: return entry.get("kind","")=="grass"):
+		return "a blueprint plan's name, goods or block materials did not round-trip"
 	if int(construction_state.orders[0].get("materials",{}).get("base:resources:stone:rough_stone",{}).get("",0))!=1:
 		return "staged construction stone did not round-trip"
 	for entry: Dictionary in scene_state.terrain.edits:
@@ -1192,8 +1201,13 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "settlement flag did not round-trip"
 	if _owner("settlement_flag").settlement_name != _settlement_reference.name or _owner("settlement_flag").founded_day != _settlement_reference.founded_day:
 		return "the settlement's name or founding day did not round-trip"
-	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 4:
+	if (scene_state["stockpiles"] as Dictionary).get("zones", []).size() != 5:
 		return "stockpile state did not round-trip"
+	var larders: Array = (scene_state["stockpiles"] as Dictionary).zones.filter(func(zone): return int(zone.id) == 205)
+	# An hour may pass while the test runs, and spoil only grows.
+	if larders.size() != 1 or larders[0].stacks.size() != 1 or float(larders[0].stacks[0].get("spoil", 0.0)) < 0.375 \
+			or float(larders[0].stacks[0].get("spoil", 0.0)) >= 0.6:
+		return "a part-spoiled crate's spoil did not round-trip"
 	var furniture_state := scene_state["furniture"] as Dictionary
 	if furniture_state.get("ghosts", []).size() != 7 or furniture_state.get("installed", []).size() != 5:
 		return "furniture state did not round-trip"
@@ -1218,6 +1232,12 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if roster[0].tastes != {"base:furniture:log_bed": "love", "base:material:oak": "like", "base:furniture:bench": "like", "base:material:pine": "dislike"} \
 			or roster[0].found_tastes != ["base:furniture:log_bed"]:
 		return "a dwarf's tastes or the ones found did not round-trip"
+	var saved_stats := {}
+	for id: String in roster[0].stats: saved_stats[id] = int(roster[0].stats[id])
+	if saved_stats != STATS:
+		return "a dwarf's stats did not round-trip: %s" % saved_stats
+	if not is_equal_approx(float(roster[0].get("health", -1.0)), 61.5) or roster[1].has("health"):
+		return "a hurt dwarf's health, or a full dwarf's lack of it, did not round-trip"
 	if furniture_state.installed.filter(func(piece): return piece.get("assigned_dwarf_id",-1)==0).size()!=1:
 		return "personal bed assignment did not round-trip"
 	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:

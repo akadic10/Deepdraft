@@ -88,7 +88,10 @@ storage hauling for a project-owned temporary crate, while `ConstructionWork`
 uses a work-only branch of the furniture fetch contract for retained per-block
 hammering. Saved orders always include their construction kind and total blocks, and
 optionally the crate location and actual staged materials; a log order also names its wood
-and each cell's direction (doc 275). Runtime claims/routes rebuild. ColonyInventory includes staged
+and each cell's direction (doc 275). A placed blueprint's order (doc 276) also saves its name
+and, when it needs more than one good, each good's total blocks; a block of another material
+than the order's names its own kind and wood. The save catalogs give each construction kind's
+good, so staged goods are checked against their own blocks. Runtime claims/routes rebuild. ColonyInventory includes staged
 stock as reserved, never available to other consumers. No new autoload or
 global class is introduced. `WorldData` holds solidity; the existing mining,
 navigation, room and terrain-lighting systems consume it. A restored crate is placed
@@ -127,11 +130,8 @@ section plans, installed routes, inspector actions and save section `ladders`
 (restore priority 41). Two non-global work components reuse FETCH_BUILD and
 UNINSTALL. NavGrid owns explicit rung connections; DwarfAgent owns climbing
 presentation and evacuation. No autoload or global class was added (roadmap 86).
-`BridgeSystem` (2026-10-11, roadmap 113) is a sibling child built the same way:
-`BridgeBuildComponent` and `BridgeRemovalComponent` reuse FETCH_BUILD and
-UNINSTALL, completed decks register NavGrid floor supports and `PlacedEntityRegistry`
-boxes, and terrain and water never hold bridge blocks. Its save section `bridges`
-restores at priority 42, before loose goods and dwarves.
+The log bridge's `BridgeSystem` sibling and its `bridges` save section were retired
+on 2026-10-27; rivers are crossed on built logs (doc 32, "River crossings").
 
 The following Autoloads are registered in **Project Settings → Autoload** (`project.godot` `[autoload]`) and are available globally via their node names. They are loaded in the exact order below; later autoloads may depend on earlier ones.
 
@@ -347,7 +347,8 @@ state.
 Sole loader of `data/materials/craft_materials.json`, registered first with no
 runtime world dependencies. Owns stable material definitions, ingredient-to-material
 mapping, product adjectives, material appeal bonuses and semantic wood palettes.
-It computes object appeal as `design + material bonus × material factor` and
+It computes object appeal as `design + material bonus × material factor`, and a door's
+or gate's hit points as `hit_points × material toughness` (`hit_points()`, doc 62), and
 caches recolored meshes without modifying the original resources.
 
 Recipes and catalogue entries remain grouped by design. Inventory, equipment and
@@ -388,7 +389,7 @@ func construction_goods(kind: String, wood := "") -> Array[String]  # the goods 
 Authoritative calendar for the whole simulation, **live and ticking** (data from `data/calendar/calendar.json`). All time-sensitive systems read these fields rather than tracking their own counters.
 
 ```gdscript
-var day:    int      # 1–28 within the current season
+var day:    int      # 1–21 within the current season
 var season: String   # "spring" | "summer" | "autumn" | "winter"
 var year:   int
 var hour:   float    # 0.0–23.99
@@ -404,8 +405,9 @@ func set_paused(value: bool) -> void
 func game_hours_per_real_second() -> float   # honours speed; 0 while paused
 func advance_hours(amount: float) -> void    # DEV/testing
 func growth_rate_multiplier() -> float       # spring 1.2 / summer 1.0 / autumn 0.8 / winter 0.0
-func day_of_year() -> int                    # 0–111
+func day_of_year() -> int                    # 0–83
 func daylight_hours(day_of_year: int) -> float  # solstice cosine curve (11_overview.md §5)
+func solstice_cosine(day_of_year: int) -> float # that curve's cosine; rooms' seasonal temperature uses it
 func season_visual_progress() -> float       # midnight-to-sunrise presentation progress on day 1
 func days_per_season() -> int                # calendar.json days_per_season
 func season_order() -> Array[String]         # calendar.json season_order (a copy)
@@ -426,7 +428,7 @@ instances to spread art changes across the first night. Queues share a soft 2 ms
 admission/art budget; terrain still uses its existing worker/upload budgets.
 - `season_visual_progress()` is `hour ÷ sunrise` on a season's first day, with sunrise
   from the calendar's solar noon and that day's daylight, as the sky has it. The change
-  uses the night after midnight, about 6–10 real minutes at normal speed; pause holds it
+  uses the night after midnight, about 3–5 real minutes at normal speed; pause holds it
   and speed follows the clock.
 - A queue admits the share of its IDs that this progress allows, at most four entries
   per owner per frame. One model swap is atomic and may run over the budget.
@@ -514,15 +516,13 @@ screen then shows the reason instead of revealing (doc 23, "Panoramic loading"; 
 `WorldGenerationFailureTest`, gate).
 
 ### `PlacedEntityRegistry`
-Occupancy registry for placed entities (doc 12 pattern — the terrain grid never knows about entities). Trees register trunk footprints and installed furniture one box per `collision_regions` entry (the settlement flag's 1×1×3 box among them, doc 133). Storage is per-column Y-ranges, not per-cell. Fence posts and rails are thin barrier AABBs instead (doc 201): they block crossing between cells without filling either cell.
+Occupancy registry for placed entities (doc 12 pattern — the terrain grid never knows about entities). Trees register trunk footprints and installed furniture one box per `collision_regions` entry (the settlement flag's 1×1×3 box among them, doc 133). Storage is per-column Y-ranges, not per-cell. Fence posts register one box per post tile through `GridFence` (doc 277), so a post shared by a fence and a gate counts once; rails sit inside post tiles and register nothing.
 
 ```gdscript
 func occupies(pos: Vector3i) -> bool
 func register_box(box_min: Vector3i, box_size: Vector3i) -> int   # returns handle
 func unregister(id: int) -> void
 func column_ranges(column: Vector2i) -> Array                     # Vector3i(min_y, max_y, handle) per occupied range
-func register_barrier(bounds: AABB) -> int                       # thin fence barrier; unregister() removes it too
-func barrier_blocks_segment(from: Vector3, to: Vector3, radius := .3, height := 3.0) -> bool  # swept body test
 
 signal occupancy_changed(box_min: Vector3i, box_size: Vector3i)   # NavGrid invalidates on this
 ```
@@ -540,7 +540,7 @@ func ladder_at(cell: Vector3i) -> Dictionary                         # + ladder_
 ```
 
 ### `TaskManager` *(the no-hang scheduler; spec: 31_task_system.md)*
-Owns all tasks (dwarves hold task IDs only). Event-driven, time-budgeted, probe-capped matching with per-type sorted buckets, resumable cursors, and exponential backoff for unreachable tasks. Work sources (mining zones; later workshops/stockpiles) post intent-sized leases, never per-block tasks. Tunables live in `data/tasks/task_config.json`. Ladders, bridges, flora, surface details and furniture keep their sources in a `WorkSourceTable` component (`scripts/components/WorkSourceTable.gd`, not an autoload), which owns registration, retiring and task-event routing (release never re-posts). See [31](../30_simulation_systems/31_task_system.md).
+Owns all tasks (dwarves hold task IDs only). Event-driven, time-budgeted, probe-capped matching with per-type sorted buckets, resumable cursors, and exponential backoff for unreachable tasks. Work sources (mining zones; later workshops/stockpiles) post intent-sized leases, never per-block tasks. Tunables live in `data/tasks/task_config.json`. Ladders, flora, surface details and furniture keep their sources in a `WorkSourceTable` component (`scripts/components/WorkSourceTable.gd`, not an autoload), which owns registration, retiring and task-event routing (release never re-posts). See [31](../30_simulation_systems/31_task_system.md).
 
 The autoload keeps the public API, task tables, signals, config and wake
 machinery. Two preloaded components (no `class_name`, not autoloads; doc 258
@@ -681,7 +681,7 @@ them when it is placed:
   "deepdraft_blueprint": 1,
   "name": "Stone hut",
   "size": [5, 3, 5],
-  "blocks": {"stone": [[0, 0, 0], [1, 0, 0]], "wood": [[2, 2, 2]]}
+  "blocks": {"stone": [[0, 0, 0], [1, 0, 0]], "log:pine:x": [[2, 2, 2]]}
 }
 ```
 
@@ -714,6 +714,15 @@ it. Roles, retained experience and work permissions belong to each `DwarfAgent`.
 Availability is the explicit `promotion_enabled` flag (`profession_enabled()`);
 `work_category()` caches each task type's permission category. The live scope and the
 planned careers are in `41_dwarf_agents.md`, Profession System (doc 96).
+
+It also owns the dwarf stats (doc 41, "Stats"), `data/entities/dwarves/stats.json`:
+`get_stat_data()`, `stat_ids()` in the sheet's order, `stat_definition()`, `stat_steps()`
+and `stat_word()`; and each profession's main and second stat, `profession_stats()` and
+`profession_fit()`. Each `DwarfAgent` holds its own `stats` (stat id → step), and
+SaveManager's catalogs carry the stat ids and steps for the save check. A dwarf's health
+(`get_health()`, a preloaded `DwarfHealth`) keeps its points in the shared `HitPoints`
+component (`scripts/components/HitPoints.gd`: a maximum, what is left and a floor), which
+animals and doors will use too.
 
 ### `SaveManager` *(save/load persistence — the save spec)*
 
@@ -870,9 +879,9 @@ first; equal priorities have no dependency on each other):
 | 16 | `surface_details` | `SurfaceDetailManager` | Removed/changed details, planted shrubs and flowers, growth and regrowth |
 | 20 | `settlement_flag` | `FlagPlacementController` | Founded state, last anchor, the settlement's name and founding day (the physical flag belongs to furniture/items) |
 | 30 | `stockpiles` | `StockpileDesignationController` | Zones, filters and stored stacks |
+| 35 | `fishing` | `FishingSystem` | Fishing zones (their spots and Keep) and each water's fish stock with the day it was counted (doc 289). Zones are player orders and catches change the stock, so neither comes from the seed; spots and their leases are rebuilt on restore |
 | 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces, uninstall flags, Move records (no storage: the container code and its save fields were deleted in doc 258) |
 | 41 | `ladders` | `LadderSystem` | Routes, build/removal progress, next ID |
-| 42 | `bridges` | `BridgeSystem` | Routes, build/removal progress, next ID |
 | 50 | `items` | `ItemDropManager` | Loose items: key, position, yaw, count, permission, identity, material |
 | 60 | `dwarves` | `DwarfDirector` | Roster identity, appearance, professions, position, needs, mood, carried cargo, equipment |
 | 65 | `wildlife` | `WildlifeManager` | Populations, needs, motion, herd/flock identity and RNG state |
@@ -962,7 +971,10 @@ same season; restoring or streaming a picked tree never renews its crop.
 
 ### `WorkFeedback` (doc 48 — chopping/mining sound and dust, 2026-10-04)
 
-Owns `data/audio/work_feedback.json`, cached generated work/wildlife WAVs, the runtime
+New and replacement audio follows the [recorded sound workflow](../../CLAUDE.md#sound-workflow):
+real recordings by default, documented sources and edits, and owner listening review.
+
+Owns `data/audio/work_feedback.json`, cached work/wildlife WAVs, the runtime
 `Work` audio bus, a capped eight-voice pool, and up to twelve transient dust
 bursts. This shared presentation service is a deliberate exception to the usual
 scene-node presentation split: work executors and world owners can emit short
@@ -978,9 +990,14 @@ on the same Work bus. Only a completed profession change triggers it; it remains
 audible while the world clock is paused and outside the camera/slice. Scene
 cleanup stops it alongside world voices. Equipment previews remain read-only UI
 data from the owning profession/item registries, not a second equipment inventory.
-The chime is `assets/audio/ui/promotion.wav`, synthesized mallet tones with no samples,
-generated by `tools/generate_promotion_audio.py`; its `promotion` profile in
-`work_feedback.json` sets the level and a 0.2-second cooldown against rapid repeats.
+The chime is `assets/audio/ui/promotion.wav`, a recorded glockenspiel chord by
+schreibsel (CC0), rebuilt by `tools/generate_promotion_audio.py`. The full decoded
+MP3 preview, credits and edit profile live in `tools/audio_sources/promotion/`.
+A continuous excerpt retains the recorded pitch and decay, with gentle filtering
+and edge fades. It keeps the previous 1.25-second length and peak ceiling; the
+recording's sharper strike makes its average level 3.3 dB lower. Its `promotion`
+profile in `work_feedback.json` sets the level and a 0.2-second cooldown against
+rapid repeats.
 
 `Camera` provides the centre-screen, slice-aware terrain hit and actual camera-to-hit
 distance through `get_work_audio_context()` and the `work_audio_view` group. The ray
@@ -992,11 +1009,32 @@ the current slice height. No world or yield RNG is consumed. `set_volume_db()`
 and `set_muted()` control the work bus. The Audio tab of the game menu's Settings exposes this as Effects,
 beside the independent Ambience channel (milestone 168).
 
+Recorded dwarf footsteps use the same Work bus and voice pool. `DwarfMovement`
+emits at each half-cycle foot landing, driven by distance travelled; arrival at a
+waypoint includes the last travelled segment. A stalled frame emits at most one
+step, and inaudible contacts are never queued. Stationary posing, climbing and
+unsupported feet emit none. `WorkFeedback.play_footstep` reads the actual support
+block: grass selects grass, dirt selects earth, built logs select wood and other
+solid floors select stone. These mappings live in `work_feedback.json.footsteps`.
+The four banks share a three-voice cap within the existing eight-voice pool, play
+at −15 dB within 18 blocks and fade with zoom, becoming silent beyond zoom 48.
+Hidden/sliced-away sources, loading, pause and zero speed prevent new footsteps;
+pause freezes active tails, while hidden/deleted sources stop them. The usual
+small random pitch variation remains independent of simulation speed.
+
+The 22 mono one-shots in `assets/audio/dwarves/footsteps/` are prepared offline by
+`tools/generate_footstep_audio.py` from Fission9's CC0 recordings. Stone and wooden
+plank steps are direct boot recordings; grass combines recorded thuds and grass
+foley made by the uploader, and filtered gravel supplies earth-path foley.
+`tools/audio_sources/footsteps/` retains complete source masters decoded from
+public HQ MP3 previews, source links and exact edit profiles. Preparation trims,
+filters, fades the edges and adjusts gain without changing speed or pitch.
+
 Chop and pick events originate at the dwarf's animation contact crossing.
 Worker crafting reuses the wood-chop bank at axe contact, with its order's
 clamped work progress driving timing across interruptions (see doc 64).
-Construction's stone-hammer knocks (`WorkFeedback.play_hammer`, six procedural
-samples from `tools/generate_hammer_audio.py`) fire when the builder's clamped work
+Construction's stone-hammer knocks (`WorkFeedback.play_hammer`, six recorded
+stone-on-stone contacts prepared by `tools/generate_hammer_audio.py`) fire when the builder's clamped work
 progress crosses the 0.72 contact phase of each one-second cycle
 (`DwarfConstructionPose.CONTACT_PHASE`), so a stalled frame plays at most one hit and
 resumed work never replays old ones. They pause with the simulation, and game speed
@@ -1007,6 +1045,41 @@ effects originate only from committed felling/mining paths, with material and
 position captured before removal; restoration and streaming never replay them.
 Particles use simulation time; brief audio tails finish in real time. Headless
 simulations still exercise event/pool logic but do not start mixer playback.
+
+The hammer bank uses six distinct contacts from xtra1's CC0 recording of two
+apple-sized stones struck together, as foley for the stone-headed tool. Each
+0.28–0.33-second cue starts its impact within eight milliseconds, preserving
+contact timing and a short natural tail. Average levels match the old cues or
+sit up to 1.1 dB lower, with peaks capped at their former limits. Tree-felling
+completion uses ecfike's CC0 recording of a real tree falling on a farm. Its full
+4.52-second crack, crash and settling tail replaces the former 0.68-second wood
+thump, at the same average level and with a lower peak. The existing eight-voice
+pool, distance/slice attenuation, event triggers and cosmetic pitch variation
+remain unchanged. Source masters, credits, hashes and crop/filter/fade profiles
+are in `tools/audio_sources/hammer_tree/`; `tools/generate_recorded_work_audio.py`
+rebuilds all seven mono 48 kHz PCM16 files, and both hammer and chopping generators
+delegate their recorded outputs to it. Masters are decoded from public HQ MP3
+previews; original uploads were not downloaded (xtra1 uploaded MP3, ecfike WAV).
+Preparation preserves recording speed and pitch.
+
+The six axe, six stone-pick and six soil-mining cues also use CC0 recordings.
+xkeril's small axe striking a large dry branch supplies chopping, Sadiquecat's
+garden pickaxe hitting rock supplies stone mining, and RavenWolfProds's shovel
+entries into a bucket of dirt supply soil-mining foley. Each variant is a separate
+contact. Axe clips last 0.27–0.31 seconds, stone 0.32–0.36 and soil 0.34–0.36;
+each contact starts within 13 milliseconds. The pickaxe uses the right microphone
+placed at ground level for impacts, avoiding the separate left microphone on a
+cardboard box. Axe stays mono and soil averages its stereo microphones.
+`tools/audio_sources/chopping_mining/` stores complete HQ MP3 preview masters,
+CC0 credits, hashes and edit profiles; original lossless uploads were not downloaded.
+`tools/generate_chopping_mining_audio.py` delegates processing to the shared
+recorded-work helper, and the existing chopping/mining generators use those
+outputs. Filtering and edge fades retain short natural tails at unchanged pitch
+and speed. The former peak ceilings keep average levels equal to or below the
+old cues: at most 1.7 dB lower for axes, 1.6 dB for stone and 3.9 dB for soil.
+The shared axe bank also updates crafting and mining built wood. Runtime contact
+rules, material selection, gains, voice limits and cosmetic pitch variation stay
+unchanged. All 25 work WAVs and the promotion chime now use recordings.
 
 Rabbit/deer/wolf feedback (roadmaps 91–93) extends this same bus/pool with per-kind profiles.
 Selection allows paused playback and a real-time click cooldown. Grazing pauses
@@ -1020,9 +1093,13 @@ playback variation uses cosmetic RNG and voices are not serialized. Work impacts
 retain their existing real-time tail and attenuation defaults.
 
 `WaterSound`, a child of `WaterRenderer` (doc 108), owns exactly two spatial loop
-players on the Work bus: a waterfall rush and a softer river bed. `WaterAudioSynth`
-makes their nine-second loops once per process on a background thread, with a
-private fixed-seed RNG, and caches them; there are no sound assets. Every
+players on the Work bus: a waterfall rush and a softer river bed. `WaterAudioBank`
+loads and caches recorded mono PCM loops on a background thread. Stream paths in
+`data/world_gen/water.json` point to the 29-second river and 31-second waterfall
+assets under `assets/audio/ambience/water/`. They use CC0 recordings by
+SamsterBirdies and Brikaro, with two-second loop crossfades. The river uses soft
+peak control to retain the previous average level; the waterfall's natural
+dynamics put its average level 2.1 dB below the prior synthetic loop. Every
 quarter-second it samples visible falling faces (drops over one block) and the
 sparse measured current field near the listening focus. Nearby sources set each
 voice's position, and its loudness is the loudest contribution, never a sum per
@@ -1036,16 +1113,25 @@ the river at −17 dB out to 30 blocks. Beyond each layer's `max_zoom` it fades 
 
 `FurnitureFireSound`, a child of `FurniturePlacementController` (doc 117), gives
 installed fires their crackle: every definition with a `fire_sound` (`campfire` for
-the campfire and the hearth, `torch` for the log torch). It keeps at most four spatial
+the campfire and the hearth, `torch` for the log torch). A nightly fire is silent while
+cold (doc 279). It keeps at most four spatial
 loop players on the Work bus and every quarter-second picks the strongest visible
 sources by camera focus, zoom and height difference. Voices share one power budget,
 keep their playback phase while chosen, and fade. Pause, zero speed, loading, a
 missing camera, hidden or sliced-away sources and removed pieces are silent; plans
 and packed pieces never sound, and speed never changes pitch. Tuning is `fire_ambience`
 in `data/audio/work_feedback.json` (campfire 20 blocks at −10 dB, torch 12 at −15 dB).
-The two twelve-second loops in `assets/audio/ambience/` are original, made offline by
-`tools/generate_fire_audio.py`; the player loops a duplicated stream rather than
-hand-edited import settings.
+The loops in `assets/audio/ambience/` use two CC0 wood-fire recordings: aerror's
+campfire supplies the 29-second campfire/hearth loop, and TheWoodlandNomad's log
+fire supplies the 12-second torch loop as small-flame foley. The torch source is
+a log fire, not a recording of a torch. Source masters, credits and edit profiles
+live in `tools/audio_sources/fire/`; masters were decoded from public HQ MP3
+previews, not original lossless uploads. `tools/generate_fire_audio.py` rebuilds
+both offline with filtering and two-second loop crossfades. Campfire soft peak
+control tames close-mic wood pops; torch removes more bass and upper crackle.
+The peak ceiling keeps their average levels about 1.6 and 4.7 dB below the former
+assets respectively, while runtime gain and range stay unchanged. The player
+loops a duplicated stream; existing import settings remain in use.
 
 `AmbientAudio` (docs 168 and 170), an autoload after SaveManager, owns the
 environmental soundscape, its separate Ambience bus, `data/audio/environment.json`
@@ -1077,14 +1163,94 @@ use Effects; every other layer uses Ambience.
 Playback runs in real time: pause softens the loops to 25% (`pause_gain`) and stops
 phrases, gains move over four seconds, and game speed never changes pitch.
 Cosmetic choices use AmbientAudio's own RNG, never simulation or weather RNG, and
-nothing enters a save. Every environment sound is original seeded synthesis
-(`tools/generate_environment_audio.py`, `tools/generate_environment_details.py`);
-no recordings are used. The game menu's Settings page (its Audio tab) calls this
+nothing enters a save. Both environment generators now prepare recorded sources;
+`tools/generate_environment_audio.py` provides their shared PCM writer.
+All three tree creaks use Comradar's CC0 recordings of trees moving in wind,
+prepared by `tools/generate_wood_creak_audio.py` and delegated to by
+`tools/generate_environment_details.py`. They retain their complete 3.18, 2.05
+and 2.85-second events at natural speed and pitch, averaged to mono 22.05 kHz
+PCM16, with gentle filtering and edge fades. The former peak ceilings preserve
+headroom and put average levels 1.5–5.0 dB below the synthetic versions. Live-tree,
+wind, season and visibility eligibility, the −19 dB source gain and 28–65-second
+intervals remain unchanged. Source masters decoded from public HQ MP3 previews,
+CC0 credits, hashes and edit profiles are in `tools/audio_sources/wood_creaks/`;
+the original lossless uploads were not downloaded.
+Shoreline and all three cave-drip cues use CC0 recordings prepared by
+`tools/generate_water_audio.py`, also called by the details generator. Shoreline
+uses Filipe Chagas's rocky-beach lapping, retaining stereo 22.05 kHz PCM16 and
+its 33-second loop length, with a two-second crossfade. The three two-second
+drip phrases come from nomadas's recording inside the Ojo Guareña cave system,
+retaining natural cave reverberation and background drips. They use the left
+microphone channel to avoid cancellation in mono. Peak caps leave shoreline
+3.6 dB quieter on average; drip 01 is 2 dB quieter and the other drips match
+their prior average levels. Runtime eligibility rules are unchanged.
+The five water source masters (including river, waterfall and duck splash foley),
+CC0 credits, hashes and edit profiles are in `tools/audio_sources/water/`.
+Masters are decoded from public HQ MP3 previews, not the original lossless uploads.
+Outdoor rain, roof rain and the three thunder cues use CC0 recordings prepared
+by `tools/generate_rain_thunder_audio.py`, also called by the details generator.
+Outdoor rain uses VanEngelen's open-window recording without thunder; roof rain
+uses xkeril's interior roof recording, filtered above 2.8 kHz. Both retain stereo
+22.05 kHz PCM16, their 35/37-second lengths and previous average levels, with
+two-second loop crossfades. Thunder uses three separate events from Emulius's
+recordings after rain had passed. Each mono cue retains one microphone channel
+to avoid cancellation between the author's two microphone signals. Trimmed
+lead-ins and tails yield 4.40/9.20/10.35-second clips; their natural dynamics and
+0.6 peak caps put average levels 0.8–6.1 dB below the synthetic versions. Storm
+eligibility, roof attenuation and 35–85-second thunder intervals are unchanged.
+Near lightning strikes (doc 24, "Lightning") play three close cracks instead,
+`thunder_near_01`–`03` (2026-11-01). They are separate CC0 events: cognito
+perceptu's "thunder sharp dry crack 2" and "thunder crack.wav", and TRP's
+"200817 Thunder, pretty close crack 4pm". Each is mono, one microphone, starts
+about 0.1 s before its crack and runs 7.5–8.3 s. Levels match the distant
+thunder's RMS target, with the same 0.6 peak cap.
+Masters decoded from public HQ MP3 previews, licenses, channel choices and edit
+profiles live in `tools/audio_sources/rain_thunder/`; the original lossless
+uploads were not downloaded.
+General wind, foliage, autumn leaves, winter wind and sheltered air use CC0 field
+recordings prepared by `tools/generate_wind_foliage_audio.py`; both environment
+generators delegate those outputs to it. General wind uses YannSauvin's mountain
+recording, foliage uses teadrinker's wind through trees, and autumn leaves use
+Stek59's wind-blown dry leaves. Winter wind and sheltered air use separate excerpts
+of klangfabrik's wind beside a partially open window. Shelter is low-pass filtered
+at 450 Hz for enclosed space; it is adapted wind, not a cave recording. The five
+loops retain their original 31/29/27/29/23-second lengths, stereo 22.05 kHz PCM16,
+average levels and existing runtime settings. Two-second tail-to-head crossfades
+join the loops without fading to silence. Masters, licenses, hashes and edit
+profiles live in `tools/audio_sources/wind_foliage/`. Masters were decoded from
+the public HQ MP3 previews, with anti-alias resampling and supplied stereo channels
+preserved; original lossless uploads were not downloaded.
+The six daytime bird phrases use separate excerpts of richwise's CC0 blackbird
+recording; the three owl phrases use DreamSavvyr's CC0 outdoor owl recording.
+`tools/generate_bird_audio.py` and the main environment generator prepare the same
+mono 22.05 kHz assets from masters and edit regions under
+`tools/audio_sources/birds_owls/`. Wolf howls use Paresh's CC0 wolf recording,
+prepared through `tools/generate_wolf_audio.py` from `tools/audio_sources/wolf/`.
+The three frog variations are distinct croaks from clif_creates' CC0 recording
+of an isolated frog in Ojai, California. `tools/generate_frog_audio.py` and the
+environmental details generator use the same master and edit regions under
+`tools/audio_sources/frog/`; the clips retain mono 22.05 kHz PCM. Calls are now
+individual natural croaks lasting 0.52–0.57 seconds, with the existing warm-night,
+water-source and call-interval rules.
+The cricket loop, daytime insect loop and three chirp cues use CC0 recordings
+prepared by `tools/generate_insect_audio.py`; both environmental generators
+delegate these outputs to it. The night loop uses johnnydekk's cleaned cricket
+recording, daytime uses floft's forest cicadas, and the short cues use three
+separate pairs from HECKFRICKER's close cricket recording. Masters, licenses and
+edit profiles live in `tools/audio_sources/insects/`. Loops retain stereo and
+their 37/31-second lengths, with 1.5-second tail-to-head crossfades; chirps remain
+mono. All retain 22.05 kHz PCM, previous average levels and existing runtime
+eligibility, intervals and volume settings.
+These recorded banks preserve their natural pitch and phrasing, with light
+filtering, fades and levels near the previous assets. The game menu's Settings
+page (its Audio tab) calls this
 owner for both Ambience and the Work/Effects controls; a change is written to
 `audio.cfg` 0.4 s after the last one, and on exit. Rain and storm are registered,
-scheduled weather types; WeatherManager creates one scene-owned
-WeatherPrecipitation mesh when needed. Roof/slice clipping and cosmetic rain never
-modify water mass or simulation state. Combat cues and music remain planned; the
+scheduled weather types; rain, storm and snow fall through one scene-owned
+WeatherPrecipitation node, created when first needed (doc 24, "Rain and Snow").
+Roof/slice clipping and cosmetic precipitation never modify water mass or simulation state.
+Each storm thunder first flashes lightning through `SkyController.flash_lightning()` (doc 24,
+"Lightning"). Combat cues and music remain planned; the
 older proposed `AudioManager` name does not identify a live system.
 
 ---

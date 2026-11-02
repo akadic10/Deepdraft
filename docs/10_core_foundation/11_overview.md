@@ -20,7 +20,7 @@ object cell is 1/16 of a world block along each axis, so sixteen cells span one
 world-block edge. Characters and animals have big square heads, bead eyes and chunky
 hands, boots and paws. Furniture is Tier 1 · Axe-Hewn: split, notched and lashed
 timber. The simple world blocks are the backdrop, with a quiet one-cell dressing on
-stone, grass and earth, and the scene is lit like a hearth.
+stone, grass and earth (a lit edge on coal), and the scene is lit like a hearth.
 [64](../60_asset_creation/64_hearthblock_art_direction.md) defines the look, and
 [63](../60_asset_creation/63_shared_art_standard.md) defines the technical authoring,
 material and shadow rules.
@@ -84,14 +84,19 @@ The game world runs on a unified calendar managed by the `WorldClock` Autoload. 
 
 | Unit | Real time | Notes |
 |---|---|---|
-| 1 in-game hour | 60 real seconds | Base rate; player can set ×1, ×2, ×3 speed |
-| 1 in-game day | 24 in-game hours (24 min real) | Full light/dark cycle on surface (cosmetic only underground) |
-| 1 season | 28 in-game days | ~11.2 hours real at ×1 |
-| 1 year | 4 seasons = 112 in-game days | ~44.8 hours real at ×1 |
+| 1 in-game hour | 30 real seconds | Base rate; the player can choose ×1 or ×2 speed |
+| 1 in-game day | 24 in-game hours (12 min real) | Full light/dark cycle on surface (cosmetic only underground) |
+| 1 season | 21 in-game days | ~4.2 hours real at ×1 |
+| 1 year | 4 seasons = 84 in-game days | ~16.8 hours real at ×1 |
+
+Owner decision 2026-10-29 (doc 281): the old 24-minute days and 28-day seasons felt long.
+Comparable colony sims use 10–17-minute days and 3½–5-hour seasons; this pace matches
+RimWorld's season and year almost exactly. Timings counted in days (growth, regrowth,
+wildlife arrivals) were scaled to ¾ with the season so they keep their place in it.
 
 ```gdscript
 # WorldClock Autoload — public interface
-var day:     int       # 1–30 within the current season
+var day:     int       # 1–21 within the current season
 var season:  String    # "spring" | "summer" | "autumn" | "winter"
 var year:    int       # starts at 1
 var hour:    float     # 0.0–23.99
@@ -125,17 +130,17 @@ Day length must vary by season and transition smoothly — no sudden jumps at mi
 - Winter solstice: ~8 in-game hours of daylight, ~16 of night
 - Spring / Autumn equinoxes: ~12 / 12 (midpoint between extremes)
 
-**Implementation approach:** Drive daylight duration with a cosine curve keyed to the day-of-year rather than snapping per season. Day-of-year runs 0–111 (112-day year). Summer solstice sits at day 28 (end of spring / start of summer); winter solstice at day 84 (end of autumn / start of winter).
+**Implementation approach:** Drive daylight duration with a cosine curve keyed to the day-of-year rather than snapping per season. Day-of-year runs 0–83 (84-day year). Summer solstice sits at day 21 (end of spring / start of summer); winter solstice at day 63 (end of autumn / start of winter). `WorldClock.solstice_cosine()` gives this curve's cosine; the rooms' seasonal temperature swing follows it too.
 
 ```gdscript
-# Returns daylight hours (float) for a given day-of-year (0–111)
+# Returns daylight hours (float) for a given day-of-year (0–83)
 func daylight_hours(day_of_year: int) -> float:
     const MEAN   := 12.0   # average daylight hours
     const AMPL   :=  4.0   # amplitude (±4 h gives 8–16 h range)
-    const PERIOD := 112.0
-    # Shift so day 28 = peak (cosine maximum)
-    var angle := (day_of_year - 28.0) / PERIOD * TAU
-    return MEAN + AMPL * cos(angle)   # ADD: cos=1 at day 28 (summer solstice) = longest day (16 h)
+    const PERIOD := 84.0
+    # Shift so day 21 = peak (cosine maximum)
+    var angle := (day_of_year - 21.0) / PERIOD * TAU
+    return MEAN + AMPL * cos(angle)   # ADD: cos=1 at day 21 (summer solstice) = longest day (16 h)
 ```
 
 > **Correction (2026-06-02):** an earlier revision of this block used `MEAN - AMPL * cos(angle)`,

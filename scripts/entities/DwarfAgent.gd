@@ -30,9 +30,12 @@ var gender: String = "male"
 var appearance: DwarfAppearanceData = null
 var proportions: Dictionary = {}
 var traits: Array[String] = []
+var stats: Dictionary = {}   # stat id -> step, 1 (Poor) to 5 (Excellent); given at birth (doc 41 "Stats")
 var profession: String = "base:profession:worker"
 var profession_experience: Dictionary = {}
 var work_permissions: Dictionary = {}
+## A Ranger's catch log (CatchLog.gd, doc 292); saved while it holds anything.
+var catch_log: Dictionary = {}
 
 ## The claimed task id (id, NOT the Task object — doc 16 §2.2). -1 = idle.
 var current_task_id: int = -1
@@ -72,7 +75,7 @@ var _mining_pose: RefCounted
 var _construction_pose: RefCounted
 
 ## Sleep-lite (doc 16 §2.8 / Phase 5 — the FIRST interrupt producer).
-## Deliberately minimal: ONE stat draining per simulation second (doc 41 rate);
+## Deliberately minimal: ONE stat draining per game hour (doc 41 rate);
 ## below the threshold the dwarf releases its task through the §2.8 protocol
 ## and seeks an assigned/free bed or nearby ground shelter for the minimum rest,
 ## counted in game hours. DwarfMood supplies the personal-bedroom thought; the
@@ -83,22 +86,27 @@ var _construction_pose: RefCounted
 ## hours: dwarves spent 60% of their lives asleep, and since the initial
 ## stagger only spreads first-sleep by ~2 min while a nap lasts 6, the
 ## entire colony full-stopped for minutes at a time in every session.
-## 0.0007/s gives ~17.9 game hours awake per 6-hour nap — the 24-hour cycle
-## doc 41 §Biological Limits actually specifies (doc 41 table updated in
-## sync). Per-dwarf drain jitter (±10%, deterministic — set in setup())
+## 0.042 per game hour (then 0.0007/s) gives ~17.9 game hours awake per 6-hour
+## nap — the 24-hour cycle doc 41 §Biological Limits actually specifies (doc 41
+## table updated in sync). It counts game hours, not simulation seconds (doc 281),
+## so the cycle holds whatever the calendar's seconds per game hour.
+## Per-dwarf drain jitter (±10%, deterministic — set in setup())
 ## makes the squad's schedules decohere over time instead of staying
 ## phase-locked off the spawn stagger.
-const SLEEP_DRAIN_PER_S := 0.0007   # per simulation second; doc 41 drain rate
+const SLEEP_DRAIN_PER_HOUR := 0.042   # per game hour; doc 41 drain rate
 const SLEEP_THRESHOLD := 0.25       # doc 41: sleep taken autonomously below this
 const SLEEP_HOURS := 6.0            # doc 41: minimum rest per 24-hour cycle
 var sleep: float = 1.0
-var _sleep_drain: float = SLEEP_DRAIN_PER_S   # per-dwarf jittered rate (setup())
+var _sleep_drain: float = SLEEP_DRAIN_PER_HOUR   # per-dwarf jittered rate (setup())
 var _sleeping: bool = false
 var _sleep_hours_left: float = 0.0
+var _bedtime_fire := {}          # the bedroom fire being lit before bed: {fire, task, hours}
+var _bedtime_checked := false    # looked for a fire to light since getting tired
 var _mood: RefCounted
 var _recreation: RefCounted
 var _food: RefCounted
 var _tastes: RefCounted
+var _health: RefCounted   # DwarfHealth: hit points from Toughness (doc 41 "Health")
 
 ## Fired when a walk order finishes (arrived) or fails (no path / cleared).
 signal walk_finished(success: bool)
@@ -156,20 +164,25 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	appearance = data.get("appearance") as DwarfAppearanceData
 	proportions = DwarfAssets.get_proportions()
 	traits.assign(data.get("traits", []))
+	# Every stat the game has; one the data lacks is Average (a stand-in built by hand).
+	var given: Dictionary = data.get("stats", {})
+	stats = {}
+	for id: String in DwarfAssets.stat_ids(): stats[id] = int(given.get(id, DwarfAssets.get_stat_data().get("average", 3)))
 	profession = String(data.get("profession", "base:profession:worker"))
 	profession_experience = data.get("profession_experience", {})
 	work_permissions = data.get("work_permissions", {}).duplicate(true)
+	catch_log = (data.get("catch_log", {}) as Dictionary).duplicate(true)
 	name = "Dwarf_%d_%s" % [dwarf_id, dwarf_name]
 	_bob_phase = float(dwarf_id) * 1.7   # desynchronise the squad's idle motion
 	# Stagger initial tiredness deterministically (birth-index hash, no randf)
 	# so a squad spawned together does not collapse asleep in the same instant
-	# (at the retuned drain, this 0.35 spread = ~8 minutes at x1 of first-sleep
+	# (at the retuned drain, this 0.35 spread = ~8 game hours of first-sleep
 	# spread), and jitter each dwarf's drain rate ±10% so sleep schedules
 	# DECOHERE across days instead of staying phase-locked — identical rates
 	# preserve the initial offsets forever, and offsets smaller than a nap
 	# still produce a window where the whole colony sleeps at once.
 	sleep = 1.0 - fposmod(float(dwarf_id) * 0.191, 0.35)
-	_sleep_drain = SLEEP_DRAIN_PER_S * (0.9 + 0.2 * fposmod(float(dwarf_id) * 0.317, 1.0))
+	_sleep_drain = SLEEP_DRAIN_PER_HOUR * (0.9 + 0.2 * fposmod(float(dwarf_id) * 0.317, 1.0))
 
 	_rig.build()
 	_head = _rig.head
@@ -190,6 +203,9 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 	_mood = preload("res://scripts/components/DwarfMood.gd").new()
 	_food = preload("res://scripts/components/DwarfFoodBehavior.gd").new(self)
 	_mood.food = _food
+	_health = preload("res://scripts/components/DwarfHealth.gd").new()
+	_health.setup(stats)
+	_mood.health = _health
 	_tastes = preload("res://scripts/components/DwarfTastes.gd").new()
 	_tastes.setup(data.get("tastes", {}), data.get("found_tastes", []))
 	_mood.tastes = _tastes
@@ -204,10 +220,8 @@ func _process(delta: float) -> void:
 	if WorldClock.paused or WorldClock.speed <= 0.0: return
 	_mood.tick(delta * WorldClock.game_hours_per_real_second())
 	_food.clock_tick(delta * WorldClock.game_hours_per_real_second())
+	_health.clock_tick(delta * WorldClock.game_hours_per_real_second(), _sleeping)
 	if _settle_missing_support(): return
-	if needs_bridge_exit():
-		_process_bridge_exit(delta * WorldClock.speed)
-		return
 	if _ladder_exiting or (current_task_id < 0 and _movement.move_path.is_empty() and needs_ladder_exit()):
 		_process_ladder_exit(delta * WorldClock.speed)
 		return
@@ -223,19 +237,23 @@ func _process(delta: float) -> void:
 		return
 	# Sleep drains in EVERY waking state — idle, walking, working, swinging —
 	# so the threshold can interrupt any of them (doc 16 Phase 5 acceptance).
-	# Match the game-speed scaling used by sleep recovery and the calendar.
-	sleep = maxf(sleep - _sleep_drain * delta * WorldClock.speed, 0.0)
+	# Counted in game hours, like sleep recovery and the calendar.
+	sleep = maxf(sleep - _sleep_drain * delta * WorldClock.game_hours_per_real_second(), 0.0)
 	if _food.active():
 		_food.tick(delta * WorldClock.speed)
 		return
 	if _food.famished() and _food.begin_if_needed(): return
+	var lighting_fire := false
 	if sleep <= SLEEP_THRESHOLD:
-		_begin_sleep()
-		return
+		lighting_fire = _light_fire_before_bed(delta * WorldClock.game_hours_per_real_second())
+		if not lighting_fire:
+			_begin_sleep()
+			return
 	if promotion_pending():
 		_equipment.tick(delta)
 		return
-	if _food.begin_if_needed(): return
+	# Ordinary hunger still waits until the dwarf wakes.
+	if not lighting_fire and _food.begin_if_needed(): return
 	if is_recreating():
 		_recreation.tick_actor(self,delta * WorldClock.speed)
 		return
@@ -307,6 +325,17 @@ func promotion_pending() -> bool:
 
 func is_eating() -> bool:
 	return _food != null and _food.active()
+
+
+## How fast this dwarf does a kind of work (mining, felling, crafting, building), from the
+## stat that speeds it (doc 41 "Stats"); 1 for work no stat speeds.
+func work_rate(kind: String) -> float:
+	return DwarfAssets.work_rate(kind, stats)
+
+
+## DEV: takes hit points (never below the minimum); returns what was taken.
+func dev_hurt(amount: float) -> float:
+	return _health.hurt(amount) if _health != null else 0.0
 
 
 func dev_make_hungry() -> bool:
@@ -410,6 +439,12 @@ func _begin_sleep() -> void:
 	_sleeping = true
 	_sleep_hours_left = SLEEP_HOURS
 	_mood.begin_sleep()
+	_release_task_for_need()
+	_rest_behavior.begin()
+
+
+## Drops the task for a need through the §2.8 protocol, leaving the idle pool.
+func _release_task_for_need() -> void:
 	var had_task := current_task_id >= 0
 	_work_execution.clear_task_state()
 	current_task_id = -1
@@ -420,7 +455,40 @@ func _begin_sleep() -> void:
 		_work_execution.release(dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
 	else:
 		TaskManager.notify_dwarf_unavailable(dwarf_id)
-	_rest_behavior.begin()
+
+
+## A tired dwarf whose bed stands in a cold room lights that room's fire first (owner,
+## 2026-10-30; doc 34 "Bedtime fires"). It takes the fire's own job: fetch a log, set it
+## in and light it. One try per bedtime, for at most `rest.bedtime_fire_hours`. True
+## while the job runs; false sends the dwarf to bed.
+func _light_fire_before_bed(hours: float) -> bool:
+	var furniture := get_tree().get_first_node_in_group("furniture_controller")
+	if not _bedtime_fire.is_empty():
+		_bedtime_fire.hours = float(_bedtime_fire.hours) + hours
+		var holding := current_task_id == int(_bedtime_fire.task)
+		if holding and float(_bedtime_fire.hours) < float(TaskManager.get_config_section("rest").get("bedtime_fire_hours", 2.0)): return true
+		if holding: _release_task_for_need()
+		if furniture != null: furniture.get_fires().end_bedtime(_bedtime_fire.fire)
+		_bedtime_fire = {}
+		return false
+	if _bedtime_checked or furniture == null or not NavGrid.is_walkable(current_cell()): return false
+	_bedtime_checked = true
+	var beds: Array[InstalledFurnitureComponent] = _rest_behavior.bed_rest.ranked_beds(float(TaskManager.get_config_section("rest").get("bed_search_radius", 48)))
+	var fires = furniture.get_fires()
+	var fire: InstalledFurnitureComponent = fires.bedroom_fire(beds[0]) if not beds.is_empty() else null
+	if fire == null: return false
+	var task_id: int = fires.bedtime_job(fire, dwarf_id)
+	if task_id < 0: return false
+	if current_task_id != task_id:
+		if is_recreating(): _recreation.cancel(dwarf_id)
+		if promotion_pending(): _equipment.cancel("Promotion cancelled for bed. The tool is available again.", false)
+		if _idle_behavior != null: _idle_behavior.cancel()
+		_release_task_for_need()
+		if not TaskManager.assign_to(task_id, dwarf_id):
+			fires.end_bedtime(fire)
+			return false
+	_bedtime_fire = {"fire": fire, "task": task_id, "hours": 0.0}
+	return true
 
 
 func _process_sleeping(delta: float) -> void:
@@ -430,21 +498,29 @@ func _process_sleeping(delta: float) -> void:
 		var sleep_cell := current_cell()+Vector3i.UP
 		if _rest_behavior.bed_rest.bed!=null: sleep_cell = _rest_behavior.bed_rest.bed.origin_cell+Vector3i.UP
 		_mood.record_sleep(hours,_rest_behavior.bed_rest.in_personal_bedroom(),RoomManager.temperature_at(sleep_cell))
+		# The meter fills evenly as the dwarf sleeps, full as the rest ends, so a dwarf woken
+		# early keeps the sleep it had (owner, 2026-10-30).
+		if _sleep_hours_left > 0.0: sleep = minf(1.0, sleep + (1.0 - sleep) * hours / _sleep_hours_left)
 		_sleep_hours_left -= hours
 		if _sleep_hours_left <= 0.0:
+			sleep = 1.0
 			# A night in the bed finds the dwarf's taste for it before the room's thought.
 			meet_pieces([_rest_behavior.bed_rest.bed])
 			_mood.finish_sleep(RoomManager.appeal_at(sleep_cell))
 			_rest_behavior.begin_waking()
 
 
+## The sleep meter is what the dwarf slept: full after a whole rest, partly filled if woken early.
 func _wake_up() -> void:
 	_sleeping = false
-	sleep = 1.0
 	_sleep_hours_left = 0.0
+	_bedtime_checked = false
 	if _rest_behavior != null: _rest_behavior.cancel()
 	_reset_part_offsets()
 	TaskManager.notify_dwarf_idle(dwarf_id)
+	# By day the fire kept burning for sleepers goes out once the last one wakes.
+	var furniture := get_tree().get_first_node_in_group("furniture_controller") if is_inside_tree() else null
+	if furniture != null: furniture.get_fires().dwarf_woke()
 
 
 func is_sleeping() -> bool:
@@ -463,7 +539,11 @@ func is_resting() -> bool:
 func get_task_phase() -> int: return _work_execution.task_phase
 func get_mood() -> RefCounted: return _mood
 func get_food() -> RefCounted: return _food
+func get_grill_pose() -> RefCounted: return _rig.grill_pose
+## The fire this dwarf sits watching at leisure (doc 290's company at a grill), or -1.
+func fire_watched() -> int: return _idle_behavior.fire_watched() if _idle_behavior != null else -1
 func get_tastes() -> RefCounted: return _tastes
+func get_health() -> RefCounted: return _health
 
 
 ## The dwarf uses these pieces (the bed after a night, a seat and table after a meal or a
@@ -506,6 +586,7 @@ func serialize_state() -> Dictionary:
 			if is_instance_valid(cargo) and cargo.has_meta("instance_id"):
 				carried_items.back()["instance_id"] = cargo.get_meta("instance_id")
 			carried_items.back()["material_id"] = CraftMaterials.of_item(cargo)
+			if ItemDropManager.spoil_of(cargo) > 0.0: carried_items.back()["spoil"] = ItemDropManager.spoil_of(cargo)
 	if appearance != null:
 		appearance_state = {
 			"gender": appearance.gender,
@@ -519,7 +600,7 @@ func serialize_state() -> Dictionary:
 			"scar": appearance.scar,
 			"clothing": appearance.clothing,
 		}
-	return {
+	var state := {
 		"id": dwarf_id,
 		"name": dwarf_name,
 		"gender": gender,
@@ -527,6 +608,7 @@ func serialize_state() -> Dictionary:
 		"traits": traits.duplicate(),
 		"tastes": _tastes.tastes.duplicate(),
 		"found_tastes": _tastes.found.keys(),
+		"stats": stats.duplicate(),
 		"profession": profession,
 		"profession_experience": profession_experience.duplicate(true),
 		"work_permissions": work_permissions.duplicate(true),
@@ -540,6 +622,11 @@ func serialize_state() -> Dictionary:
 		"carried_items": carried_items,
 		"equipment": _equipment.serialize() if _equipment != null else {},
 	}
+	# Health saves only while the dwarf is hurt; a full dwarf has nothing to keep.
+	if _health.saved_points() >= 0.0: state["health"] = _health.saved_points()
+	# Nor does a dwarf who has never landed or dried a fish keep a catch log.
+	if not catch_log.is_empty(): state["catch_log"] = catch_log.duplicate(true)
+	return state
 
 func restore_saved_runtime(state: Dictionary) -> void:
 	if is_recreating(): _recreation.cancel(dwarf_id)
@@ -551,6 +638,7 @@ func restore_saved_runtime(state: Dictionary) -> void:
 	_sleep_hours_left = maxf(float(state.sleep_hours_left), 0.0)
 	_mood.restore(state.mood)
 	_food.restore(state.food)
+	_health.setup(stats, float(state.get("health", -1.0)))
 	current_task_id = -1
 	_task_phase = TaskPhase.NONE
 	stop_walking()
@@ -585,8 +673,8 @@ func force_interrupt() -> bool:
 # ── DEV helpers (Dwarves window buttons) ──────────────────────────────────────
 
 ## Drops the sleep stat to the threshold so the ORGANIC interrupt path fires on
-## the next frame — tests release + sleep + wake + resume without the ~4-minute
-## real-time drain. Returns false if the dwarf is already asleep.
+## the next frame — tests release + sleep + wake + resume without waiting out most
+## of a game day's drain. Returns false if the dwarf is already asleep.
 func dev_make_tired() -> bool:
 	if _sleeping:
 		return false
@@ -610,6 +698,7 @@ func _settle_missing_support() -> bool:
 
 ## The item's floor cell, distinct from the adjacent worker's stand cell.
 func item_floor_cell(node: Node3D) -> Vector3i:
+	if node.has_meta("floor_cell"): return node.get_meta("floor_cell")   # a handoff marker (StorageComponent)
 	return Vector3i(
 		floori(node.position.x),
 		int(round(node.position.y)) - 1,
@@ -633,35 +722,8 @@ func current_cell() -> Vector3i:
 
 
 var _ladder_exiting := false
-var _bridge_exiting := false
 var _ladder_sleep_pending := false
 
-
-func needs_bridge_exit() -> bool:
-	return _bridge_exiting or not NavGrid.closing_bridge_at(current_cell()).is_empty()
-
-func _process_bridge_exit(delta: float) -> void:
-	var route := NavGrid.closing_bridge_at(current_cell())
-	if not _bridge_exiting:
-		abort_task() # Cargo is dropped intact on the still-supported deck.
-		_work_execution.release(dwarf_id, Task.ReleaseReason.PATH_INVALID, false)
-		if _sleeping: _wake_up()
-		if _idle_behavior != null: _idle_behavior.cancel()
-		_movement.clear_path()
-		_bridge_exiting = true
-	TaskManager.notify_dwarf_unavailable(dwarf_id)
-	if route.is_empty():
-		# Finish reaching the landing centre before retiring the escape path.
-		if not _movement.move_path.is_empty(): _movement.follow_path(delta); return
-		_bridge_exiting = false
-		TaskManager.notify_dwarf_idle(dwarf_id)
-		return
-	if _movement.move_path.is_empty():
-		var exits: Array = route.exits.duplicate()
-		exits.sort_custom(func(a: Vector3i,b: Vector3i): return current_cell().distance_squared_to(a) < current_cell().distance_squared_to(b))
-		for cell: Vector3i in exits:
-			if NavGrid.is_walkable(cell) and walk_to(cell): break
-	if not _movement.move_path.is_empty(): _movement.follow_path(delta)
 
 func needs_ladder_exit() -> bool:
 	return _ladder_exiting or (not NavGrid.ladder_at(current_cell()).is_empty() and not NavGrid.is_walkable(current_cell()))

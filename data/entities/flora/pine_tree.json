@@ -63,11 +63,29 @@
         "ancient": 0.25
       }
     },
+    "__planting_comment": "Player planting (doc 284): Place → Plants turns one seed into a sapling that grows to mature and ancient by stages.*.growth_duration_days, weighted by seasonal_growth (winter pauses). area = the square centred on the seed that no other tree may stand in: the mature crown (owner's pick, 2026-10-29), so grown ancients may overlap a few blocks. The ancient trunk footprint must be level open-sky ground with no other plants. Read by ContentRegistry and SurfaceFloraSpawner.",
+    "planting": {
+      "catalog_key": "base:flora:pine_cone",
+      "item": "base:resources:seed:pine_cone",
+      "work_seconds": 3.0,
+      "area": 7,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "seasonal_growth": {
+        "spring": 1.2,
+        "summer": 1.0,
+        "autumn": 0.8,
+        "winter": 0.0
+      }
+    },
     "stages": {
       "sapling": {
         "felling": { "work_seconds": 2.0 },
         "clearance_height": 6,
-        "growth_duration_days": 3,
+        "growth_duration_days": 2.25,
         "models": {
           "summer": "res://assets/models/flora/trees/pine/pine_sapling.glb",
           "winter": "res://assets/models/flora/trees/pine/pine_sapling_winter.glb"
@@ -79,7 +97,7 @@
       "mature": {
         "felling": { "work_seconds": 6.0 },
         "clearance_height": 16,
-        "growth_duration_days": 6,
+        "growth_duration_days": 4.5,
         "models": {
           "summer": [
             "res://assets/models/flora/trees/pine/pine_mature.glb",
@@ -127,7 +145,7 @@
           "yields": [
             {
               "item": "base:resources:wood:pine_log",
-              "count": 8,
+              "count": 10,
               "chance": 1.0
             },
             {

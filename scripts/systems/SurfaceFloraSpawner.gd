@@ -108,6 +108,9 @@ var _flight_tree_reach := 32.0 # Conservative initial canopy broad-phase radius.
 const FellingSource = preload("res://scripts/components/TreeFellingComponent.gd")
 var _tree_changes: Dictionary = {} # Vector2i -> authoritative, saveable forestry delta
 var work := preload("res://scripts/components/WorkSourceTable.gd").new() # Vector2i tree id -> TreeFellingComponent
+## Planted trees (doc 284) keep their seed's column as their id and a "planted" change.
+const Planting = preload("res://scripts/components/TreePlanting.gd")
+var _planting := Planting.new(self, _trees, _tree_changes)
 const OrderMarker = preload("res://scripts/ui/OrderMarker.gd")
 var _felling_markers: Dictionary = {} # Vector2i -> OrderMarker (projected UI, never a pick target)
 var _felling_marker_layer: CanvasLayer
@@ -135,6 +138,7 @@ func _ready() -> void:
 	# map and moisture noise, all valid once WorldGenerator reports maps_ready.
 	if WorldClock.has_signal("season_changed"):
 		WorldClock.season_changed.connect(_on_season_changed)
+	WorldClock.hour_changed.connect(_on_growth_hour)
 	_season = WorldClock.season
 
 	_camera = _find_camera(get_tree().current_scene)
@@ -270,6 +274,9 @@ func _spawn_column(cx: int, cz: int) -> void:
 				# still use the scatter-origin column that owns this node list.
 				tree.set_meta("stream_column",Vector2i(cx,cz))
 				nodes.append(tree)
+	for id: Vector2i in _planting.column_ids(Vector2i(cx, cz)):
+		var planted := _instance_planted(id)
+		if planted != null: nodes.append(planted)
 
 	_loaded_columns[Vector2i(cx, cz)] = nodes
 
@@ -420,9 +427,11 @@ func _suitability(sp: Dictionary, domain: int, ground_y: int, moisture: float,
 # ── Instancing ────────────────────────────────────────────────────────────────
 
 func _instance_tree(species_name: String, model_path: String, stage_name: String,
-		stage_data: Dictionary, wx: int, wz: int, ground_y: int, footprint: int) -> Node3D:
-	var tree_id := Vector2i(wx, wz)
-	if bool(_tree_changes.get(tree_id, {}).get("felled", false)):
+		stage_data: Dictionary, wx: int, wz: int, ground_y: int, footprint: int, planted_id := Vector2i(-1, -1)) -> Node3D:
+	var planted := planted_id.x >= 0
+	var tree_id := planted_id if planted else Vector2i(wx, wz)
+	# A tree planted where a wild one was felled takes its column; the wild one never returns.
+	if bool(_tree_changes.get(tree_id, {}).get("felled", false)) or bool(_tree_changes.get(tree_id, {}).get("planted", false)) != planted:
 		return null
 	model_path = resolve_tree_model_for_season(stage_data, _season, Vector3i(wx, ground_y, wz),
 		String(_tree_changes.get(tree_id, {}).get("harvested_cycle", "")) == _fruit_cycle())
@@ -979,6 +988,13 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 			amount += "–%d" % int(fruit.yield_max)
 		data.badge = {"icon": "res://assets/ui/items/%s.png" % String(species_fruit.get("yield_item", "")).replace(":", "_"),
 			"value": amount, "tooltip": "%s %s ready to pick" % [amount, String(fruit.get("yield_label", "berries"))]}
+	if bool(change.get("planted", false)):
+		var growth: Dictionary = _planting.describe(tree_id)
+		data.rows.insert(1, growth.row)
+		data.details = growth.note + ("\n\n" + details if not details.is_empty() else "")
+		if not marked and not can_harvest_tree(tree_id): data.status = {"text": growth.status, "tone": growth.tone}
+		if UIRegistry.dev_tools_enabled and String(tree["stage"]) != "ancient":
+			data.actions.append({"id": "dev_grow", "text": "DEV: Grow to next stage", "variant": "dev"})
 	return data
 
 
@@ -990,6 +1006,9 @@ func perform_explorer_action(tree_id: Variant, action_id: String) -> void:
 			cancel_felling(tree_id)
 		elif action_id == "harvest":
 			designate_harvest(tree_id)
+		elif action_id == "dev_grow":
+			_planting.dev_grow(tree_id)
+			_on_growth_hour(0)
 
 
 func _explorer_item_name(item_key: String) -> String:
@@ -1052,16 +1071,8 @@ func _designate_tree_work(tree_id: Vector2i, action: String) -> bool:
 		return false
 	if bool(_tree_changes.get(tree_id, {}).get("designated", false)):
 		return String(_tree_changes[tree_id].get("action", "fell")) == action
-	if not _tree_changes.has(tree_id):
-		var tree: Dictionary = _trees[tree_id]
-		var species_key := "base:flora:%s_tree" % String(tree["name"])
-		if _species_for_key(species_key).is_empty():
-			return false
-		_tree_changes[tree_id] = {"species": species_key, "stage": String(tree["stage"]),
-			"origin": tree["cell"], "work_seconds": 0.0, "designated": false, "felled": false,
-			"action": "fell", "fell_work_seconds": 0.0, "harvest_work_seconds": 0.0,
-			"harvest_work_cycle": "", "harvested_cycle": ""}
-	var state: Dictionary = _tree_changes[tree_id]
+	var state := _tree_state(tree_id)
+	if state.is_empty(): return false
 	state[String(state.get("action", "fell")) + "_work_seconds"] = float(state.work_seconds)
 	if action == "harvest" and String(state.get("harvest_work_cycle", "")) != _fruit_cycle():
 		state["harvest_work_seconds"] = 0.0
@@ -1071,6 +1082,24 @@ func _designate_tree_work(tree_id: Vector2i, action: String) -> bool:
 	_tree_changes[tree_id]["designated"] = true
 	_ensure_felling_source(tree_id)
 	_update_felling_marker(tree_id)
+	tree_felling_changed.emit(tree_id)
+	return true
+
+
+## A tree's saved forestry state, made the first time it is needed; {} for an unknown species.
+func _tree_state(tree_id: Vector2i) -> Dictionary:
+	var key := "base:flora:%s_tree" % String(_trees[tree_id].name)
+	if not _tree_changes.has(tree_id) and not _species_for_key(key).is_empty():
+		_tree_changes[tree_id] = Planting.base_state(key, String(_trees[tree_id].stage), _trees[tree_id].cell)
+	return _tree_changes.get(tree_id, {})
+
+
+## DEV Remove: a standing tree goes at once, as felled but without logs or seeds; saves keep it gone.
+func dev_remove_tree(tree_id: Vector2i) -> bool:
+	if get_explorer_bounds(tree_id).size == Vector3.ZERO or _tree_state(tree_id).is_empty(): return false
+	_tree_changes[tree_id].merge({"felled": true, "designated": false}, true)
+	work.retire(tree_id, true) # A dwarf at work on it lets go and its job is cancelled.
+	_remove_tree_visual(tree_id)
 	tree_felling_changed.emit(tree_id)
 	return true
 
@@ -1178,16 +1207,27 @@ func _complete_felling(dwarf_id: int, tree_id: Vector2i) -> bool:
 	work.retire(tree_id, false) # The finishing dwarf completes its lease.
 	var species := _species_for_key(String(state["species"]))
 	var yields: Array = species["stages"][state["stage"]].get("harvest", {}).get("yields", [])
-	var drop_cell: Vector3i = state["origin"]
+	var origin: Vector3i = state["origin"]
 	var width := _footprint_for(species["placement"], String(state["stage"]))
 	if show_feedback:
-		WorkFeedback.tree_felled(Vector3(drop_cell)+Vector3(width*.5,1,width*.5),String(state["stage"]),drop_cell.y)
-	var half := floori(float(width) * .5)
-	drop_cell += Vector3i(half, 1, half)
+		WorkFeedback.tree_felled(Vector3(origin)+Vector3(width*.5,1,width*.5),String(state["stage"]),origin.y)
+	# Logs lie one to a tile over the cleared footprint, nearest its centre first
+	# (doubled coordinates keep an even footprint's centre whole).
+	var cells: Array[Vector3i] = []
+	for dx in range(width):
+		for dz in range(width):
+			cells.append(origin + Vector3i(dx, 1, dz))
+	var centre := origin * 2 + Vector3i(width - 1, 0, width - 1)
+	cells.sort_custom(func(a: Vector3i, b: Vector3i) -> bool:
+		var da := Vector2i(a.x * 2 - centre.x, a.z * 2 - centre.z).length_squared()
+		var db := Vector2i(b.x * 2 - centre.x, b.z * 2 - centre.z).length_squared()
+		return da < db if da != db else (a.x < b.x if a.x != b.x else a.z < b.z))
+	# A planted tree also rolls on its planting hour, so a replanted spot rolls afresh.
+	var salt := 17001 + floori(float(state.get("planted_at", 0.0)) * 24.0) * 8
 	for i in range(yields.size()):
 		var drop: Dictionary = yields[i]
-		if _unit(_hash(tree_id.x, tree_id.y, 17001 + i)) < float(drop.get("chance", 1.0)):
-			drops.spawn_drop(String(drop["item"]), int(drop.get("count", 1)), drop_cell)
+		if _unit(_hash(tree_id.x, tree_id.y, salt + i)) < float(drop.get("chance", 1.0)):
+			drops.spawn_spread(String(drop["item"]), int(drop.get("count", 1)), cells)
 	tree_felling_changed.emit(tree_id)
 	return true
 
@@ -1325,6 +1365,62 @@ func _clear_felling_marker(tree_id: Vector2i) -> void:
 	_felling_markers.erase(tree_id)
 
 
+# ── Planted trees (doc 284; the rules live in TreePlanting) ───────────────────
+
+## Why a seed of `key` cannot go on `anchor`, its ground cell, or "".
+func planting_reason(key: String, anchor: Vector3i, ignore_ghost := -1) -> String:
+	return _planting.reason(key, anchor, ignore_ghost)
+
+
+## Whether a planted tree's grown trunk meets `box`; other plants keep off it.
+func trunk_reserved(box: AABB) -> bool:
+	return _planting.trunk_reserved(box)
+
+
+## One seed of `key` on `anchor` becomes a sapling that grows by the calendar. A felled
+## tree's record in that column gives way to it.
+func plant_tree(key: String, anchor: Vector3i) -> Vector2i:
+	assert(planting_reason(key, anchor).is_empty())
+	var id := Vector2i(anchor.x, anchor.z)
+	_tree_changes[id] = Planting.new_state(key, anchor)
+	_planting.track(id)
+	_show_planted(id)
+	return id
+
+
+## Planted trees grow on the hour; a jump in the clock may take two stages at once.
+func _on_growth_hour(_hour: int) -> void:
+	for id: Vector2i in _planting.standing():
+		var stage: String = _planting.next_stage(id)
+		while not stage.is_empty():
+			var state: Dictionary = _tree_changes[id]
+			state.stage = stage
+			state.origin = Planting.stage_origin(ContentRegistry.tree_species(String(state.species)), stage, state.anchor)
+			_show_planted(id) # A new trunk, body and occupancy under the same id and record.
+			stage = _planting.next_stage(id)
+
+
+## Replaces whatever stands in a planted tree's column with the tree at its saved
+## stage, once that column has streamed in (until then _spawn_column adds it).
+func _show_planted(id: Vector2i) -> void:
+	_remove_tree_visual(id)
+	var column := Vector2i(id.x >> 4, id.y >> 4)
+	if not _loaded_columns.has(column): return
+	var node := _instance_planted(id)
+	if node != null: _loaded_columns[column].append(node)
+
+
+func _instance_planted(id: Vector2i) -> Node3D:
+	var state: Dictionary = _tree_changes[id]
+	var species := _species_for_key(String(state.species))
+	var stage := String(state.stage)
+	var origin: Vector3i = state.origin
+	var node := _instance_tree(String(species.name), "", stage, species.stages[stage], origin.x, origin.z, origin.y,
+		_footprint_for(species.placement, stage), id)
+	if node != null: node.set_meta("stream_column", Vector2i(id.x >> 4, id.y >> 4))
+	return node
+
+
 func save_section_key() -> String:
 	return "flora"
 
@@ -1341,6 +1437,7 @@ func serialize_state() -> Dictionary:
 		var entry: Dictionary = _tree_changes[id].duplicate(true)
 		entry[String(entry.get("action", "fell")) + "_work_seconds"] = float(entry.work_seconds)
 		entry["origin"] = SaveManager.pack_v3i(entry["origin"])
+		if entry.has("anchor"): entry["anchor"] = SaveManager.pack_v3i(entry["anchor"])
 		entries.append(entry)
 	return {"trees": entries}
 
@@ -1350,6 +1447,8 @@ func restore_state(state: Dictionary) -> void:
 	work.retire_all(true)
 	for id: Vector2i in _felling_markers.keys():
 		_clear_felling_marker(id)
+	for id: Vector2i in _planting.standing(): _remove_tree_visual(id)
+	_planting.clear()
 	_tree_changes.clear()
 	# Missing section in a pre-forestry save means the untouched seeded forest.
 	for raw in state.get("trees", []):
@@ -1359,6 +1458,8 @@ func restore_state(state: Dictionary) -> void:
 		var species := _species_for_key(String(entry.get("species", "")))
 		var stage_name := String(entry.get("stage", ""))
 		var origin := SaveManager.unpack_v3i(entry.get("origin", []))
+		var planted := bool(entry.get("planted", false))
+		if planted: origin = SaveManager.unpack_v3i(entry.get("anchor", [])) # A planted tree's id is its seed's cell.
 		if origin.x < 0 or origin.x >= WorldData.WORLD_SIZE_X or origin.z < 0 \
 				or origin.z >= WorldData.WORLD_SIZE_Z or origin.y < 1 or origin.y >= WorldData.WORLD_SIZE_Y - 1:
 			continue
@@ -1377,6 +1478,12 @@ func restore_state(state: Dictionary) -> void:
 			"harvest_work_seconds": clampf(float(entry.get("harvest_work_seconds", 0)), 0, harvest_duration),
 			"harvest_work_cycle": String(entry.get("harvest_work_cycle", "")), "harvested_cycle": String(entry.get("harvested_cycle", "")),
 			"felled": felled, "designated": bool(entry.get("designated", false)) and not felled}
+		if planted:
+			_tree_changes[id].merge({"planted": true, "anchor": origin, "planted_at": float(entry.get("planted_at", 0.0)),
+				"growth_credit": maxf(0.0, float(entry.get("growth_credit", 0.0))),
+				"origin": Planting.stage_origin(ContentRegistry.tree_species(String(species.key)), stage_name, origin)}, true)
+			_planting.track(id)
+			if not felled: _show_planted(id)
 		if felled:
 			_remove_tree_visual(id)
 		elif bool(_tree_changes[id]["designated"]):

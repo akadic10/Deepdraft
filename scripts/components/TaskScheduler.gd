@@ -256,7 +256,7 @@ func _assign_bucket(type: int, probes_left: int, t_start: int) -> int:
 			TaskManager.notify_dwarf_unavailable(dwarf_id)
 			_agents.erase(dwarf_id)
 			continue
-		if type in types_for(agent):
+		if takes(agent, type):
 			probes_left = _try_assign_type(agent, type, probes_left, t_start)
 	return probes_left
 
@@ -481,7 +481,7 @@ func _try_assign_move(task: Task, source: Object, quote: Dictionary, probes_left
 		var dwarf_id: int = _move_match.idle[_move_match.index]
 		_move_match.index += 1
 		var agent: DwarfAgent = _agents.get(dwarf_id)
-		if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not task.type in types_for(agent): continue
+		if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not takes(agent, task.type): continue
 		TaskManager.hold_for_planning(agent)
 		var from := agent.current_cell()
 		for cell: Vector3i in quote.stands:
@@ -552,7 +552,7 @@ func _try_assign_crafts(probes_left: int, t_start: int) -> int:
 			task = null
 			for id: int in _pending.get(Task.Type.CRAFT,[]):
 				var next: Task = _tasks.get(id)
-				if next != null and next.is_available(now):
+				if next != null and next.is_available(now) and has_idle_crafter(next):
 					task = next
 					break
 		if task == null: return probes_left
@@ -569,7 +569,7 @@ func _try_assign_crafts(probes_left: int, t_start: int) -> int:
 			if not _within_budget(t_start,probes_left): return 0
 			var dwarf_id: int = _craft_match.idle[_craft_match.index]
 			var candidate_agent: DwarfAgent = _agents.get(dwarf_id)
-			if not is_instance_valid(candidate_agent) or not dwarf_id in _idle_dwarves or not Task.Type.CRAFT in types_for(candidate_agent):
+			if not is_instance_valid(candidate_agent) or not dwarf_id in _idle_dwarves or not crafts(candidate_agent, task):
 				_craft_match.index += 1
 				_craft_match.query = {}
 				continue
@@ -640,6 +640,8 @@ func _try_assign_crafts(probes_left: int, t_start: int) -> int:
 		_craft_match.clear()
 		task.blocked_count = 0
 		assign(task,agent)
+		# The next free bench goes to the top-most order that can start again.
+		_scan_cursor[Task.Type.CRAFT] = 0
 	return probes_left
 
 
@@ -707,7 +709,7 @@ func _try_assign_surface(type: int, probes_left: int, t_start: int) -> int:
 			var dwarf_id: int = _surface_match.idle[_surface_match.index]
 			_surface_match.index += 1
 			var agent: DwarfAgent = _agents.get(dwarf_id)
-			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not type in types_for(agent): continue
+			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not takes(agent, type): continue
 			_surface_match.eligible += 1
 			TaskManager.hold_for_planning(agent)
 			var from := agent.current_cell()
@@ -729,7 +731,7 @@ func _try_assign_surface(type: int, probes_left: int, t_start: int) -> int:
 			var candidate: Dictionary = _surface_match.candidates[_surface_match.probe_index]
 			_surface_match.probe_index += 1
 			var agent: DwarfAgent = _agents.get(int(candidate.dwarf_id))
-			if not is_instance_valid(agent) or not int(candidate.dwarf_id) in _idle_dwarves or not type in types_for(agent): continue
+			if not is_instance_valid(agent) or not int(candidate.dwarf_id) in _idle_dwarves or not takes(agent, type): continue
 			if agent.current_cell() != candidate.from:
 				_surface_match.clear()
 				TaskManager.request_wake()
@@ -793,9 +795,12 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 					var worker: DwarfAgent = _agents.get(int(route_key[0]))
 					if is_instance_valid(worker) and worker.current_cell() == route_key[1]:
 						routes[route_key] = _haul_match.routes[route_key]
-						if _haul_match.get("deferred",{}).get(worker.dwarf_id,{}).has(route_key[2]):
+						# A group waits as a whole, so its leading load says whether it waits.
+						var group: Array = routes[route_key].get("group", [route_key[2]])
+						if _haul_match.get("deferred",{}).get(worker.dwarf_id,{}).has(group[0]):
 							if not deferred.has(worker.dwarf_id): deferred[worker.dwarf_id] = {}
-							deferred[worker.dwarf_id][route_key[2]] = true
+							for cell: Vector3i in group:
+								deferred[worker.dwarf_id][cell] = true
 			_haul_match = {"task_id": task.id, "idle_version": idle_version, "revision": revision,
 				"idle": _idle_dwarves.duplicate(), "index": 0, "query": {}, "candidates": [],
 				"ranked": false, "probe_index": 0, "eligible": 0,
@@ -804,7 +809,7 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			if not _within_budget(t_start, probes_left): return 0
 			var dwarf_id: int = _haul_match.idle[_haul_match.index]
 			var agent: DwarfAgent = _agents.get(dwarf_id)
-			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not Task.Type.HAUL in types_for(agent) or _haul_match.blocked_workers.has(dwarf_id):
+			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not takes(agent, Task.Type.HAUL) or _haul_match.blocked_workers.has(dwarf_id):
 				_haul_match.index += 1
 				_haul_match.query = {}
 				continue
@@ -813,8 +818,7 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 			var query: Dictionary = _haul_match.query
 			if query.has("from") and query.from != from: query.clear()
 			query.from = from
-			query.exclude = (_haul_match.excluded.get(dwarf_id, {}) as Dictionary).duplicate()
-			query.exclude.merge(_haul_match.deferred.get(dwarf_id,{}))
+			query.exclude = _haul_exclusions(dwarf_id)
 			# Source filtering is identical for every worker in this comparison.
 			# Inventory/idle invalidation above discards the shared snapshot too.
 			query.pickup_snapshot = _haul_match.pickup_snapshot
@@ -850,23 +854,48 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 				_haul_match.idle_version = -1 # Re-rank; retain other workers' unchanged searches.
 				TaskManager.request_wake()
 				return 0
-			# Each worker/pickup keeps its own search. A hard route gets a bounded
-			# turn, then another candidate can prove a different pickup reachable.
-			# Otherwise a nearby item on another level stalls every ready worker.
-			var route_key := [candidate.dwarf_id,candidate.from,candidate.cell]
+			# Each worker keeps one search per group of loads lying the same way. A
+			# hard route gets a bounded turn, then another candidate can prove a
+			# different pickup reachable. Otherwise a nearby item on another level
+			# stalls every ready worker.
+			var route_key := _pickup_route_key(candidate)
 			if not _haul_match.routes.has(route_key): _haul_match.routes[route_key] = {"task_id":task.id}
 			var route: Dictionary = _haul_match.routes[route_key]
 			if not FetchPlanner.dependencies_current(route): route.clear()
 			route.task_id = task.id
+			if source is StorageComponent and route.has("group") and int(route.get("goals_revision", -1)) != revision:
+				_prune_pickup_goals(route, source, int(candidate.dwarf_id))
+				route.goals_revision = revision
+				if bool(route.get("pickup_ok", false)) and not (route.group as Array).has(route.pickup_cell):
+					# The load this proof reached has been claimed since. Its search carries on to
+					# the group's next load, or the pickup is planned again if it cannot.
+					var reopened := NavGrid.reopen_search(route.get("pickup_query", {}), route.pickup_goals)
+					if reopened.is_empty():
+						_haul_match.routes.erase(route_key)
+						continue
+					for finished: String in ["pickup_ok", "pickup_stand", "pickup_path", "pickup_cell", "pickup_query", "last_route"]:
+						route.erase(finished)
+					route["route_query"] = reopened
 			if not bool(route.get("pickup_ok",false)):
 				probes_left -= 1
 				_probes_total += 1
-				var pickup_goals := {}
-				if source is StorageComponent:
-					for cell: Vector3i in StorageComponent.ground_access_cells(candidate.cell):
-						if NavGrid.is_walkable(cell): pickup_goals[cell] = true
-				var pickup := NavGrid.ProbeResult.UNREACHABLE if source is StorageComponent and pickup_goals.is_empty() else _advance_haul_probe(route, agent, candidate.from, candidate.cell, t_start,pickup_goals)
+				if source is StorageComponent and not route.has("pickup_goals"):
+					# One search covers the quoted load's group of loads lying the same way.
+					route["group"] = source.pickup_group(candidate.from, candidate.cell, _haul_match.pickup_snapshot, _haul_exclusions(int(candidate.dwarf_id)))
+					var goals := {}
+					for cell: Vector3i in route.group:
+						for stand: Vector3i in StorageComponent.ground_access_cells(cell):
+							if NavGrid.is_walkable(stand): goals[stand] = true
+					route["pickup_goals"] = goals
+					route["goals_revision"] = revision
+					route["search_goal"] = candidate.cell
+				var pickup_goals: Dictionary = route.get("pickup_goals", {})
+				var pickup := NavGrid.ProbeResult.UNREACHABLE if source is StorageComponent and pickup_goals.is_empty() else _advance_haul_probe(route, agent, candidate.from, route.get("search_goal", candidate.cell), t_start,pickup_goals)
 				if pickup == NavGrid.ProbeResult.SEARCHING:
+					# Hold the shared search's own goals, so a lease pruning them prunes them
+					# for every lease on that search (_prune_pickup_goals).
+					if route.has("pickup_goals") and route.route_query.get("goals", {}) == pickup_goals:
+						route.pickup_goals = route.route_query.goals
 					_yield_haul_candidate(route)
 					return 0
 				if pickup != NavGrid.ProbeResult.REACHABLE:
@@ -874,7 +903,7 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 					_haul_match.routes.erase(route_key)
 					if is_instance_valid(source) and source.has_method("advance_haul_quote"):
 						var excluded: Dictionary = _haul_match.excluded.get(int(candidate.dwarf_id), {})
-						excluded[candidate.cell] = true
+						for cell: Vector3i in route.get("group", [candidate.cell]): excluded[cell] = true
 						_haul_match.excluded[int(candidate.dwarf_id)] = excluded
 						_restart_haul_ranking()
 						rerank = true
@@ -884,7 +913,18 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 				route.pickup_ok = true
 				route["pickup_stand"] = route.last_route.path.back()
 				route["pickup_path"] = route.last_route.path
+				route["pickup_query"] = route.last_route
 				route.slices = 0
+				route["pickup_cell"] = candidate.cell
+				if source is StorageComponent:
+					route.pickup_cell = source.pickup_cell_for_stand(route.pickup_stand, route.group)
+					if route.pickup_cell.x < 0:
+						# A proof shared from before the last claims reached a load that has
+						# gone: quote afresh rather than send the dwarf to it.
+						_haul_match.routes.erase(route_key)
+						_restart_haul_ranking()
+						rerank = true
+						break
 			if not _within_budget(t_start, probes_left): return 0
 			var destination := task.target_pos
 			if is_instance_valid(source) and source.has_method("nearest_stand_target"):
@@ -902,9 +942,8 @@ func _try_assign_hauls(probes_left: int, t_start: int) -> int:
 				return 0
 			if delivery == NavGrid.ProbeResult.REACHABLE:
 				task.blocked_count = 0
-				var excluded: Dictionary = (_haul_match.excluded.get(agent.dwarf_id, {}) as Dictionary).duplicate()
-				excluded.merge(_haul_match.deferred.get(agent.dwarf_id,{}))
-				task.payload["haul_excluded_cells"] = excluded.keys()
+				task.payload["haul_excluded_cells"] = _haul_exclusions(agent.dwarf_id).keys()
+				task.payload["haul_pickup_cell"] = route.pickup_cell
 				task.payload["haul_pickup_path"] = route.pickup_path
 				task.payload["haul_delivery_path"] = route.last_route.path
 				_haul_match.clear()
@@ -953,8 +992,12 @@ func _advance_haul_probe(route: Dictionary, agent: DwarfAgent, from: Vector3i,
 		if retained.get("start") == from and retained.get("goal") == goal and retained.get("goals",{}) == goals:
 			_haul_route_cache[key]["route_query"] = retained
 	var shared: Dictionary = _haul_route_cache[key]
+	# A pickup search pruned since this entry was made (_prune_pickup_goals) no longer
+	# answers this key: drop it here rather than let NavGrid restart it under its leases.
+	var held: Dictionary = shared.get("route_query", shared.get("last_route", {}))
 	if not FetchPlanner.dependencies_current(shared) \
 			or (shared.has("route_query") and not NavGrid.search_is_current(shared.route_query)) \
+			or held.get("goals", goals) != goals \
 			or (int(shared.get("result",-1)) == NavGrid.ProbeResult.BUDGET_EXHAUSTED and TaskManager.journal.now >= float(shared.get("retry_at",0))):
 		shared.clear()
 	var result := int(shared.get("result",NavGrid.ProbeResult.SEARCHING))
@@ -990,9 +1033,52 @@ func _yield_haul_candidate(route: Dictionary) -> void:
 		route.slices = 0
 		var candidate: Dictionary = _haul_match.candidates[_haul_match.probe_index]
 		if not _haul_match.deferred.has(candidate.dwarf_id): _haul_match.deferred[candidate.dwarf_id] = {}
-		_haul_match.deferred[candidate.dwarf_id][candidate.cell] = true
+		# The search covers its whole group, so all of those loads wait for its next turn.
+		for cell: Vector3i in route.get("group", [candidate.cell]):
+			_haul_match.deferred[candidate.dwarf_id][cell] = true
 		_restart_haul_ranking()
 	TaskManager.request_wake()
+
+
+## A quote that lands in a group the worker is already searching from here carries on with
+## that search, now led by the quoted load, rather than starting another. This keeps the
+## search when the load it was first quoted for is claimed by someone else.
+func _pickup_route_key(candidate: Dictionary) -> Array:
+	var key := [candidate.dwarf_id, candidate.from, candidate.cell]
+	if _haul_match.routes.has(key): return key
+	for other: Array in _haul_match.routes:
+		var group: Array = _haul_match.routes[other].get("group", [])
+		if other[0] == candidate.dwarf_id and other[1] == candidate.from and group.has(candidate.cell):
+			group.erase(candidate.cell)
+			group.push_front(candidate.cell)
+			# The former lead may be the load that was claimed: check the group again.
+			_haul_match.routes[other].goals_revision = -1
+			return other
+	return key
+
+
+## Loads claimed or ruled out since a pickup search began stop being its goals, so it goes
+## on to the next load in its group instead of ending at one that has gone. The goals are
+## pruned in place: every lease on a shared search holds that search's own goal dictionary,
+## so pruning never makes the search look changed to another lease and restart it.
+func _prune_pickup_goals(route: Dictionary, source: StorageComponent, dwarf_id: int) -> void:
+	var kept: Array[Vector3i] = source.current_pickup_group(route.group, _haul_match.pickup_snapshot, _haul_exclusions(dwarf_id))
+	if kept.size() == (route.group as Array).size(): return
+	route.group = kept
+	var stands := {}
+	for cell: Vector3i in kept:
+		for stand: Vector3i in StorageComponent.ground_access_cells(cell): stands[stand] = true
+	var goals: Dictionary = route.pickup_goals
+	for stand: Vector3i in goals.keys():
+		if not stands.has(stand): goals.erase(stand)
+
+
+## Pickups this comparison has ruled out for a worker: proven failures, and loads whose
+## search is waiting for its next turn.
+func _haul_exclusions(dwarf_id: int) -> Dictionary:
+	var exclude: Dictionary = (_haul_match.excluded.get(dwarf_id, {}) as Dictionary).duplicate()
+	exclude.merge(_haul_match.deferred.get(dwarf_id, {}))
+	return exclude
 
 
 func _restart_haul_ranking() -> void:
@@ -1030,15 +1116,61 @@ func assign(task: Task, agent: DwarfAgent, carried_item: Node3D = null) -> void:
 func types_for(agent: DwarfAgent) -> Array[int]:
 	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or not NavGrid.is_navigable(agent.current_cell()): return []
 	if agent.promotion_pending(): return []
-	if agent.needs_bridge_exit(): return []
 	var types: Array[int] = []
-	types.assign(Task.COMMON_WORK)
-	if agent.profession == "base:profession:worker": types.append(Task.Type.CRAFT)
+	types.assign(DwarfAssets.profession_task_types(agent.profession))
 	if agent.work_permissions.is_empty(): return types
 	var allowed: Array[int] = []
 	for type: int in types:
 		if agent.allows_task(type): allowed.append(type)
 	return allowed
+
+
+## A craft order goes to the career that makes its section (doc 292): Rudimentary orders to
+## Workers, the Ranger's to Rangers. A lease whose order is gone stays takeable, so the craft
+## matcher can cancel it.
+func crafts(agent: DwarfAgent, task: Task) -> bool:
+	if not Task.Type.CRAFT in types_for(agent): return false
+	var source: Object = _work_sources.get(task.source_id)
+	if not is_instance_valid(source): return true
+	var recipe: Variant = source.get("recipe")
+	return DwarfAssets.craft_section(agent.profession) == (String(recipe.get("section", "rudimentary")) if recipe is Dictionary else "rudimentary")
+
+
+## Whether a matcher may give this dwarf work of this type: types_for, and a career that names
+## its `work` does it in that order (doc 292). An available task earlier in that list that the
+## dwarf could take keeps them from later work, so a Ranger dries before fishing or hauling.
+## Without it a drying search spanning several wakes lost the Ranger, every time, to the
+## fishing spot at their feet (owner, 2026-11-01). A search that fails backs its task off,
+## which frees the dwarf for later work meanwhile.
+func takes(agent: DwarfAgent, type: int) -> bool:
+	var types := types_for(agent)
+	if not type in types: return false
+	var order := DwarfAssets.profession_work_order(agent.profession)
+	var at := order.find(type)
+	var before: Array[int] = []
+	if at > 0: before.assign(order.slice(0, at))
+	# A career that takes the common work may name what comes first (doc 293: the Carpenter and
+	# the Stonemason craft first); the common work then keeps its usual priorities.
+	if at < 0:
+		for first: int in DwarfAssets.profession_work_first(agent.profession):
+			if first != type: before.append(first)
+	if before.is_empty(): return true
+	var now := Time.get_ticks_msec()
+	for earlier: int in before:
+		if not earlier in types: continue
+		for id: int in _pending.get(earlier, []):
+			var task: Task = _tasks.get(id)
+			if task != null and task.is_available(now) and (earlier != Task.Type.CRAFT or crafts(agent, task)): return false
+	return true
+
+
+## Whether an idle dwarf could take this craft order, so one waiting for a busy Ranger never
+## holds up the Workers' orders below it.
+func has_idle_crafter(task: Task) -> bool:
+	for id: int in _idle_dwarves:
+		var agent: DwarfAgent = _agents.get(id)
+		if is_instance_valid(agent) and crafts(agent, task): return true
+	return false
 
 
 func _bucket_priority(type: int) -> int:
@@ -1063,9 +1195,10 @@ func _assign_specialized_bucket(type: int, probes_left: int, t_start: int) -> in
 	var cursor := int(_scan_cursor.get(type,0))
 	for offset in range(ids.size()):
 		var next: Task = _tasks.get(ids[(cursor+offset)%ids.size()])
-		if next != null and next.is_available(Time.get_ticks_msec()):
+		if next != null and next.is_available(Time.get_ticks_msec()) and (type != Task.Type.CRAFT or has_idle_crafter(next)):
 			selected = next
-			_scan_cursor[type] = (cursor+offset)%ids.size()
+			# Craft orders are the player's queue: only a yielded search moves past the top.
+			if type != Task.Type.CRAFT: _scan_cursor[type] = (cursor+offset)%ids.size()
 			break
 	if selected == null: return probes_left
 	var context: Dictionary = _family_frontiers.get(selected.id,{})

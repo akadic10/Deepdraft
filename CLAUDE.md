@@ -53,7 +53,7 @@ changelog: record finished work as described under "Recording Changes".
 | [`41_dwarf_agents.md`](docs/40_economy_colony/41_dwarf_agents.md) | Work on dwarf stats, needs, state machine, or skill system. |
 | [`42_farming_brewing.md`](docs/40_economy_colony/42_farming_brewing.md) | Add crops, recipes, farm logic, or plant visual meshes. |
 | [`43_mining_materials.md`](docs/40_economy_colony/43_mining_materials.md) | Add block types, change noise generation, or touch collapse logic. |
-| [`44_crafting_workshops.md`](docs/40_economy_colony/44_crafting_workshops.md) | Work on the Smelter or Forge workshops, Blacksmith/Weaponsmith/Armorsmith professions, metalworking recipes, or ingot stockpile logic. |
+| [`44_crafting_workshops.md`](docs/40_economy_colony/44_crafting_workshops.md) | Work on the Smelter or Forge workshops, the Blacksmith profession, metalworking recipes, or ingot stockpile logic. |
 | [`45_wildlife.md`](docs/40_economy_colony/45_wildlife.md) | Work on rabbits/deer/wolves/ducks, wildlife needs, ground/swim/flight navigation, flocks, hunting, spawning, inspection or future food connections. |
 
 ### 📁 World Events — `docs/50_world_events/`
@@ -128,6 +128,10 @@ These come from the owner and override older guidance in milestone docs.
   - Never delete the Tier 2 · Carpenter designs:
     - `tools/art_data/studies/hearthblock_furniture_tiers.json`;
     - `diningTable()` and `bed()` in `tools/hearthblock/art/proposal.mjs`.
+- **Sound: real recordings by default.** Follow the
+  [sound workflow below](#sound-workflow) for sourcing, licenses,
+  lossless originals and preview fallbacks, reproducible preparation and listening
+  review. Disclose substitute foley and preserve playback behavior during asset swaps.
 - **Git: the owner commits.** Do not commit, push, stash or branch, and do not ask or offer
   to commit. Leave changes in the working tree and list the changed files when handing over.
 - **Builds only when asked.** Do not create, rebuild or package a Windows playtest unless
@@ -142,6 +146,8 @@ These come from the owner and override older guidance in milestone docs.
   the owner asks. Keep current-version save and load working.
 - **Gems: no Jeweller.** There is no Jeweller profession or workshop and no
   cutting/polishing stage. Gem ids keep their `_raw` suffix; display names leave out "Raw".
+- **Metalwork: Blacksmith only.** There is no Weaponsmith or Armorsmith. The Blacksmith
+  smelts ore and forges tools, hardware, weapons and armor.
 - **Honey (future requirement).** Wildflowers must support honey production through nearby
   seasonal forage, and beekeeping must account for bloom state and clearing.
   - This isn't implemented yet; see
@@ -165,6 +171,62 @@ These come from the owner and override older guidance in milestone docs.
   hand over for the owner's look. Stop when the owner says a change works.
 - **Scratch and evidence.** Test output, review screenshots and reports go to `tmp/`,
   which git and Godot both ignore. Do not copy them into `docs/` unless the owner asks.
+- **Colony checks: weekly.** A check in a copy of the owner's colony runs once a week, not
+  after each change; a scheduled task reminds the owner on Mondays. Between times, run one only
+  when the owner asks. Log every check in
+  [`00_colony_checks.md`](docs/00_dev_roadmap/00_colony_checks.md), which also says how to run one.
+
+---
+
+## Sound workflow
+
+- **Use real recordings by default.** Choose recordings of the intended animal,
+  action, material or environment, including recorded instruments for suitable UI
+  cues. Preserve natural character and suit Deepdraft's quiet, cozy atmosphere.
+  Use synthesis when the owner asks for it or agrees to a specific exception.
+- **Match the actual source to the intended sound.** Check the uploader's
+  description and audition when listening tools are available; a filename alone
+  is not evidence. Prefer the actual species, action and material. If using
+  substitute foley, name it clearly in the source notes and review (for example,
+  dog chewing for wolf eating or shovel digging for soil mining). Do not present
+  a substitute as a direct recording of the named subject.
+- **Prefer CC0 sources with clear provenance.** Freesound is an established
+  source for this project, not the only permitted source. Verify the license on
+  each original source page; do not assume every upload on a site has the same
+  license. For another license, establish that game distribution and editing are
+  allowed and retain any required attribution before including the recording.
+- **Prefer original lossless downloads.** Use original WAV/FLAC recordings when
+  accessible. A public HQ MP3 preview is an acceptable fallback when the original
+  is unavailable; identify that fallback explicitly. Converting MP3 to WAV does
+  not restore lost quality. Do not describe decoded previews as original WAVs.
+- **Keep preparation reproducible.** Store reusable source masters under
+  `tools/audio_sources/<family>/`, with `.gdignore`, `LICENSE.txt` and `source.json`.
+  Record the title, creator, source page, download URL/type, license URL, retrieval
+  date, source/master hashes and any upstream processing disclosed by the author.
+  Document master conversion, source excerpts, channel choices, resampling,
+  filters, fades, gain and any other edits. Keep a generator under `tools/` that
+  rebuilds the installed WAVs from those masters and settings without a download.
+  Update older generator entry points so they cannot restore synthetic assets.
+- **Edit lightly and mix in context.** Preserve source pitch, speed and phrasing
+  by default. Use distinct recorded events for variations. Trim excess silence,
+  remove DC, filter only as needed and fade one-shot edges. Crossfade loops and
+  check their repeat boundaries. Preserve natural transients and tails, avoid
+  clipping and balance at the configured bus/profile levels. Peak and RMS
+  measurements support listening; matching numbers alone does not prove a good mix.
+- **Preserve playback behavior during asset replacements.** Keep event timing,
+  buses, cooldowns, voice limits, spatial/slice rules and pause behavior unless
+  the requested work includes changing them. Let Godot import assets; never
+  hand-edit `.import` files. Verify formats, duration, endpoints or loop seams,
+  source hashes, reproducible output and that unrelated WAVs are unchanged.
+  Run a focused existing audio/behavior check through the project test runner
+  for an asset-only change; use the gameplay gate when playback logic changes.
+- **Install and provide a listening comparison.** When replacement is requested,
+  install the prepared assets and put before/after players, configured-level
+  previews, source credits and verification evidence in `tmp/`. Keep backups of
+  the former cues there. Include repeat-boundary previews for loops. State what
+  was actually checked: waveform analysis and headless tests are not listening
+  approval. If direct listening is unavailable, say so. Leave final listening
+  acceptance to the owner and include the appropriate restart-Play handoff.
 
 ---
 
@@ -193,7 +255,7 @@ Deepdraft/
 ├── project.godot         ← agents may edit [autoload], the main scene and [input] only
 ├── docs/                 ← design docs (10–60) and milestone docs; Godot ignores this folder
 │   └── 00_dev_roadmap/   ← 00_changelog.md, 00_open_issues.md, 00_todo.md (deferred work),
-│                            one NNN_*.md per milestone
+│                            00_colony_checks.md (weekly checks), one NNN_*.md per milestone
 ├── data/                 ← JSON definitions (audio, calendar, camera, construction,
 │                            entities, events, furniture, materials, professions, rooms, sky,
 │                            tasks, terrain, ui, video, weather, workshops, world_events,

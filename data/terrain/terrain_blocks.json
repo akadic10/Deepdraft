@@ -45,7 +45,7 @@
     "base:terrain:ore:tin": { "kind": "tin_ore",    "hex_color": "#A8B8A0",   "hardness":  2, "inspection": {"name": "Tin ore", "category": "Ore deposit", "description": "A natural deposit that can yield tin ore when mined."} },
     "base:terrain:ore:iron": { "kind": "iron_ore",   "hex_color": "#7A5C45",   "hardness":  4, "inspection": {"name": "Iron ore", "category": "Ore deposit", "description": "A natural deposit that can yield iron ore when mined."} },
     "base:terrain:ore:silver": { "kind": "silver_ore", "hex_color": "#C0C4CC",   "hardness":  4, "inspection": {"name": "Silver ore", "category": "Ore deposit", "description": "A natural deposit that can yield silver ore when mined."} },
-    "base:terrain:ore:coal": { "kind": "coal",       "hex_color": "#021C24",   "hardness":  2, "inspection": {"name": "Coal", "category": "Mineral deposit", "description": "A natural deposit that can yield coal when mined."} },
+    "base:terrain:ore:coal": { "kind": "coal",       "hex_color": "#29343D",   "hardness":  2, "inspection": {"name": "Coal", "category": "Mineral deposit", "description": "A natural deposit that can yield coal when mined."} },
     "base:terrain:ore:gold": { "kind": "gold_ore",   "hex_color": "#FFD700",   "hardness":  5, "inspection": {"name": "Gold ore", "category": "Ore deposit", "description": "A natural deposit that can yield gold ore when mined."} },
 
     "__comment_logs": "Built logs (doc 275): one block per wood and the way it lies (up, along x, along z), so mining gives that log back and saves keep its direction. BuiltLogs draws them as Hearthblock log pieces; hex_color is the bark, for pictures and maps.",

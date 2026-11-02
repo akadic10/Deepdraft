@@ -4,6 +4,7 @@ const CHAIR := "base:furniture:log_chair"
 const TABLE := "base:furniture:log_table"
 const STOOL := "base:furniture:log_chair"
 const LOG_BENCH := "base:furniture:bench"
+const CAMPFIRE := "base:furniture:campfire"
 var details
 var bush_id := "blueberry:1234:1:1"
 
@@ -11,13 +12,15 @@ func _run() -> void:
 	create_timer(150).timeout.connect(func(): push_error("Dining test timed out"); quit(1))
 	await _setup_crafting_fixture()
 	await _arrangements()
+	await _facing()
 	await _famished_seating_range()
+	await _busy_room_at_speed()
 	await _interruptions()
 	await _foraging()
 	_effects_and_save()
 	await _presentation()
 	for failure in failures: push_error(failure)
-	print("DWARF_DINING_OK: four dining outcomes, seat contention, interruption, emergency crops, claims, conservation, season, saved work, mood, work speed and UI" if failures.is_empty() else "DWARF_DINING_FAIL")
+	print("DWARF_DINING_OK: four dining outcomes, fire and table facing, room-wide reach, busy room at x3, seat contention, interruption, emergency crops, claims, conservation, season, saved work, mood, work speed and UI" if failures.is_empty() else "DWARF_DINING_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _clear_layout() -> void:
@@ -91,20 +94,52 @@ func _arrangements() -> void:
 		_expect(worker.walk_to(Vector3i(40,20,39)),"player movement can interrupt rest after eating")
 		_expect(seat.idle_seat_owner<0 and not worker._idle_behavior.active() and worker._body.position.is_zero_approx(),"movement after a meal releases the transferred seat and pose")
 
+## The owner's report (2026-10-29): a dwarf ate on a campfire stool facing away from
+## the fire. A stool faces a table its front meets, else a campfire, eating or resting.
+func _facing() -> void:
+	_clear_layout()
+	var fire = _piece(CAMPFIRE,Vector3i(48,20,44))
+	var stool = _piece(STOOL,Vector3i(49,20,42),1) # side-on to the ring south of it
+	# Cold by day, then lit at night: the owner chose that both draw the stool.
+	for lit: bool in [false,true]:
+		if lit: furniture.get_fires().light(fire,PINE,"base:material:pine")
+		var fire_state := "burning" if lit else "cold"
+		_expect(await _meal_start(),fire_state+" campfire: diner reaches eating")
+		var dining = worker._food._dining
+		_expect(dining.outcome()=="seat_only" and dining.choice.get("seat")==stool and dining.choice.yaw==0 and stool.idle_seat_yaw_steps==0 and is_zero_approx(worker.rotation.y),
+			"a diner on a stool turns to face the "+fire_state+" campfire")
+		await _finish_food()
+		var idle = worker._idle_behavior
+		_expect(idle.state=="sitting" and idle.seat==stool and is_zero_approx(worker.rotation.y) and idle._focus_fire_id==fire.installed_id,
+			"resting after the meal keeps facing the "+fire_state+" fire, head turn included")
+		idle.cancel()
+		_expect(furniture._seating.facing(stool,6.0)=={"yaw":0,"fire_id":fire.installed_id},"idle sitting picks the same "+fire_state+" fire")
+	# A table one tile north, which the stool's front can meet, comes before the fire.
+	var table = _piece(TABLE,Vector3i(48,20,38))
+	_expect(furniture._seating.facing(stool,6.0)=={"yaw":2},"an idle stool by a table turns to the table, not the fire")
+	_expect(await _meal_start(),"table and fire: diner reaches eating")
+	var dining = worker._food._dining
+	_expect(dining.outcome()=="proper" and dining.choice.get("table")==table and dining.choice.yaw==2,"a diner beside both eats facing the table")
+	await _finish_food()
+	_expect(worker._idle_behavior.state=="sitting" and worker._idle_behavior._focus_fire_id<0,"resting after a table meal keeps facing the table")
+	_clear_layout()
+
+## The owner's report (2026-10-30): in the lobby every dwarf ate standing at the food
+## pile. The free table and stools were 17-20 blocks away, past the old sixteen-block reach.
 func _famished_seating_range() -> void:
 	_clear_layout()
 	# Keep both near and distant furniture genuinely walkable, so rejection
 	# outside the dining limit cannot pass merely because terrain is missing.
 	var rock: int = blocks.get_id("base:terrain:rock:rock01")
-	for x in range(38,66):
+	for x in range(38,80):
 		for z in range(38,49):
 			world.set_block(x,20,z,rock)
 			for y in range(21,25): world.set_block(x,y,z,0)
 	await _frames(2)
 	for start_food: float in [.3,.05]:
 		_clear_layout()
-		var seat = _piece(CHAIR,Vector3i(50,20,41))
-		var table = _piece(TABLE,Vector3i(49,20,42))
+		var seat = _piece(CHAIR,Vector3i(58,20,41))
+		var table = _piece(TABLE,Vector3i(57,20,42))
 		_store(BLUEBERRY,4)
 		_hungry(worker)
 		worker._food.value = start_food
@@ -113,20 +148,38 @@ func _famished_seating_range() -> void:
 		_expect(worker._carried_entries.size()==1 and _food_total(BLUEBERRY)==4,"dining search owns one uneaten portion")
 		_expect(await _food_phase("eating"),"hungry/famished dwarf reaches dining seat")
 		var dining = worker._food._dining
-		_expect(dining.choice.get("seat")==seat and dining.choice.get("table")==table,"both hunger tiers choose the free seat and table beyond six blocks")
-		_expect(Vector3(worker.current_cell()-pickup).length()>6 and seat.idle_seat_owner==worker.dwarf_id,"dwarf actually carries food beyond the old limit and claims the chair")
+		_expect(dining.choice.get("seat")==seat and dining.choice.get("table")==table,"both hunger tiers choose the free seat and table across the room")
+		_expect(Vector3(worker.current_cell()-pickup).length()>16 and seat.idle_seat_owner==worker.dwarf_id,"dwarf carries food past the old sixteen-block reach and claims the chair")
 		await _finish_food()
 		_expect(worker._food.last_dining=="proper" and _food_total(BLUEBERRY)==3,"proper meal consumes exactly one berry without a dining penalty")
 	_clear_layout()
-	_piece(CHAIR,Vector3i(62,20,41))
-	_piece(TABLE,Vector3i(61,20,42))
+	_piece(CHAIR,Vector3i(76,20,41))
+	_piece(TABLE,Vector3i(75,20,42))
 	_store(BLUEBERRY,4)
 	_hungry(worker)
 	worker._food.value = .05
 	_expect(await _food_phase("eating"),"famished dwarf still eats promptly when dining is too far away")
-	_expect(worker._food._dining.outcome()=="neither","the sixteen-block limit still excludes distant furniture")
+	_expect(worker._food._dining.outcome()=="neither","the thirty-two-block reach still excludes distant furniture")
 	await _finish_food()
 	_expect(_food_total(BLUEBERRY)==3,"distance fallback also consumes exactly one berry")
+
+## A wider reach brings more seats into the search, one checked per frame. At ×3 the
+## search budget ends before every seat here is checked, so the nearest seat at a table
+## must be routed as soon as it is found.
+func _busy_room_at_speed() -> void:
+	_clear_layout()
+	var seat = _piece(CHAIR,Vector3i(45,20,40))
+	var table = _piece(TABLE,Vector3i(44,20,41))
+	var budget_frames := ceili(float(worker._food.config.dining_search_seconds)/(.05*3))
+	for i in budget_frames+2: _piece(STOOL,Vector3i(48+i,20,47))
+	clock_node.set_speed(3)
+	_expect(await _meal_start(),"busy room: diner reaches eating at ×3")
+	clock_node.set_speed(1)
+	var dining = worker._food._dining
+	_expect(dining.outcome()=="proper" and dining.choice.get("seat")==seat and dining.choice.get("table")==table,
+		"the nearest seat at a table is used before every lone stool is checked")
+	await _finish_food()
+	_clear_layout()
 
 func _interruptions() -> void:
 	_clear_layout()

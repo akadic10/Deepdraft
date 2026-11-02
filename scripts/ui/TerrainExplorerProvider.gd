@@ -49,7 +49,8 @@ func get_explorer_data(hit: Dictionary) -> Dictionary:
 			var above := Vector3i(cell.x,y,cell.z)
 			if renderer.is_visually_cut(above) and not renderer.is_revealed_air(above): crossed_plan = true
 		revealed = not crossed_plan and (revealed or cell.y==WorldGenerator.get_surface_y(cell.x,cell.z))
-	if not known and (cut_face or not revealed):
+	var concealed := not known and (cut_face or not revealed)
+	if concealed:
 		block = WorldGenerator.get_overview_strata_block_id(cell.x,cell.y,cell.z)
 	var def := BlockRegistry.get_def(BlockRegistry.get_key(block))
 	var info: Dictionary = def.get("inspection",{})
@@ -58,10 +59,23 @@ func get_explorer_data(hit: Dictionary) -> Dictionary:
 	var face := "Floor" if normal==Vector3i.UP else ("Ceiling" if normal==Vector3i.DOWN else "Wall")
 	# The compact panel (doc 260): what the face is and where; no picture for terrain.
 	var surface := "Slice surface" if cut_face else "%s %s" % [String(info.category), face.to_lower()]
-	return {"title":title, "family":"work", "status":{"text":"%s · level %d" % [surface, cell.y], "tone":"fine"},
+	var data := {"title":title, "family":"work", "status":{"text":"%s · level %d" % [surface, cell.y], "tone":"fine"},
 		"rows":[["Type",info.category],["Surface","Slice surface" if cut_face else face],
 		["Level",str(cell.y)]],
 		"details":"Excavate to reveal the material inside this slice." if cut_face and not known else info.description}
+	# Replace (doc 285): Build's materials that could take the place of a block the colony sees.
+	var construction := get_tree().get_first_node_in_group("construction")
+	if construction != null and not concealed:
+		var options: Array = construction.replace_options(cell)
+		if not options.is_empty(): data.actions = [{"id":"replace","text":"Replace…","options":options}]
+	return data
 
 func get_explorer_bounds(hit: Dictionary) -> AABB:
 	return AABB(Vector3(hit.x,hit.y,hit.z),Vector3.ONE)
+
+## Replace's list picks a material: the block's replacement is planned at once, and the panel
+## turns to the plan.
+func perform_explorer_action(hit: Dictionary, action_id: String) -> void:
+	var construction := get_tree().get_first_node_in_group("construction")
+	if construction != null and action_id.begins_with("replace:"):
+		construction.replace_block(Vector3i(hit.x,hit.y,hit.z),action_id.trim_prefix("replace:"))

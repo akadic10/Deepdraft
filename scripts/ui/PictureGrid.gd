@@ -12,12 +12,14 @@ extends VBoxContainer
 ## caption emits caption_pressed. Presses are reported once the click is over, so an owner
 ## that rebuilds the grid in answer never frees the button mid-click; a click on a freed
 ## button falls through to the world behind the window. A rebuild gives keyboard focus back
-## to the tile with the same id.
+## to the tile with the same id. The rows leave room for what stands outside the tiles, the
+## chosen tile's ring and the marks, so the edge of a scroll or panel never cuts them off.
 signal item_pressed(id: String)
 signal group_pressed(id: String)
 signal caption_pressed(id: String)
 
 const MARK_RISE := 8.0   # how far a mark stands above its tile
+const RING_OUT := 4.0   # how far the chosen tile's ring stands outside it
 const MARKS := {"on": ["✓", "fine"], "some": ["−", "waiting"], "missing": ["!", "waiting"], "off": ["✕", "blocked"]}
 const STATES := {"All": "fine", "Some": "waiting"}
 const LOOKS := ["count", "mark", "dim", "selected", "tooltip", "hidden"]   # restyled in place
@@ -42,7 +44,7 @@ var _rows: Array = []   # [a group's top node, its item ids]
 
 
 func _init() -> void:
-	add_theme_constant_override("separation", 14)
+	add_theme_constant_override("separation", 14 - int(RING_OUT))   # 14 px with each row's room under it
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
@@ -77,19 +79,17 @@ func show_groups(groups: Array) -> void:
 		var row: BoxContainer = HBoxContainer.new() if heading_beside else VBoxContainer.new()
 		row.add_theme_constant_override("separation", 16 if heading_beside else 8)
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var top: Control = row
 		var titled := not String(group.get("title", "")).is_empty() or not String(group.get("state", "")).is_empty()
+		# Each row stands in room for the chosen tile's ring at its sides and below it, and
+		# the first row, when its tiles start at the grid's top, in room for the marks that
+		# stand above them: otherwise the edge of a scroll or panel cuts them off.
+		var room := MarginContainer.new()
+		for side: String in ["left", "right", "bottom"]: room.add_theme_constant_override("margin_" + side, int(RING_OUT))
 		if get_child_count() == 0 and (heading_beside or not titled):
-			# The first row's tiles start at the grid's top: leave room for the marks that
-			# stand above them, or the edge of a scroll or panel cuts them off.
-			var room := MarginContainer.new()
 			room.add_theme_constant_override("margin_top", int(MARK_RISE))
-			room.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			add_child(room)
-			room.add_child(row)
-			top = room
-		else:
-			add_child(row)
+		room.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(room)
+		room.add_child(row)
 		if titled:
 			row.add_child(_heading(group))
 		var flow := HFlowContainer.new()
@@ -121,7 +121,7 @@ func show_groups(groups: Array) -> void:
 				stack.add_child(_captions[id])
 				_holders[id] = stack
 			_dress(id, item)
-		_rows.append([top, ids])
+		_rows.append([room, ids])
 	_show_rows()
 	if _tiles.has(focused) and _tiles[focused].is_visible_in_tree(): _tiles[focused].grab_focus()
 
@@ -129,6 +129,15 @@ func show_groups(groups: Array) -> void:
 ## The tile for an item id, or null.
 func get_tile(id: String) -> Button:
 	return _tiles.get(id)
+
+
+## What a scroll brings into view to show an item: the chosen tile's ring, which stands
+## outside the tile, or else the tile. Null for an unknown id.
+func get_reveal(id: String) -> Control:
+	var tile: Button = _tiles.get(id)
+	if tile == null: return null
+	var ring: Control = tile.get_node_or_null("Selected")
+	return ring if ring != null else tile
 
 
 ## Resize the tiles; the next show_groups() rebuilds them.
@@ -264,10 +273,10 @@ func _dress(id: String, item: Dictionary) -> void:
 		frame.add_theme_stylebox_override("panel", UITheme.selection_ring())
 		frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		frame.offset_left = -4
-		frame.offset_top = -4
-		frame.offset_right = 4
-		frame.offset_bottom = 4
+		frame.offset_left = -RING_OUT
+		frame.offset_top = -RING_OUT
+		frame.offset_right = RING_OUT
+		frame.offset_bottom = RING_OUT
 		tile.add_child(frame)
 	var count := int(item.get("count", -1))
 	if count >= 0:

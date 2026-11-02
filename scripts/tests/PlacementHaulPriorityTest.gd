@@ -124,6 +124,7 @@ func _sleep_handoff() -> void:
 	furniture._process(.3) # Existing drop wake refreshes generic furniture claims.
 	_expect(ghost._claim_valid(), "drop wake returns item to existing placement claim")
 	furniture.cancel_ghost(ghost.ghost_id)
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 
 func _protected_claim() -> void:

@@ -1,0 +1,131 @@
+{
+  "sources": [
+    {
+      "kind": "bird",
+      "title": "Blackbird (isolated)",
+      "author": "richwise",
+      "id": "811988",
+      "description": "Close blackbird singing, recorded with Zoom H5 Studio XY microphones; faint distant traffic noted by the author.",
+      "page": "https://freesound.org/people/richwise/sounds/811988/",
+      "download": "https://cdn.freesound.org/previews/811/811988_1481531-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "1c5dcd7e0e91e8108b0269e894b4e6bdc7cfd047813f6d909d4fd2889e5dc1ab",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 58.876,
+      "preview": "Public HQ MP3 preview, not the original uploaded WAV.",
+      "master": "blackbird_song.wav",
+      "master_sha256": "f424d6b5f992b133f6782cac0f148959cb6bd48ca15489b8490e1fa7e6f4dce7",
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.9393241286114193,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels averaged to mono",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "owl",
+      "title": "Perfect Spooky Owls",
+      "author": "DreamSavvyr",
+      "id": "787733",
+      "description": "Outdoor owl hoots recorded with a Tascam DR-05; the author edited spacing between calls.",
+      "page": "https://freesound.org/people/DreamSavvyr/sounds/787733/",
+      "download": "https://cdn.freesound.org/previews/787/787733_3764466-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "bb14bf2d12d7fb5eadb8eca14dd7010ea1cbee12b331fffb5d9fbba1d670d121",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 70.43643990929705,
+      "preview": "Public HQ MP3 preview, not the original uploaded WAV.",
+      "master": "owl_hoots.wav",
+      "master_sha256": "eb762405900baaba31e8ffa31dd2ed5d037e3221ce4eefc574786988798c0b24",
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.6725385902675676,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels averaged to mono",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "bird": {
+      "master": "blackbird_song.wav",
+      "rate": 22050,
+      "regions_seconds": [
+        [
+          4.5,
+          8.3
+        ],
+        [
+          14.25,
+          17.3
+        ],
+        [
+          27.1,
+          29.15
+        ],
+        [
+          32.85,
+          35.85
+        ],
+        [
+          40.3,
+          43.9
+        ],
+        [
+          46.65,
+          49.1
+        ]
+      ],
+      "high_pass_hz": 700,
+      "low_pass_hz": 9000,
+      "fades_seconds": [
+        0.035,
+        0.09
+      ],
+      "target_rms": 0.078,
+      "peak_ceiling": 0.6
+    },
+    "owl": {
+      "master": "owl_hoots.wav",
+      "rate": 22050,
+      "regions_seconds": [
+        [
+          1.4,
+          5.05
+        ],
+        [
+          10.9,
+          14.55
+        ],
+        [
+          31.3,
+          34.1
+        ]
+      ],
+      "high_pass_hz": 110,
+      "low_pass_hz": 6500,
+      "fades_seconds": [
+        0.04,
+        0.12
+      ],
+      "target_rms": 0.055,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_bird_audio.py",
+  "environmental_entry_point": "tools/generate_environment_audio.py delegates bird and owl preparation to the same recorded sound function",
+  "processing": "Separate real excerpts, zero-phase light band limiting, edge fades, per-bank RMS target with peak cap; the existing environment writer adds its usual final DC correction and edge fades. No pitch shifting, time stretching, voice synthesis or added reverb."
+}

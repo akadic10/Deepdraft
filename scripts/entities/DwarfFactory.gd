@@ -24,7 +24,8 @@ const WORKER_KEY := "base:profession:worker"
 ##                 mutated: the chosen name is added.
 ## Returns: { name, gender, appearance: DwarfAppearanceData,
 ##            traits: Array[String], profession, profession_experience,
-##            tastes: {thing id -> love/like/dislike}, found_tastes: [] }
+##            tastes: {thing id -> love/like/dislike}, found_tastes: [],
+##            stats: {stat id -> step} }
 func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _dwarf_seed(WorldGenerator.world_seed, birth_index)
@@ -43,6 +44,7 @@ func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 	experience[WORKER_KEY] = rng.randi_range(0, 9)
 	# Drawn last, so the earlier rolls stay as they were.
 	var tastes := _roll_tastes(rng)
+	var stats := _roll_stats(rng, traits)   # after the tastes, for the same reason (doc 41 "Stats")
 
 	return {
 		"name": dwarf_name,
@@ -53,6 +55,7 @@ func generate(birth_index: int, used_names: Dictionary) -> Dictionary:
 		"profession_experience": experience,
 		"tastes": tastes,
 		"found_tastes": [],
+		"stats": stats,
 	}
 
 
@@ -178,6 +181,50 @@ func _roll_tastes(rng: RandomNumberGenerator) -> Dictionary:
 			tastes[String(things[dealt])] = kind
 			dealt += 1
 	return tastes
+
+
+# ── Stats (doc 41 "Stats") ───────────────────────────────────────────────────────────
+
+## A new dwarf's stats: every one at stats.json's `average`, then `shifts` moves of one
+## point from one stat to another, never below the first step or above the last, so every
+## dwarf has the same total in a different shape. A trait's `stat_shape` (Iron Constitution,
+## Frail) then sets a stat's lowest or highest step, moving points to or from the others.
+func _roll_stats(rng: RandomNumberGenerator, traits: Array[String]) -> Dictionary:
+	var data: Dictionary = DwarfAssets.get_stat_data()
+	var ids: Array = DwarfAssets.stat_ids()
+	var top := DwarfAssets.stat_steps()
+	var stats := {}
+	for id: String in ids: stats[id] = int(data.get("average", 3))
+	for _n in range(int(data.get("shifts", 0))):
+		var risers: Array = ids.filter(func(id: String) -> bool: return stats[id] < top)
+		var raised: String = risers[rng.randi_range(0, risers.size() - 1)]
+		var fallers: Array = ids.filter(func(id: String) -> bool: return id != raised and stats[id] > 1)
+		var lowered: String = fallers[rng.randi_range(0, fallers.size() - 1)]
+		stats[raised] += 1
+		stats[lowered] -= 1
+	var definitions: Dictionary = DwarfAssets.get_trait_data().get("traits", {})
+	for trait_id: String in traits:
+		var shape: Dictionary = (definitions.get(trait_id, {}) as Dictionary).get("stat_shape", {})
+		for id: String in shape:
+			if not stats.has(id): continue
+			while stats[id] < int(shape[id].get("min", 1)):   # from the strongest of the others
+				var giver := _ranked_other(stats, id, true)
+				stats[giver] -= 1
+				stats[id] += 1
+			while stats[id] > int(shape[id].get("max", top)):   # to the weakest of the others
+				var taker := _ranked_other(stats, id, false)
+				stats[taker] += 1
+				stats[id] -= 1
+	return stats
+
+
+## The strongest (or weakest) stat other than `except`, the first in order on a tie.
+static func _ranked_other(stats: Dictionary, except: String, strongest: bool) -> String:
+	var best := ""
+	for id: String in stats:
+		if id == except: continue
+		if best.is_empty() or (stats[id] > stats[best] if strongest else stats[id] < stats[best]): best = id
+	return best
 
 
 # ── Traits (doc 41 §Trait Assignment) ────────────────────────────────────────

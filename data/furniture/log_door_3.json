@@ -31,5 +31,6 @@
   "appeal": {
     "design": 3,
     "material_factor": 1
-  }
+  },
+  "hit_points": 150
 }

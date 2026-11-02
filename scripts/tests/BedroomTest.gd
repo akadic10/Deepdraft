@@ -140,7 +140,10 @@ func _run() -> void:
 func _put(short_key: String, cell: Vector3i, yaw := 0):
 	var key := "base:furniture:"+short_key
 	furniture._install(key,furniture.get_defs()[key],cell,yaw)
-	return furniture._installed[furniture._next_installed_id-1]
+	var piece = furniture._installed[furniture._next_installed_id-1]
+	# Heating fixtures need a burning fire; FireLightingTest covers lighting it (doc 279).
+	if piece.def.has("nightly_fire"): furniture.get_fires().light(piece,PINE,"base:material:pine")
+	return piece
 
 ## The room window (doc 261): the kind and its needs, each with its count and ticked when
 ## met; who sleeps there; the furniture in it; and, for a plain room, the one step missing.
@@ -194,6 +197,19 @@ func _build_bedroom() -> void:
 			for y in range(21,26):
 				if x in [63,64] and z==60 and y<25: continue
 				if x in [60,69] or z in [60,69] or y==25: world.set_block(x,y,z,stone)
+
+## Stacks 11 blocks of stone on a room's roof (y 26-36 over its footprint), so 12 solid blocks
+## lie over its floor air, like a cellar dug into the valley's first shelf: its temperature
+## then follows rock, not the open sky (doc 34).
+func _bury(from: Vector3i, to: Vector3i) -> void:
+	_fill_box(Vector3i(from.x,26,from.z), Vector3i(to.x,36,to.z), blocks.get_id("base:terrain:rock:rock01"))
+
+func _fill_box(from: Vector3i, to: Vector3i, id: int) -> void:
+	world.begin_edit_batch()
+	for x in range(from.x,to.x+1):
+		for z in range(from.z,to.z+1):
+			for y in range(from.y,to.y+1): world.set_block(x,y,z,id)
+	world.end_edit_batch()
 
 func _capture_bed() -> void:
 	for environment: WorldEnvironment in scene.find_children("*","WorldEnvironment",true,false):

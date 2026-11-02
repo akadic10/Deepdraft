@@ -30,6 +30,8 @@
 [ext_resource type="Script" path="res://scripts/ui/DwarfNeedIndicators.gd" id="27_needs"]
 [ext_resource type="Script" path="res://scripts/systems/AppealViewController.gd" id="28_appeal"]
 [ext_resource type="Script" path="res://scripts/systems/ItemStamperController.gd" id="29_stamper"]
+[ext_resource type="Script" path="res://scripts/systems/TemperatureViewController.gd" id="30_temperature"]
+[ext_resource type="Script" path="res://scripts/systems/FishingSystem.gd" id="31_fishing"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.42, 0.58, 0.78, 1)
@@ -151,6 +153,12 @@ dock_ui_path = NodePath("../DockUI")
 slice_controller_path = NodePath("../SliceController")
 window_manager_path = NodePath("../UIWindowManager")
 
+[node name="FishingSystem" type="Node3D" parent="."]
+script = ExtResource("31_fishing")
+dock_ui_path = NodePath("../DockUI")
+slice_controller_path = NodePath("../SliceController")
+window_manager_path = NodePath("../UIWindowManager")
+
 [node name="FurniturePlacementController" type="Node3D" parent="."]
 script = ExtResource("12_furniture")
 dock_ui_path = NodePath("../DockUI")
@@ -177,7 +185,7 @@ window_manager_path = NodePath("../UIWindowManager")
 script = ExtResource("15_explorer")
 window_manager_path = NodePath("../UIWindowManager")
 slice_controller_path = NodePath("../SliceController")
-click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController"), NodePath("../ConstructionController"), NodePath("../AppealViewController"), NodePath("../ItemStamperController")])
+click_tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../StockpileDesignationController"), NodePath("../FishingSystem"), NodePath("../FurniturePlacementController"), NodePath("../FlagPlacementController"), NodePath("../RoomOverlayController"), NodePath("../TreeFellingController"), NodePath("../ConstructionController"), NodePath("../AppealViewController"), NodePath("../TemperatureViewController"), NodePath("../ItemStamperController")])
 dwarf_director_path = NodePath("../DwarfDirector")
 terrain_provider_path = NodePath("../TerrainExplorerProvider")
 dock_ui_path = NodePath("../DockUI")
@@ -214,6 +222,13 @@ tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePa
 
 [node name="AppealViewController" type="Node3D" parent="."]
 script = ExtResource("28_appeal")
+dock_path = NodePath("../DockUI")
+slice_path = NodePath("../SliceController")
+rooms_tool_path = NodePath("../RoomOverlayController")
+tool_paths = Array[NodePath]([NodePath("../MiningDesignationController"), NodePath("../ConstructionController"), NodePath("../FurniturePlacementController"), NodePath("../StockpileDesignationController"), NodePath("../FlagPlacementController"), NodePath("../TreeFellingController"), NodePath("../RoomOverlayController"), NodePath("../ItemStamperController")])
+
+[node name="TemperatureViewController" type="Node3D" parent="."]
+script = ExtResource("30_temperature")
 dock_path = NodePath("../DockUI")
 slice_path = NodePath("../SliceController")
 rooms_tool_path = NodePath("../RoomOverlayController")

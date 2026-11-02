@@ -2,6 +2,8 @@
   "id": "base:animal:rabbit",
   "display_name": "Wild Rabbit",
   "description": "A timid grazer. Eats ordinary ground vegetation, takes quiet naps and bolts from nearby dwarves or wolves.",
+  "__comment_hit_points": "Hit points (doc 45): what the Ranger's blows will have to wear down once hunting comes. Nothing hurts an animal yet.",
+  "hit_points": 10,
   "model_parts": {
     "body": "res://assets/models/animals/rabbit/body.glb",
     "head": "res://assets/models/animals/rabbit/head.glb",

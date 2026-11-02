@@ -1,51 +1,49 @@
-"""Original soft rabbit foley, not field recordings. No external samples.
+"""Prepare rabbit cues from a CC0 recording, reproducibly and without a network.
 
-Three breath/tooth-tick selection cues and three leafy nibble phrases. Seeded
-noise gives reproducible mono 48 kHz PCM with no pitched squeaks or sharp attacks.
-The listening sampler has selection first, then grazing, with silent gaps.
+Selection uses short real rabbit nibble fragments; grazing uses longer chewing
+phrases. See tools/audio_sources/rabbit/source.json for licensing and edit regions.
+The source master is mono PCM at the existing 48 kHz rate. Requires numpy.
 """
 import json
+import wave
 import numpy as np
-from generate_chopping_audio import ROOT, RATE, filtered_noise, write
+from generate_chopping_audio import ROOT, RATE, write
+
+SOURCE = ROOT/'tools/audio_sources/rabbit'
 
 
-def pulse(t, onset, length):
-    phase = np.clip((t - onset) / length, 0, 1)
-    return np.sin(np.pi * phase) ** 2
-
-
-def rabbit_sound(seed, grazing):
-    rng = np.random.default_rng(seed)
-    duration = .76 if grazing else .43
-    t = np.arange(round(duration * RATE)) / RATE
-    # Breath and leaf textures have rounded envelopes and irregular microdetail.
-    low = filtered_noise(rng, len(t), 850)
-    mid = filtered_noise(rng, len(t), 2600)
-    high = filtered_noise(rng, len(t), 5100)
-    sound = np.zeros_like(t)
-    times = [.055, .285, .525] if grazing else [.025, .19]
-    for onset in times:
-        onset += rng.uniform(-.01, .012)
-        length = rng.uniform(.095, .16) if grazing else rng.uniform(.085, .13)
-        envelope = pulse(t, onset, length)
-        texture = .60 * mid + .35 * low + .05 * high
-        if grazing:
-            texture *= .8 + .2 * np.sin(2 * np.pi * rng.uniform(32, 49) * t)
-        sound += texture * envelope * rng.uniform(.65, 1)
-        # A tiny dry tooth/leaf tick rather than a hard chopping impact.
-        for offset in [.018, .04]:
-            sound += mid * pulse(t, onset + offset, rng.uniform(.007, .013)) * .24
-    sound -= sound.mean()
-    sound *= np.minimum(t / .012, 1) * np.minimum((duration - t) / .02, 1)
-    sound *= (.32 if grazing else .38) / max(float(np.max(np.abs(sound))), .001)
-    return sound
+def rabbit_sound(kind, index):
+    profile = json.loads((SOURCE/'source.json').read_text(encoding='utf-8'))['banks'][kind]
+    assert profile['rate'] == RATE
+    with wave.open(str(SOURCE/profile['master']), 'rb') as source:
+        assert (source.getnchannels(), source.getsampwidth(), source.getframerate()) == (1, 2, RATE)
+        samples = np.frombuffer(source.readframes(source.getnframes()), dtype='<i2').astype(float)/32768
+    start, end = profile['regions_seconds'][index]
+    result = samples[round(start*RATE):round(end*RATE)].copy()
+    assert len(result) == round(end*RATE)-round(start*RATE)
+    result -= result.mean()
+    padding = round(RATE*.15)
+    padded = np.pad(result, padding, mode='reflect')
+    frequencies = np.fft.rfftfreq(len(padded), 1/RATE)
+    high_pass = 1/np.sqrt(1+(profile['high_pass_hz']/np.maximum(frequencies, 1e-6))**4)
+    low_pass = 1/np.sqrt(1+(frequencies/profile['low_pass_hz'])**8)
+    result = np.fft.irfft(np.fft.rfft(padded)*high_pass*low_pass, n=len(padded))[padding:-padding]
+    result -= result.mean()
+    fade_in, fade_out = [round(seconds*RATE) for seconds in profile['fades_seconds']]
+    result[:fade_in] *= np.linspace(0, 1, fade_in)
+    result[-fade_out:] *= np.linspace(1, 0, fade_out)
+    rms = np.sqrt(np.mean(result**2))
+    result *= min(profile['target_rms']/max(float(rms), 1e-8),
+                  profile['peak_ceiling']/max(float(abs(result).max()), 1e-8))
+    assert np.isfinite(result).all() and abs(result).max() < 1
+    return result
 
 
 if __name__ == '__main__':
     samples, report = [], []
     for family in ['select', 'graze']:
         for index in range(3):
-            sound = rabbit_sound(32100 + index, family == 'graze')
+            sound = rabbit_sound(family, index)
             name = f'rabbit_{family}_{index + 1:02}.wav'
             write(ROOT / 'assets/audio/wildlife' / name, sound)
             samples.extend([sound, np.zeros(round(.5 * RATE))])

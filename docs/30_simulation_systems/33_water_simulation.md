@@ -105,12 +105,10 @@ planned. This supersedes the earlier permanent-water-block and no-flood rules.
 
 ## Current implementation
 
-Log bridges (2026-10-11) register navigation supports over the river without
-writing terrain blocks or displacing water. Only placement requires standing
-water; a later dry channel retains its bridge. Flooded head clearance blocks
-traversal through the normal live-water checks. Water that rises into the head
-clearance of the deck or a landing also closes a finished bridge, which drops its kit
-once nobody is on it; the bridge rules are in doc 32 (doc 113).
+Rivers are crossed on built logs (doc 32, "River crossings"). Construction never
+builds into standing water, so a deck sits above the surface. Its blocks are solid
+terrain, so water flows on beneath a deck but cannot rise through it. The log bridge
+furniture, whose deck left the water untouched, was retired on 2026-10-27.
 
 Duck navigation reads live water levels and excludes unsafe waterfall approaches
 and cave water. Ducks do not add/extract volume, irrigate soil or change terrain;
@@ -331,6 +329,11 @@ agriculture and alcohol production.
 - Reconcile planned brewing recipes with water's agreed role before implementing
   production. Longbeard Ale currently lacks a water input; quantities and container
   handling are still to be designed. This agreement does not edit recipe data.
+- **Fishing (doc 289).** The lake, the tarn, the river and the spring cave's pool each hold a
+  fish stock that catches lower and that regrows; water the player makes holds none. Fishing
+  only reads `depth_at`, the live blocks between a bank and its water, and the generated
+  footprints (`lake_columns`, `tarn_columns`, `river_layout.columns`, `spring_cave.water`),
+  and never moves water.
 
 ## Voxel presentation
 
@@ -349,11 +352,17 @@ carries its texture slot and kind (surface, fall or foam). The shader crossfades
 two short advection phases instead of scrolling without bound, calm water keeps
 stationary marks, and all motion runs on the water simulation clock.
 
-**Water ambience (2026-10-10, 108):** procedurally synthesized waterfall rush
-and gentler river burbling. Two bounded spatial voices follow visible measured
+**Water ambience (2026-10-10, 108; recordings 2026-10-28):** recorded waterfall
+rush and gentler brook water replace the former synthesized loops. The two
+mono PCM assets live in `assets/audio/ambience/water/`; their paths are configured
+under `audio` in `water.json`. `WaterAudioBank` loads and caches them, while
+`WaterSound` prepares streams on a background thread. River loops for 29 seconds
+and waterfall for 31, with two-second crossfades. CC0 source masters, processing
+and credits are in `tools/audio_sources/water/`, rebuilt offline by
+`tools/generate_water_audio.py`. Two bounded spatial voices follow visible measured
 currents, fade with camera focus/zoom, and use the shared Work volume/mute
 controls. Quiet lakes, hidden or drained water stay silent; pause/loading stops
-playback. Sound generation and playback are transient. Its rules are in doc 13,
+playback. Stream caches and playback are transient. Its rules are in doc 13,
 under `WorkFeedback` (`WaterSound`).
 
 Retain flat voxel surfaces and blocky shorelines, with readable depth, restrained

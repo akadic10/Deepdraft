@@ -2,6 +2,8 @@ extends Node3D
 
 ## Shared surface-order gestures: Chop trees, Clear stones and Cancel orders.
 ## Each owner retains its jobs/progress; this controller only designates work.
+## With DEV tools on, DEV Remove (the Development menu's Remove objects) takes the same
+## click or area and deletes the trees, stones and plants in it at once, without drops.
 @export var dock_ui_path: NodePath
 @export var flora_path: NodePath
 @export var details_path: NodePath
@@ -12,11 +14,13 @@ extends Node3D
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const SelectionOverlay = preload("res://scripts/ui/TreeFellingOverlay.gd")
 const DRAG_THRESHOLD_PX := 6.0
+const DEV_REMOVE := "dev_remove"
 signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
 signal order_feedback(message: String)
 var _shared_order_ui := false
 var _cancel_mode := false
+var _dev_remove := false # DEV Remove: no order, no drops, no Undo.
 var _stone_mode := false # Any surface-detail tool; trees retain their owner.
 var _detail_tool := "clear_stones"
 var _mining: Node
@@ -79,8 +83,10 @@ func is_active() -> bool:
 
 
 func _on_tool_requested(tool_id: String) -> void:
-	if tool_id in ["chop", "clear_stones", "harvest_plants", "clear_shrubs", "cancel_orders"] and bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
+	var dev := tool_id == DEV_REMOVE and UIRegistry.dev_tools_enabled
+	if (dev or tool_id in ["chop", "clear_stones", "harvest_plants", "clear_shrubs", "cancel_orders"]) and bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
 		_cancel_drag()
+		_dev_remove = dev
 		_cancel_mode = tool_id == "cancel_orders"
 		_stone_mode = tool_id in ["clear_stones", "harvest_plants", "clear_shrubs"]
 		_detail_tool = tool_id
@@ -90,8 +96,9 @@ func _on_tool_requested(tool_id: String) -> void:
 		_hint.text = _idle_hint()
 		_hover_bounds = AABB()
 		_hover.hide()
-		_selection.fill_color = Color(.85, .35, .25, .16) if _cancel_mode else Color(1.0, .65, .2, .16)
-		_selection.edge_color = UITheme.DANGER_RED if _cancel_mode else Color(1.0, .73, .3, .95)
+		var red := _cancel_mode or _dev_remove
+		_selection.fill_color = Color(.85, .35, .25, .16) if red else Color(1.0, .65, .2, .16)
+		_selection.edge_color = UITheme.DANGER_RED if red else Color(1.0, .73, .3, .95)
 		_active = true
 		_hint_layer.visible = true
 		tool_active_changed.emit(true)
@@ -189,6 +196,10 @@ func _finish_drag(screen_pos: Vector2) -> void:
 		order_feedback.emit("Cancelled · %d blocks, %d trees, %d stones/plants" % [block_count, tree_count, boulder_count]
 			if block_count + tree_count + boulder_count > 0 else "No marked work in this area")
 		return
+	if _dev_remove:
+		_finish_dev_remove(screen_pos)
+		_cancel_drag()
+		return
 	if _box_select:
 		_update_drag_preview()
 		var added: Array[Dictionary] = []
@@ -253,7 +264,11 @@ func _update_drag_preview(refresh_candidates: bool = true) -> void:
 		if _stone_mode: _preview_stones = _details.details_in_rect(_selection_rect, _detail_tool)
 		else: _preview_trees = _flora.trees_in_felling_rect(_selection_rect)
 		if _stone_mode and _detail_tool == "harvest_plants": _preview_trees = _flora.trees_in_harvest_rect(_selection_rect)
+		if _dev_remove and _details != null: _preview_stones = _details.details_in_rect(_selection_rect, "")
 	_selection.set_polygon(corners)
+	if _dev_remove:
+		_hint.text = "DEV Remove · %d in area · Release to remove · Esc to cancel" % _preview_count()
+		return
 	_hint.text = "%s · %d %s in area · Release to mark · Esc to cancel" % [
 		_detail_title() if _stone_mode else "Chop trees", _preview_count(), ((_detail_noun()) if _stone_mode else "tree") + ("" if _preview_count() == 1 else "s")]
 
@@ -272,6 +287,29 @@ func designate_at_screen(screen_pos: Vector2) -> bool:
 	if previous == null: _emit_order([{"id": hit["id"], "source": _order_token(provider, hit["id"])}])
 	_explorer.select_object(provider, hit["id"])
 	return true
+
+
+## DEV Remove: what the click picked, or every tree, stone and plant in the area, goes at once
+## without drops, and saves keep it gone. Nothing is ordered, so there is no Undo.
+func _finish_dev_remove(screen_pos: Vector2) -> void:
+	if _box_select:
+		_update_drag_preview()
+	else:
+		_preview_trees.clear()
+		_preview_stones.clear()
+		var hit := _explorer.pick_at_screen(screen_pos) if _explorer != null else {}
+		if _accepts_hit(hit) and hit.provider == _flora: _preview_trees.append(hit.id)
+		elif _accepts_hit(hit): _preview_stones.append(String(hit.id))
+	var trees := 0
+	var others := 0
+	for id: Vector2i in _preview_trees:
+		if _flora.dev_remove_tree(id): trees += 1
+	for id: String in _preview_stones:
+		if _details.dev_remove(id): others += 1
+	var removed := PackedStringArray()
+	if trees > 0: removed.append(_counted(trees, "tree"))
+	if others > 0: removed.append(_counted(others, "stone or plant", "stones or plants"))
+	order_feedback.emit("Removed " + " and ".join(removed) if not removed.is_empty() else "Nothing to remove here")
 
 
 func _process(delta: float) -> void:
@@ -312,7 +350,7 @@ func _process(delta: float) -> void:
 	_hover.visible = bounds.size != Vector3.ZERO
 	if _hover.visible and bounds != _hover_bounds:
 		_hover_bounds = bounds
-		_hover.mesh = Picking.outline_mesh(bounds.grow(.12), Color(1.0, .85, .40))
+		_hover.mesh = Picking.outline_mesh(bounds.grow(.12), UITheme.DANGER_RED if _dev_remove else Color(1.0, .85, .40))
 
 
 func set_shared_order_ui(enabled: bool) -> void:
@@ -321,15 +359,19 @@ func set_shared_order_ui(enabled: bool) -> void:
 
 
 func get_order_tool_id() -> String:
-	return "cancel_orders" if _cancel_mode else _detail_tool if _stone_mode else "chop"
+	return DEV_REMOVE if _dev_remove else "cancel_orders" if _cancel_mode else _detail_tool if _stone_mode else "chop"
 
 
 ## What the tool bar shows (doc 23, "The tool bar"): while an area is dragged, what it
-## would mark, or the marked work it would cancel.
+## would mark, remove, or the marked work it would cancel. DEV Remove orders nothing to undo.
 func tool_bar_state() -> Dictionary:
 	var state := {"tool": get_order_tool_id()}
+	if _dev_remove: state.undo = false
 	if not (_dragging and (_box_select or _cancel_mode)): return state
-	if _cancel_mode:
+	if _dev_remove:
+		state.selection = {"count": "%d to remove" % _preview_count(), "at": _drag_screen,
+			"detail": "%s · %s" % [_counted(_preview_trees.size(), "tree"), _counted(_preview_stones.size(), "stone or plant", "stones or plants")]}
+	elif _cancel_mode:
 		var total := _preview_mining.size() + _preview_trees.size() + _preview_stones.size()
 		state.selection = {"count": "%d to cancel" % total, "at": _drag_screen,
 			"detail": "%s · %s · %s" % [_counted(_preview_mining.size(), "block"), _counted(_preview_trees.size(), "tree"),
@@ -375,6 +417,7 @@ func _designation_owner() -> Node:
 
 func _accepts_hit(hit: Dictionary) -> bool:
 	if hit.is_empty(): return false
+	if _dev_remove: return hit.provider == _flora or hit.provider == _details
 	if _stone_mode and _detail_tool == "harvest_plants" and hit.provider == _flora:
 		return _flora.can_harvest_tree(hit.id)
 	return hit.provider == _designation_owner() and (not _stone_mode or _details.accepts_tool(String(hit.id), _detail_tool))
@@ -395,10 +438,12 @@ func _cancel_designation(provider: Node, id: Variant) -> void:
 
 
 func _preview_count() -> int:
-	return _preview_stones.size() + _preview_trees.size() if _stone_mode and _detail_tool == "harvest_plants" else _preview_stones.size() if _stone_mode else _preview_trees.size()
+	if _dev_remove or (_stone_mode and _detail_tool == "harvest_plants"): return _preview_stones.size() + _preview_trees.size()
+	return _preview_stones.size() if _stone_mode else _preview_trees.size()
 
 
 func _idle_hint() -> String:
+	if _dev_remove: return "DEV Remove · Click a tree, stone or plant, or drag an area · Esc to finish"
 	return "%s · Click or drag an area · Esc to finish" % _detail_title() if _stone_mode else HINT
 
 

@@ -39,9 +39,9 @@ func take_planting_item(item: Node3D, dwarf_id: int) -> Node3D:
 
 
 ## A whole crate is briefly reserved until physical pickup splits one unit.
-## Its spare cuttings can still support additional standing Place requests.
+## Its spare cuttings or seeds can still support additional standing Place requests.
 func spare_claimed_units() -> int:
-	if not bool(def.get("from_cutting", false)): return 0
+	if not bool(def.get("from_cutting", false)) and not def.has("tree_species"): return 0
 	var item: Node3D = _claim if _claim_valid() else null
 	if item == null and not _fetches.is_empty(): item = _fetches.values()[0]
 	return maxi(0, drop_manager.quantity_of(item) - 1) if is_instance_valid(item) else 0

@@ -13,7 +13,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	for key: String in furniture.get_defs():
 		var definition: Dictionary = furniture.get_defs()[key]
-		if bool(definition.get("plant",false)) or definition.has("bridge") or definition.has("ladder") or definition.has("water_stone"):
+		if bool(definition.get("plant",false)) or definition.has("ladder") or definition.has("water_stone"):
 			continue # Their real work-source suites exercise the separate contracts.
 		await _place_case(key,0)
 	for key: String in [LOG_BENCH,"base:furniture:log_bed","base:furniture:log_door_4",WALL]:
@@ -51,6 +51,12 @@ func _arrive(key: String,yaw: int) -> RefCounted:
 		support_cells = mount.supports(definition,SITE,yaw)
 		for cell in support_cells: world.set_block(cell.x,cell.y,cell.z,blocks.get_id("base:terrain:rock:rock01"))
 		await _frames(2)
+	elif String(definition.get("placement","floor"))=="floor_wall":
+		# The tool rack hangs on a wall behind its floor cells, as high as it is (doc 294).
+		for x in range(int(definition.footprint.width)):
+			for y in range(1,4): support_cells.append(SITE+Vector3i(x,y,-1))
+		for cell in support_cells: world.set_block(cell.x,cell.y,cell.z,blocks.get_id("base:terrain:rock:rock01"))
+		await _frames(2)
 	drops.restore_loose_item(String(definition.item_key),Vector3(50.5,21,44.5),0,1)
 	furniture.activate_for(key,true)
 	furniture._yaw = yaw
@@ -80,9 +86,10 @@ func _place_case(key: String,yaw: int) -> void:
 	if wall:
 		_expect(is_equal_approx(contact.y,float(SITE.y)+float(ghost.def.wall_mount.origin_offset_y)),"wall handoff rises to mount height")
 	elif ghost.def.has("grid_fence"):
-		var expected := Vector3(SITE)+Vector3.UP
+		var expected := Vector3(SITE)+Vector3(.5,1,.5)
 		if ghost.def.grid_fence.kind=="gate": expected += Vector3.RIGHT if yaw%2==0 else Vector3.BACK
-		_expect(contact.is_equal_approx(expected),"fence handoff reaches its grid corner or gate midpoint: "+key)
+		_expect(contact.is_equal_approx(expected),"fence handoff reaches its post tile or gate opening: "+key)
+		_expect(worker.current_cell() not in load("res://scripts/components/GridFence.gd").tiles(ghost.def,SITE,yaw),"installer stays beside the fence tiles: "+key)
 	else:
 		_expect(ghost.footprint_cells().has(Vector3i(floori(contact.x),roundi(contact.y)-1,floori(contact.z))),"set-down lands inside designated rotated footprint: %s yaw %d contact %s" % [key,yaw,contact])
 		_expect(not ghost.footprint_cells().has(worker.current_cell()),"installer stays beside finished furniture")

@@ -3,6 +3,7 @@
 // X right, Z toward the front. Each model keeps the existing in-game frame and
 // the contact bounds written above it. Split, chopped and notched with an axe:
 // bark stays on, ends step back like axe cuts, joints are notches and lashings.
+// The fence's posts, rails and gate are peeled, as built logs are (doc 278).
 import { Vox, endRings, splitHalf, notchedLogBed } from './proposal.mjs';
 
 export { notchedLogBed };
@@ -126,39 +127,220 @@ export function doorLeaf(x0, x1, hinge = -1) {
   return v;
 }
 
-// ── Fence post: inside -2..2 x 0..21 x -2..2 (the navigation post envelope) ───
-// A squared pole with a chopped two-step point and rope bands where rails meet.
+// ── Fence post: inside -3..3 x 0..20 x -3..3, centred in its tile ────────────
+// A peeled pole with trimmed corners and an earth-dark foot; its flat top shows its
+// rings. One knot and one drying check. The rails go straight into it.
 export function fencePost() {
   const v = new Vox();
-  v.box(-2, 2, 0, 18, -2, 2, 'bark');
-  v.box(-2, 2, 18, 19, -2, 2, 'wood_top');
-  v.box(-1, 1, 19, 21, -1, 1, 'bark'); v.paint(-1, 1, 20, 21, -1, 1, 'wood_top');
-  v.paint(-2, -1, 2, 6, -2, 2, 'bark_light'); v.paint(1, 2, 10, 14, -2, 2, 'bark_light');
-  for (const y of [6, 15]) { v.paint(-2, 2, y, y + 3, -2, 2, 'rope'); v.paint(-2, 2, y + 1, y + 2, -2, 2, 'rope_dark'); }
+  v.cut(-3, 3, 0, 20, -3, 3, 1, 'riven_dark');
+  v.paint(-3, 3, 0, 2, -3, 3, 'bark');                                                   // the foot, darkened by the earth
+  v.cut(-3, 3, 19, 20, -3, 3, 1, 'wood_top');                                            // end grain: one ring and the pith
+  v.ring(-2, 1, 19, -2, 1, 'grain'); v.box(-1, 0, 19, 20, -1, 0, 'pith');
+  v.paint(-3, -2, 9, 12, -1, 2, 'bark_light'); v.paint(-3, -2, 10, 11, 0, 1, 'bark');   // a knot, trimmed flush
+  v.box(1, 2, 4, 9, 2, 3, null); v.box(0, 1, 9, 12, 2, 3, null);                         // a drying check down the front
   return v;
 }
 
-// ── Fence rails: inside -8..8 x 5..18 x -2..2, rows Y7 and Y16 at Z0 ──────────
-// Two split poles, riven face up, ends hidden in the posts.
+// ── Fence rails: inside -8..8 x 5..17 x -2..2, rows at Y5 and Y14 ─────────────
+// Two split poles, peeled, the split face up; their ends go into the posts.
 export function fenceRails() {
   const v = new Vox();
-  for (const y0 of [6, 15]) {
-    v.cutX(-8, 8, y0, y0 + 3, -2, 1, 1, 'bark');
-    v.paint(-8, 8, y0 + 2, y0 + 3, -1, 0, 'riven');
-    v.paint(-6, -1, y0 + 2, y0 + 3, -1, 0, 'riven_dark');
+  for (const y0 of [5, 14]) {
+    v.cutX(-8, 8, y0, y0 + 3, -2, 2, 1, 'riven_dark');
+    v.paint(-8, 8, y0 + 2, y0 + 3, -1, 1, 'riven');
   }
   return v;
 }
 
-// ── Gate leaf: inside -15..15 x 4..18 x -2..2; hinge post on -X ──────────────
-// Two split rails and a diagonal brace between chopped stiles, lashed at joints.
+// ── Gate leaf: inside -13..12 x 3..18 x -2..3; hinge stile on -X at the post's face ──
+// Peeled stiles with chopped tops, two split rails at the fence's heights and one brace
+// laid over the front from the hinge's foot to the latch's head. Rope lashes the hinge
+// stile and loops the latch, two pegs pin the brace, and a cell's gap at the latch shows
+// the leaf swings free.
 export function gateLeaf() {
   const v = new Vox();
-  v.cutZ(-15, -12, 4, 18, -2, 2, 1, 'bark'); v.cutZ(12, 15, 4, 18, -2, 2, 1, 'bark');
-  v.paint(-15, -12, 17, 18, -2, 2, 'wood_top'); v.paint(12, 15, 17, 18, -2, 2, 'wood_top');
-  for (const y0 of [5, 14]) { v.cutX(-12, 12, y0, y0 + 3, -1, 2, 1, 'bark'); v.paint(-12, 12, y0 + 2, y0 + 3, 0, 1, 'riven'); }
-  for (let i = 0; i < 6; i++) v.box(-11 + i * 4, -7 + i * 4, 7 + i, 10 + i, -2, 0, 'wood_side');   // brace, hinge-low to latch-high
-  for (const [x0, y0] of [[-15, 5], [-15, 14], [12, 5], [12, 14]]) { v.paint(x0, x0 + 3, y0, y0 + 3, -2, 2, 'rope'); v.paint(x0, x0 + 3, y0 + 1, y0 + 2, -2, 2, 'rope_dark'); }
+  for (const x0 of [-13, 9]) {
+    v.cutZ(x0, x0 + 3, 3, 18, -2, 2, 1, 'riven_dark');
+    v.paint(x0, x0 + 3, 17, 18, -2, 2, 'wood_top');
+  }
+  for (const y0 of [5, 14]) {
+    v.cutX(-10, 9, y0, y0 + 3, -2, 2, 1, 'riven_dark');
+    v.paint(-10, 9, y0 + 2, y0 + 3, -1, 1, 'riven');
+  }
+  for (let i = 0; i < 9; i++) v.box(-10 + 2 * i, -8 + 2 * i, 7 + i, 9 + i, 2, 3, 'riven_dark');   // the brace
+  for (const y0 of [5, 14]) { v.paint(-13, -10, y0, y0 + 3, -2, 2, 'rope'); v.paint(-13, -10, y0 + 1, y0 + 2, -2, 2, 'rope_dark'); }
+  v.paint(9, 12, 14, 17, -2, 2, 'rope'); v.paint(9, 12, 15, 16, -2, 2, 'rope_dark');           // the latch loop
+  v.box(-9, -8, 7, 8, 2, 3, 'bark_dark'); v.box(7, 8, 15, 16, 2, 3, 'bark_dark');              // pegs
+  return v;
+}
+
+// ── Drying rack: inside -16..16 x 0..31 x -5..5, centred on its 2 x 1 footprint (doc 289) ──
+// Two forked bark posts on root flares hold a peeled pole in their forks, lashed there with
+// rope. The rack stands empty: its fish are a part of their own (dryingRackFish), shown only
+// while a batch dries, laid over the rack at the same origin.
+export function dryingRack() {
+  const v = new Vox();
+  for (const x0 of [-16, 12]) {
+    const out = x0 < 0 ? x0 : x0 + 3;                             // the post's outer column
+    v.cut(x0 < 0 ? x0 : x0 - 1, x0 < 0 ? x0 + 5 : x0 + 4, 0, 2, -3, 3, 1, 'bark_dark');   // the root flare
+    v.cut(x0, x0 + 4, 2, 22, -2, 2, 1, 'bark');                   // the post
+    v.cut(x0, x0 + 4, 22, 24, -3, 3, 1, 'bark');                  // the crotch, widening into the fork
+    for (const z0 of [-4, 2]) v.box(x0, x0 + 4, 24, 31, z0, z0 + 2, 'bark');   // the prongs, either side of the pole
+    v.paint(x0, x0 + 4, 30, 31, -4, 4, 'wood_top');               // chopped ends
+    v.paint(x0 + 1, x0 + 2, 6, 15, 1, 2, 'bark_light'); v.paint(x0 + 2, x0 + 3, 11, 19, -2, -1, 'bark_light');   // bark ridges
+    v.paint(out, out + 1, 4, 9, -1, 0, 'bark_light');
+  }
+  v.cutX(-16, 16, 24, 28, -2, 2, 1, 'riven_dark');                // the peeled pole, lying in the forks
+  v.paint(-16, 16, 27, 28, -2, 2, 'riven');
+  for (const x of [-16, 15]) v.paint(x, x + 1, 24, 28, -2, 2, 'wood_top');   // its chopped ends
+  for (const x0 of [-16, 12]) {                                   // rope lashed round each fork
+    v.box(x0, x0 + 4, 25, 27, -5, 5, 'rope'); v.paint(x0, x0 + 4, 25, 26, -5, 5, 'rope_dark');
+  }
+  return v;
+}
+
+// ── Drying rack's fish (parts/drying_rack_fish), in the rack's own coordinates ──────────
+// Three dried fish hang head down from cords looped round the pole: the chunky fish (big
+// head, bead eye, deep body, fan tail) in coppery browns, redder than any wood, the belly
+// split to show the dried flesh. Each loop rings the pole (y 24..28, z -2..2) one cell clear
+// of it, so the part never shares a cell with the rack it is laid over.
+export function dryingRackFish() {
+  const v = new Vox();
+  for (const [x0, cord] of [[-11, 1], [-3, 3], [5, 2]]) {
+    const b = 12 - cord;                                          // the mouth's row; the fan's top row is b + 11
+    for (const [l0, l1, d0, d1] of [[0, 2, 2, 4], [2, 4, 1, 5], [4, 7, 0, 6], [7, 9, 1, 5], [9, 10, 2, 4], [10, 11, 1, 5], [11, 12, 0, 6]]) {
+      v.box(x0 + d0, x0 + d1, b + l0, b + l1, -1, 1, l0 >= 10 ? 'dry_tail' : 'dry_skin');   // head down, body, fan tail
+    }
+    v.paint(x0 + 4, x0 + 6, b + 2, b + 9, -1, 1, 'dry_back');     // the dark back
+    v.paint(x0, x0 + 2, b + 2, b + 9, -1, 1, 'dry_flesh');        // split along the belly: the dried flesh
+    v.paint(x0 + 1, x0 + 5, b + 4, b + 5, -1, 1, 'dry_back');     // the gill's edge
+    v.paint(x0 + 3, x0 + 4, b + 2, b + 3, -1, 1, 'dry_eye');      // the bead eye
+    v.paint(x0 + 2, x0 + 4, b + 9, b + 10, -1, 1, 'rope');        // tied at the wrist
+    v.box(x0 + 3, x0 + 4, b + 12, 24, 0, 1, 'rope');              // the cord up to the pole,
+    v.box(x0 + 3, x0 + 4, 23, 24, -2, 2, 'rope'); v.box(x0 + 3, x0 + 4, 28, 29, -2, 2, 'rope');   // looped round it
+    v.box(x0 + 3, x0 + 4, 24, 28, -3, -2, 'rope'); v.box(x0 + 3, x0 + 4, 24, 28, 2, 3, 'rope');
+  }
+  return v;
+}
+
+// ── Carpenter's bench: 3 x 1, inside -24..24 x 0..18 x -8..8, top at Y18 (doc 293) ──
+// After the owner's picture of a log workbench: half of a great log, its round side down, hewn
+// flat on top, on four thick round legs braced low with log rails, rails across both ends and
+// long rails a little higher along both sides. The slab runs past the legs at both ends. Peeled,
+// as built logs and fences are (doc 278): knots trimmed flush, drying checks, end grain at every
+// cut, the feet darkened by the ground.
+export function carpenterBench() {
+  const v = new Vox();
+  for (const [x0, z0] of [[-20, -7], [-20, 2], [15, -7], [15, 2]]) {
+    v.cut(x0, x0 + 5, 0, 14, z0, z0 + 5, 1, 'riven_dark');            // a thick round leg
+    v.paint(x0, x0 + 5, 0, 1, z0, z0 + 5, 'bark');                     // its foot, darkened by the ground
+  }
+  v.paint(-20, -19, 5, 8, -5, -4, 'pith'); v.paint(19, 20, 8, 11, 3, 5, 'pith');   // knots, trimmed flush
+  v.box(-16, -15, 2, 6, 2, 3, null); v.box(16, 17, 7, 11, -7, -6, null);          // drying checks
+  for (const x0 of [-19, 16]) {                                         // the end rails, round, through the legs
+    v.cutZ(x0, x0 + 4, 3, 7, -8, 8, 1, 'riven_dark');
+    for (const z of [-8, 7]) v.paint(x0, x0 + 4, 3, 7, z, z + 1, 'wood_top');
+  }
+  for (const z0 of [-6, 2]) {                                           // the long rails, a little higher
+    v.cutX(-21, 21, 7, 11, z0, z0 + 4, 1, 'riven_dark');
+    for (const x of [-21, 20]) v.paint(x, x + 1, 7, 11, z0, z0 + 4, 'wood_top');
+  }
+  v.box(-24, 24, 15, 18, -8, 8, 'riven_dark');                         // the slab, round side down
+  v.box(-24, 24, 13, 15, -7, 7, 'riven_dark');
+  v.box(-24, 24, 12, 13, -5, 5, 'riven_dark');
+  v.paint(-24, 24, 17, 18, -8, 8, 'riven');                             // hewn flat on top
+  for (const [x0, x1, z] of [[-22, -4, -5], [-1, 21, -1], [-17, 9, 3], [6, 22, 5]]) v.paint(x0, x1, 17, 18, z, z + 1, 'riven_dark');
+  for (const [x, z] of [[-13, -3], [-12, -2], [10, 2], [11, 1]]) v.paint(x, x + 1, 17, 18, z, z + 1, 'chop');   // two old axe bites
+  for (const x of [-24, 23]) {                                          // the end grain
+    v.paint(x, x + 1, 12, 18, -8, 8, 'wood_top');
+    v.paint(x, x + 1, 14, 15, -4, 4, 'grain'); v.paint(x, x + 1, 16, 17, -6, 6, 'grain');
+    v.paint(x, x + 1, 13, 14, -1, 1, 'pith');
+  }
+  v.box(-24, -20, 16, 18, 7, 8, null); v.paint(-24, -20, 15, 16, 7, 8, 'riven_dark');   // a split at one end
+  return v;
+}
+
+// ── Mason's bench: 3 x 1, inside -24..24 x 0..15 x -8..8, top at Y15 (doc 293) ──────
+// A slab split from a bigger stone, never dressed, laid across two log stumps with their root
+// flares, set in from the ends: an uneven top, chipped corners, a crack, stone chips at its foot.
+// The stone is the Rough Stone's own grey (rough_stone roles); the stumps keep their bark.
+export function masonBench() {
+  const v = new Vox();
+  for (const x0 of [-20, 12]) {
+    v.cut(x0 - 1, x0 + 9, 0, 2, -5, 5, 3, 'bark_dark');                  // a root flare
+    v.cut(x0, x0 + 8, 2, 11, -4, 4, 2, 'bark');                          // the stump
+    v.box(x0 - 1, x0, 3, 9, -2, 1, 'bark_light'); v.box(x0 + 8, x0 + 9, 4, 8, 0, 2, 'bark_light');
+  }
+  v.cut(-24, 24, 11, 14, -7, 7, 2, 'rough_stone');                       // the slab
+  v.cut(-23, 22, 14, 15, -6, 7, 2, 'rough_stone_light');                 // its top, uneven
+  v.box(-20, -9, 14, 15, -6, -3, 'rough_stone_accent'); v.box(6, 18, 14, 15, 2, 6, 'rough_stone_accent');
+  v.box(-6, 2, 14, 15, 3, 6, 'rough_stone_accent');
+  v.paint(-24, 24, 11, 12, -7, 7, 'rough_stone_shade');
+  v.box(21, 24, 13, 15, -7, -3, null); v.box(-24, -21, 13, 15, 3, 7, null);   // chipped corners
+  v.box(8, 9, 11, 15, 6, 7, null); v.paint(9, 10, 12, 15, 6, 7, 'rough_stone_cleft');   // a crack
+  v.paint(7, 10, 14, 15, -3, 6, 'rough_stone_cleft');
+  for (const [x, z] of [[-4, 6], [0, -6], [4, 5], [-24, -6], [22, 6], [-9, -7]]) v.box(x, x + 1, 0, 1, z, z + 1, 'rough_stone_light');
+  return v;
+}
+
+// ── Stone stool: X -8..8 (1 x 1), seat at Y14 like the log stool (doc 293, B) ────
+// The Stonemason's first piece: one Rough Stone knocked square all the way down with the maul,
+// in the Rough Stone's own greys (never recoloured by a wood). Its top is a little uneven, one
+// corner a cell lower, and lumps are left on its sides.
+export function stoneStool() {
+  const v = new Vox();
+  v.cut(-7, 7, 0, 13, -7, 7, 2, 'rough_stone');
+  v.paint(-7, 7, 0, 2, -7, 7, 'rough_stone_shade');
+  v.cut(-6, 6, 13, 14, -6, 6, 1, 'rough_stone_light');                  // the seat, knocked flat
+  v.box(1, 6, 13, 14, -6, -1, null); v.paint(1, 6, 12, 13, -6, -1, 'rough_stone_light');   // one corner a cell lower
+  v.box(-8, -7, 4, 9, -3, 2, 'rough_stone_accent'); v.box(7, 8, 6, 10, 0, 4, 'rough_stone_accent');   // lumps
+  v.box(-2, 3, 3, 7, 7, 8, 'rough_stone_accent');
+  v.paint(-4, -3, 13, 14, 1, 4, 'rough_stone_accent');
+  return v;
+}
+
+// ── Tool rack: X -24..24 (3 x 1), its back on a wall at Z-8, hooks at Y39 (doc 294, B) ──
+// The Carpenter's first piece and the first storage furniture: half a split log, its round back
+// to the wall and its split face out, lashed to two wall pegs above it, with three stout pegs
+// driven in, angled up. Tools hang from the pegs (the furniture's storage anchors).
+export function toolRack() {
+  const v = new Vox();
+  const Y = 32, Z = -8;                                             // raised to the mount, against the wall
+  v.cutX(-24, 24, Y, Y + 12, Z, Z + 4, 2, 'bark');
+  v.box(-23, 23, Y + 1, Y + 11, Z + 3, Z + 4, 'riven');                    // the split face
+  v.paint(-23, 23, Y + 1, Y + 2, Z + 3, Z + 4, 'riven_dark'); v.paint(-23, 23, Y + 10, Y + 11, Z + 3, Z + 4, 'riven_dark');
+  v.paint(-18, 4, Y + 6, Y + 7, Z + 3, Z + 4, 'grain'); v.paint(-2, 20, Y + 3, Y + 4, Z + 3, Z + 4, 'grain');
+  v.paint(-14, -6, Y + 8, Y + 9, Z + 3, Z + 4, 'grain');
+  v.paint(-24, -23, Y, Y + 12, Z, Z + 4, 'wood_top'); v.paint(23, 24, Y, Y + 12, Z, Z + 4, 'wood_top');
+  for (const x of [-21, 19]) {
+    v.box(x, x + 2, Y + 12, Y + 14, Z, Z + 4, 'riven_dark'); v.paint(x, x + 2, Y + 12, Y + 14, Z + 3, Z + 4, 'wood_top');   // a wall peg
+    v.box(x, x + 2, Y + 8, Y + 13, Z, Z + 5, 'rope'); v.paint(x, x + 2, Y + 10, Y + 11, Z, Z + 5, 'rope_dark');               // lashed to it
+  }
+  for (const x of [-17, -1, 15]) {                                         // stout pegs, angled up
+    v.box(x, x + 2, Y + 4, Y + 6, Z + 4, Z + 7, 'riven_dark');
+    v.box(x, x + 2, Y + 5, Y + 7, Z + 7, Z + 9, 'riven_dark'); v.paint(x, x + 2, Y + 5, Y + 7, Z + 8, Z + 9, 'wood_top');
+    v.paint(x - 1, x + 3, Y + 3, Y + 7, Z + 3, Z + 4, 'chop');             // split where it was driven in
+  }
+  return v;
+}
+
+// ── Raw materials crate: X, Z -16..16 (2 x 2), its rim at Y9 (doc 294, A) ──────────
+// The log crib: two courses of notched logs crossing at the corners, open on top. Each log's ends
+// run 2 cells past the logs it crosses, within the footprint. Goods sit on the ground in its four
+// quarters, at X and Z ±6 (the furniture's storage anchors), and show over the rim.
+export function rawMaterialsCrate() {
+  const v = new Vox();
+  for (const z of [-14, 10]) {                                      // the first course, along X
+    v.cutX(-16, 16, 0, 5, z, z + 4, 1, 'bark');
+    v.paint(-16, -15, 0, 5, z, z + 4, 'wood_top'); v.paint(15, 16, 0, 5, z, z + 4, 'wood_top');
+    v.paint(-12, -6, 2, 3, z, z + 1, 'bark_light'); v.paint(4, 9, 3, 4, z + 3, z + 4, 'bark_light');
+  }
+  for (const x of [-14, 10]) {                                      // the second, along Z, in notches
+    v.cutZ(x, x + 4, 4, 9, -16, 16, 1, 'bark_dark');
+    v.paint(x, x + 4, 4, 9, -16, -15, 'wood_top'); v.paint(x, x + 4, 4, 9, 15, 16, 'wood_top');
+    v.paint(x, x + 4, 8, 9, -9, -3, 'bark'); v.paint(x, x + 4, 8, 9, 5, 11, 'bark');
+  }
+  for (const x of [-14, 10]) for (const z of [-14, 10]) v.paint(x, x + 4, 4, 5, z, z + 4, 'chop');   // the notches
   return v;
 }
 
@@ -178,29 +360,6 @@ export function ladder(blocks) {
   return v;
 }
 
-// ── Log bridge: X -8..24, deck top at Y0 (cells Y-1), Z -(16s+22)..6 ─────────
-// Four split logs, riven face up; the deck ends short so both ends settle into
-// the banks; rope lashings bind the logs near each bank.
-export function bridge(span) {
-  const v = new Vox();
-  const zA = -(16 * span + 22), zB = 6;
-  const layers = [[-1, 0, 3], [-3, 0, 1], [-5, 1, 0], [-7, 2, 0], [-9, 3, 0]];   // [layer bottom, x inset, z shorten]
-  for (const x0 of [-8, 0, 8, 16]) {
-    for (const [y0, inset, cut] of layers) {
-      const y1 = y0 === -1 ? 0 : y0 + 2;
-      v.box(x0 + inset, x0 + 8 - inset, y0, y1, zA + cut, zB - cut, 'bark');
-      for (const z of [zA + cut, zB - cut - 1]) v.paint(x0 + inset, x0 + 8 - inset, y0, y1, z, z + 1, 'wood_top');
-    }
-    v.paint(x0 + 1, x0 + 7, -1, 0, zA + 3, zB - 3, 'riven');
-    for (let z = zA + 6, k = (x0 + 8) / 8; z < zB - 8; z += 13, k++) v.paint(x0 + 2 + (k % 3), x0 + 3 + (k % 3), -1, 0, z, z + 7, 'riven_dark');
-  }
-  for (const z0 of [-7, -16 * span - 11]) {
-    v.paint(-8, 24, -1, 0, z0, z0 + 2, 'rope');
-    v.paint(-8, -7, -5, 0, z0, z0 + 2, 'rope'); v.paint(23, 24, -5, 0, z0, z0 + 2, 'rope');
-  }
-  return v;
-}
-
 // ── Ladder kit: X -10..10, Y 0..9, Z -6..6. Three poles bound with rope ───────
 export function ladderKit() {
   const v = new Vox();
@@ -210,18 +369,6 @@ export function ladderKit() {
   }
   v.paint(-5, 3, 1, 3, -5, -4, 'bark_light');
   for (const x0 of [-6, 4]) { v.paint(x0, x0 + 2, 0, 9, -6, 6, 'rope'); v.box(x0, x0 + 2, 8, 9, -1, 1, 'rope_dark'); }
-  return v;
-}
-
-// ── Bridge kit: X -12..12, Y 0..9, Z -6..6. Three split logs bound with rope ──
-export function bridgeKit() {
-  const v = new Vox();
-  for (const [y0, z0, z1] of [[0, -6, 0], [0, 0, 6], [4, -3, 3]]) {
-    v.cutX(-12, 12, y0, y0 + 4, z0, z1, 1, 'bark');
-    v.paint(-12, 12, y0 + 3, y0 + 4, z0 + 1, z1 - 1, 'riven');
-    for (const x of [-12, 11]) v.paint(x, x + 1, y0, y0 + 4, z0, z1, 'wood_top');
-  }
-  for (const x0 of [-7, 5]) { v.paint(x0, x0 + 2, 0, 9, -6, 6, 'rope'); v.box(x0, x0 + 2, 8, 9, -1, 1, 'rope_dark'); }
   return v;
 }
 
@@ -240,44 +387,34 @@ export function packedCrate() {
   return v;
 }
 
-// ── Hearth: body inside -16..16 x 0..27 x -16..16; fire opening faces +Z ──────
-// Squared stones in uneven courses on a hearthstone, crossed logs on the fire
-// bed, soot above. The animated flame (X -5..5, Y 7..16, Z -2..5) stays clear.
+// ── Hearth: fire-back, body inside -16..16 x 0..29 x -16..16; the fire faces +Z ──
+// The owner's pick of four rudimentary concepts (2026-10-29, doc 279): an open fire on
+// four flagstones against one upright stack of slabs that shields the wall and throws
+// the heat back into the room, with low wing stones cradling the fire. No wood of its
+// own: the night's log is the real good a worker sets on the ash. The animated flame
+// (inside X -8..8, Y 8..22, Z -10..6) burns in front of the fire-back, below its top.
 export function hearth() {
   const v = new Vox();
-  v.cut(-16, 16, 0, 3, -16, 16, 3, 'stone_dark');
-  v.cut(-15, 15, 2, 3, -15, 15, 3, 'stone');
-  const course = (y0, h, x0, x1, z0, z1, widths, axis, shift) => {
-    let a = (axis === 'x' ? x0 : z0) - shift, i = 0;
-    const end = axis === 'x' ? x1 : z1;
-    while (a < end) {
-      const w = widths[i % widths.length], lo = Math.max(a, axis === 'x' ? x0 : z0), hi = Math.min(a + w, end);
-      const c = ['stone', 'stone_light', 'stone', 'stone_dark'][(i + shift) % 4];
-      if (hi - lo >= 2) {
-        if (axis === 'x') v.pillow(lo, hi, y0, y0 + h, z0, z1, 1, c); else v.pillow(x0, x1, y0, y0 + h, lo, hi, 1, c);
-      }
-      a += w; i++;
-    }
-  };
-  // Back wall, full height, three courses
-  course(3, 8, -16, 16, -16, -9, [10, 8, 14], 'x', 0);
-  course(11, 8, -16, 16, -16, -9, [8, 12, 12], 'x', 4);
-  course(19, 8, -15, 15, -15, -9, [12, 10, 8], 'x', 2);
-  // Side walls step down toward the front
-  for (const [x0, x1] of [[-16, -8], [8, 16]]) {
-    course(3, 8, x0, x1, -9, 13, [9, 7, 8], 'z', 1);
-    course(11, 7, x0, x1, -9, 9, [8, 10], 'z', 3);
-    course(18, 4, x0 + 1, x1 - 1, -9, 3, [6, 6], 'z', 0);
-  }
-  // Lintel stone across the top of the opening
-  v.pillow(-9, 9, 18, 22, -9, -2, 1, 'stone_light');
-  // Fire bed: ash, two crossed logs with cut ends, charred centre; soot above
-  v.cut(-7, 7, 3, 4, -8, 8, 2, 'ash');
-  v.cutX(-7, 7, 4, 7, -2, 1, 1, 'bark'); v.paint(-7, -6, 4, 7, -2, 1, 'wood_top'); v.paint(6, 7, 4, 7, -2, 1, 'wood_top');
-  v.cutZ(-2, 1, 5, 8, -7, 7, 1, 'bark_light'); v.paint(-2, 1, 5, 8, -7, -6, 'wood_top'); v.paint(-2, 1, 5, 8, 6, 7, 'wood_top');
-  v.paint(-4, 4, 4, 8, -4, 4, 'char');
-  v.cut(-5, 5, 4, 5, -5, 5, 2, 'ember');
-  v.paint(-8, 8, 8, 27, -10, -9, 'soot');
+  // Hearthstone: four flagstones on a dark bed, their seams showing between them
+  v.cut(-16, 16, 0, 2, -16, 16, 2, 'stone_dark');
+  v.cut(-15, -1, 2, 3, -15, -1, 1, 'stone'); v.cut(1, 15, 2, 3, -15, -1, 1, 'stone_light');
+  v.cut(-15, -1, 2, 3, 1, 15, 1, 'stone_light'); v.cut(1, 15, 2, 3, 1, 15, 1, 'stone');
+  // Fire-back: three slabs, each narrower than the one below
+  v.pillow(-15, 15, 3, 13, -16, -10, 1, 'stone');
+  v.pillow(-12, 12, 13, 22, -16, -11, 1, 'stone_light');
+  v.pillow(-7, 7, 22, 29, -15, -11, 1, 'stone');
+  // Wing stones at the back corners, stepping down toward the room
+  v.pillow(-16, -10, 3, 11, -10, -3, 1, 'stone_light'); v.pillow(-15, -10, 3, 7, -3, 3, 1, 'stone');
+  v.pillow(10, 16, 3, 11, -10, -3, 1, 'stone'); v.pillow(10, 15, 3, 7, -3, 3, 1, 'stone_light');
+  // Scorched flagstones around the ash, so the fire's own light does not wash them out
+  v.paint(-10, 10, 2, 3, -10, 8, 'stone_dark');
+  v.cut(-8, 8, 3, 4, -9, 6, 3, 'ash');
+  v.paint(-3, 3, 3, 4, -5, 1, 'char');
+  // Soot black around the fire, fading as it drifts up the fire-back
+  v.paint(-6, 6, 3, 12, -11, -9, 'soot');
+  v.paint(-5, 5, 13, 16, -12, -10, 'stone_dark');
+  v.paint(-4, 3, 16, 19, -12, -10, 'stone_dark');
+  v.paint(-3, 2, 19, 22, -12, -10, 'stone_dark');
   return v;
 }
 

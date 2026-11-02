@@ -76,18 +76,71 @@
       "res://assets/audio/wildlife/duck_splash_02.wav",
       "res://assets/audio/wildlife/duck_splash_03.wav"
     ],
+    "__comment_fishing": "Fishing (doc 289) reuses the recorded duck splashes: fish_plop, quiet, as the float lands; fish_bite as a fish takes the bait; fish_land as it is landed.",
+    "fish_plop": [
+      "res://assets/audio/wildlife/duck_splash_01.wav",
+      "res://assets/audio/wildlife/duck_splash_02.wav",
+      "res://assets/audio/wildlife/duck_splash_03.wav"
+    ],
+    "fish_bite": [
+      "res://assets/audio/wildlife/duck_splash_01.wav",
+      "res://assets/audio/wildlife/duck_splash_02.wav",
+      "res://assets/audio/wildlife/duck_splash_03.wav"
+    ],
+    "fish_land": [
+      "res://assets/audio/wildlife/duck_splash_01.wav",
+      "res://assets/audio/wildlife/duck_splash_02.wav",
+      "res://assets/audio/wildlife/duck_splash_03.wav"
+    ],
     "snore": [
       "res://assets/audio/dwarves/snore_01.wav",
       "res://assets/audio/dwarves/snore_02.wav",
       "res://assets/audio/dwarves/snore_03.wav"
     ],
+    "footstep_stone": [
+      "res://assets/audio/dwarves/footsteps/stone_01.wav", "res://assets/audio/dwarves/footsteps/stone_02.wav",
+      "res://assets/audio/dwarves/footsteps/stone_03.wav", "res://assets/audio/dwarves/footsteps/stone_04.wav",
+      "res://assets/audio/dwarves/footsteps/stone_05.wav", "res://assets/audio/dwarves/footsteps/stone_06.wav"
+    ],
+    "footstep_wood": [
+      "res://assets/audio/dwarves/footsteps/wood_01.wav", "res://assets/audio/dwarves/footsteps/wood_02.wav",
+      "res://assets/audio/dwarves/footsteps/wood_03.wav", "res://assets/audio/dwarves/footsteps/wood_04.wav",
+      "res://assets/audio/dwarves/footsteps/wood_05.wav", "res://assets/audio/dwarves/footsteps/wood_06.wav"
+    ],
+    "footstep_earth": [
+      "res://assets/audio/dwarves/footsteps/earth_01.wav", "res://assets/audio/dwarves/footsteps/earth_02.wav",
+      "res://assets/audio/dwarves/footsteps/earth_03.wav", "res://assets/audio/dwarves/footsteps/earth_04.wav"
+    ],
+    "footstep_grass": [
+      "res://assets/audio/dwarves/footsteps/grass_01.wav", "res://assets/audio/dwarves/footsteps/grass_02.wav",
+      "res://assets/audio/dwarves/footsteps/grass_03.wav", "res://assets/audio/dwarves/footsteps/grass_04.wav",
+      "res://assets/audio/dwarves/footsteps/grass_05.wav", "res://assets/audio/dwarves/footsteps/grass_06.wav"
+    ],
     "profiles": {
+      "footsteps": {
+        "near_radius": 3.0, "far_radius": 18.0,
+        "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 48.0,
+        "level_db": -15.0, "voice_group": "footsteps", "max_voices": 3,
+        "pause_with_simulation": true, "silence_during_loading": true
+      },
       "hammer": {"level_db": -2.0, "pause_with_simulation": true},
       "snore": {
         "near_radius": 3.0, "far_radius": 22.0,
         "zoom_reference": 18.0, "zoom_exponent": 1.5, "max_zoom": 60.0,
         "level_db": -9.0, "cooldown_seconds": 1.0, "max_voices": 2,
         "pause_with_simulation": true, "requires_sleep_pose": true
+      },
+      "fish_plop": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -18.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "fish_bite": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -13.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "fish_land": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -10.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
       },
       "duck_splash": {
         "near_radius": 3.0,
@@ -170,6 +223,10 @@
       "res://assets/audio/work/axe_chop_03.wav", "res://assets/audio/work/axe_chop_04.wav",
       "res://assets/audio/work/axe_chop_05.wav", "res://assets/audio/work/axe_chop_06.wav"
     ]
+  },
+  "footsteps": {
+    "materials": {"grass": "grass", "dirt": "earth", "log": "wood"},
+    "default_surface": "stone"
   },
   "poof": {
     "max_bursts": 12,

@@ -27,8 +27,8 @@ class XrayStub extends Node:
 		reference_y = 47
 		changed.emit()
 
-## The Appeal view's interface as the HUD uses it.
-class AppealStub extends Node:
+## The Appeal and Temperature views' interface as the HUD uses it.
+class ViewStub extends Node:
 	signal changed
 	var active := false
 	func toggle() -> void:
@@ -129,8 +129,8 @@ func _run() -> void:
 		root.size = resolution
 		await _frames(8)
 		var bounds := Rect2(Vector2.ZERO, Vector2(resolution))
-		# Option B (doc 259): pause and speed under the Sky Dial; Appeal, X-ray and Slice are
-		# the dock's last group, looking and sized like its other icons.
+		# Option B (doc 259): pause and speed under the Sky Dial; Appeal, Temperature, X-ray and
+		# Slice are the dock's last group, looking and sized like its other icons.
 		var dial_rect: Rect2 = dock._sky_dial.get_global_rect()
 		var time_rect: Rect2 = hud.time_panel.get_global_rect()
 		var dock_rect: Rect2 = dock._dock_panel.get_global_rect()
@@ -138,9 +138,9 @@ func _run() -> void:
 		_expect(time_rect.position.y >= dial_rect.end.y and absf(time_rect.get_center().x - dial_rect.get_center().x) < 1.0,
 			"pause and speed sit centred under the Sky Dial " + str(resolution))
 		_expect(hud.xray_button.get_parent() == row and hud.slice_button.get_index() == row.get_child_count() - 1
-			and hud.xray_button.get_index() == row.get_child_count() - 2 and hud.appeal_button.get_index() == row.get_child_count() - 3
-			and not row.get_child(row.get_child_count() - 4) is Button,
-			"Appeal, X-ray and Slice end the dock as their own group " + str(resolution))
+			and hud.xray_button.get_index() == row.get_child_count() - 2 and hud.temperature_button.get_index() == row.get_child_count() - 3
+			and hud.appeal_button.get_index() == row.get_child_count() - 4 and not row.get_child(row.get_child_count() - 5) is Button,
+			"Appeal, Temperature, X-ray and Slice end the dock as their own group " + str(resolution))
 		for button: Button in [hud.xray_button, hud.slice_button]:
 			_expect(button.size == dock._button_by_target.orders.size and button.text.is_empty() and dock_rect.encloses(button.get_global_rect()),
 				"view toggles are dock icons of the same size, without captions " + str(resolution))
@@ -212,16 +212,19 @@ func _run() -> void:
 
 
 ## The time and view keys (doc 23 "Keys"): Space pauses and resumes even with a button in
-## focus, 1 and 2 pick the speed, V and X switch the views as their buttons do, and the
+## focus, 1 and 2 pick the speed, V, T and X switch the views as their buttons do, and the
 ## buttons' hover cards name them. A text field keeps its keys, and Space does nothing while
 ## the clock is held.
 func _check_keys(xray: Node) -> void:
-	var appeal := AppealStub.new()
+	var appeal := ViewStub.new()
 	scene.add_child(appeal)
 	hud.bind_appeal(appeal)
+	var temperature := ViewStub.new()
+	scene.add_child(temperature)
+	hud.bind_temperature(temperature)
 	var hints := [hud.speed_buttons[0].key_hint, hud.speed_buttons[1].key_hint, hud.speed_buttons[2].key_hint,
-		hud.appeal_button.key_hint, hud.xray_button.key_hint]
-	_expect(hints == ["Space", "1", "2", "V", "X"], "the time and view buttons' hover cards name their keys " + str(hints))
+		hud.appeal_button.key_hint, hud.temperature_button.key_hint, hud.xray_button.key_hint]
+	_expect(hints == ["Space", "1", "2", "V", "T", "X"], "the time and view buttons' hover cards name their keys " + str(hints))
 	_key(KEY_1)
 	_expect(not clock_node.paused and clock_node.speed == 1 and hud.speed_buttons[1].button_pressed, "1 runs at normal speed")
 	_key(KEY_2)
@@ -236,9 +239,9 @@ func _check_keys(xray: Node) -> void:
 	var field := LineEdit.new()
 	hud.get_parent().add_child(field)
 	field.grab_focus()
-	for code: Key in [KEY_SPACE, KEY_1, KEY_V, KEY_X]: _key(code)
-	_expect(field.text == " 1VX" and not clock_node.paused and clock_node.speed == 2 and not appeal.active and xray.mode == "off",
-		"a text field keeps the keys it types")
+	for code: Key in [KEY_SPACE, KEY_1, KEY_V, KEY_T, KEY_X]: _key(code)
+	_expect(field.text == " 1VTX" and not clock_node.paused and clock_node.speed == 2 and not appeal.active and not temperature.active
+		and xray.mode == "off", "a text field keeps the keys it types")
 	field.queue_free()
 	await _frames(1)
 	clock_node.hold_for_loading(world_input, true)
@@ -258,6 +261,13 @@ func _check_keys(xray: Node) -> void:
 	await _frames(2)
 	_expect(xray.mode == "off" and not appeal.active and not hud.appeal_panel.visible and not hud.xray_panel.visible,
 		"X and V again turn the views off")
+	_key(KEY_T)
+	await _frames(2)
+	_expect(temperature.active and hud.temperature_button.button_pressed and hud.temperature_panel.visible
+		and hud.temperature_panel.get_global_rect() in hud.occupied_rects(), "T turns the Temperature view on, as its button, with its scale")
+	_key(KEY_T)
+	await _frames(2)
+	_expect(not temperature.active and not hud.temperature_panel.visible, "T again turns it off")
 
 
 ## The view banner (doc 23, "Views"): while a view is on, the top centre names it with one
@@ -301,6 +311,15 @@ func _check_banner(xray: Node) -> void:
 	xray.working = false
 	xray.toggle()
 	appeal.toggle()
+	var temperature: Node = hud._temperature
+	banner.bind("temperature", temperature)
+	temperature.toggle()
+	await _frames(3)
+	_expect(banner.visible and banner._rows.temperature.row.visible and not banner._rows.appeal.row.visible
+		and banner._rows.temperature.name.text == "Temperature view"
+		and banner._rows.temperature.line.text == "How warm each place is now · T or its button to leave",
+		"Temperature on: the banner names it, with what it shows and how to leave")
+	temperature.toggle()
 	await _frames(3)
 	_expect(not banner.visible and dock._toasts.reserved_top == 0.0, "views off: the banner goes and the toasts take the top again")
 

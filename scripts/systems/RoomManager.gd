@@ -42,6 +42,8 @@ extends Node
 
 const RoomRebuild = preload("res://scripts/components/RoomRebuild.gd")
 const RoomAppeal = preload("res://scripts/components/RoomAppeal.gd")
+const Climate = preload("res://scripts/components/Climate.gd")
+const HeatSpread = preload("res://scripts/components/HeatSpread.gd")
 
 const MAX_ROOM_CELLS := 4096          # ~ a generous 16x16x16 hall; tuning constant
 const DOOR_SEAL_HEIGHT := 4           # air cells above a door's floor cell that seal
@@ -61,9 +63,12 @@ signal room_updated(room_id: int)
 signal room_removed(room_id: int)
 ## Physical doorway changes, independent of room rebuilds or temperature ticks.
 signal door_boundaries_changed(cells: Array[Vector3i])
+## Open-air fires warm different cells now (doc 34 "Heat and cold spreading").
+signal warmth_changed(cells: Array[Vector3i])
 
 var _door_cells: Dictionary = {}          # Vector3i -> true
 var _heat_cells: Dictionary = {}          # Vector3i -> int (heat_units)
+var _heat_reach: Dictionary = {}          # heat anchor -> its widest piece's radius in open air
 var _light_cells: Dictionary = {}         # floor anchor -> installed light count
 var _bed_cells: Dictionary = {}           # bed origin -> complete footprint
 var _bed_assignments: Dictionary = {}     # bed origin -> permanent dwarf id
@@ -84,6 +89,11 @@ var _last_rebuild_frames := 0
 var _last_latency_ms := 0.0
 var _last_main_ms := 0.0
 var temperature_config: Dictionary = {}
+## The climate of every spot, sealed or not (doc 34); rooms add their heat to it.
+var climate: Climate
+## Fires warming open air and doors leaking between rooms (doc 34).
+var heat: HeatSpread
+var _heat_refresh_queued := false
 var appeal_config: Dictionary = {}
 var room_kinds: Array = []   # room_kinds.json: what each kind of room needs, in test order
 
@@ -94,9 +104,18 @@ func _ready() -> void:
 	temperature_config = JsonData.read_dict("res://data/world_gen/temperature.json")
 	appeal_config = JsonData.read_dict("res://data/rooms/appeal.json")
 	room_kinds = JsonData.read_dict("res://data/rooms/room_kinds.json").get("kinds", [])
+	climate = Climate.new(self)
+	heat = HeatSpread.new(self)
 	print("RoomManager: ready (doc 34/22).")
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied)
+	WorldData.block_changed.connect(climate.on_block_changed)
+	WorldData.block_changed.connect(_on_block_near_fire)
+	InteriorTracker.caves_discovered.connect(climate.on_caves_discovered)
+	door_boundaries_changed.connect(climate.on_doors_changed)
+	door_boundaries_changed.connect(func(_cells: Array[Vector3i]) -> void: _queue_heat_refresh())
 	WorldClock.hour_changed.connect(_on_hour_changed)
+	# A door to the open air lets a little of the weather in.
+	WeatherManager.weather_changed.connect(func(_id: String) -> void: _on_hour_changed(int(WorldClock.hour)))
 
 
 func _process(delta: float) -> void:
@@ -139,8 +158,6 @@ func _begin_rebuild() -> void:
 
 
 func _publish_rebuild() -> void:
-	# Refresh the clock-dependent formula at commit, not at a room's scan time.
-	for room: Dictionary in _rebuild.rooms.values(): _recompute_temp(room)
 	var old_ids := _rooms.keys()
 	_rooms = _rebuild.rooms
 	_cell_to_room = _rebuild.cell_to_room
@@ -149,10 +166,16 @@ func _publish_rebuild() -> void:
 	_completed_rebuilds += 1
 	_last_rebuild_frames = _rebuild_frames
 	_last_latency_ms = (Time.get_ticks_usec() - _rebuild_started_usec) / 1000.0
+	# Fires may now stand in a room or out of one; then the clock-dependent formula, at
+	# commit rather than at a room's scan time.
+	heat.rebuild()
+	_recompute_temps()
 	# Both maps are complete before any observer is notified.
 	for id: int in _rooms: room_updated.emit(id)
 	for id: int in old_ids:
 		if not _rooms.has(id): room_removed.emit(id)
+	var warmed := heat.take_changed()
+	if not warmed.is_empty(): warmth_changed.emit(warmed)
 
 
 # ── Public API — called directly by FurniturePlacementController ─────────────
@@ -195,32 +218,58 @@ func on_furniture_changed(_key: String, cells: Array[Vector3i], def: Dictionary,
 					door_changes.append(cell + Vector3i.UP * dy)
 	if not door_changes.is_empty():
 		door_boundaries_changed.emit(door_changes)
-	if not def.get("light_source", {}).is_empty() and not cells.is_empty():
-		var anchor := cells[0]
-		var count := maxi(0, int(_light_cells.get(anchor, 0)) + (1 if installed else -1))
-		if count > 0: _light_cells[anchor] = count
-		else: _light_cells.erase(anchor)
-		changed = true
 	if String(def.get("furniture_category","")) == "bed" and not cells.is_empty():
 		if installed: _bed_cells[cells[0]] = cells.duplicate()
 		else:
 			_bed_cells.erase(cells[0])
 			_bed_assignments.erase(cells[0])
 		changed = true
-	var heat: Dictionary = def.get("heat_source", {})
-	if not heat.is_empty() and not cells.is_empty():
-		var origin_cell: Vector3i = cells[0]
-		# Wall mounts can share a floor anchor with another heat source.
-		# Add/remove only this piece's contribution, never overwrite its neighbor.
-		var units := int(heat.get("heat_units", 0))
-		var remaining := maxi(0, int(_heat_cells.get(origin_cell, 0)) + (units if installed else -units))
-		if remaining > 0:
-			_heat_cells[origin_cell] = remaining
-		else:
-			_heat_cells.erase(origin_cell)
+	# A nightly fire (doc 279) is its room's light fixture lit or cold, so a bedroom
+	# keeps its kind by day; its heat counts only while it burns (set_fire_lit).
+	if not def.get("light_source", {}).is_empty() and not cells.is_empty():
+		var anchor := cells[0]
+		var count := maxi(0, int(_light_cells.get(anchor, 0)) + (1 if installed else -1))
+		if count > 0: _light_cells[anchor] = count
+		else: _light_cells.erase(anchor)
+		changed = true
+	if not def.has("nightly_fire") and _count_heat(cells, def, installed):
 		changed = true
 	if changed:
 		_mark_dirty()
+
+
+## A nightly fire was lit or went out (doc 279), or a lit one was removed.
+func set_fire_lit(cells: Array[Vector3i], def: Dictionary, lit: bool) -> void:
+	if _count_heat(cells, def, lit):
+		_mark_dirty()
+
+
+## Adds or removes one piece's heat at its anchor (cells[0]).
+func _count_heat(cells: Array[Vector3i], def: Dictionary, add: bool) -> bool:
+	var source: Dictionary = def.get("heat_source", {})
+	if source.is_empty() or cells.is_empty():
+		return false
+	var origin_cell: Vector3i = cells[0]
+	# Wall mounts can share a floor anchor with another heat source.
+	# Add/remove only this piece's contribution, never overwrite its neighbor.
+	var units := int(source.get("heat_units", 0))
+	var remaining := maxi(0, int(_heat_cells.get(origin_cell, 0)) + (units if add else -units))
+	if remaining > 0:
+		_heat_cells[origin_cell] = remaining
+		if add: _heat_reach[origin_cell] = maxi(int(_heat_reach.get(origin_cell, 0)), int(source.get("radius", 0)))
+	else:
+		_heat_cells.erase(origin_cell)
+		_heat_reach.erase(origin_cell)
+	_queue_heat_refresh()
+	return true
+
+
+## Every burning heat source at its floor anchor: {units, radius}.
+func heat_sources() -> Dictionary:
+	var result := {}
+	for anchor: Vector3i in _heat_cells:
+		result[anchor] = {"units": int(_heat_cells[anchor]), "radius": int(_heat_reach.get(anchor, 0))}
+	return result
 
 
 func get_stats() -> Dictionary:
@@ -275,6 +324,7 @@ func clear_runtime_state() -> void:
 	var ids := _rooms.keys()
 	_door_cells.clear()
 	_heat_cells.clear()
+	_heat_reach.clear()
 	_light_cells.clear()
 	_bed_cells.clear()
 	_bed_assignments.clear()
@@ -289,6 +339,8 @@ func clear_runtime_state() -> void:
 	_last_main_ms = 0.0
 	_rooms_dirty = false
 	_rebuild_accum = 0.0
+	climate.clear()
+	heat.clear()
 	if not boundaries.is_empty(): door_boundaries_changed.emit(boundaries)
 	for id: int in ids: room_removed.emit(id)
 
@@ -444,13 +496,44 @@ func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 
 
 func _on_hour_changed(_new_hour: int) -> void:
-	# Hourly weather updates reuse room geometry and its precomputed exposure.
+	# Hourly weather updates reuse room geometry and its precomputed exposure; a room changes
+	# with the clock through its rock or through a door to the open air.
+	_recompute_temps()
 	for room_id: int in _rooms.keys():
-		var room: Dictionary = _rooms[room_id]
-		if float(room.get("seasonal_influence", 0.0)) <= 0.0:
-			continue
-		_recompute_temp(room)
-		room_updated.emit(room_id)
+		var form: Vector3 = _rooms[room_id].temp_form
+		if form.y > 0.0 or form.z > 0.0: room_updated.emit(room_id)
+
+
+## Open-air warmth and every room's temperature again, once a frame at most: fires lit or
+## out, doors placed, blocks changed near a fire (doc 34 "Heat and cold spreading").
+func _queue_heat_refresh() -> void:
+	heat.mark_dirty()
+	if _heat_refresh_queued: return
+	_heat_refresh_queued = true
+	_refresh_heat.call_deferred()
+
+
+## A read in between may have walked the warmth already; its changed cells still wait here.
+func _refresh_heat() -> void:
+	_heat_refresh_queued = false
+	if heat.is_dirty(): heat.rebuild()
+	var before := {}
+	for id: int in _rooms: before[id] = float(_rooms[id].temp_c)
+	_recompute_temps()
+	for id: int in _rooms:
+		if not is_equal_approx(float(_rooms[id].temp_c), float(before[id])): room_updated.emit(id)
+	var warmed := heat.take_changed()
+	if not warmed.is_empty(): warmth_changed.emit(warmed)
+
+
+## A block changed within reach of a burning fire: its open-air warmth walks again.
+func _on_block_near_fire(cell: Vector3i, _old_id: int, _new_id: int) -> void:
+	for anchor: Vector3i in _heat_reach:
+		var reach := int(_heat_reach[anchor]) + 1
+		var offset := cell - anchor
+		if absi(offset.x) <= reach and absi(offset.y) <= reach + 1 and absi(offset.z) <= reach:
+			_queue_heat_refresh()
+			return
 
 
 func _mark_dirty() -> void:
@@ -495,7 +578,7 @@ func _block_id(pos: Vector3i) -> int:
 	return WorldGenerator.get_generated_block_id(pos.x, pos.y, pos.z)
 
 
-# ── Temperature (doc 34, sheltered rock climate) ─────────────────────────────
+# ── Temperature (doc 34: the climate, and a sealed room's heat) ──────────────
 
 ## Heat sources register at their footprint FLOOR cell (a SOLID ground
 ## block), but a room's `cells` are interior AIR — so the membership test
@@ -511,12 +594,37 @@ func _sum_heat(cells: Dictionary) -> int:
 	return total
 
 
-## Sheltered rock climate and installed heating; tuning is owned by this autoload.
+## A sealed room on its own feels the season through its rock only, at its floor's height,
+## plus its heat: `own_form`, Vector3(base, season share, 0). Its doors then pull it toward
+## their other sides (`temp_form`; HeatSpread). Its fires are tended (owner, 2026-10-30):
+## together they warm it to `tended_fire_c` before its doors leak, and no further. A room they
+## can warm past that is held there, a flat form; one already warmer gets nothing from them.
+## Each form is fixed while the clock moves; the hourly recompute moves a room between
+## them as the season turns. `heat_cap_c` is how far below the cap its rock is now.
 func _recompute_temp(room: Dictionary) -> void:
-	var heat_bonus := heating_contribution(int(room.heat_units), int(room.volume))
-	room["heat_bonus_c"] = heat_bonus
-	room["temp_c"] = ambient_temperature(float(room.seasonal_influence))+heat_bonus
-	room["is_frozen_vault"] = float(room.temp_c)<=0.0
+	var rock := Vector3(climate.mean_c(float(room.mean_floor_y)), float(room.seasonal_influence), 0.0)
+	var rock_c := climate.form_temperature(rock)
+	var tended := float(temperature_config.tended_fire_c)
+	var heat := heating_contribution(int(room.heat_units), int(room.volume))
+	var own := rock + Vector3(heat, 0.0, 0.0)
+	if rock_c + heat > tended: own = rock if rock_c >= tended else Vector3(tended, 0.0, 0.0)
+	room["heat_cap_c"] = maxf(0.0, tended - rock_c)
+	room["heat_bonus_c"] = climate.form_temperature(own) - rock_c
+	room["own_form"] = own
+	room["temp_form"] = own
+	_finish_temp(room)
+
+
+## Every room's own temperature, then the doors' leaks between them.
+func _recompute_temps() -> void:
+	for room: Dictionary in _rooms.values(): _recompute_temp(room)
+	heat.apply_door_leaks(_rooms, _cell_to_room)
+	for room: Dictionary in _rooms.values(): _finish_temp(room)
+
+
+func _finish_temp(room: Dictionary) -> void:
+	room["temp_c"] = climate.form_temperature(room.temp_form)
+	room["is_frozen_vault"] = float(room.temp_c) <= float(temperature_config.frozen_at_c)
 
 
 ## Single source and room totals share the same volume-normalized heating rule.
@@ -524,19 +632,64 @@ func heating_contribution(heat_units: int, room_volume: int) -> float:
 	return float(heat_units) / maxf(float(room_volume), float(temperature_config.minimum_heated_volume))
 
 
+## What a heat source adds to the sealed room at an air cell once the room's doors have
+## leaked some of it away (HeatSpread.kept_share); 0 outside a sealed room. A burning source
+## has its share of the room's tended heat, so two hearths never each claim it all; one not
+## burning, what it would add on top of those that burn, up to the tended cap.
+func heat_kept(air_cell: Vector3i, heat_units: int, burning := true) -> float:
+	var id := get_room_id_at(air_cell)
+	if id < 0: return 0.0
+	var room: Dictionary = _rooms[id]
+	var bonus := float(room.get("heat_bonus_c", 0.0))
+	var added := bonus * minf(1.0, float(heat_units) / float(room.heat_units)) if burning and int(room.heat_units) > 0 \
+		else minf(heating_contribution(heat_units, int(room.volume)), maxf(0.0, float(room.get("heat_cap_c", INF)) - bonus))
+	return added * heat.kept_share(_rooms, id)
+
+
 ## Read-only inspector view. Re-resolve by air cell after every room rebuild.
-func heat_source_status(air_cell: Vector3i, heat_units: int) -> Dictionary:
+func heat_source_status(air_cell: Vector3i, heat_units: int, burning := true) -> Dictionary:
 	var room := get_room_at(air_cell)
 	if room.is_empty(): return {}
 	return {"room_id": get_room_id_at(air_cell), "room_label": room_label(room),
 		"temperature_c": float(room.temp_c), "comfort": comfort_label(float(room.temp_c)),
-		"contribution_c": heating_contribution(heat_units, int(room.volume))}
+		"contribution_c": heat_kept(air_cell, heat_units, burning)}
 
+## Any cell's temperature now: its sealed room's, else the climate's for that spot.
 func temperature_at(air_cell: Vector3i) -> float:
 	var room := get_room_at(air_cell)
 	if not room.is_empty(): return float(room.temp_c)
-	var cover := maxi(0,WorldGenerator.get_overview_surface_height(air_cell.x,air_cell.z)-air_cell.y)
-	return ambient_temperature(exp(-float(cover)/float(temperature_config.cover_damping_blocks)))
+	var place := climate.exposure(air_cell)
+	return climate.temperature(float(air_cell.y), float(place.season_share), float(place.air_share)) + heat.warmth_at(air_cell)
+
+
+## A cell's temperature with its word, what sets it and its range over a year in clear
+## weather: Climate.exposure's fields, or kind "room" in a sealed room (its blended form's
+## shares), plus temperature_c, word, room_id, low_c and high_c (today's fires and doors
+## included), fire_c (an open-air fire's warmth there), heat_c (what a room's own fires add,
+## after its doors leak some away), door_c (what a room's doors add now, its own fires left
+## out) and wet. Rooms: temperature_c = the rock's + heat_c + door_c.
+func climate_at(cell: Vector3i) -> Dictionary:
+	var room := get_room_at(cell)
+	var place: Dictionary
+	var form: Vector3
+	var fire := 0.0
+	var kept := 0.0
+	var doors := 0.0
+	if room.is_empty():
+		place = climate.exposure(cell)
+		fire = heat.warmth_at(cell)
+		form = Vector3(climate.mean_c(float(cell.y)) + fire, float(place.season_share), float(place.air_share))
+	else:
+		form = room.temp_form
+		place = {"kind": "room", "steps": -1, "cover": -1, "season_share": form.y, "air_share": form.z}
+		var bonus := float(room.heat_bonus_c)
+		kept = bonus * heat.kept_share(_rooms, get_room_id_at(cell))
+		doors = climate.form_temperature(form) - climate.form_temperature(room.own_form) + bonus - kept
+	var temp_c := climate.form_temperature(form)
+	var span := climate.form_range(form)
+	place.merge({"temperature_c": temp_c, "word": temperature_word(temp_c), "room_id": get_room_id_at(cell),
+		"low_c": span.x, "high_c": span.y, "wet": climate.is_wet(), "fire_c": fire, "heat_c": kept, "door_c": doors})
+	return place
 
 func comfort_label(temp_c: float) -> String:
 	if temp_c<float(temperature_config.cold_below_c): return "Cold"
@@ -544,13 +697,7 @@ func comfort_label(temp_c: float) -> String:
 	if temp_c<=float(temperature_config.comfortable_max_c): return "Comfortable"
 	return "Hot"
 
-func ambient_temperature(exposure: float) -> float:
-	var season_index := { "spring": 0, "summer": 1, "autumn": 2, "winter": 3 }
-	var clock_day: int = WorldClock.day
-	var clock_season: String = WorldClock.season
-	var clock_hour: float = WorldClock.hour
-	var day_of_year: int = (clock_day - 1) + (int(season_index.get(clock_season, 0)) * 28)
-	var s_angle: float = (float(day_of_year) - 28.0) / 112.0 * TAU
-	var seasonal_offset := float(temperature_config.seasonal_swing_c)*cos(s_angle)*exposure
-	var daily_offset := float(temperature_config.daily_swing_c)*sin((clock_hour-8.0)/24.0*TAU)*exposure
-	return float(temperature_config.rock_temperature_c)+seasonal_offset+daily_offset
+## The sleep words, with Frozen for 0°C and below: the words temperature is shown in.
+func temperature_word(temp_c: float) -> String:
+	if temp_c <= float(temperature_config.frozen_at_c): return "Frozen"
+	return comfort_label(temp_c)

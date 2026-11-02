@@ -1,0 +1,25 @@
+Wolf sound sources — CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source pages and their CC0 declarations checked 2026-10-28.
+
+HOWLS: wolves.wav — Paresh
+https://freesound.org/people/Paresh/sounds/158780/
+The author identifies these as wolves recorded at Wolf Haven International,
+a wolf sanctuary in Washington State. This is a pack recording; excerpts can
+contain more than one wolf. No synthetic howl or human imitation is added.
+
+SELECTION FOLEY: Dog sniffing.wav — jedg
+https://freesound.org/people/jedg/sounds/505821/
+The author identifies the animal as a Dalmatian. Short recorded sniff/snort
+excerpts represent a nearby wolf's quiet selection cue. This is dog foley,
+not a recording of a wolf.
+
+EATING FOLEY: Dog eats — 16FVolejnikovaA
+https://freesound.org/people/16FVolejnikovaA/sounds/498396/
+The author identifies this as a dog eating its meal. Short canine chewing
+excerpts represent wolf feeding. This is dog foley, not a recording of a wolf.
+
+Masters were decoded from Freesound's public HQ MP3 previews, not downloaded
+from the original-upload WAV endpoint. source.json records download hashes,
+master conversion, crop positions, filters, fades and levels. Preparation does
+not shift pitch, stretch time, synthesize voices or add reverb.

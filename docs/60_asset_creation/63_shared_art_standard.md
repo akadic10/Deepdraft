@@ -22,7 +22,6 @@ limited to 16×16×16 cells.
 
 Keep local origins and articulation coordinates:
 - Most standing forms are centred horizontally with the ground at Y0.
-- Bridges sit below their walking plane.
 - Limbs and tools keep joint-local coordinates.
 
 Don't recentre parts. Uniform fitting in storage and catalogues is intentional.
@@ -180,13 +179,19 @@ one lighting body; don't fork the lighting equations.
 
 - World terrain blocks stay simple one-unit voxels. Stone, grass and earth carry the
   Hearthblock dressing in `terrain_appearance.gdshaderinc` (values in
-  `appearance_profiles.json` → `dressing`); bedrock and ore blocks are unchanged. Marks
-  are whole 1:16 cells that fade out before a cell shrinks below a pixel and stay quiet
-  on slice caps. The dressing's fine seam replaces those profiles' soft seam
+  `appearance_profiles.json` → `dressing`); bedrock and the other ores are unchanged.
+  Marks are whole 1:16 cells that fade out before a cell shrinks below a pixel and stay
+  quiet on slice caps. The dressing's fine seam replaces those profiles' soft seam
   (`seam_strength` 0), and zeroing a profile's `dressing` turns it off.
+- The dressing multiplies a face's colour: a positive `edge` or `seam` darkens it, a
+  negative one lightens it. A block too dark for a darker edge to show gets a lighter one.
+  Coal is the darkest block: the mined coal's body colour `#29343D`, with its own `coal`
+  profile (edge −1.6, seam −1.0), which draws a one-cell lit rim near the mined coal's
+  light colour so a vein reads as blocks, not a hole. `TerrainArtTest` checks it.
 - Built logs (doc 275) are not terrain faces. `BuiltLogs` draws each log block as a piece
   of `construction/logs.glb`: 80 named parts (lying, upright and joint pieces, each in four
-  plate variants) made by `tools/voxel_assets/built_logs.py` from the loose log's recipe,
+  variants of knots and drying checks) made by `tools/voxel_assets/built_logs.py` from the
+  loose log's shape, peeled (doc 278),
   in the hand-hewn source palette that CraftMaterials recolours for each wood. Build's
   log pictures are the same recipe in each wood (`icons.py`, rendered by
   `GenerateUiIcons.gd`). See doc 24, "Built logs".

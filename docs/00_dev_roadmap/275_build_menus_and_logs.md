@@ -12,6 +12,10 @@ the colony stores.
 
 Phases 1 to 3 are built (2026-10-26): see "Phase 2, built". The owner's look in game is next.
 
+**Since 2026-10-28 built logs are peeled** (doc [278](278_peeled_logs.md)): the bark body and
+plates described below were replaced by a peeled surface with knots and drying checks. The
+shape, pieces and joints are unchanged; doc 24, "Built logs", holds the current look.
+
 ## Today
 
 - **Build's tool bar** shows MATERIAL as four pictures: Stone, Dirt, Grass and Wood.

@@ -20,8 +20,17 @@ func release() -> void:
 
 func begin(radius: float) -> void:
 	release()
+	for piece: InstalledFurnitureComponent in ranked_beds(radius):
+		var candidates := access_cells(piece)
+		candidates.sort_custom(func(a: Vector3i,b: Vector3i): return a.distance_squared_to(agent.current_cell())<b.distance_squared_to(agent.current_cell()))
+		for cell in candidates: _options.append({"bed":piece,"cell":cell})
+
+## The beds this dwarf may use, best first. A tired dwarf lights the first one's room
+## fire before bed (doc 34, "Bedtime fires").
+func ranked_beds(radius: float) -> Array[InstalledFurnitureComponent]:
+	var result: Array[InstalledFurnitureComponent] = []
 	_controller = agent.get_tree().get_first_node_in_group("furniture_controller")
-	if not is_instance_valid(_controller): return
+	if not is_instance_valid(_controller): return result
 	var nearby: Array = []
 	for piece: InstalledFurnitureComponent in _controller.get_installed_pieces():
 		if not _available(piece): continue
@@ -34,10 +43,8 @@ func begin(radius: float) -> void:
 		if owned: score = -1.0 # Always try the assigned bed before spare local beds.
 		nearby.append({"bed":piece,"score":score})
 	nearby.sort_custom(func(a,b): return float(a.score)<float(b.score))
-	for entry: Dictionary in nearby:
-		var candidates := access_cells(entry.bed)
-		candidates.sort_custom(func(a: Vector3i,b: Vector3i): return a.distance_squared_to(agent.current_cell())<b.distance_squared_to(agent.current_cell()))
-		for cell in candidates: _options.append({"bed":entry.bed,"cell":cell})
+	for entry: Dictionary in nearby: result.append(entry.bed)
+	return result
 
 func _available(piece: InstalledFurnitureComponent) -> bool:
 	return piece != null and is_instance_valid(piece.node) and not piece.flagged_uninstall and piece.def.has("sleep_surface") and piece.sleep_owner in [-1,agent.dwarf_id] and piece.assigned_dwarf_id in [-1,agent.dwarf_id]
@@ -61,7 +68,7 @@ static func access_cells(piece: InstalledFurnitureComponent) -> Array[Vector3i]:
 
 func _access_clear(piece: InstalledFurnitureComponent, cell: Vector3i) -> bool:
 	if not preload("DwarfPrivacy.gd").allowed(cell,agent.dwarf_id,true): return false
-	if not NavGrid.is_walkable(cell) or NavGrid.bridge_supports(cell) or not NavGrid.ladder_at(cell).is_empty(): return false
+	if not NavGrid.is_walkable(cell) or not NavGrid.ladder_at(cell).is_empty(): return false
 	for tile: Vector3i in piece.cells:
 		if not BlockRegistry.is_solid(WorldData.get_live_block(tile.x,tile.y,tile.z)): return false
 		for y in range(1,4):

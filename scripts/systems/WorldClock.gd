@@ -7,10 +7,10 @@ extends Node
 # maintain their own counters.
 #
 # Time scale (data/calendar/calendar.json; defaults from 11_overview.md):
-#   1 in-game hour  = 60 real seconds  (at ×1 speed)  -> 1 in-game DAY = 24 real minutes
+#   1 in-game hour  = 30 real seconds  (at ×1 speed)  -> 1 in-game DAY = 12 real minutes
 #   1 in-game day   = 24 hours
-#   1 season        = 28 days
-#   1 year          = 4 seasons = 112 days
+#   1 season        = 21 days
+#   1 year          = 4 seasons = 84 days
 #
 # The clock now advances in _process(). Configuration (time scale, season order,
 # start date, event times, day-length curve) is loaded from calendar.json — this
@@ -26,7 +26,7 @@ var year:   int    = 1
 var hour:   float  = 0.0       # 0.0–23.999… (24-hour clock)
 
 # ── Speed / pause ─────────────────────────────────────────────────────────────
-## Multiplies real time. 0 = frozen. 1 = ×1 (24-minute day). Set via set_speed().
+## Multiplies real time. 0 = frozen. 1 = ×1 (12-minute day). Set via set_speed().
 var speed:  float = 1.0
 var _player_paused := false
 var _loading_holds: Dictionary = {}
@@ -38,9 +38,9 @@ var paused: bool:
 var restoring_state: bool = false
 
 # ── Configuration (loaded from calendar.json; values below are fallbacks) ──────
-var _real_seconds_per_game_hour: float = 60.0
+var _real_seconds_per_game_hour: float = 30.0
 var _hours_per_day:  int = 24
-var _days_per_season: int = 28
+var _days_per_season: int = 21
 var _season_order: Array[String] = ["spring", "summer", "autumn", "winter"]
 var _event_times:  Dictionary = {}   # name -> hour (for SkyController, later phases)
 var _day_length:   Dictionary = {}   # mean_hours / amplitude_hours / *_solstice_doy
@@ -273,7 +273,7 @@ func growth_rate_multiplier() -> float:
 	return 1.0
 
 
-## Returns the day-of-year (0–111) for the current calendar position.
+## Returns the day-of-year (0–83) for the current calendar position.
 ## Used by the cosine day-length curve in 11_overview.md §5.
 func day_of_year() -> int:
 	var season_index: int = _season_order.find(season)
@@ -288,14 +288,26 @@ func day_of_year() -> int:
 func daylight_hours(doy: int) -> float:
 	var mean:   float = float(_day_length.get("mean_hours", 12.0))
 	var ampl:   float = float(_day_length.get("amplitude_hours", 4.0))
-	var summer: float = float(_day_length.get("summer_solstice_doy", 28))
+	# +cos: at the summer solstice the cosine is 1 -> mean+ampl = LONGEST day.
+	return mean + ampl * solstice_cosine(doy)
+
+
+## The year's solar cosine at `doy`: 1 at the summer solstice, -1 at the winter
+## solstice. Daylight and the rooms' seasonal temperature swing both follow it.
+func solstice_cosine(doy: int) -> float:
+	var summer: float = float(_day_length.get("summer_solstice_doy", 21))
 	var total:  float = float(_days_per_season * _season_order.size())
 	if total <= 0.0:
-		return mean
-	var angle := (float(doy) - summer) / total * TAU
-	# +cos: at the summer solstice (doy == summer) cos == 1 -> mean+ampl = LONGEST day.
-	# (11_overview.md §5 prints this as "mean - ampl", which is inverted; +ampl is correct.)
-	return mean + ampl * cos(angle)
+		return 0.0
+	return cos((float(doy) - summer) / total * TAU)
+
+
+## True from sunset to sunrise on the seasonal sun the sky uses: solar noon
+## (`midday`) less and plus half of today's daylight. Nightly fires burn then (doc 279).
+func is_night() -> bool:
+	var half := daylight_hours(day_of_year()) * 0.5
+	var midday := float(_event_times.get("midday", 14.0))
+	return hour < midday - half or hour >= midday + half
 
 
 ## Returns the named time-of-day events (name -> hour) from calendar.json.

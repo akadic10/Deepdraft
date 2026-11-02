@@ -1,0 +1,21 @@
+Deer sound sources — CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source pages and their CC0 declarations checked 2026-10-28.
+
+SELECTION: Deer Meewing 01.wav — msantoro11
+https://freesound.org/people/msantoro11/sounds/351113/
+The author describes calls made by a group of deer at a nature park.
+Three separate calls provide the deer selection variations. The recording
+does not identify the deer species, age or sex. No artificial voice is added.
+
+GRAZING FOLEY: Horse Eating — gibarroule
+https://freesound.org/people/gibarroule/sounds/365138/
+The author describes a horse eating and chewing grass outdoors at Kuhhorst,
+Germany, recorded with a Sennheiser shotgun microphone and Zoom H4N.
+Short grass-chewing excerpts represent deer grazing. This is horse foley,
+not a recording of a deer eating.
+
+Masters were decoded from Freesound's public HQ MP3 previews, not downloaded
+from the original-upload WAV endpoint. source.json records download hashes,
+master conversion, crop positions, filters, fades and levels. Preparation does
+not shift pitch, stretch time, synthesize voices or add reverb.

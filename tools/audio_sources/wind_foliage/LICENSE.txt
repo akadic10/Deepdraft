@@ -1,0 +1,38 @@
+Deepdraft - recorded wind and foliage sources
+
+All four sources were published under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+Wind on top of Saleve mountains Switzerland, MS
+Author: YannSauvin
+Source: https://freesound.org/people/YannSauvin/sounds/816725/
+Preview: https://cdn.freesound.org/previews/816/816725_6921828-hq.mp3
+Local master: mountain_wind.wav
+Mountain wind recorded with an MKH60 and ATE308 M/S setup, supplied as a stereo file.
+
+wind_forest_08_strong_l_01.wav
+Author: teadrinker
+Source: https://freesound.org/people/teadrinker/sounds/403051/
+Preview: https://cdn.freesound.org/previews/403/403051_338690-hq.mp3
+Local master: tree_foliage.wav
+Wind through trees on a summer afternoon at Rosendal, Nerikes Kil, Sweden, recorded with a Zoom H4n.
+
+Autumn wind and dry leaves.wav
+Author: Stek59
+Source: https://freesound.org/people/Stek59/sounds/457318/
+Preview: https://cdn.freesound.org/previews/457/457318_9065275-hq.mp3
+Local master: autumn_leaves.wav
+Autumn wind blowing dry leaves over a sidewalk, recorded with a Tascam DR-05; the author notes a rain-like background texture.
+
+winter wind 01a.aiff
+Author: klangfabrik
+Source: https://freesound.org/people/klangfabrik/sounds/117504/
+Preview: https://cdn.freesound.org/previews/117/117504_181941-hq.mp3
+Local master: window_wind.wav
+Variable cold wind with a slight whistle, recorded beside a partially open window in Toronto; separate excerpts supply winter wind and filtered sheltered air.
+
+Masters were decoded from public HQ MP3 previews, not the original lossless uploads. They retain supplied stereo channels and were resampled to 22050 Hz PCM16 with anti-alias filtering and joint gain. The window-wind master retains the first 90 seconds. Source and master hashes, source regions, gains and the five output edit profiles are in source.json.
+
+General wind, tree foliage and autumn leaves each use a different field recording. Winter wind and sheltered air use separate excerpts from the same real window-wind recording. Sheltered air is a filtered adaptation, not a recording of a cave.

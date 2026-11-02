@@ -17,20 +17,24 @@ extends RefCounted
 ## FETCH_BUILD / UNINSTALL: the furniture pipeline (doc 19 §3.3/§3.4 — a ghost
 ## posts ONE fetch-and-build lease; a 📤-flagged piece posts ONE uninstall
 ## lease). First-class types per SH parity (dedicated placement_task_group).
-enum Type { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
+enum Type { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 ## Task-type categories: the one place each grouping is listed (read-only).
-## Work on a surface source (tree, boulder, scree, shrub, plant): one executor,
-## the specialized surface-work matcher.
+## Work on a surface source (tree, boulder, scree, shrub, plant, a fishing spot, a finished
+## batch on a workshop): one executor, the specialized surface-work matcher.
 const SURFACE_WORK := [Type.FELL_TREE, Type.CLEAR_BOULDER, Type.GATHER_SCREE, Type.HARVEST_SHRUB,
-	Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE]
-## Surface work done by hand: gather pose and gather contact (no axe or pick).
+	Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE, Type.FISH, Type.COLLECT]
+## Surface work done by hand: gather pose and gather contact (no axe or pick). COLLECT takes
+## a finished batch down from its workshop: the dried fish off the drying rack (doc 292).
 const GATHER_WORK := [Type.GATHER_SCREE, Type.HARVEST_SHRUB, Type.CLEAR_SHRUB,
-	Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE]
+	Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE, Type.COLLECT]
 const SHRUB_WORK := [Type.HARVEST_SHRUB, Type.CLEAR_SHRUB]
-## Work every dwarf may take, before permissions. Workers add CRAFT.
-const COMMON_WORK := [Type.MINE, Type.HAUL, Type.FETCH_BUILD, Type.UNINSTALL] + SURFACE_WORK
+## Work every career takes unless it names its own (professions.json `work`), before
+## permissions: all but fishing, which is the Ranger's (doc 292). Careers with a craft
+## section add CRAFT.
+const COMMON_WORK := [Type.MINE, Type.HAUL, Type.FETCH_BUILD, Type.UNINSTALL, Type.FELL_TREE, Type.CLEAR_BOULDER,
+	Type.GATHER_SCREE, Type.HARVEST_SHRUB, Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE]
 
 ## Release reasons (doc 16 §2.8) — passed through task_released for logging/AI.
 enum ReleaseReason { NEED_INTERRUPT, COMBAT, PLAYER, PATH_INVALID, SOURCE_EMPTY, NO_PROGRESS, MATERIAL_UNAVAILABLE, PLAN_CHANGED, SEARCH_BUDGET_EXHAUSTED }
@@ -86,4 +90,6 @@ static func type_name(t: int) -> String:
 		Type.CLEAR_PLANT: return "CLEAR_PLANT"
 		Type.HARVEST_TREE: return "HARVEST_TREE"
 		Type.UPROOT_SHRUB: return "UPROOT_SHRUB"
+		Type.FISH: return "FISH"
+		Type.COLLECT: return "COLLECT"
 	return "UNKNOWN"

@@ -1,7 +1,7 @@
 extends "res://scripts/tests/LadderTest.gd"
 
 ## Doc 258 step 6: one WorkSourceTable owns work-source bookkeeping for ladders,
-## bridges, flora, surface details and furniture. Checks the shared contract on
+## flora, surface details and furniture. Checks the shared contract on
 ## a stub family and through two real owners (ladders and trees):
 ## - a release keeps the one pending lease and never posts another (Hard Rule 12);
 ## - a lease that is gone (cancelled) is re-posted once by its source;

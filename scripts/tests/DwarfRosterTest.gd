@@ -124,6 +124,22 @@ func _run() -> void:
 		"an open sheet follows the roster's selection")
 	_key(KEY_ESCAPE)
 	_expect(not manager.is_open("character_sheet") and manager.is_open("dwarves"), "Escape closes the sheet first, then Colony Dwarves")
+	# The career map follows the roster's selection too, keeping its chosen career, so dwarves
+	# can be compared for one career (owner, 2026-11-01).
+	_click(roster._rows[worker].button.get_global_rect().position + Vector2(30,28))
+	await _settle()
+	_click(roster._card._buttons.profession.get_global_rect().get_center())
+	await _settle()
+	var careers = director._profession_panel
+	careers.select_profession("base:profession:ranger")
+	roster._rows[idle_worker].button.pressed.emit()   # the map may cover the row
+	await _settle()
+	_expect(manager.is_open("professions") and careers._agent == idle_worker and careers._selected == "base:profession:ranger"
+		and careers._identity.text == idle_worker.dwarf_name, "the career map follows the roster's pick and keeps the Ranger chosen")
+	explorer.select_object(director, worker)   # as a click on the dwarf in the world selects
+	await _settle()
+	_expect(careers._agent == worker and careers._selected == "base:profession:ranger", "and a dwarf picked in the world")
+	manager.close("professions")
 	_click(roster._rows[worker].button.get_global_rect().position + Vector2(30,28))
 	await _settle()
 	_click(roster._card._follow.get_global_rect().get_center())

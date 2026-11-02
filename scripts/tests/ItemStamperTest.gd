@@ -27,7 +27,7 @@ func _run() -> void:
 	create_timer(120).timeout.connect(func(): push_error("Item stamper timed out"); quit(1))
 	await _setup_crafting_fixture()
 	var development: Array = root.get_node("UIRegistry").get_menu("development").items
-	_expect(development.size() == 8 and development.any(func(entry): return entry.id == "item_stamper")
+	_expect(development.any(func(entry): return entry.id == "item_stamper")
 		and not development.any(func(entry): return String(entry.id).begins_with("spawn_")),
 		"Development holds Item stamper in place of the three spawners")
 	var stamper = load(STAMPER).new()

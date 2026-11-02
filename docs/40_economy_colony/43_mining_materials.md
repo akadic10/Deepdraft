@@ -21,9 +21,16 @@ full voxel in cleared space:
 
 Cave soil is never built. The plank and stone floors were removed on 2026-10-26
 (doc 12, "No separate floor blocks"). There is no
-wall facing or combined mine-and-replace action, and wall finishes such as
-panelling stay out (owner, 2026-10-12). A thinner wall, if one is added, must fill
-cleared space, never cover kept natural terrain (roadmap 127).
+wall facing, and wall finishes such as panelling stay out (owner, 2026-10-12). A thinner
+wall, if one is added, must fill cleared space, never cover kept natural terrain
+(roadmap 127).
+
+**Replacing blocks (2026-10-29, doc 285):** Build's Replace swaps a block the colony can see
+(one with an open face) for one of Build's materials, at the same costs. A builder digs the old
+block out for its mining time and hammers the new one in; the cell is solid throughout, and
+the old block drops by its own rule in `block_resources.json`, at the builder's feet. Blocks
+that already match are left: natural rock for stone, since built stone is its layer's rock.
+Bedrock's layers, water and blocks marked for mining are never replaced.
 
 ## Overview
 
@@ -53,7 +60,9 @@ colour family. Grass and dirt are one block each (2026-10-26), with full-voxel
 seasonal palettes; the eight grass and four dirt variants, and dirt's decorative
 stripes, are gone. Stone, grass and earth now carry the Hearthblock
 dressing, drawn in the shader only (one-cell edges, seams, flecks, occasional cracks
-or worn patches; `appearance_profiles.json` → `dressing`). Material geography, soil
+or worn patches; `appearance_profiles.json` → `dressing`). Coal wears the mined coal's
+body colour (`#29343D`) with a lit one-cell edge (2026-11-01), so a vein, or a pit dug
+into one, reads as blocks instead of a black hole. Material geography, soil
 depth, caves, resource placement, hardness and yields retain their existing rules
 (doc 145). The renderer side is in
 [24](../20_player_interface/24_world_rendering.md), "Base terrain art".

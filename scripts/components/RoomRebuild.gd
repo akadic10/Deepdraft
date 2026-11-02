@@ -119,7 +119,7 @@ func _step() -> void:
 		Stage.COLUMNS:
 			if cursor == column_keys.size():
 				room.mean_floor_y = float(floor_y_total) / maxi(1, column_keys.size())
-				room.seasonal_influence = float(owner.temperature_config.sealed_exposure) * exposure / maxi(1, column_keys.size())
+				room.seasonal_influence = exposure / maxi(1, column_keys.size())
 				room.floor_tiles = floor_total
 				furniture_keys = owner._heat_cells.keys()
 				cursor = 0
@@ -128,9 +128,9 @@ func _step() -> void:
 			var column: Vector2i = column_keys[cursor]
 			cursor += 1
 			floor_y_total += int(columns[column])
-			var height := WorldGenerator.get_overview_surface_height(column.x, column.y)
-			var cover := maxf(0.0, float(height - int(columns[column]) - owner.DOOR_SEAL_HEIGHT))
-			exposure += exp(-cover / float(owner.temperature_config.cover_damping_blocks))
+			# The season reaches the room through the solid blocks over its lowest air (doc 34).
+			var lowest := Vector3i(column.x, int(columns[column]), column.y)
+			exposure += owner.climate.rock_share(owner.climate.cover_above(lowest))
 		Stage.HEAT:
 			if cursor < furniture_keys.size():
 				var cell: Vector3i = furniture_keys[cursor]

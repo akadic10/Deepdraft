@@ -160,6 +160,7 @@ func follow_path(delta: float) -> void:
 
 	if distance <= step:
 		agent.global_position = target
+		if not rig.climbing and distance > 0.0: walk_bob(distance)
 		move_index += 1
 		if move_index >= move_path.size():
 			clear_path()
@@ -180,7 +181,6 @@ func move_segment_clear(cell: Vector3i) -> bool:
 	var here := agent.current_cell()
 	if here.y == cell.y and NavGrid.is_walkable(here) and NavGrid.is_walkable(cell):
 		return NavGrid.line_walkable_flat_from(agent.global_position,cell)
-	if PlacedEntityRegistry.barrier_blocks_segment(agent.global_position,Vector3(cell)+Vector3(.5,1,.5)): return false
 	# Steps and ladder entry/exit stay waypoint-exact. During a vertical step,
 	# current_cell() can briefly be between the two supporting floor heights.
 	return absi(here.x-cell.x)+absi(here.z-cell.z) <= 1
@@ -204,7 +204,12 @@ func _repath_walk() -> void:
 ## arc. Rotations pivot around the part centres, not around the actor's feet.
 func walk_bob(moved: float) -> void:
 	var stride_length := agent.stride_length
-	walk_cycle = fposmod(walk_cycle + moved / maxf(stride_length * 2.0, 0.01), 1.0)
+	var next_cycle := walk_cycle + moved / maxf(stride_length * 2.0, 0.01)
+	# Both feet land once per cycle. Coalesce skipped contacts on a stalled
+	# frame, and advance phase even when the listener cannot hear the dwarf.
+	var contact := moved > 0.0 and floori(next_cycle * 2.0) > floori(walk_cycle * 2.0)
+	walk_cycle = fposmod(next_cycle, 1.0)
+	if contact and not rig.climbing: WorkFeedback.play_footstep(agent)
 	var amp := stride_length * .5
 	_pose_foot(rig.foot_r,walk_cycle,amp)
 	_pose_foot(rig.foot_l,fposmod(walk_cycle+.5,1.0),amp)
@@ -246,7 +251,7 @@ func _pose_foot(foot: Node3D, q: float, amp: float) -> void:
 # ── Physical support ──────────────────────────────────────────────────────────
 
 func has_floor_support(cell: Vector3i) -> bool:
-	return NavGrid.bridge_supports(cell) or BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y,cell.z))
+	return BlockRegistry.is_solid(WorldData.get_live_block(cell.x,cell.y,cell.z))
 
 
 ## Recover a one-block floor intersecting the feet, including saved positions.

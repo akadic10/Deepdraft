@@ -70,12 +70,12 @@ func _access_and_rotations() -> void:
 	for yaw in range(4):
 		var origin := Vector3i(46,20,42)
 		var fence = _piece(FENCE,origin,yaw)
-		_expect(fence.cells.is_empty(),"grid-corner post does not reserve floor cells")
+		_expect(not root.get_node("NavGrid").is_walkable(origin) and root.get_node("NavGrid").is_walkable(origin+Vector3i.FORWARD),"post blocks only its own tile")
 		furniture.dev_remove_installed(fence.installed_id)
 		var gate = _piece(GATE,origin,yaw)
-		for cell in gate.cells:
-			_expect(root.get_node("NavGrid").is_walkable(cell),"gate is traversable at yaw %d"%yaw)
-			_expect(not root.get_node("RoomManager")._door_cells.has(cell),"open rail gate never seals a room")
+		var opening: Vector3i = origin+(Vector3i.RIGHT if yaw%2==0 else Vector3i.BACK)
+		_expect(root.get_node("NavGrid").is_walkable(opening) and not root.get_node("NavGrid").is_walkable(origin),"gate opening is traversable between its posts at yaw %d"%yaw)
+		_expect(not root.get_node("RoomManager")._door_cells.has(opening),"open rail gate never seals a room")
 		var hinges = gate.node.get_node("DoorAnimation")
 		worker.position = gate.node.global_position+Vector3(0,0,1)
 		hinges._process(.4)

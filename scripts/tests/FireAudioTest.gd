@@ -58,7 +58,7 @@ func _run() -> void:
 			previous = sample
 		check(peak<.75 and sqrt(energy/count)>.04, "audible, unclipped PCM: "+kind)
 		check(seam<sqrt(difference/count)*5, "no discontinuous loop seam: "+kind)
-	for label in ["campfire","torch","hidden","sliced","far","overview","paused","zero_speed","loading","no_camera","removed"]:
+	for label in ["campfire","torch","cold","hidden","sliced","far","overview","paused","zero_speed","loading","no_camera","removed"]:
 		_fixture(label)
 		for i in 50: sound._process(.2)
 		var audible := false
@@ -66,7 +66,7 @@ func _run() -> void:
 		check(audible==(label in ["campfire","torch"]), "source gating: "+label)
 	_fixture("campfire")
 	for id in range(2,42):
-		furniture._installed[id] = {"installed_id":id,"node":source,"def":{"fire_sound":"campfire"}}
+		furniture._installed[id] = _piece(id,"campfire")
 	sound._process(5)
 	check(sound.voices.size()==4 and sound.get_child_count()==4, "forty fires have only four voices")
 	var power := 0.0
@@ -138,6 +138,16 @@ func _fixture(label: String) -> void:
 	camera.current = label!="no_camera"
 	source.visible = label!="hidden"
 	source.position.y = 130 if label=="sliced" else 0
-	furniture._installed = {} if label=="removed" else {1:{"installed_id":1,"node":source,"def":{"fire_sound":"torch" if label=="torch" else "campfire"}}}
+	furniture._installed = {} if label=="removed" else {1:_piece(1,label)}
 	if is_instance_valid(sound):
 		sound._silence()
+
+# Real installed pieces, as the game hands them: the campfire is a nightly fire burning
+# a log, "cold" is one still waiting for its log, and the torch is no nightly fire.
+# Loaded at run time: the class names autoloads that do not exist yet when this script compiles.
+func _piece(id: int, label: String) -> RefCounted:
+	var piece = load("res://scripts/components/InstalledFurnitureComponent.gd").new()
+	piece.setup(id,"",{"fire_sound":"torch"} if label=="torch" else {"fire_sound":"campfire","nightly_fire":{}},Vector3i.ZERO,0)
+	if label not in ["torch","cold"]: piece.fire_log = "base:resources:wood:pine_log"
+	piece.node = source
+	return piece

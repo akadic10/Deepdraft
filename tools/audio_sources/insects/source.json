@@ -1,0 +1,163 @@
+{
+  "sources": [
+    {
+      "kind": "crickets",
+      "title": "Crickets_Clean.wav",
+      "author": "johnnydekk",
+      "id": "626180",
+      "description": "Field-recorded cricket, isolated from background noise by the author; cleaned re-upload of the H4N recording.",
+      "page": "https://freesound.org/people/johnnydekk/sounds/626180/",
+      "download": "https://cdn.freesound.org/previews/626/626180_5790048-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "bf7f4248dd4c3e0aa5daf1ec656a1bd97565637d06dfbb34809ca6d70a616538",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 39.92952380952381,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "night_crickets.wav",
+      "master_sha256": "0f8199781c8d5e74eb59efcc9490c0a2bf806a3cf9eede7b96a383b378443b19",
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 50.173122885452216,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo preserved",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "day_insects",
+      "title": "Cicadas",
+      "author": "floft",
+      "id": "527812",
+      "description": "Cicadas in the University of Idaho Experimental Forest, recorded with Zoom H2N M/S microphones and decoded to stereo by the author.",
+      "page": "https://freesound.org/people/floft/sounds/527812/",
+      "download": "https://cdn.freesound.org/previews/527/527812_1172045-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "2f303fdc73a0dabc10ca19d81d4cc95203c6886877f82a175456ab030d7026b3",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 68.0899375,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "forest_cicadas.wav",
+      "master_sha256": "bfb436d72ce771e492c093f8e9637d946fdf90b70595350749f0f808997fc297",
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.0854689720527497,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo preserved",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "chirp",
+      "title": "Single Cricket Chirping, Close Perspective 02",
+      "author": "HECKFRICKER",
+      "id": "753272",
+      "description": "Cricket on a rose bush, recorded with a Tascam DR-05X; author isolated background noise and normalized in iZotope RX 9.",
+      "page": "https://freesound.org/people/HECKFRICKER/sounds/753272/",
+      "download": "https://cdn.freesound.org/previews/753/753272_12863902-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "ddf8a5c11db7ba339ab2e1986a26b4bb9e912c8384699fad15532e0e3b11e5fa",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 20.12451247165533,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "single_cricket.wav",
+      "master_sha256": "724e5bdda58bc3de168b86e2681aad7a2b7cd74eb315d58f20e11b80ea880336",
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 2.2655216486763923,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo averaged to mono",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "crickets": {
+      "master": "night_crickets.wav",
+      "rate": 22050,
+      "channels": 2,
+      "loop": true,
+      "regions_seconds": [
+        [
+          0.5,
+          39.0
+        ]
+      ],
+      "loop_seconds": 37,
+      "crossfade_seconds": 1.5,
+      "high_pass_hz": 1200,
+      "low_pass_hz": 9000,
+      "target_rms": 0.0231,
+      "peak_ceiling": 0.6
+    },
+    "day_insects": {
+      "master": "forest_cicadas.wav",
+      "rate": 22050,
+      "channels": 2,
+      "loop": true,
+      "regions_seconds": [
+        [
+          12.0,
+          44.5
+        ]
+      ],
+      "loop_seconds": 31,
+      "crossfade_seconds": 1.5,
+      "high_pass_hz": 1500,
+      "low_pass_hz": 9500,
+      "target_rms": 0.01236,
+      "peak_ceiling": 0.6
+    },
+    "chirp": {
+      "master": "single_cricket.wav",
+      "rate": 22050,
+      "channels": 1,
+      "loop": false,
+      "regions_seconds": [
+        [
+          0.5,
+          1.55
+        ],
+        [
+          5.44,
+          6.49
+        ],
+        [
+          12.08,
+          13.15
+        ]
+      ],
+      "high_pass_hz": 700,
+      "low_pass_hz": 9000,
+      "fades_seconds": [
+        0.012,
+        0.035
+      ],
+      "target_rms": 0.03645,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_insect_audio.py",
+  "environmental_entry_points": [
+    "tools/generate_environment_audio.py delegates crickets to the same preparation",
+    "tools/generate_environment_details.py delegates day_insects and chirp to the same preparation"
+  ],
+  "processing": "Light zero-phase band limiting, joint channel gain to the RMS target with peak cap. Loops use a 1.5-second equal-power tail-to-head crossfade and retain stereo; chirps use edge fades and mono. The existing environment writer applies DC correction and its final phrase fades. No voice synthesis, pitch shifting, time stretching, artificial stereo widening or added reverb."
+}

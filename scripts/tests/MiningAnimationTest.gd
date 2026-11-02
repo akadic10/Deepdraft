@@ -25,7 +25,9 @@ func _setup_mining_fixture() -> void:
 	scene.add_child(mining)
 	mining.set_process(false)
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
-	worker = factory.spawn(factory.generate(141,{}),141)
+	var data: Dictionary = factory.generate(141,{})
+	data.erase("stats")   # Average in each, so the timings below are the plain ones (doc 41 "Stats")
+	worker = factory.spawn(data,141)
 	scene.add_child(worker)
 	worker.position = Vector3(41.5,21,40.5)
 	worker.set_process(false)
@@ -55,6 +57,14 @@ func _until_mining() -> bool:
 			return true
 		await process_frame
 	return false
+
+
+## A long work step spans several game hours; start it fed and rested so
+## hunger or sleep never takes the job over mid-step.
+func _work_for(seconds: float) -> void:
+	worker._food.value = 1.0
+	worker.sleep = 1.0
+	worker._process(seconds)
 
 
 func _check_pick_grips() -> void:
@@ -128,6 +138,7 @@ func _run() -> void:
 	worker.dev_make_tired()
 	worker._process(.01)
 	_check_stowed_pick("sleep")
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 	_expect(await _until_mining(),"resume after sleep")
 	var total: float = (worker._work_execution._swings_left-1)*worker._work_execution._swing_time+worker._work_execution._swing_timer

@@ -6,6 +6,8 @@ extends SceneTree
 ## planned cuts lower it), split at the boundary where the two sides' tops differ, and climb
 ## perpendicular cliffs: the solid line in one stripe, the dotted line a dash per block.
 ## Off, or outside the tool, the guide has no mesh; the switch's card names both lines.
+## Since 2026-10-28 the Construction tools (Build, Shapes, Copy, placing a blueprint) offer the
+## guide on the same switch: it shows while one of them is on and goes with the last.
 
 const GROUND := 20
 const HILL := 30   # x 40..69, z 40..59: crossed by the dotted x 48 and z 48 and the solid x 64
@@ -45,8 +47,9 @@ func _run() -> void:
 	_check_surface_and_cliffs()
 	_check_slice_and_plans()
 	await _check_switch()
+	_check_construction()
 	for failure: String in failures.slice(0, 30): push_error(failure)
-	print("MINING_AREA_GUIDE_OK: solid 32s and dotted 16s follow tops, cliffs, the slice and plans" if failures.is_empty() else "MINING_AREA_GUIDE_FAIL")
+	print("MINING_AREA_GUIDE_OK: solid 32s and dotted 16s follow tops, cliffs, the slice and plans, for mining and building" if failures.is_empty() else "MINING_AREA_GUIDE_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 
@@ -145,7 +148,7 @@ func _check_switch() -> void:
 	for i in range(4): await process_frame
 	var grid: MeshInstance3D = mining._overlay.grid_node
 	mining._on_tool_requested("mine_precision")
-	var toggle: Dictionary = mining.tool_bar_state().toggle
+	var toggle: Dictionary = mining.tool_bar_state().toggles[0]
 	_expect(not toggle.on and not grid.visible and grid.mesh == null, "the guide starts off, with no mesh")
 	_expect(toggle.label == "32 × 32 guide" and "every 32 blocks" in String(toggle.tooltip) and "dotted lines every 16" in String(toggle.tooltip),
 		"the switch's card names the solid 32s and the dotted 16s: \"%s\"" % toggle.tooltip)
@@ -160,6 +163,59 @@ func _check_switch() -> void:
 	mining._on_tool_requested("mine_precision")
 	_expect(grid.visible and _has_both(grid.mesh), "reopening Mine blocks shows both again: the switch holds")
 	mining.deactivate()
+
+
+## The Construction tools (owner, 2026-10-28): each offers the guide on Mine blocks' switch, and
+## the guide shows while one is on, staying put from tool to tool, and goes with the last.
+func _check_construction() -> void:
+	var construction = load("res://scripts/systems/ConstructionController.gd").new()
+	construction.mining = mining
+	current_scene.add_child(construction)
+	construction.set_process(false)
+	var blueprints = construction.blueprints
+	var grid: MeshInstance3D = mining._overlay.grid_node
+	mining.set_mining_guide_enabled(false)
+	_request(construction, "construct_build")
+	# Build's own switch, Replace (doc 285), comes first, as Filled and With floor do.
+	var toggle: Dictionary = _guide_toggle(construction)
+	_expect(toggle.id == "guide" and toggle.label == "32 × 32 guide" and not toggle.on and not grid.visible,
+		"Build offers the guide, off while Mine blocks' switch is off")
+	_expect("dotted lines every 16 while building" in String(toggle.tooltip), "Build's card says it guides building: \"%s\"" % toggle.tooltip)
+	construction.set_tool_setting("guide", true)
+	_expect(mining.is_mining_guide_enabled() and grid.visible and _has_both(grid.mesh), "Build's switch is Mine blocks': the guide shows while building")
+	var mesh: ArrayMesh = grid.mesh
+	_request(construction, "construct_shapes")
+	_expect(construction.is_active() and grid.visible and grid.mesh == mesh, "Shapes keeps the guide as it was, without redrawing it")
+	_request(construction, "construct_copy")
+	_expect(blueprints.is_active() and grid.visible and _has_both(grid.mesh) and blueprints.tool_bar_state().toggles[1].on,
+		"Copy shows the guide, its switch lit beside With floor")
+	_request(construction, "blueprint_place")
+	blueprints.place(String(root.get_node("BlueprintLibrary").blueprints()[0].id))
+	_expect(blueprints.is_placing() and grid.visible and blueprints.tool_bar_state().toggles[0].on, "placing a blueprint keeps the guide")
+	blueprints.deactivate()
+	_expect(not grid.visible and grid.mesh == null, "Done hides the guide with the last Construction tool")
+	_request(construction, "mine_precision")
+	_expect(mining.tool_bar_state().toggles[0].on and grid.visible and _has_both(grid.mesh), "Mine blocks shows the guide switched on in Build")
+	# The dock's tools hear a request in its order; heard the other way, Build still keeps the guide.
+	construction._on_tool_requested("construct_build")
+	mining._on_tool_requested("construct_build")
+	_expect(construction.is_active() and not mining.is_active() and grid.visible and _has_both(grid.mesh),
+		"from Mine blocks to Build the guide stays, whichever tool hears the dock first")
+	mining.set_mining_guide_enabled(false)
+	_expect(not _guide_toggle(construction).on and not grid.visible and grid.mesh == null, "the one switch, turned off, hides it for Build too")
+	construction.deactivate()
+
+
+func _guide_toggle(tool: Node) -> Dictionary:
+	var found: Array = tool.tool_bar_state().get("toggles", []).filter(func(each: Dictionary) -> bool: return each.id == "guide")
+	return found[0] if not found.is_empty() else {"id": "", "label": "", "on": false, "tooltip": ""}
+
+
+## A dock request, heard in the dock's order: Mine blocks, then Construction and its blueprints.
+func _request(construction: Node, tool: String) -> void:
+	mining._on_tool_requested(tool)
+	construction._on_tool_requested(tool)
+	construction.blueprints._on_tool_requested(tool)
 
 
 func _has_both(mesh: ArrayMesh) -> bool:

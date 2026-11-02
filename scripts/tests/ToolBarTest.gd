@@ -2,7 +2,9 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 ## The tool bar (doc 23, "The tool bar"), with the real dock and tools:
 ## - Build shows its bar: its name and keys, its materials as pictures, the height as a
-##   stepper whose + raises the wall, and a held drag's tag, in rust when the stone runs short;
+##   stepper whose + raises the wall, the 32 × 32 guide's switch, which turns on Mine blocks'
+##   guide, and a held drag's tag, in rust when the stone runs short;
+## - Shapes shows Filled and the guide as two switches; Done hides the guide with the tool;
 ## - one Undo list for every tool, newest first: blocks marked for mining after a queued
 ##   plan are taken back first, from Build's own bar; Done ends the tool; Ctrl + Z with
 ##   no tool on then takes back the plan and says so;
@@ -77,6 +79,13 @@ func _check_build() -> void:
 	_expect(bar.open_menu() == null and builder._material == "stone", "Stone's picture again closes its menu")
 	bar._settings.get_node("Height/Row/More").pressed.emit()
 	_expect(builder._height == 2 and bar._settings.get_node("Height/Row/Value").text == "2", "the height's + raises the wall, as Alt + wheel does")
+	var guide: Button = bar._settings.get_node("Guide")
+	_expect(guide.text == "32 × 32 guide" and not guide.button_pressed and "while building" in String(bar._cards[guide][1]),
+		"Build offers the 32 × 32 guide, off: \"%s\"" % String(bar._cards[guide][1]))
+	guide.button_pressed = true
+	bar.refresh()
+	_expect(mining.is_mining_guide_enabled() and mining._overlay.grid_node.visible and (bar._settings.get_node("Guide") as Button).button_pressed,
+		"Build's switch turns on Mine blocks' guide, which shows while Build is on")
 	builder.set_process(false)   # its preview would follow the headless pointer
 	var a := camera.unproject_position(Vector3(44.5, 21, 42.5))
 	var b := camera.unproject_position(Vector3(46.5, 21, 42.5))
@@ -108,7 +117,7 @@ func _check_undo() -> void:
 	bar._done.pressed.emit()
 	await _frames(2)
 	bar.refresh()
-	_expect(not builder.is_active() and not bar._bar.visible, "Done ends the tool and the bar goes")
+	_expect(not builder.is_active() and not bar._bar.visible and not mining._overlay.grid_node.visible, "Done ends the tool, and the bar and the guide go")
 	var said: Array[String] = []
 	bar.undone.connect(func(message: String): said.append(message))
 	var undo := InputEventKey.new()
@@ -156,10 +165,11 @@ func _check_shapes() -> void:
 	bar.refresh()
 	_expect(bar._name.text == "Shapes" and bar._settings.get_node("Shape/Row").get_child_count() == 3
 		and bar._settings.get_node("Material/Row").get_child_count() == 4, "Shapes shows its shapes and Build's materials")
-	_expect(bar._settings.has_node("Door") and bar._settings.has_node("Toggle"), "a hollow rectangle offers a door gap and Filled")
+	_expect(bar._settings.has_node("Door") and bar._settings.has_node("Filled") and (bar._settings.get_node("Guide") as Button).button_pressed,
+		"a hollow rectangle offers a door gap and Filled, and the guide stays on from Build")
 	(bar._settings.get_node("Shape/Row/Stairs") as Button).pressed.emit()
-	_expect(builder._shape == "stairs" and not bar._settings.has_node("Height") and not bar._settings.has_node("Toggle"),
-		"stairs take their height from the drag")
+	_expect(builder._shape == "stairs" and not bar._settings.has_node("Height") and not bar._settings.has_node("Filled") and bar._settings.has_node("Guide"),
+		"stairs take their height from the drag and keep only the guide's switch")
 	(bar._settings.get_node("Shape/Row/Rectangle") as Button).pressed.emit()
 	dock.tool_requested.emit("construct_build")   # back to Build for the Undo check
 	await _frames(2)

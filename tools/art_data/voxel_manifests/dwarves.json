@@ -1422,6 +1422,74 @@
       "parts": [
         {
           "name": "main",
+          "cells": 372,
+          "visual_triangles": 234,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 68
+          },
+          "min": [
+            -0.1875,
+            -0.25,
+            -0.125
+          ],
+          "max": [
+            0.1875,
+            1.3125,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 33644,
+      "sha256": "18aa1caf1962560aa79aeab2f92f45d2a953161e09e8dcb9aecf3866f9d2352e",
+      "path": "assets/models/characters/dwarves/tools/stone_adze.glb",
+      "authoring": {
+        "part": "tools/stone_adze",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 648,
+          "visual_triangles": 270,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 88
+          },
+          "min": [
+            -0.25,
+            -0.25,
+            -0.125
+          ],
+          "max": [
+            0.25,
+            1.3125,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 39368,
+      "sha256": "87b3bdb0b57924f6eb711643883cf481a21b1d08f887a8bb084f3de3bfd502de",
+      "path": "assets/models/characters/dwarves/tools/stone_maul.glb",
+      "authoring": {
+        "part": "tools/stone_maul",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 468,
           "visual_triangles": 262,
           "occlusion": true,
@@ -1481,6 +1549,618 @@
       "path": "assets/models/characters/dwarves/tools/mining_pickaxe.glb",
       "authoring": {
         "part": "tools/mining_pickaxe",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 170,
+          "visual_triangles": 374,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 136
+          },
+          "min": [
+            -0.125,
+            -0.375,
+            -0.125
+          ],
+          "max": [
+            0.1875,
+            2.625,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 55020,
+      "sha256": "a861a16978e1d6d19345fbad96a40fc73b5aa4976577db165ed384b022ab9982",
+      "path": "assets/models/characters/dwarves/tools/fishing_rod.glb",
+      "authoring": {
+        "part": "tools/fishing_rod",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 20,
+          "visual_triangles": 124,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 60
+          },
+          "min": [
+            -0.0625,
+            0.0,
+            -0.0625
+          ],
+          "max": [
+            0.125,
+            0.5,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 21020,
+      "sha256": "3a8173db77cfc7acb2eb0094d11c5d717b653f0a24ebee6e7287183415293ce8",
+      "path": "assets/models/characters/dwarves/tools/fishing_float.glb",
+      "authoring": {
+        "part": "tools/fishing_float",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 218,
+          "visual_triangles": 418,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 200
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.125
+          ],
+          "max": [
+            0.8125,
+            0.625,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 65652,
+      "sha256": "98a1c31a5864cc31462c4e16a7e54451983c4bc3a91fe3322920e9b75710ee4b",
+      "path": "assets/models/characters/dwarves/tools/caught_perch.glb",
+      "authoring": {
+        "part": "tools/caught_perch",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 220,
+          "visual_triangles": 442,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 212
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.125
+          ],
+          "max": [
+            0.8125,
+            0.625,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 69348,
+      "sha256": "ddeef60ab8265a77d2bbde32c205884aec815faff7af84538910ba42f898591c",
+      "path": "assets/models/characters/dwarves/tools/caught_trout.glb",
+      "authoring": {
+        "part": "tools/caught_trout",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 218,
+          "visual_triangles": 422,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 200
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.125
+          ],
+          "max": [
+            0.8125,
+            0.625,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 66084,
+      "sha256": "8ec0af81b9acec7c2a632fcc7a9788eaa258922d38ee3785e7d05300cf200ed6",
+      "path": "assets/models/characters/dwarves/tools/caught_char.glb",
+      "authoring": {
+        "part": "tools/caught_char",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 218,
+          "visual_triangles": 398,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 200
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.125
+          ],
+          "max": [
+            0.8125,
+            0.625,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 63496,
+      "sha256": "cf8851fc0f1c4bca1364a00e6267c7f0ba45364d7baf224354aff0b16c0f07b5",
+      "path": "assets/models/characters/dwarves/tools/caught_cave_fish.glb",
+      "authoring": {
+        "part": "tools/caught_cave_fish",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 876,
+          "visual_triangles": 624,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 232
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            1.1875,
+            0.9375,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 90852,
+      "sha256": "4ba3413024956a303788b630732390b8463e6e79ccd94826d636dcc365880955",
+      "path": "assets/models/characters/dwarves/tools/big_perch.glb",
+      "authoring": {
+        "part": "tools/big_perch",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 880,
+          "visual_triangles": 678,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 246
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            1.1875,
+            0.9375,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 97972,
+      "sha256": "71399996fea10e70ad7fc92d2ac6cfc01335745b566cb97346afc8a0f8d1dd87",
+      "path": "assets/models/characters/dwarves/tools/big_trout.glb",
+      "authoring": {
+        "part": "tools/big_trout",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 876,
+          "visual_triangles": 636,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 232
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            1.1875,
+            0.9375,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 92148,
+      "sha256": "a5d36a407eacc373bddd474243b9cb781c85e23af2a4264efbf085adf7384b9e",
+      "path": "assets/models/characters/dwarves/tools/big_char.glb",
+      "authoring": {
+        "part": "tools/big_char",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 876,
+          "visual_triangles": 592,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 232
+          },
+          "min": [
+            0.0,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            1.1875,
+            0.9375,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 87400,
+      "sha256": "3495312388bfda5d16a3ba6686156bd13eb50acda91a706190f67ed2d1437787",
+      "path": "assets/models/characters/dwarves/tools/big_cave_fish.glb",
+      "authoring": {
+        "part": "tools/big_cave_fish",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 276,
+          "visual_triangles": 536,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 234
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 81552,
+      "sha256": "dcc3a07dc969a46cd752a34642fe8fc997dfaaf4fe9bbf219b0d2102f1932fd0",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_perch.glb",
+      "authoring": {
+        "part": "tools/grill_stick_perch",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 276,
+          "visual_triangles": 572,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 234
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 85448,
+      "sha256": "b28333945bd3ade1afff5325a93c74ff356e489701e43b8af9160723f19c533d",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_perch_grilled.glb",
+      "authoring": {
+        "part": "tools/grill_stick_perch_grilled",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 278,
+          "visual_triangles": 572,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 246
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 86544,
+      "sha256": "4ce25a4147e7da0e4b97ae2103bfcd3052a68964b429a7d31b52ec1faed30111",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_trout.glb",
+      "authoring": {
+        "part": "tools/grill_stick_trout",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 278,
+          "visual_triangles": 592,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 246
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 88712,
+      "sha256": "8b91b28fbe5b8d6161db2833d6e07accc0878c1eb314bba6f28ce0acb24e4700",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_trout_grilled.glb",
+      "authoring": {
+        "part": "tools/grill_stick_trout_grilled",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 276,
+          "visual_triangles": 548,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 234
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 82848,
+      "sha256": "0d521fba453e1d58e9e5d8a8f94454e2f972c1f9328eaa95188dd3bf38da1080",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_char.glb",
+      "authoring": {
+        "part": "tools/grill_stick_char",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 276,
+          "visual_triangles": 584,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 234
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 86744,
+      "sha256": "f3384db57fbdeff76f281a6e6aa15720fde75c8b9e2866a95e475125206b73aa",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_char_grilled.glb",
+      "authoring": {
+        "part": "tools/grill_stick_char_grilled",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 276,
+          "visual_triangles": 516,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 234
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 79396,
+      "sha256": "e9fd374569c7c2cc63fee92dc864762ad8078f661305b25d6120b02c9200c4f5",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_cave_fish.glb",
+      "authoring": {
+        "part": "tools/grill_stick_cave_fish",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 276,
+          "visual_triangles": 544,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 234
+          },
+          "min": [
+            -0.3125,
+            -0.1875,
+            -0.125
+          ],
+          "max": [
+            0.3125,
+            1.8125,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 82428,
+      "sha256": "fa5fc4669eda0430319c90a386e6f93e9fc703a07c95eca06a705cc18a1dd1ab",
+      "path": "assets/models/characters/dwarves/tools/grill_stick_cave_fish_grilled.glb",
+      "authoring": {
+        "part": "tools/grill_stick_cave_fish_grilled",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"

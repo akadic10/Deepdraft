@@ -74,7 +74,11 @@ func _run() -> void:
 	var torch := Node3D.new()
 	fires.add_child(torch)
 	torch.position = Vector3(66, 45, 53)
-	fires._installed[1] = {"installed_id": 1, "node": torch, "def": {"fire_sound": "torch"}}
+	# The game hands the sound real installed pieces.
+	var piece = load("res://scripts/components/InstalledFurnitureComponent.gd").new()
+	piece.setup(1, "", {"fire_sound": "torch"}, Vector3i(66, 45, 53), 0)
+	piece.node = torch
+	fires._installed[1] = piece
 	var sound = load("res://scripts/components/FurnitureFireSound.gd").new()
 	sound.furniture = fires
 	fires.add_child(sound)

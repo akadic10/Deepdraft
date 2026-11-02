@@ -26,7 +26,8 @@ func _run() -> void:
 	var handle: int = order.materials.occupancy
 	var before := _all_units()
 	var data: Dictionary = construction.get_explorer_data(id)
-	_expect(data.actions[0].text=="DEV: Finish construction", "blueprint and crate inspector expose instant finish")
+	_expect(data.actions.any(func(action: Dictionary) -> bool: return action.id=="dev_build" and action.text=="DEV: Finish construction"),
+		"blueprint and crate inspector expose instant finish")
 	clock_node.set_paused(true)
 	construction.perform_explorer_action(id,"dev_build")
 	_expect(not construction.orders.has(id) and _completed_cells().size()==4,"unfunded four-block column completes instantly while paused")

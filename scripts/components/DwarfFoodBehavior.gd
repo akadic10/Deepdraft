@@ -2,7 +2,12 @@ extends RefCounted
 
 ## Personal self-care. Storage/drop owners retain inventory authority; hunger
 ## commits only when the dwarf consumes an actual carried portion.
+## Grilling (doc 290): while a campfire burns within reach, a hungry dwarf looks for a fresh
+## fish first, takes it to a place at the fire, grills it on a stick and eats it there. The
+## meal fills as the raw fish would, adds a little Rest and leaves a good memory. With no fish,
+## no fire or no room at it, the meal is an ordinary one.
 const Route = preload("res://scripts/components/WorkRouteProbe.gd")
+const Fires = preload("res://scripts/components/FurnitureFires.gd")
 var agent: DwarfAgent
 var config: Dictionary
 var value := 1.0
@@ -29,6 +34,10 @@ var last_dining := ""
 var _foraging: RefCounted
 var _dining: RefCounted
 var _serving: Node3D
+var grilled := false                       # this meal's fish is grilled at `_grill_fire`
+var _grill_fire: InstalledFurnitureComponent
+var _grill_search := false                 # the search is for fish to grill
+var _at_fire_seconds := 0.0                # grilling and eating there, for the seat's blend
 
 func _init(owner: DwarfAgent) -> void:
 	agent = owner
@@ -62,6 +71,11 @@ func begin_if_needed() -> bool:
 	_items = ItemDropManager.find(agent.get_tree())
 	if _items == null: return false
 	_keys = _items.edible_keys()
+	_grill_fire = _grill_fire_near()
+	var grill_keys: Array[String] = []
+	if _grill_fire != null: grill_keys = _items.grill_keys()
+	_grill_search = not grill_keys.is_empty()
+	if _grill_search: _keys = grill_keys
 	# Clear work and callbacks before claiming self-care ownership.
 	var had_task := agent.current_task_id >= 0
 	agent.abort_task()
@@ -83,10 +97,27 @@ func tick(seconds: float) -> void:
 			cancel()
 			return
 		if _dining.tick(seconds):
+			if grilled and not _dining.at_fire():
+				_serve_plain()   # no room at the fire: an ordinary meal
+				return
+			state = "grilling" if grilled else "eating"
+			_elapsed = 0.0
+			_at_fire_seconds = 0.0
+			var food_name := String(_items.get_item_def(_quote.key).display_name)
+			message = "Grilling a %s by the campfire." % food_name.to_lower() if grilled else "Eating %s." % food_name
+		_pose(0.0)
+		return
+	if state == "grilling":
+		if not _holding_portion() or not _dining.valid():
+			cancel("Meal interrupted; will try again.")
+			return
+		_elapsed += seconds
+		_at_fire_seconds += seconds
+		_pose(_elapsed)
+		if _elapsed >= float(config.grilling.grill_seconds):
 			state = "eating"
 			_elapsed = 0.0
-			message = "Eating %s." % _items.get_item_def(_quote.key).display_name
-		_meal_pose(0.0)
+			message = "Eating a grilled %s by the fire." % String(_items.get_item_def(_quote.key).display_name).to_lower()
 		return
 	if state == "finding":
 		_search_elapsed += seconds
@@ -112,21 +143,24 @@ func tick(seconds: float) -> void:
 		agent._carry_pose.gather(clampf(_elapsed/float(config.pickup_seconds),0.0,1.0), Vector3(0,1.1,.65))
 		if _elapsed >= float(config.pickup_seconds): _take()
 	elif state == "eating":
-		if not is_instance_valid(portion) or not agent._carried_entries.any(func(entry): return entry[0] == portion):
+		if not _holding_portion():
 			cancel("Meal interrupted; will try again.")
 			return
 		_elapsed += seconds
-		_meal_pose(_elapsed)
+		_at_fire_seconds += seconds
+		_pose(_elapsed)
 		if _elapsed >= float(config.eat_seconds): _finish_meal()
 
 func _find_food() -> void:
 	var deadline := Time.get_ticks_usec()+int(config.search_budget_usec)
 	if _quote.is_empty():
 		var done: bool
+		# Older food first: a fully spoilt stack counts route_margin_blocks nearer (doc 41).
+		var margin := float(config.spoilage.route_margin_blocks)
 		if _loose:
-			done = _items.advance_material_quote(_keys,agent.current_cell(),_query,deadline,_excluded,-1,"","",false)
+			done = _items.advance_material_quote(_keys,agent.current_cell(),_query,deadline,_excluded,-1,"","",false,margin)
 		else:
-			done = StockpileManager.advance_material_quote(_keys,agent.current_cell(),_query,deadline,_excluded)
+			done = StockpileManager.advance_material_quote(_keys,agent.current_cell(),_query,deadline,_excluded,-1,"","",margin)
 		if not done: return
 		_quote = _query.best
 		if _quote.is_empty():
@@ -134,6 +168,14 @@ func _find_food() -> void:
 				_loose = true
 				_query = {}; _excluded = {}
 				message = "Looking for reachable harvested food."
+			elif _grill_search:
+				# No fresh fish within reach to grill: any food, eaten as usual.
+				_grill_search = false
+				_grill_fire = null
+				_keys = _items.edible_keys()
+				_loose = false
+				_query = {}; _excluded = {}
+				message = "Looking for reachable food in storage."
 			else:
 				shortage = true
 				if famished():
@@ -226,15 +268,44 @@ func receive_portion(picked: Node3D) -> void:
 	shortage = false
 	agent.add_child(portion)
 	agent._carried_entries.append([portion,String(_quote.key)])
-	# Keep one real inventory portion; its temporary serving is presentation only.
+	# Keep one real inventory portion; its serving or its stick is presentation only.
 	portion.hide()
+	state = "dining"
+	_elapsed = 0.0
+	var grills := bool(_items.food_definition(_quote.key).get("grill", false))
+	grilled = grills and _grill_fire != null and is_instance_valid(_grill_fire.node) and Fires.burning(_grill_fire)
+	if grilled:
+		_dining = preload("DwarfDining.gd").new(agent, _grill_fire)
+		message = "Taking the %s to the campfire." % String(_items.get_item_def(_quote.key).display_name).to_lower()
+		_pose(0.0)
+		return
+	_serve_plain()
+
+## An ordinary meal: the portion's serving in hand and a seat or table to find.
+func _serve_plain() -> void:
+	if grilled: agent.get_grill_pose().reset()
+	if _dining != null: _dining.release()
+	grilled = false
 	_serving = preload("DwarfMealVisual.gd").create(_items.food_definition(_quote.key))
 	agent.add_child(_serving)
-	state = "dining"
 	_dining = preload("DwarfDining.gd").new(agent)
+	state = "dining"
 	_elapsed = 0.0
 	message = "Finding a nearby place to eat."
 	_meal_pose(0.0)
+
+func _holding_portion() -> bool:
+	return is_instance_valid(portion) and agent._carried_entries.any(func(entry): return entry[0] == portion)
+
+func _pose(seconds: float) -> void:
+	if not grilled:
+		_meal_pose(seconds)
+		return
+	var stick: Dictionary = DwarfAssets.grill_sticks.get(String(_quote.key), {})
+	var browned := state == "eating" or (state == "grilling" and seconds >= float(config.grilling.grill_seconds) * float(config.grilling.browned_at))
+	var offset: Vector3 = _dining.pose(_at_fire_seconds) if state in ["grilling", "eating"] else Vector3.ZERO
+	if state == "eating": offset.y += sin(seconds * 5.0) * 0.03   # small bites
+	agent.get_grill_pose().apply({"dining": "carry", "grilling": "hold", "eating": "bite"}[state], stick.get("grilled" if browned else "raw"), offset)
 
 func _meal_pose(seconds: float) -> void:
 	if not is_instance_valid(_serving): return
@@ -259,6 +330,9 @@ func _finish_meal() -> void:
 	last_meal = key
 	last_dining = _dining.outcome()
 	agent._mood.record_dining(last_dining)
+	if grilled:
+		agent.sleep = minf(1.0, agent.sleep + float(config.grilling.rest))
+		agent.get_mood().record_grill(_company())
 	agent.meet_pieces(_dining.used_pieces())
 	agent.get_mood().record_room("ate", RoomManager.appeal_at(agent.current_cell() + Vector3i.UP))
 	hours_since_meal = 0.0
@@ -277,6 +351,9 @@ func _end_meal(reason: String, resume: bool, retry: bool, rest_seated := false) 
 	release_reservation()
 	_foraging = null
 	_dining = null
+	grilled = false
+	_grill_fire = null
+	_grill_search = false
 	if is_instance_valid(_serving): _serving.queue_free()
 	_serving = null
 	if is_instance_valid(portion): agent._drop_carried_at_feet()
@@ -301,18 +378,46 @@ func describe() -> Dictionary:
 		_items = ItemDropManager.find(agent.get_tree())
 	var meal_name := String(_items.get_item_def(last_meal).get("display_name",last_meal)) if is_instance_valid(_items) else last_meal
 	var meal := "No meal yet" if last_meal.is_empty() else "Last meal: %s · %.1f game hours ago" % [meal_name,hours_since_meal]
-	if not last_dining.is_empty(): meal += "\n"+String({"proper":"Ate seated at a table","seat_only":"Ate without a table","table_only":"Ate standing at a table","neither":"Ate without a seat or table"}.get(last_dining,""))
+	if not last_dining.is_empty(): meal += "\n"+String({"proper":"Ate seated at a table","seat_only":"Ate without a table","table_only":"Ate standing at a table","neither":"Ate without a seat or table","fire":"Ate grilled fish by the fire"}.get(last_dining,""))
 	var effects := "Work speed −%d%% · Happiness −%d" % [roundi((1.0-work_multiplier())*100),roundi(mood_penalty()*100)] if hungry() else ""
 	var destination: Vector3i = _quote.get("cell",Vector3i(-1,-1,-1))
 	if state == "foraging": destination = _foraging.destination
-	elif state in ["dining","eating"]:
+	elif state in ["dining","grilling","eating"]:
 		destination = _dining.goal if _dining.goal.x >= 0 else agent.current_cell()
-	var activity: String = {"finding":"Looking for food","walking":"Collecting food","pickup":"Taking a food portion","eating":"Eating","dining":"Finding a place to eat"}.get(state,"")
+	var activity: String = {"finding":"Looking for food","walking":"Collecting food","pickup":"Taking a food portion","eating":"Eating","dining":"Finding a place to eat","grilling":"Grilling a fish by the campfire"}.get(state,"")
+	if state == "dining" and grilled: activity = "Taking a fish to the campfire"
 	if state == "foraging": activity = {"searching":"Looking for emergency berries","walking":"Going to pick berries","picking":"Picking emergency berries"}.get(_foraging.state,"")
 	return {"value":value,"label":label,"meal":meal,"effects":effects,"shortage":shortage and hungry(),
+		"rested_by_fire":last_dining == "fire" and hours_since_meal < float(config.grilling.rested_hours),
 		"detail":meal+("\n"+effects if not effects.is_empty() else "")+("\n"+message if not message.is_empty() else ""),
 		"activity":activity,
 		"explanation":message,"destination":destination}
+
+## The nearest burning campfire to grill at (doc 290) within the meal's reach, or null.
+func _grill_fire_near() -> InstalledFurnitureComponent:
+	var furniture := agent.get_tree().get_first_node_in_group("furniture_controller")
+	if furniture == null: return null
+	var best: InstalledFurnitureComponent
+	var reach := float(config.dining_distance)
+	for piece: InstalledFurnitureComponent in furniture.get_installed_pieces():
+		if not bool(piece.def.get("grilling", false)) or piece.flagged_uninstall or not is_instance_valid(piece.node) or not Fires.burning(piece): continue
+		var gap := Vector3(piece.origin_cell - agent.current_cell()).length()
+		if gap <= reach:
+			best = piece
+			reach = gap
+	return best
+
+## Another dwarf grilling at the same fire, or sitting by it: "Grilled fish with company".
+func _company() -> bool:
+	if _grill_fire == null: return false
+	for other: DwarfAgent in TaskManager.get_agents():
+		if other == agent or not is_instance_valid(other): continue
+		if other.get_food().grilling_fire_id() == _grill_fire.installed_id or other.fire_watched() == _grill_fire.installed_id: return true
+	return false
+
+## The campfire this dwarf is grilling at, or -1.
+func grilling_fire_id() -> int:
+	return _grill_fire.installed_id if grilled and _grill_fire != null and state in ["grilling", "eating"] else -1
 
 func serialize() -> Dictionary:
 	return {"value":value,"last_meal":last_meal,"last_dining":last_dining,"hours_since_meal":hours_since_meal,"retry_hours":retry_hours}

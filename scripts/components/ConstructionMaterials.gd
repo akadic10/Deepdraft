@@ -2,6 +2,7 @@ extends StorageComponent
 
 ## A project-only destination using the normal hauling bundle/handling budget.
 ## Stock remains reserved for this project, never offered to other consumers.
+## A plan of several goods (doc 276) stages each up to what its own blocks still need.
 const INVALID := Vector3i(-1,-1,-1)
 var ghost_id := -1
 var project_ref: WeakRef
@@ -18,6 +19,7 @@ var _contents: Node3D
 func setup(order: RefCounted) -> void:
 	project_ref = weakref(order)
 	ghost_id = order.ghost_id
+	priority = 0   # a project's crate always takes its own goods, whatever the stores' priorities (doc 294)
 	drop_manager = order.drop_manager
 	filter_items.assign(order.item_keys())
 	var hauling := TaskManager.get_config_section("hauling")
@@ -37,18 +39,39 @@ func count() -> int:
 		for value in materials.values(): amount += int(value)
 	return amount
 
-func in_transit() -> int:
+## Delivered goods of one item.
+func staged_count(item: String) -> int:
 	var amount := 0
-	for token: Dictionary in reservations.values(): amount += int(token.count)
+	for value in staged.get(item,{}).values(): amount += int(value)
 	return amount
+
+## Goods on their way, of one item or of all.
+func in_transit(item := "") -> int:
+	var amount := 0
+	for token: Dictionary in reservations.values():
+		if item.is_empty() or String(token.item) == item: amount += int(token.count)
+	return amount
+
+## How many more of a good the crate may take: what its plan's unbuilt blocks need, less what is
+## delivered or on the way.
+func room_for(item: String) -> int:
+	var order := project()
+	if order == null or crate_cell == INVALID: return 0
+	return int(order.needs().get(item,0))-staged_count(item)-in_transit(item)
 
 func has_any_room() -> bool:
 	var order := project()
-	return order != null and crate_cell != INVALID and order.cells.size() > count()+in_transit()
+	if order == null or crate_cell == INVALID: return false
+	for item: String in order.needs():
+		if room_for(item) > 0: return true
+	return false
 
-func _reserve_deposit(key: String, _near: Vector3i, dwarf_id: int, amount := 1, material_id := "") -> Variant:
-	if not has_any_room() or not accepts_key(key): return null
-	var quantity := mini(amount,project().cells.size()-count()-in_transit())
+func _has_room_for_key(key: String) -> bool:
+	return room_for(key) > 0
+
+func _reserve_deposit(key: String, _near: Vector3i, dwarf_id: int, amount := 1, material_id := "", _spoil := -1.0) -> Variant:
+	if not accepts_key(key) or room_for(key) <= 0: return null
+	var quantity := mini(amount,room_for(key))
 	var token := {"id":_next_token,"item":key,"count":quantity,"owner":dwarf_id,"active":true,"material_id":material_id}
 	_next_token += 1
 	reservations[token.id] = token
@@ -65,15 +88,16 @@ func _commit_one(token: Variant, key: String) -> void:
 	staged[item][material] = int(staged[item].get(material,0))+int(token.count)
 	_release_deposit(token)
 
-## Takes one delivered good for a finished block and says which; "" when the crate is empty.
-func consume_one() -> String:
-	for item: String in staged:
-		var materials: Dictionary = staged[item]
-		for material: String in materials:
-			materials[material] = int(materials[material])-1
-			if int(materials[material]) <= 0: materials.erase(material)
-			if materials.is_empty(): staged.erase(item)
-			return item
+## Takes one delivered good of `item` for a finished block and says which; "" when the crate
+## holds none.
+func consume(item: String) -> String:
+	if not staged.has(item): return ""
+	var materials: Dictionary = staged[item]
+	for material: String in materials:
+		materials[material] = int(materials[material])-1
+		if int(materials[material]) <= 0: materials.erase(material)
+		if materials.is_empty(): staged.erase(item)
+		return item
 	return ""
 
 func delivery_stand_cells(_target: Vector3i, _dwarf_id := -1) -> Array[Vector3i]:
@@ -106,7 +130,10 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline: int) -> boo
 		query.erase("stored")
 		query.stock_revision = scheduling_revision()
 		query.from = from
-	if not has_any_room() or not filter_items.any(_can_haul_key):
+	# Only goods the crate still has room for: a full one is not fetched.
+	var wanted: Array[String] = []
+	wanted.assign(filter_items.filter(_can_haul_key))
+	if not has_any_room() or wanted.is_empty():
 		query.cell = INVALID
 		return true
 	if not query.has("loose"): query.loose = {}
@@ -117,7 +144,7 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline: int) -> boo
 		query.cell = drop_manager.item_floor_cell(query.loose.best)
 		return true
 	if not query.has("stored"): query.stored = {}
-	if not StockpileManager.advance_material_quote(filter_items,from,query.stored,deadline,exclude): return false
+	if not StockpileManager.advance_material_quote(wanted,from,query.stored,deadline,exclude): return false
 	query.cell = query.stored.best.get("cell",INVALID)
 	return true
 
@@ -125,7 +152,7 @@ func advance_haul_quote(from: Vector3i, query: Dictionary, deadline: int) -> boo
 ## portions, collect each at contact, then deposit together at the project.
 func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> Dictionary:
 	var candidates: Array[Dictionary] = []
-	for origin: StorageComponent in StockpileManager.get_zones():
+	for origin: StorageComponent in StockpileManager.get_stores():
 		for slot in origin.stored_entries():
 			var stack: Dictionary = origin.stored_entries()[slot]
 			var cell := origin.withdrawal_item_cell(slot)
@@ -139,14 +166,16 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 	var transfers := {}
 	var budget := carry_capacity
 	var first := INVALID
+	var heavy := false
 	for candidate: Dictionary in candidates:
 		var key := String(candidate.stack.item)
 		var cost := _carry_cost(key)
 		if cost > budget: continue
 		if first != INVALID and Vector3(candidate.cell-first).length() > pouch_bundle_radius: continue
 		var origin: StorageComponent = candidate.source
+		# A good the crate has no more room for leaves the budget to the others.
 		var deposit = _reserve_deposit(key,near,dwarf_id,1,String(candidate.stack.get("material_id","")))
-		if deposit == null: break
+		if deposit == null: continue
 		var outgoing := origin.reserve_portion(candidate.slot,key,dwarf_id)
 		if outgoing.is_empty():
 			_release_deposit(deposit)
@@ -157,6 +186,7 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 			_release_deposit(deposit)
 			continue
 		marker.set_meta("relocation_id",origin.relocation_id(candidate.slot))
+		marker.set_meta("floor_cell",origin.withdrawal_item_cell(candidate.slot))
 		drop_manager.add_child(marker)
 		marker.position = origin.withdrawal_contact(candidate.slot)
 		marker.hide()
@@ -164,11 +194,12 @@ func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> 
 		deposits[marker] = deposit
 		transfers[marker] = {"source":origin,"token":outgoing}
 		if first == INVALID: first = candidate.cell
+		heavy = heavy or drop_manager.get_item_def(key).get("weight_class") == "heavy"
 		budget -= cost
 		if budget == 0: break
 	if items.is_empty(): return {}
 	_pulls[dwarf_id] = {"items":items,"deposits":deposits,"cargo":{},"picked":{},"transfers":transfers}
-	return {"items":items,"deposit_target":crate_cell,"carry_mult":carry_speed_mult_heavy if drop_manager.get_item_def(filter_items[0]).get("weight_class")=="heavy" else 1.0}
+	return {"items":items,"deposit_target":crate_cell,"carry_mult":carry_speed_mult_heavy if heavy else 1.0}
 
 func pickup_stand_cells(dwarf_id: int, index: int) -> Array[Vector3i]:
 	var pull: Dictionary = _pulls.get(dwarf_id,{})
@@ -208,12 +239,19 @@ func cancel_haul(dwarf_id: int) -> void:
 			if is_instance_valid(marker): marker.queue_free()
 	super.cancel_haul(dwarf_id)
 
+## Up to `max_haulers` haulers for each good still short (doc 276), while it is in stock or
+## lying loose.
 func update_leases() -> void:
-	if _lease_ids.size() >= max_haulers or not has_any_room(): return
-	var stocked := 0
-	for item: String in filter_items: stocked += StockpileManager.get_available_total(item)
-	if stocked <= 0 and drop_manager.count_loose(_query_tags(),1,_can_haul_key) <= 0: return
-	var wanted := mini(max_haulers,project().cells.size()-count())
+	var order := project()
+	if order == null: return
+	var need: Dictionary = order.needs()
+	if _lease_ids.size() >= max_haulers*need.size() or not has_any_room(): return
+	var wanted := 0
+	for item: String in need:
+		if room_for(item) <= 0: continue
+		if StockpileManager.get_available_total(item) <= 0 \
+				and drop_manager.count_loose(_query_tags(),1,func(key: String) -> bool: return key == item and _can_haul_key(key)) <= 0: continue
+		wanted += mini(max_haulers,int(need[item])-staged_count(item))
 	while _lease_ids.size() < wanted:
 		var id := TaskManager.add_task(Task.Type.HAUL,crate_cell,{"zone_id":source_id},source_id)
 		_lease_ids[id] = true
@@ -252,12 +290,15 @@ func _refresh_contents() -> void:
 		stone.position = Vector3((i%3-1)*.19,.12+(i/3)*.10,-.11+(i/3)*.22)
 		preload("StorageItemLayout.gd").fit(stone,Vector3(.23,.22,.23),1.0)
 
-## Gives back what the crate holds beyond `needed`, after blocks were taken out of its plan.
-func refund_excess(needed: int) -> void:
-	var extra := count()-needed
-	if extra <= 0 or not is_instance_valid(drop_manager): return
-	var crate_floor := crate_cell if crate_cell != INVALID else Vector3i(project().origin_cell)
+## Gives back what the crate holds beyond what its plan's blocks still need, good by good,
+## after blocks were taken out of its plan.
+func refund_excess() -> void:
+	var order := project()
+	if order == null or not is_instance_valid(drop_manager): return
+	var crate_floor := crate_cell if crate_cell != INVALID else Vector3i(order.origin_cell)
+	var need: Dictionary = order.needs()
 	for item: String in staged.keys():
+		var extra := staged_count(item)-int(need.get(item,0))
 		for material: String in staged[item].keys():
 			if extra <= 0: break
 			var take := mini(extra,int(staged[item][material]))

@@ -68,6 +68,9 @@ var _profession_tile: Panel
 var _profession_icon: TextureRect
 var _profession_label: Label
 var _profession_path := ""
+var _health_chip: HBoxContainer   # a heart and the hit points while the dwarf is hurt (doc 41 "Health")
+var _health_heart: TextureRect
+var _health_label: Label
 var _activity_row: HBoxContainer
 var _activity_tag: PanelContainer
 var _concern_icon: TextureRect
@@ -80,6 +83,18 @@ var _owners_scroll: ScrollContainer
 var _owners_anchor: Control
 var _owners_art: Texture2D   # kept here: the canvas holds only the texture's RID
 var _owners_art_key := ""
+# A card an action opens, such as a construction plan's Materials: its data comes with every
+# refresh under `cards`, and the open one is filled again when it changes.
+var _card: PanelContainer
+var _card_title: Label
+var _card_rows: VBoxContainer
+var _card_footer: Label
+var _card_anchor: Button
+var _card_art: Texture2D
+var _card_art_key := ""
+var _card_id := ""
+var _card_shown: Dictionary = {}
+var _cards: Dictionary = {}
 var _action_data: Array = []
 var _title := ""
 var _tone := "fine"
@@ -186,6 +201,7 @@ func _init() -> void:
 	_popups.layer = POPUP_LAYER
 	add_child(_popups)
 	_build_owner_list()
+	_build_card()
 	# Scrolling over the panel never zooms the world: Godot passes wheel events through
 	# a control unless it accepts them.
 	_frame.gui_input.connect(func(event: InputEvent):
@@ -195,7 +211,9 @@ func _init() -> void:
 	_set_dwarf(false)
 	_apply_metrics()
 	visibility_changed.connect(func():
-		if not visible: _close_owner_list())
+		if not visible:
+			_close_owner_list()
+			_close_card())
 
 
 func _ready() -> void:
@@ -263,11 +281,15 @@ func show_data(data: Dictionary) -> void:
 	_flavour.text = String(data.get("flavour", _first_sentence(details)))
 	# The rest of a longer description, often how to put the object to use, shows on hover.
 	_flavour.tooltip_text = details if details != _flavour.text else ""
+	_cards = data.get("cards", {})
 	var actions: Array = UIRegistry.shown_actions(data.get("actions", []))
 	if actions != _action_data:
 		_action_data = actions.duplicate(true)
 		_rebuild_actions()
 		layout_changed = true
+	if _card.visible:
+		if _cards.has(_card_id): _fill_card()
+		else: _close_card()
 	if layout_changed:
 		_fit()
 		_fit.call_deferred()   # again once the containers have sorted the new content
@@ -282,6 +304,7 @@ func get_title() -> String:
 ## starts afresh.
 func clear_subject() -> void:
 	_close_owner_list()
+	_close_card()
 	_title = ""
 	_agent = null
 	if is_instance_valid(_portrait_model): _portrait_model.free()
@@ -330,6 +353,7 @@ func _fit() -> void:
 				if Rect2(spot, size).intersects(room): spot.y = room.position.y - size.y
 	position = spot.round()
 	_place_owner_list()
+	_place_card()
 
 
 func _apply_metrics() -> void:
@@ -359,6 +383,8 @@ func _apply_metrics() -> void:
 	UITheme.format_label(_activity_label, false, m.status, UITheme.tag_ink("fine"))
 	_size_activity()
 	_concern_icon.custom_minimum_size = Vector2.ONE * m.profession_tile * 0.8
+	_health_heart.custom_minimum_size = Vector2.ONE * roundf(m.profession_tile * 0.6)
+	UITheme.format_label(_health_label, true, m.status, UITheme.CARD_TITLE)
 	# Room for every flavour line and the status tag from the start, so the panel never
 	# grows a frame later.
 	var tag: StyleBox = UITheme.cell_style("tag_fine", m.chip_cell)
@@ -442,6 +468,7 @@ func _size_tiles() -> void:
 
 func _rebuild_actions() -> void:
 	_close_owner_list()
+	_close_card()
 	for box: Container in [_actions, _dev_actions]:
 		for child in box.get_children():
 			box.remove_child(child)
@@ -451,6 +478,10 @@ func _rebuild_actions() -> void:
 		var dev := String(action.get("variant", "")) == "dev"
 		var button := _make_tile(action, dev)
 		if action.has("options"): button.pressed.connect(_toggle_owner_list.bind(action, button))
+		elif action.has("card"):
+			# The tile stays lit while its card is open.
+			button.toggle_mode = true
+			button.pressed.connect(_toggle_card.bind(String(action.card), button))
 		else: button.pressed.connect(func(): action_requested.emit(id))
 		(_dev_actions if dev else _actions).add_child(button)
 	_dev_actions.visible = _dev_actions.get_child_count() > 0
@@ -536,6 +567,23 @@ func _build_dwarf_rows() -> void:
 	_profession_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_profession_label.mouse_filter = Control.MOUSE_FILTER_PASS   # its tooltip names the tool
 	_profession_row.add_child(_profession_label)
+	_health_chip = HBoxContainer.new()
+	_health_chip.add_theme_constant_override("separation", 4)
+	_health_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_health_chip.mouse_filter = Control.MOUSE_FILTER_PASS   # its tooltip names the health
+	_profession_row.add_child(_health_chip)
+	_health_heart = TextureRect.new()
+	_health_heart.texture = UIRegistry.get_need_icon("health")
+	_health_heart.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_health_heart.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_health_heart.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_health_heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_health_chip.add_child(_health_heart)
+	_health_label = Label.new()
+	_health_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_health_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_health_chip.add_child(_health_label)
+	_health_chip.hide()
 	_activity_row = HBoxContainer.new()
 	_activity_row.add_theme_constant_override("separation", 8)
 	_text.add_child(_activity_row)
@@ -575,6 +623,12 @@ func _show_dwarf_rows(data: Dictionary) -> void:
 	_activity_label.text = String(data.get("activity", ""))
 	var destination := String(data.get("destination", ""))
 	_activity_label.tooltip_text = String(data.get("explanation", "")) + ("" if destination in ["", "No destination"] else "\n" + destination)
+	var health: Dictionary = data.get("health", {})
+	_health_chip.visible = bool(health.get("hurt", false))
+	if _health_chip.visible:
+		_health_label.text = "%d/%d" % [health.points, health.maximum]
+		_health_label.add_theme_color_override("font_color", UITheme.TAG_TONES.waiting[0] if health.word == "Hurt" else UITheme.DANGER_RED)
+		_health_chip.tooltip_text = "%s · %d of %d hit points\nHealth comes back slowly, faster while asleep." % [health.word, health.points, health.maximum]
 	var concern: Dictionary = data.get("concern", {})
 	_concern_icon.visible = not concern.is_empty()
 	if not concern.is_empty():
@@ -651,6 +705,7 @@ func _toggle_owner_list(action: Dictionary, anchor: Control) -> void:
 	if _owners.visible:
 		_close_owner_list()
 		return
+	_close_card()
 	_owners_anchor = anchor
 	_owners_title.text = String(action.get("text", "")).trim_suffix("…")
 	for option: Dictionary in action.get("options", []):
@@ -664,7 +719,8 @@ func _toggle_owner_list(action: Dictionary, anchor: Control) -> void:
 	_place_owner_list()
 
 
-## One choice in the list: the dwarf's portrait and name, or the colony for "anyone".
+## One choice in the list: the dwarf's portrait and name, the colony for "anyone", or a choice's
+## own picture (Replace's materials, doc 285).
 func _owner_row(option: Dictionary) -> Button:
 	var button := Button.new()
 	button.name = "Owner_" + String(option.get("id", "")).validate_node_name()
@@ -690,7 +746,8 @@ func _owner_row(option: Dictionary) -> Button:
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.add_child(portrait)
 	button.set_meta("portrait", portrait)
-	if int(option.get("dwarf_id", -1)) < 0: portrait.texture = load("res://assets/ui/icons/dwarves.png")
+	if option.has("picture"): portrait.texture = load(String(option.picture))
+	elif int(option.get("dwarf_id", -1)) < 0: portrait.texture = load("res://assets/ui/icons/dwarves.png")
 	var caption := Label.new()
 	caption.text = String(option.get("text", ""))
 	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -721,6 +778,161 @@ func _close_owner_list() -> void:
 	for child in _owner_rows.get_children():
 		_owner_rows.remove_child(child)
 		child.queue_free()
+
+
+# ── Cards (a plan's Materials) ──────────────────────────────────────────────────
+
+## A card an action opens above the panel, such as a construction plan's Materials (doc 23):
+## its title, a row for each entry (a picture on a family tile, a name over a line, a tag in its
+## tone) and a footer. Drawn like the owner list, and filled again while open when its data
+## changes.
+func _build_card() -> void:
+	_card = PanelContainer.new()
+	_card.name = "Card"
+	_card.visible = false
+	_card.theme = UITheme.shared_theme()
+	var margins := StyleBoxEmpty.new()
+	margins.content_margin_left = 20
+	margins.content_margin_right = 20
+	margins.content_margin_top = 16
+	margins.content_margin_bottom = 22
+	_card.add_theme_stylebox_override("panel", margins)
+	_card.draw.connect(_draw_card)
+	_card.mouse_filter = Control.MOUSE_FILTER_STOP
+	_popups.add_child(_card)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 10)
+	_card.add_child(column)
+	_card_title = Label.new()
+	column.add_child(_card_title)
+	var below := Control.new()   # room under the band before the first row
+	below.custom_minimum_size.y = 4
+	column.add_child(below)
+	_card_rows = VBoxContainer.new()
+	_card_rows.add_theme_constant_override("separation", 10)
+	column.add_child(_card_rows)
+	_card_footer = Label.new()
+	column.add_child(_card_footer)
+
+
+## The hearth slab with the work family's colour behind the title, as the owner list draws it.
+func _draw_card() -> void:
+	var cell := UITheme.CARD_CELL
+	var w := ceili(_card.size.x / cell)
+	var h := ceili(_card.size.y / cell)
+	var top: float = _card.get_theme_stylebox("panel").content_margin_top
+	var header := ceili((top + _card_title.get_combined_minimum_size().y + 12.0) / cell)
+	var key := "%d %d %d" % [w, h, header]
+	if key != _card_art_key:
+		_card_art_key = key
+		var family: Color = UIRegistry.get_icon_family_color(UIRegistry.get_compact_family())
+		var art := UITheme.cell_slab(w, h, UITheme.CARD_FACE, UITheme.CARD_TOP, UITheme.CARD_SKIRT,
+			UITheme.CARD_OUTLINE, 2, 2, family, header)
+		art.resize(w * cell, h * cell, Image.INTERPOLATE_NEAREST)
+		_card_art = UITheme.cell_texture(art)
+	_card.draw_texture_rect(_card_art, Rect2(Vector2.ZERO, _card_art.get_size()), false)
+
+
+func _toggle_card(card_id: String, anchor: Button) -> void:
+	if _card.visible and _card_id == card_id:
+		_close_card()
+		return
+	_close_owner_list()
+	_card_id = card_id
+	_card_anchor = anchor
+	_card_shown = {}
+	_fill_card()
+	_card.show()
+	anchor.set_pressed_no_signal(true)
+	_place_card()
+
+
+func _fill_card() -> void:
+	var card: Dictionary = _cards.get(_card_id, {})
+	if card == _card_shown: return
+	_card_shown = card.duplicate(true)
+	var type: Dictionary = UITheme.TYPE_MEDIUM if _wide else UITheme.TYPE_SMALL
+	UITheme.format_label(_card_title, true, type.title, UITheme.CARD_TITLE, 5)
+	_card_title.add_theme_color_override("font_outline_color", UITheme.CARD_TITLE_OUTLINE)
+	_card_title.text = String(card.get("title", ""))
+	for child in _card_rows.get_children():
+		_card_rows.remove_child(child)
+		child.queue_free()
+	for entry: Dictionary in card.get("rows", []): _card_rows.add_child(_card_row(entry, type))
+	UITheme.format_label(_card_footer, false, type.body, UITheme.HEARTH_MUTED)
+	_card_footer.text = String(card.get("footer", ""))
+	_card_footer.visible = not _card_footer.text.is_empty()
+	_card.queue_redraw()
+	_place_card()
+	_place_card.call_deferred()   # again once the rows have their sizes
+
+
+## One row: the picture on a family tile, the name over its line, and the tag at the end.
+func _card_row(entry: Dictionary, type: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tile := PanelContainer.new()
+	var box := UITheme.icon_tile_style(UIRegistry.get_icon_family_color(UIRegistry.get_compact_family())).duplicate() as StyleBoxTexture
+	box.set_content_margin_all(_metrics.tile_pad * 0.75)
+	tile.add_theme_stylebox_override("panel", box)
+	tile.custom_minimum_size = Vector2.ONE * _metrics.tile * 0.72
+	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var picture := TextureRect.new()
+	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	picture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	var path := String(entry.get("picture", ""))
+	picture.texture = load(path) if not path.is_empty() and ResourceLoader.exists(path) else null
+	tile.add_child(picture)
+	row.add_child(tile)
+	var words := VBoxContainer.new()
+	words.add_theme_constant_override("separation", 2)
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var name_label := Label.new()
+	UITheme.format_label(name_label, true, type.lead, UITheme.CARD_TITLE)
+	name_label.text = String(entry.get("name", ""))
+	words.add_child(name_label)
+	var line := Label.new()
+	UITheme.format_label(line, false, type.body, UITheme.CARD_TEXT)
+	line.text = String(entry.get("detail", ""))
+	words.add_child(line)
+	row.add_child(words)
+	var text := String(entry.get("tag", ""))
+	if not text.is_empty():
+		var tone := String(entry.get("tone", "waiting"))
+		if not UITheme.TAG_TONES.has(tone): tone = "waiting"
+		var tag := PanelContainer.new()
+		tag.add_theme_stylebox_override("panel", UITheme.cell_style("tag_" + tone, _metrics.chip_cell))
+		tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var label := Label.new()
+		UITheme.format_label(label, false, type.body, UITheme.tag_ink(tone))
+		label.text = text
+		tag.add_child(label)
+		row.add_child(tag)
+	return row
+
+
+## Above the panel, centred on the tile that opened it, as the owner list sits.
+func _place_card() -> void:
+	if _card == null or not _card.visible or not is_instance_valid(_card_anchor): return
+	_card.reset_size()
+	var viewport := get_viewport_rect().size
+	var anchor := _card_anchor.get_global_rect()
+	_card.position = Vector2(clampf(anchor.get_center().x - _card.size.x * 0.5, 8.0, maxf(8.0, viewport.x - _card.size.x - 8.0)),
+		maxf(8.0, global_position.y - _card.size.y - 12.0)).round()
+
+
+func _close_card() -> void:
+	if _card == null: return
+	_card.hide()
+	_card_id = ""
+	_card_shown = {}
+	if is_instance_valid(_card_anchor): _card_anchor.set_pressed_no_signal(false)
+	_card_anchor = null
 
 
 static func _row_value(rows: Array, row_name: String) -> String:

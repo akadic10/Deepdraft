@@ -2,14 +2,17 @@ extends MarginContainer
 
 ## The character sheet (doc 261, phase 3), after Stonehearth's Character Info.
 ## - The header: the live portrait on the people tile; the name; the profession on its tile
-##   with its level, experience bar and the way to the next level; the traits as tags, moss
+##   with its level, experience bar and the way to the next level; health as a heart and its
+##   word and hit points (doc 41 "Health", also a bar under Rest and Food); the traits as tags, moss
 ##   for good ones and rust for bad ones, the description on hover; and the mood banner with
 ##   the mood's face, word and happiness.
 ## - Six tabs. Overview: what the dwarf is doing and where they are heading, Rest and Food
 ##   with the pictures from over their head, what they carry, and the latest two thoughts.
 ##   Mood: the thoughts as cards, what weighs on them on the left and what lifts their
 ##   spirits on the right, over the mood's face, word and line and the five-step scale.
-##   Traits, Equipment and Profession. Tastes (doc 41 "Tastes"): what they love, like and
+##   Traits: the stats (doc 41 "Stats"), Body and Mind as two columns of rows (picture, name, the
+##   step's pips and word, and what the stat does), then the traits. Equipment and
+##   Profession. Tastes (doc 41 "Tastes"): what they love, like and
 ##   dislike as tiles, "?" until found, and how their own bedroom feels to them.
 ## - Locate, and Follow as the main action.
 ## Its own window, opened from the compact panel or Colony Dwarves' Details card.
@@ -21,6 +24,7 @@ const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const Inspection = preload("res://scripts/components/DwarfInspection.gd")
 const Appeal = preload("res://scripts/components/RoomAppeal.gd")
 const RoomPanel = preload("res://scripts/ui/RoomInspectorPanel.gd")   # its appeal scale
+const CatchLogView = preload("res://scripts/ui/CatchLogView.gd")
 const TABS := ["Overview", "Mood", "Traits", "Equipment", "Profession", "Tastes"]
 const TASTES_TAB := 5
 const HAY := Color("e2c06a")
@@ -40,19 +44,22 @@ const SIZES := {
 		"banner": Vector2i(35, 49), "face": 60, "word": LARGE.lead, "value": LARGE.title, "tab": 42, "tab_font": LARGE.body, "body": 500,
 		"title": LARGE.heading, "text": LARGE.body, "need": 52, "carry": 72, "count": LARGE.body, "thought": 46, "thought_font": LARGE.body,
 		"mood_tile": 84, "mood_word": LARGE.title, "mood_line": LARGE.body, "step": 48, "step_font": LARGE.body, "marker": Vector2(28, 16),
-		"action": 48, "action_width": 240, "action_font": LARGE.body, "gap": 12, "thought_columns": 2, "type": LARGE},
+		"action": 48, "action_width": 240, "action_font": LARGE.body, "gap": 12, "thought_columns": 2, "type": LARGE,
+		"pip": 20, "pip_cell": 3},
 	"medium": {"width": 580, "side": 14, "top": 8, "bottom": 8, "portrait": 100, "name": MEDIUM.display, "outline": 5,
 		"role": MEDIUM.lead, "role_tile": 28, "bar": 10, "bar_width": 220, "sub": MEDIUM.small, "label": MEDIUM.small, "tag": MEDIUM.small,
 		"banner": Vector2i(25, 31), "face": 40, "word": MEDIUM.lead, "value": MEDIUM.title, "tab": 30, "tab_font": MEDIUM.body, "body": 340,
 		"title": MEDIUM.heading, "text": MEDIUM.body, "need": 36, "carry": 48, "count": MEDIUM.body, "thought": 34, "thought_font": MEDIUM.small,
 		"mood_tile": 56, "mood_word": MEDIUM.title, "mood_line": MEDIUM.body, "step": 32, "step_font": MEDIUM.body, "marker": Vector2(21, 12),
-		"action": 32, "action_width": 160, "action_font": MEDIUM.body, "gap": 8, "thought_columns": 2, "type": MEDIUM},
+		"action": 32, "action_width": 160, "action_font": MEDIUM.body, "gap": 8, "thought_columns": 2, "type": MEDIUM,
+		"pip": 14, "pip_cell": 2},
 	"small": {"width": 470, "side": 10, "top": 8, "bottom": 6, "portrait": 80, "name": SMALL.display, "outline": 4,
 		"role": SMALL.lead, "role_tile": 26, "bar": 10, "bar_width": 170, "sub": SMALL.small, "label": SMALL.small, "tag": SMALL.small,
 		"banner": Vector2i(20, 28), "face": 32, "word": SMALL.lead, "value": SMALL.title, "tab": 28, "tab_font": SMALL.body, "body": 240,
 		"title": SMALL.heading, "text": SMALL.body, "need": 30, "carry": 40, "count": SMALL.body, "thought": 30, "thought_font": SMALL.body,
 		"mood_tile": 44, "mood_word": SMALL.title, "mood_line": SMALL.body, "step": 28, "step_font": SMALL.body, "marker": Vector2(14, 8),
-		"action": 30, "action_width": 120, "action_font": SMALL.body, "gap": 8, "thought_columns": 1, "type": SMALL},
+		"action": 30, "action_width": 120, "action_font": SMALL.body, "gap": 8, "thought_columns": 1, "type": SMALL,
+		"pip": 12, "pip_cell": 2},
 }
 signal action_requested(action: String)
 
@@ -76,6 +83,9 @@ var _role_icon: TextureRect
 var _profession: Label
 var _experience_bar: ProgressBar
 var _experience: Label
+var _health_line: HBoxContainer
+var _health_heart: TextureRect
+var _health_words: Label
 var _traits_row: HBoxContainer
 var _traits_heading: Label
 var _trait_tags: HFlowContainer
@@ -106,6 +116,7 @@ var _needs: GridContainer
 var _rest: Dictionary
 var _food: Dictionary
 var _food_effects: Label
+var _health_need: Dictionary
 var _carry_heading: Label
 var _carry_row: HBoxContainer
 var _carry_tiles: HBoxContainer
@@ -128,6 +139,10 @@ var _step_words: Array[Label] = []
 var _markers: Array[TextureRect] = []
 var _happiness: Label
 # Traits, Equipment, Profession
+var _stats_aside: Label
+var _stat_columns: GridContainer
+var _stat_groups: Array[Label] = []
+var _stat_rows := {}   # stat id -> its row's parts (_stat_row)
 var _traits_list: VBoxContainer
 var _traits_note: Label
 var _equipment_page: VBoxContainer
@@ -139,6 +154,7 @@ var _profession_bar: ProgressBar
 var _profession_summary: Label
 var _rewards_heading: Label
 var _rewards: VBoxContainer
+var _catch_log: CatchLogView   # a Ranger's, in place of the rewards
 var _change_profession: Button
 # Footer
 var _locate: Button
@@ -162,6 +178,7 @@ func _ready() -> void:
 		tab.pressed.connect(_show_tab.bind(i))
 		_tab_grid.add_child(tab)
 		_tabs.append(tab)
+	_tabs[2].tooltip_text = "What they were born with: their stats and traits"
 	_tabs[4].tooltip_text = "The profession, its level and rewards · Change profession"
 	_tabs[TASTES_TAB].tooltip_text = "What they love, like and dislike, found as they use things"
 	_body = PanelContainer.new()
@@ -216,6 +233,20 @@ func _build_header() -> void:
 	_profession.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_experience_bar = _bar(_identity)
 	_experience = _text(_identity, "", MEDIUM.small, MUTED)
+	# Health (doc 41 "Health"): a heart and "Healthy · 115 of 115 hit points", on every tab.
+	_health_line = HBoxContainer.new()
+	_health_line.add_theme_constant_override("separation", 6)
+	_health_line.mouse_filter = Control.MOUSE_FILTER_PASS
+	_health_line.tooltip_text = "Health comes back slowly, faster while asleep. Toughness sets the most a dwarf can have."
+	_identity.add_child(_health_line)
+	_health_heart = _picture_rect()
+	_health_heart.texture = UIRegistry.get_need_icon("health")
+	_health_heart.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_health_line.add_child(_health_heart)
+	_health_words = _text(_health_line, "", MEDIUM.small, MOSS)
+	_health_words.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_health_words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_health_words.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_traits_row = HBoxContainer.new()
 	_traits_row.add_theme_constant_override("separation", 8)
 	_identity.add_child(_traits_row)
@@ -281,6 +312,10 @@ func _build_overview(page: VBoxContainer) -> void:
 	_rest.panel.tooltip_text = "Current rest level. Dwarves sleep when tired."
 	_food = _need(_needs, "food", "Food")
 	_food_effects = _text(_food.column, "", MEDIUM.small, HAY)
+	# Health (doc 41 "Health") under Rest and Food, its bar in heart red.
+	_health_need = _need(_needs, "health", "Health")
+	_health_need.panel.tooltip_text = "Hit points. Health comes back slowly, faster while asleep."
+	_health_need.bar.add_theme_stylebox_override("fill", UITheme.cell_style("health", 2))
 	_carry_heading = _heading(page, "")
 	_carry_row = HBoxContainer.new()
 	_carry_row.add_theme_constant_override("separation", 12)
@@ -367,7 +402,28 @@ func _build_mood(page: VBoxContainer) -> void:
 	_happiness = _text(page, "", MEDIUM.body, MUTED)
 
 
+## The Traits tab: the stats (doc 41 "Stats"), Body and Mind as two columns of rows, then the traits
+## under their own heading.
 func _build_traits(page: VBoxContainer) -> void:
+	var stats_heading := HBoxContainer.new()
+	stats_heading.add_theme_constant_override("separation", 6)
+	page.add_child(stats_heading)
+	var heading := _heading(stats_heading, "STATS")
+	heading.autowrap_mode = TextServer.AUTOWRAP_OFF
+	heading.size_flags_horizontal = Control.SIZE_FILL
+	_stats_aside = _text(stats_heading, "· born with them: the same total, a different shape", MEDIUM.small, MUTED)
+	_stat_columns = GridContainer.new()
+	_stat_columns.columns = 2
+	page.add_child(_stat_columns)
+	var groups: Dictionary = DwarfAssets.get_stat_data().get("groups", {})
+	for group: String in groups:
+		var column := VBoxContainer.new()
+		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_stat_columns.add_child(column)
+		_stat_groups.append(_text(column, String(groups[group]).to_upper(), MEDIUM.small, MUTED))
+		for id: String in DwarfAssets.stat_ids():
+			if String(DwarfAssets.stat_definition(id).get("group", "")) == group: column.add_child(_stat_row(id))
+	_heading(page, "TRAITS")
 	_traits_list = VBoxContainer.new()
 	page.add_child(_traits_list)
 	# Traits are generated and saved, but the simulation does not apply their effects.
@@ -407,6 +463,8 @@ func _build_profession(page: VBoxContainer) -> void:
 	_rewards = VBoxContainer.new()
 	_rewards.add_theme_constant_override("separation", 6)
 	page.add_child(_rewards)
+	_catch_log = CatchLogView.new()
+	page.add_child(_catch_log)
 
 
 ## The Tastes tab: a line on how tastes are found, a row of tiles for each kind, and their
@@ -467,6 +525,8 @@ func show_data(data: Dictionary, following: bool) -> void:
 	_experience_bar.value = float(experience.get("progress", 0.0)) * 100.0
 	_experience.text = String(experience.get("line", ""))
 	_show_traits(data.get("trait_details", []))
+	_show_stats(data.get("stat_details", []))
+	_show_health(data.get("health", {}))
 	_show_mood(data.get("mood", {}))
 	_show_overview(data)
 	_equipment_page.show_equipment(data.get("equipment_details", {}))
@@ -475,7 +535,11 @@ func show_data(data: Dictionary, following: bool) -> void:
 	_profession_bar.value = _experience_bar.value
 	_profession_line.text = _experience.text
 	_profession_summary.text = String(experience.get("summary", ""))
-	_show_rewards(experience.get("rewards", []))
+	# A Ranger's tab keeps their catch log instead of the list (doc 292, concept C).
+	var log: Dictionary = experience.get("catch_log", {})
+	_catch_log.visible = not log.is_empty()
+	if not log.is_empty(): _catch_log.show_log(log, _size)
+	_show_rewards(experience.get("rewards", []) if log.is_empty() else [])
 	if _pages[TASTES_TAB].visible: _show_tastes(Inspection.tastes_sheet(agent))
 	# Follow is the sheet's main action either way: its words say whether it is on.
 	var follow_text := "Stop following" if following else "Follow"
@@ -498,7 +562,8 @@ func _show_overview(data: Dictionary) -> void:
 		_concern_title.text = "%s · %s" % [concern.title, concern.reason]
 		_concern_help.text = concern.help
 	var rest := roundi(float(data.rest) * 100)
-	_rest.status.text = "%d%% · %s" % [rest, "Sleeping" if data.sleeping else ("Tired" if rest <= 25 else "Awake")]
+	var awake := "Rested by the fire" if bool(data.food.get("rested_by_fire", false)) else "Awake"
+	_rest.status.text = "%d%% · %s" % [rest, "Sleeping" if data.sleeping else ("Tired" if rest <= 25 else awake)]
 	_rest.bar.value = rest
 	var food: Dictionary = data.food
 	_food.status.text = "%d%% · %s" % [roundi(float(food.value) * 100), food.label]
@@ -607,6 +672,40 @@ func _show_traits(entries: Array) -> void:
 		name_tag.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		row.add_child(name_tag)
 		_text(row, String(entry.description), int(_size.text))
+
+
+## Each stat's word, pips and what it does; the hover adds its description.
+func _show_stats(details: Array) -> void:
+	for detail: Dictionary in details:
+		var parts: Dictionary = _stat_rows.get(detail.id, {})
+		if parts.is_empty(): continue
+		parts.word.text = String(detail.word)
+		parts.effect.text = String(detail.effect)
+		parts.effect.add_theme_color_override("font_color", UITheme.CARD_TEXT if bool(detail.get("live", false)) else MUTED)
+		parts.row.tooltip_text = "%s · %s\n%s\n%s" % [detail.name, detail.word, detail.description, detail.effect]
+		if int(parts.step) != int(detail.step):
+			parts.step = int(detail.step)
+			_paint_pips(parts)
+
+
+## Health (doc 41 "Health"): the line under the level, moss while Healthy, hay while Hurt and rust
+## while Badly hurt; and the bar under Rest and Food.
+func _show_health(health: Dictionary) -> void:
+	_health_line.visible = not health.is_empty()
+	_health_need.panel.visible = not health.is_empty()
+	if health.is_empty(): return
+	var word := String(health.word)
+	_health_words.text = "%s · %d of %d hit points" % [word, health.points, health.maximum]
+	_health_words.add_theme_color_override("font_color", MOSS if word == "Healthy" else (HAY if word == "Hurt" else RUST))
+	_health_need.status.text = "%d of %d · %s" % [health.points, health.maximum, word]
+	_health_need.bar.value = float(health.share) * 100.0
+
+
+## The step's pips in hay, the rest as empty grooves.
+func _paint_pips(parts: Dictionary) -> void:
+	var marks: Array = parts.marks
+	for i in range(marks.size()):
+		(marks[i] as PanelContainer).add_theme_stylebox_override("panel", UITheme.cell_style("fill" if i < int(parts.step) else "groove", int(_size.pip_cell)))
 
 
 func _show_rewards(rewards: Array) -> void:
@@ -757,6 +856,8 @@ func _apply_size() -> void:
 	_experience_bar.custom_minimum_size = Vector2(float(s.bar_width), float(s.bar))
 	_experience_bar.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_experience.add_theme_font_size_override("font_size", s.sub)
+	_health_heart.custom_minimum_size = Vector2.ONE * roundf(float(s.sub) * 1.4)
+	_health_words.add_theme_font_size_override("font_size", s.sub)
 	_traits_heading.add_theme_font_size_override("font_size", s.label)
 	# The mood banner, hung at the right.
 	var cells: Vector2i = s.banner
@@ -788,7 +889,7 @@ func _apply_size() -> void:
 	_needs.columns = 2
 	_needs.add_theme_constant_override("h_separation", gap * 2)
 	_needs.add_theme_constant_override("v_separation", gap)
-	for need: Dictionary in [_rest, _food]:
+	for need: Dictionary in [_rest, _food, _health_need]:
 		need.frame.custom_minimum_size = Vector2.ONE * float(s.need)
 		need.title.add_theme_font_size_override("font_size", int(s.type.body))
 		need.status.add_theme_font_size_override("font_size", s.text)
@@ -807,6 +908,20 @@ func _apply_size() -> void:
 	for i in range(_steps.size()):
 		_steps[i].custom_minimum_size.y = float(s.step)
 		_markers[i].custom_minimum_size = s.marker
+	_stats_aside.add_theme_font_size_override("font_size", s.label)
+	_stat_columns.add_theme_constant_override("h_separation", gap * 2)
+	_stat_columns.add_theme_constant_override("v_separation", gap)
+	for column: Node in _stat_columns.get_children(): (column as VBoxContainer).add_theme_constant_override("separation", gap)
+	for label: Label in _stat_groups: label.add_theme_font_size_override("font_size", s.label)
+	for parts: Dictionary in _stat_rows.values():
+		parts.row.add_theme_constant_override("separation", gap)
+		parts.tile.custom_minimum_size = Vector2.ONE * float(s.need)
+		parts.name.add_theme_font_size_override("font_size", int(s.type.lead))
+		parts.word.add_theme_font_size_override("font_size", s.text)
+		parts.effect.add_theme_font_size_override("font_size", s.label)
+		parts.pips.add_theme_constant_override("separation", int(s.pip_cell))
+		for mark: PanelContainer in parts.marks: mark.custom_minimum_size = Vector2.ONE * float(s.pip)
+		_paint_pips(parts)
 	_profession_frame.custom_minimum_size = Vector2.ONE * float(s.mood_tile)
 	UITheme.format_label(_profession_title, true, int(s.type.heading), UITheme.CARD_TITLE)
 	_profession_bar.custom_minimum_size = Vector2(float(s.bar_width), float(s.bar))
@@ -825,6 +940,48 @@ func _apply_size() -> void:
 
 
 # ── Pieces ────────────────────────────────────────────────────────────────────
+
+## A stat's row on the Traits tab (doc 41 "Stats"): its picture on the people tile; the name, with
+## the step's word at the right; the pips, one for each step; and what the stat does.
+func _stat_row(id: String) -> HBoxContainer:
+	var stat := DwarfAssets.stat_definition(id)
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	var picture := _picture_rect()
+	picture.texture = _texture(String(stat.get("icon", "")))
+	var tile := UITheme.framed_picture(picture)
+	tile.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(tile)
+	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 3)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(column)
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", 8)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(line)
+	var name := _text(line, String(stat.get("name", id)), MEDIUM.lead, UITheme.CARD_TITLE, true)
+	name.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var word := _text(line, "", MEDIUM.body)
+	word.autowrap_mode = TextServer.AUTOWRAP_OFF
+	word.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	word.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var pips := HBoxContainer.new()
+	pips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(pips)
+	var marks: Array[PanelContainer] = []
+	for i in range(DwarfAssets.stat_steps()):
+		var mark := PanelContainer.new()
+		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		pips.add_child(mark)
+		marks.append(mark)
+	var effect := _text(column, "", MEDIUM.small, MUTED)
+	for label: Label in [name, word, effect]: label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stat_rows[id] = {"row": row, "tile": tile, "name": name, "word": word, "pips": pips, "marks": marks, "effect": effect, "step": -1}
+	return row
+
 
 ## A need beside its picture from over the head: the name, its value and state, and a bar.
 func _need(parent: Control, icon: String, title: String) -> Dictionary:

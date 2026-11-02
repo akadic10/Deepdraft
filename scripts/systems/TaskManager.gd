@@ -192,6 +192,17 @@ func redirect_haul_to_placement(task_id: int, offer: Dictionary) -> bool:
 	return true
 
 
+## Hands one waiting task straight to a dwarf who holds none: a tired dwarf lighting
+## the cold fire in its bedroom before bed (doc 34, "Bedtime fires"). False when the
+## task is not waiting or the dwarf is gone or busy.
+func assign_to(task_id: int, dwarf_id: int) -> bool:
+	var task := get_task(task_id)
+	var agent := get_agent(dwarf_id)
+	if task == null or task.status != Task.Status.PENDING or task.recovery_paused or agent == null or _active.has(dwarf_id): return false
+	_scheduler.assign(task, agent)
+	return int(_active.get(dwarf_id, -1)) == task_id
+
+
 ## Cancels a task outright (player action / source destroyed). Assigned tasks
 ## are pulled from their dwarf, who returns to the idle pool.
 func cancel_task(task_id: int) -> void:
@@ -479,7 +490,7 @@ func _mark_idle(dwarf_id: int) -> void:
 	var agent := get_agent(dwarf_id)
 	if _active.has(dwarf_id) or agent == null or not agent.is_inside_tree(): return
 	if agent.promotion_pending() or agent.is_sleeping() or agent.is_eating() or agent.is_recreating(): return
-	if agent.needs_ladder_exit() or agent.needs_bridge_exit(): return
+	if agent.needs_ladder_exit(): return
 	if not _idle_dwarves.has(dwarf_id):
 		if _idle_dwarves.is_empty(): _scheduler.next_type = -1
 		_idle_dwarves.append(dwarf_id)

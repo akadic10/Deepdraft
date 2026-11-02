@@ -100,6 +100,7 @@ func _run() -> void:
 	worker._process(.1)
 	_expect(worker.is_sleeping() and source.reserved_by == -1, "sleep releases boulder ownership")
 	_expect(is_equal_approx(source.state.work_seconds, partial), "sleep retains work")
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 	_expect(await _until_working(), "boulder clearing resumes after waking")
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_boulders()

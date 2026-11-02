@@ -202,7 +202,7 @@ func _load_dwarf_indicators() -> void:
 		push_error("UIRegistry: invalid dwarf indicator definition")
 		return
 	_dwarf_indicators = parsed
-	for kind: String in ["food","rest","mood"]:
+	for kind: String in parsed.icons:   # food, rest, health (doc 41 "Health") and mood
 		_need_icons[kind] = load(String(parsed.icons[kind])) as Texture2D
 
 
@@ -279,18 +279,11 @@ func get_dock_items() -> Array:
 	return _dock_items.filter(is_shown)
 
 
-## Atlas regions retain the approved illustrated art without baking captions or
-## selection states into individual buttons. Also accepts ordinary icon files.
+## An entry's Hearthblock picture (doc 259), or null when it names none. Captions and
+## selection states are drawn by the button, never baked into the picture.
 func get_dock_icon(entry: Dictionary) -> Texture2D:
 	if String(entry.get("icon", "")).is_empty(): return null
-	var texture := load(String(entry.get("icon", ""))) as Texture2D
-	var region: Array = entry.get("icon_region", [])
-	if texture == null or region.size() != 4: return texture
-	var atlas := AtlasTexture.new()
-	atlas.atlas = texture
-	atlas.region = Rect2(float(region[0]), float(region[1]), float(region[2]), float(region[3]))
-	atlas.filter_clip = true
-	return atlas
+	return load(String(entry.get("icon", ""))) as Texture2D
 
 
 ## Read-only command-group metadata; behavior remains with DockUI.

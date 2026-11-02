@@ -291,9 +291,10 @@ func _room_inspect_lines(air_pos: Vector3i) -> Array[String]:
 	var room_manager := renderer.get_node_or_null("/root/RoomManager")
 	if room_manager == null:
 		return ["room: — (RoomManager absent)"]
+	var climate_line := _climate_line(room_manager.climate_at(air_pos))
 	var room: Dictionary = room_manager.get_room_at(air_pos)
 	if room.is_empty():
-		return ["room: none (open air)"]
+		return ["room: none (not sealed)", climate_line]
 	var temp_c: float = float(room.get("temp_c", 0.0))
 	var volume: int = int(room.get("volume", 0))
 	var heat_units: int = int(room.get("heat_units", 0))
@@ -309,7 +310,23 @@ func _room_inspect_lines(air_pos: Vector3i) -> Array[String]:
 		"room temp: %.1f°C  volume: %d blocks" % [temp_c, volume],
 		"room heat: %d units (+%.1f°C)  doors: %d" % [heat_units, heat_bonus, doors],
 		"room seasonal influence: %d%%  mean floor y: %.1f" % [roundi(seasonal * 100.0), mean_floor_y],
+		climate_line,
 	]
+
+
+## The climate at the inspected air cell (doc 34): its temperature and word, what sets it,
+## and its range over a year in clear weather.
+func _climate_line(place: Dictionary) -> String:
+	var cover: int = int(place.get("cover", 0))
+	var source := "sealed room"
+	match String(place.get("kind", "")):
+		"open_sky": source = "open sky, wet" if bool(place.get("wet", false)) else "open sky"
+		"sheltered":
+			var steps: int = int(place.get("steps", -1))
+			source = ("%d steps from open air" % steps if steps > 0 else "no open air in reach") + ", %d solid above" % cover
+		"rock": source = "rock: a room dug here, %d solid above" % cover
+	return "climate: %.1f°C %s · %s · year %.1f to %.1f°C" % [float(place.get("temperature_c", 0.0)),
+		String(place.get("word", "")), source, float(place.get("low_c", 0.0)), float(place.get("high_c", 0.0))]
 
 
 func _hit_face_label(delta: Vector3i) -> String:

@@ -3,10 +3,11 @@ extends Control
 ## Permanent HUD presentation. DockUI owns time actions; SliceController owns
 ## the plane and saved height. No independent clock or slice state lives here.
 ## Layout (doc 259, option B): pause, 1x and 2x sit under the Sky Dial; the view
-## toggles X-ray and Slice are the main dock's last group, sized like its other icons.
-## The slice tower and the X-ray options rise from Slice only while that view is on.
-## Their keys (Space, 1, 2, V and X; doc 23 "Keys") work as the buttons do; SliceController
-## owns Slice's.
+## toggles Appeal, Temperature, X-ray and Slice are the main dock's last group, sized like
+## its other icons. The slice tower and the X-ray options rise from Slice only while that
+## view is on, and the Appeal and Temperature views' scales beside them.
+## Their keys (Space, 1, 2, V, T and X; doc 23 "Keys") work as the buttons do;
+## SliceController owns Slice's.
 signal speed_requested(speed: int)
 signal slice_toggle_requested()
 
@@ -30,6 +31,11 @@ var appeal_button: Button
 var appeal_panel: PanelContainer
 var _appeal_labels: Array[Label] = []
 var _appeal_swatches: Array[ColorRect] = []
+var _temperature: Node
+var temperature_button: Button
+var temperature_panel: PanelContainer
+var _temperature_labels: Array[Label] = []
+var _temperature_swatches: Array[ColorRect] = []
 var xray_button: Button
 var xray_panel: PanelContainer
 var xray_modes: Dictionary = {}
@@ -58,6 +64,9 @@ func _ready() -> void:
 	appeal_button = _button(entries.appeal, views)
 	appeal_button.pressed.connect(func(): if is_instance_valid(_appeal): _appeal.toggle())
 	appeal_button.hide()
+	temperature_button = _button(entries.temperature, views)
+	temperature_button.pressed.connect(func(): if is_instance_valid(_temperature): _temperature.toggle())
+	temperature_button.hide()
 	xray_button = _button(entries.xray, views)
 	xray_button.pressed.connect(func(): if is_instance_valid(_xray): _xray.toggle())
 	xray_button.hide()
@@ -83,6 +92,7 @@ func _ready() -> void:
 	readout.add_theme_font_override("font", UITheme.font("figures"))   # the level steps with the slice
 	_build_xray()
 	_build_appeal()
+	_build_temperature()
 	refresh_slice()
 
 
@@ -101,6 +111,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"time_normal", false, true): speed_requested.emit(1)
 	elif event.is_action_pressed(&"time_fast", false, true): speed_requested.emit(2)
 	elif event.is_action_pressed(&"view_appeal", false, true) and is_instance_valid(_appeal): _appeal.toggle()
+	elif event.is_action_pressed(&"view_temperature", false, true) and is_instance_valid(_temperature): _temperature.toggle()
 	elif event.is_action_pressed(&"view_xray", false, true) and is_instance_valid(_xray): _xray.toggle()
 	else: return
 	get_viewport().set_input_as_handled()
@@ -147,36 +158,61 @@ func _build_xray() -> void:
 ## The Appeal view's scale (doc 23 "The Appeal view"): each word with its tint and range,
 ## highest first, above the dock while the view is on, as X-ray's options are.
 func _build_appeal() -> void:
-	appeal_panel = PanelContainer.new()
-	appeal_panel.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
-	appeal_panel.hide()
-	add_child(appeal_panel)
+	var words: Array = RoomManager.appeal_config.get("words", [])
+	var rows: Array = []
+	for i in range(words.size() - 1, -1, -1):
+		rows.append([Color(String(words[i].get("tint", "#9a978b"))), String(words[i].word), _appeal_range(words, i)])
+	appeal_panel = _scale_panel(rows, "Hover a room for its appeal.\nClick it for the room.", _appeal_labels, _appeal_swatches)
+
+
+## The Temperature view's scale (doc 23 "The Temperature view"): each word with its colour and
+## range, hottest first, where the Appeal view's scale goes.
+func _build_temperature() -> void:
+	var edges: Dictionary = RoomManager.temperature_config
+	var colours: Dictionary = UIRegistry.get_time_slice().get("temperature", {}).get("colours", {})
+	var degrees := func(key: String) -> String: return ("%.1f" % float(edges.get(key, 0.0))).trim_suffix(".0")
+	var rows: Array = [
+		["hot", "Hot", "above %s°C" % degrees.call("comfortable_max_c")],
+		["comfortable", "Comfortable", "%s to %s°C" % [degrees.call("comfortable_min_c"), degrees.call("comfortable_max_c")]],
+		["chilly", "Chilly", "%s to %s°C" % [degrees.call("cold_below_c"), degrees.call("comfortable_min_c")]],
+		["cold", "Cold", "%s to %s°C" % [degrees.call("frozen_at_c"), degrees.call("cold_below_c")]],
+		["frozen", "Frozen", "%s°C and below" % degrees.call("frozen_at_c")]]
+	for row: Array in rows: row[0] = Color(String(colours.get(row[0], "#ffffff")))
+	temperature_panel = _scale_panel(rows, "Hover a spot for its temperature.\nClick a room for the room.", _temperature_labels, _temperature_swatches)
+
+
+## A view's scale: rows of [colour, word, range], then a hint.
+func _scale_panel(rows: Array, hint_text: String, labels: Array[Label], swatches: Array[ColorRect]) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
+	panel.hide()
+	add_child(panel)
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", 4)
-	appeal_panel.add_child(body)
-	var words: Array = RoomManager.appeal_config.get("words", [])
-	for i in range(words.size() - 1, -1, -1):
+	panel.add_child(body)
+	for entry: Array in rows:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		body.add_child(row)
 		var swatch := ColorRect.new()
-		swatch.color = Color(String(words[i].get("tint", "#9a978b")))
+		swatch.color = entry[0]
 		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		swatch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(swatch)
-		_appeal_swatches.append(swatch)
-		for text: String in [String(words[i].word), _appeal_range(words, i)]:
+		swatches.append(swatch)
+		for text: String in [entry[1], entry[2]]:
 			var label := Label.new()
 			label.text = text
 			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			row.add_child(label)
-			_appeal_labels.append(label)
+			labels.append(label)
 	var hint := Label.new()
-	hint.text = "Hover a room for its appeal.\nClick it for the room."
+	hint.text = hint_text
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.add_child(hint)
-	_appeal_labels.append(hint)
-	_size_appeal(MEDIUM.body)
+	labels.append(hint)
+	_size_scale(labels, swatches, MEDIUM.body)
+	return panel
 
 
 ## The scores a word holds: "below 0", "0 to 8", "16 and up".
@@ -187,13 +223,13 @@ static func _appeal_range(words: Array, index: int) -> String:
 	return "%s to %s" % [number.call(words[index - 1].below), number.call(words[index].below)]
 
 
-func _size_appeal(font_size: int) -> void:
-	for i in range(_appeal_labels.size()):
-		var label := _appeal_labels[i]
-		var word := i < _appeal_labels.size() - 1 and i % 2 == 0
+static func _size_scale(labels: Array[Label], swatches: Array[ColorRect], font_size: int) -> void:
+	for i in range(labels.size()):
+		var label := labels[i]
+		var word := i < labels.size() - 1 and i % 2 == 0
 		UITheme.format_label(label, word, font_size if word else font_size - 1, UITheme.CARD_TITLE if word else UITheme.CARD_TEXT)
 		label.custom_minimum_size.x = float(font_size) * 5.6 if word else 0.0
-	for swatch: ColorRect in _appeal_swatches: swatch.custom_minimum_size = Vector2.ONE * float(font_size + 4)
+	for swatch: ColorRect in swatches: swatch.custom_minimum_size = Vector2.ONE * float(font_size + 4)
 
 
 func bind_appeal(controller: Node) -> void:
@@ -209,6 +245,22 @@ func refresh_appeal() -> void:
 	appeal_button.set_pressed_no_signal(on)
 	appeal_button.queue_redraw()
 	appeal_panel.visible = on
+	_place_options()
+
+
+func bind_temperature(controller: Node) -> void:
+	_temperature = controller
+	_temperature.changed.connect(refresh_temperature)
+	temperature_button.show()
+	refresh_temperature()
+
+
+func refresh_temperature() -> void:
+	if not is_instance_valid(_temperature): return
+	var on: bool = _temperature.active
+	temperature_button.set_pressed_no_signal(on)
+	temperature_button.queue_redraw()
+	temperature_panel.visible = on
 	_place_options()
 
 
@@ -234,11 +286,11 @@ func refresh_xray() -> void:
 	else: reference_readout.text = "Guide hidden"
 
 
-## The X-ray options sit above the dock, left of the slice tower, and the Appeal view's scale
-## beside them (left of X-ray's while both are open).
+## The X-ray options sit above the dock, left of the slice tower, and the Appeal or the
+## Temperature view's scale beside them (left of X-ray's while both are open).
 func _place_options() -> void:
 	var right := _options_anchor.x
-	for panel: PanelContainer in [xray_panel, appeal_panel]:
+	for panel: PanelContainer in [xray_panel, appeal_panel, temperature_panel]:
 		if panel == null: continue
 		var minimum := panel.get_combined_minimum_size()
 		panel.size = Vector2(maxf(minimum.x, 240.0) if panel == xray_panel else minimum.x, minimum.y)
@@ -357,8 +409,10 @@ func fit_to_viewport(main_dock: Rect2, sky_dial: Rect2) -> void:
 	readout.position = Vector2(0, 14)
 	readout.size = Vector2(width, 32)
 	_options_anchor = Vector2(tower.position.x - 8, main_dock.position.y - 4)
-	# The scale reads at the dock's own size.
-	if appeal_panel != null: _size_appeal(clampi(roundi(width * 0.24), MEDIUM.small, MEDIUM.heading))
+	# The scales read at the dock's own size.
+	var scale_size := clampi(roundi(width * 0.24), MEDIUM.small, MEDIUM.heading)
+	_size_scale(_appeal_labels, _appeal_swatches, scale_size)
+	_size_scale(_temperature_labels, _temperature_swatches, scale_size)
 	_place_options()
 	refresh_slice()
 
@@ -368,4 +422,5 @@ func occupied_rects() -> Array[Rect2]:
 	if tower.visible: result.append(tower.get_global_rect())
 	if xray_panel.visible: result.append(xray_panel.get_global_rect())
 	if appeal_panel.visible: result.append(appeal_panel.get_global_rect())
+	if temperature_panel.visible: result.append(temperature_panel.get_global_rect())
 	return result

@@ -29,7 +29,7 @@ built logs (since 2026-10-26, doc 275) have their own keys,
 lies. `data/construction/materials.json` names each wood's block for each direction.
 Completed terrain blocks/supports movement and seals rooms. Plans do not. A plan
 cell must be dry air above bedrock (Y > 3) in discovered space, clear of dwarves,
-loose goods, placed occupancy, furniture and its plans, ladders, bridges and storage
+loose goods, placed occupancy, furniture and its plans, ladders and storage
 zones; existing terrain is mined first, never overwritten. A block waits until
 one of its six faces touches solid terrain, and every check runs again when the block
 is committed (`ConstructionController.build_reason`; roadmap 127).
@@ -187,7 +187,7 @@ To keep a 134-million-voxel grid fast, the game decouples world terrain geometry
 
 ### 1. Solid Flat Terrain Walls
 *   Untouched terrain blocks are rendered as flat, single-colour cubes. The chunk renderer reads the `hex_color` code from the JSON registry and writes it to the cube vertices as vertex colour. No textures or voxel model files are processed inside solid terrain.
-*   The Hearthblock dressing (a one-cell edge ring, a fine seam, quiet flecks and occasional cracks or worn patches on stone, grass and earth) is drawn by `terrain_appearance.gdshaderinc` from `appearance_profiles.json`. It adds no geometry.
+*   The Hearthblock dressing (a one-cell edge ring, a fine seam, quiet flecks and occasional cracks or worn patches on stone, grass and earth; a lighter edge ring and seam on coal) is drawn by `terrain_appearance.gdshaderinc` from `appearance_profiles.json`. It adds no geometry.
 
 ### 2. Object Models
 *   The moment a dwarf mines an ore or stone block, that grid position is overwritten to `base:terrain:void`.

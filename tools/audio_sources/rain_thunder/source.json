@@ -1,0 +1,431 @@
+{
+  "sources": [
+    {
+      "kind": "rain",
+      "title": "Rain_Ambience.WAV",
+      "author": "VanEngelen",
+      "id": "704579",
+      "description": "Rain recorded with a Zoom H5 at an open bedroom window; the author explicitly states there is no thunder.",
+      "page": "https://freesound.org/people/VanEngelen/sounds/704579/",
+      "download": "https://cdn.freesound.org/previews/704/704579_9285510-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "69b4bd938af41953f7c720ceffb4ac7d99aac8269444381445dbb65a4629e391",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 62.70984126984127,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "open_window_rain.wav",
+      "master_sha256": "d40a97f7338706f05cae098833680b6277d923efda1fb2b1ba83aebced8e13b7",
+      "master_region_in_download_seconds": [
+        0,
+        62.70984126984127
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.8243469352130937,
+      "source_channel_correlation": 0.26231405084383597,
+      "selected_source_channel": "both",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo preserved with joint gain",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "rain_roof",
+      "title": "Rain on roof (interior perspective)",
+      "author": "xkeril",
+      "id": "610543",
+      "description": "Stereo rain falling on an apartment roof, recorded from inside in Lausanne, Switzerland.",
+      "page": "https://freesound.org/people/xkeril/sounds/610543/",
+      "download": "https://cdn.freesound.org/previews/610/610543_13504080-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "5beaf5d1dfeee80dd2132645349fcca06ac40151286e7fcc6e2cd66be5e7b3b0",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 178.13364583333333,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "interior_roof_rain.wav",
+      "master_sha256": "07a232cfe0a2a802a113791f39ca65a97743e1062f18e1afb6dc4a07b6c1f944",
+      "master_region_in_download_seconds": [
+        0,
+        80.0
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 14.605446851276605,
+      "source_channel_correlation": 0.5574545748857617,
+      "selected_source_channel": "both",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo preserved with joint gain",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "thunder_01",
+      "title": "Thunder 07",
+      "author": "Emulius",
+      "id": "744722",
+      "description": "A separate thunder event recorded after rain had passed, using a Zoom H5 with SGH-6 and Sennheiser MKE 600 microphones. The author panned the microphones left/right and reduced wind, birds and noise in Reaper.",
+      "page": "https://freesound.org/people/Emulius/sounds/744722/",
+      "download": "https://cdn.freesound.org/previews/744/744722_10934718-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "024cfca9563ab8d911707111d689275e04e404fb8bfaef4d00834590278d0819",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 8.848,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "thunder_07.wav",
+      "master_sha256": "cb74cd636a53c48a61eef700f084533a8ab3f4f4b1caea4780a62afe04fc0a93",
+      "master_region_in_download_seconds": [
+        0,
+        8.848
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.8217702902731617,
+      "source_channel_correlation": -0.48764767572097284,
+      "selected_source_channel": "right",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "Single microphone retained (right channel) to avoid cancellation in a mono fold-down",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "thunder_02",
+      "title": "Thunder 06",
+      "author": "Emulius",
+      "id": "744721",
+      "description": "A separate thunder event recorded after rain had passed, using a Zoom H5 with SGH-6 and Sennheiser MKE 600 microphones. The author panned the microphones left/right and reduced wind, birds and noise in Reaper.",
+      "page": "https://freesound.org/people/Emulius/sounds/744721/",
+      "download": "https://cdn.freesound.org/previews/744/744721_10934718-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "203404126c824e05324a404a2a72f25210aafeca4c4dba1cdc03d1846c20b6c1",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 10.1040625,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "thunder_06.wav",
+      "master_sha256": "83bba400ce098defeaa5370186f96f4e94c92603a6eabb9b828371e4306718e2",
+      "master_region_in_download_seconds": [
+        0,
+        10.1040625
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 11.685595911022274,
+      "source_channel_correlation": -0.8710912677701327,
+      "selected_source_channel": "right",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "Single microphone retained (right channel) to avoid cancellation in a mono fold-down",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "thunder_03",
+      "title": "Thunder 04",
+      "author": "Emulius",
+      "id": "744719",
+      "description": "A separate thunder event recorded after rain had passed, using a Zoom H5 with SGH-6 and Sennheiser MKE 600 microphones. The author panned the microphones left/right and reduced wind, birds and noise in Reaper.",
+      "page": "https://freesound.org/people/Emulius/sounds/744719/",
+      "download": "https://cdn.freesound.org/previews/744/744719_10934718-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "b1c11805b6cc505a53d93e27dd2d45be780f8eb413af49b5c7c7079ffe96d056",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 14.480791666666667,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "thunder_04.wav",
+      "master_sha256": "e2068e1d9d384636ba7c42f73ab809106067bdca25e82c0e107f9875eb4d3e56",
+      "master_region_in_download_seconds": [
+        0,
+        14.480791666666667
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.4873128273455904,
+      "source_channel_correlation": -0.3189430529608016,
+      "selected_source_channel": "left",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "Single microphone retained (left channel) to avoid cancellation in a mono fold-down",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "thunder_near_01",
+      "title": "thunder sharp dry crack 2",
+      "author": "cognito perceptu",
+      "id": "721072",
+      "description": "Dry, sharp crack of thunder with no wind or rain, quite close and a clean recording.",
+      "page": "https://freesound.org/people/cognito%20perceptu/sounds/721072/",
+      "download": "https://cdn.freesound.org/previews/721/721072_57789-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-11-01",
+      "download_sha256": "ec5176a575b972a4802a2589296a8474371eeab186a65bb195f53733ea83d5f8",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 16.927709750566894,
+      "preview": "Public HQ MP3 preview, not the original lossless upload (WAV, 44.1 kHz, 16-bit, stereo; downloading it needs a Freesound login).",
+      "master": "sharp_dry_crack.wav",
+      "master_sha256": "274c08edbdc142fa8140f6d85105cccd104a6c3be673dba2b36e74c7ad0dd4b0",
+      "master_region_in_download_seconds": [
+        0,
+        16.927709750566894
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.966574928386903,
+      "source_channel_correlation": 0.9473227591818887,
+      "selected_source_channel": "right",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "Single microphone retained (right channel), as for the distant thunder",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "thunder_near_02",
+      "title": "200817 Thunder, pretty close crack 4pm.flac",
+      "author": "TRP",
+      "id": "567945",
+      "description": "Mostly dry, pretty close isolated thunder clap. Stereo EM172s.",
+      "page": "https://freesound.org/people/TRP/sounds/567945/",
+      "download": "https://cdn.freesound.org/previews/567/567945_97550-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-11-01",
+      "download_sha256": "aa5bcebc20a1ef006c92889af71a5a3fa26dfb041bd4cfb304163c7952aedade",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 15.625,
+      "preview": "Public HQ MP3 preview, not the original lossless upload (FLAC, 48 kHz, 24-bit, stereo; downloading it needs a Freesound login).",
+      "master": "close_crack.wav",
+      "master_sha256": "fedfa445a731023135872a72cf81b62a87f47d08128eb060f147ea8af919fc10",
+      "master_region_in_download_seconds": [
+        0,
+        15.625
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 1.0474897894109851,
+      "source_channel_correlation": 0.16823902204061345,
+      "selected_source_channel": "right",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "Single microphone retained (right channel), as for the distant thunder",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "thunder_near_03",
+      "title": "thunder crack.wav",
+      "author": "cognito perceptu",
+      "id": "347853",
+      "description": "Pure recording of a loud clap of thunder and the subsequent rumble. The uploader notes the crack was so loud and close that the recording level is low.",
+      "page": "https://freesound.org/people/cognito%20perceptu/sounds/347853/",
+      "download": "https://cdn.freesound.org/previews/347/347853_57789-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-11-01",
+      "download_sha256": "14afbb6954a1c3980a60fa833d2e2d14e28fb97c33f30a00e001a9e07ad74795",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 19.02780045351474,
+      "preview": "Public HQ MP3 preview, not the original lossless upload (WAV, 44.1 kHz, 16-bit, stereo; downloading it needs a Freesound login).",
+      "master": "crack_and_rumble.wav",
+      "master_sha256": "ff77ea2b95df4d150e60dccc36e55e66a71780311405013862d0e405e953a0db",
+      "master_region_in_download_seconds": [
+        0,
+        19.02780045351474
+      ],
+      "master_rate": 22050,
+      "master_channels": 1,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 0.8896568395502501,
+      "source_channel_correlation": 0.9708798074893185,
+      "selected_source_channel": "right",
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "Single microphone retained (right channel), as for the distant thunder",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "rain": {
+      "master": "open_window_rain.wav",
+      "channels": 2,
+      "region_seconds": [
+        10,
+        47
+      ],
+      "loop": true,
+      "loop_seconds": 35,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 100,
+      "low_pass_hz": 8500,
+      "rate": 22050,
+      "target_rms": 0.07446337379263115,
+      "peak_ceiling": 0.65
+    },
+    "rain_roof": {
+      "master": "interior_roof_rain.wav",
+      "channels": 2,
+      "region_seconds": [
+        18,
+        57
+      ],
+      "loop": true,
+      "loop_seconds": 37,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 80,
+      "low_pass_hz": 2800,
+      "rate": 22050,
+      "target_rms": 0.031221288455558518,
+      "peak_ceiling": 0.6
+    },
+    "thunder_01": {
+      "master": "thunder_07.wav",
+      "channels": 1,
+      "region_seconds": [
+        3.5,
+        7.9
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        0.5
+      ],
+      "high_pass_hz": 25,
+      "low_pass_hz": 6000,
+      "rate": 22050,
+      "target_rms": 0.05717201910848104,
+      "peak_ceiling": 0.6
+    },
+    "thunder_02": {
+      "master": "thunder_06.wav",
+      "channels": 1,
+      "region_seconds": [
+        0,
+        9.2
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        0.6
+      ],
+      "high_pass_hz": 25,
+      "low_pass_hz": 6000,
+      "rate": 22050,
+      "target_rms": 0.05701411848056436,
+      "peak_ceiling": 0.6
+    },
+    "thunder_03": {
+      "master": "thunder_04.wav",
+      "channels": 1,
+      "region_seconds": [
+        0.15,
+        10.5
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        1.0
+      ],
+      "high_pass_hz": 25,
+      "low_pass_hz": 6000,
+      "rate": 22050,
+      "target_rms": 0.05734177477426477,
+      "peak_ceiling": 0.6
+    },
+    "thunder_near_01": {
+      "master": "sharp_dry_crack.wav",
+      "channels": 1,
+      "region_seconds": [
+        0.7,
+        9.0
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        1.5
+      ],
+      "high_pass_hz": 25,
+      "low_pass_hz": 9000,
+      "rate": 22050,
+      "target_rms": 0.057,
+      "peak_ceiling": 0.6
+    },
+    "thunder_near_02": {
+      "master": "close_crack.wav",
+      "channels": 1,
+      "region_seconds": [
+        1.7,
+        9.2
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        1.4
+      ],
+      "high_pass_hz": 25,
+      "low_pass_hz": 9000,
+      "rate": 22050,
+      "target_rms": 0.057,
+      "peak_ceiling": 0.6
+    },
+    "thunder_near_03": {
+      "master": "crack_and_rumble.wav",
+      "channels": 1,
+      "region_seconds": [
+        0.88,
+        8.6
+      ],
+      "loop": false,
+      "fades_seconds": [
+        0.025,
+        1.5
+      ],
+      "high_pass_hz": 25,
+      "low_pass_hz": 9000,
+      "rate": 22050,
+      "target_rms": 0.057,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_rain_thunder_audio.py",
+  "environmental_entry_points": [
+    "tools/generate_environment_details.py delegates rain, rain_roof, all three thunder variants and all three near-strike thunder variants"
+  ],
+  "processing": "Per-channel DC removal, zero-phase high/low-pass filtering and gain toward prior RMS levels with a 0.65 peak cap for outdoor rain and 0.6 for the other files. Rain uses two-second equal-power tail-to-head crossfades; roof rain is low-pass filtered at 2800 Hz. Thunder uses separate recorded events, a single microphone channel per source, trimmed lead/trailing silence and edge fades, retaining the natural timing. The shared environment writer performs final DC correction and 10 ms edge fades. No synthesis, pitch shifting, time stretching, reverb or artificial stereo widening. Near-strike thunder (2026-11-01, doc 291) uses three further separate close recorded events, each starting about 0.1 s before its crack and trimmed before its rumble ends, low-passed at 9000 Hz to keep the crack, at the distant thunder's RMS target (0.057) with the same 0.6 peak cap."
+}

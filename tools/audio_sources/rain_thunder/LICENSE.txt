@@ -1,0 +1,70 @@
+Deepdraft - recorded rain and thunder sources
+
+All eight sources were published under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28 (rain, distant thunder) and 2026-11-01 (near-strike thunder)
+
+Rain_Ambience.WAV
+Author: VanEngelen
+Source: https://freesound.org/people/VanEngelen/sounds/704579/
+Preview: https://cdn.freesound.org/previews/704/704579_9285510-hq.mp3
+Local master: open_window_rain.wav
+Rain recorded with a Zoom H5 at an open bedroom window; the author explicitly states there is no thunder.
+
+Rain on roof (interior perspective)
+Author: xkeril
+Source: https://freesound.org/people/xkeril/sounds/610543/
+Preview: https://cdn.freesound.org/previews/610/610543_13504080-hq.mp3
+Local master: interior_roof_rain.wav
+Stereo rain falling on an apartment roof, recorded from inside in Lausanne, Switzerland.
+
+Thunder 07
+Author: Emulius
+Source: https://freesound.org/people/Emulius/sounds/744722/
+Preview: https://cdn.freesound.org/previews/744/744722_10934718-hq.mp3
+Local master: thunder_07.wav
+A separate thunder event recorded after rain had passed, using a Zoom H5 with SGH-6 and Sennheiser MKE 600 microphones. The author panned the microphones left/right and reduced wind, birds and noise in Reaper.
+
+Thunder 06
+Author: Emulius
+Source: https://freesound.org/people/Emulius/sounds/744721/
+Preview: https://cdn.freesound.org/previews/744/744721_10934718-hq.mp3
+Local master: thunder_06.wav
+A separate thunder event recorded after rain had passed, using a Zoom H5 with SGH-6 and Sennheiser MKE 600 microphones. The author panned the microphones left/right and reduced wind, birds and noise in Reaper.
+
+Thunder 04
+Author: Emulius
+Source: https://freesound.org/people/Emulius/sounds/744719/
+Preview: https://cdn.freesound.org/previews/744/744719_10934718-hq.mp3
+Local master: thunder_04.wav
+A separate thunder event recorded after rain had passed, using a Zoom H5 with SGH-6 and Sennheiser MKE 600 microphones. The author panned the microphones left/right and reduced wind, birds and noise in Reaper.
+
+Masters were decoded from public HQ MP3 previews, not original lossless uploads, and resampled to 22050 Hz PCM16 with anti-alias filtering. Rain retains stereo; thunder retains one of the author's microphone channels because averaging the two would cancel much of the rumble. Roof-rain master retains the first 80 seconds. Source/master hashes, channel choices, source regions, gains and output edit profiles are in source.json.
+
+Rain and roof rain are separate recordings. The three thunder variants are three separate real thunder events, not pitch-shifted copies. They were recorded after rain had passed; the author reduced wind and bird noise. Natural pitch and timing are retained; loops are crossfaded and thunder boundaries faded.
+
+Near-strike thunder (added 2026-11-01)
+
+thunder sharp dry crack 2
+Author: cognito perceptu
+Source: https://freesound.org/people/cognito%20perceptu/sounds/721072/
+Preview: https://cdn.freesound.org/previews/721/721072_57789-hq.mp3
+Local master: sharp_dry_crack.wav
+Dry, sharp crack of thunder with no wind or rain, quite close and a clean recording.
+
+200817 Thunder, pretty close crack 4pm.flac
+Author: TRP
+Source: https://freesound.org/people/TRP/sounds/567945/
+Preview: https://cdn.freesound.org/previews/567/567945_97550-hq.mp3
+Local master: close_crack.wav
+Mostly dry, pretty close isolated thunder clap. Stereo EM172s.
+
+thunder crack.wav
+Author: cognito perceptu
+Source: https://freesound.org/people/cognito%20perceptu/sounds/347853/
+Preview: https://cdn.freesound.org/previews/347/347853_57789-hq.mp3
+Local master: crack_and_rumble.wav
+Pure recording of a loud clap of thunder and the subsequent rumble. The uploader notes the crack was so loud and close that the recording level is low.
+
+These three are separate close thunder events with a sharp crack, used for lightning strikes near the colony. Like the others they were decoded from public HQ MP3 previews, not the original lossless uploads (which need a Freesound login), and resampled to 22050 Hz PCM16; one microphone channel is retained. Natural pitch and timing are kept; only trimming, edge fades, filtering and gain are applied.

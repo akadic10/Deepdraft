@@ -1,0 +1,72 @@
+{
+  "__comment": [
+    "The raw materials crate (doc 294, concept A, the log crib): two courses of notched logs crossing at the corners, open on top, within its 2 x 2 footprint. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Carpenters make it at the carpenter's bench from two matching logs; it keeps their wood. It stands on the floor, and dwarves reach into it from any side.",
+    "storage (ContainerStorageComponent): it holds Rough Stone, the ores and coal, and soil (stockpile_stone, stockpile_ore, stockpile_soil), three goods to each of its four quarters (per_slot), starting at priority 4, ahead of ground storage. The anchors are its quarters' places on the ground inside it (X and Z 6 cells from its centre), in footprint-local blocks from the back-left floor corner; each filled quarter shows one of its goods over the rim."
+  ],
+  "furniture_key": "base:furniture:raw_materials_crate",
+  "furniture_category": "storage",
+  "display_name": "Raw Materials Crate",
+  "description": "Two courses of notched logs crossing at the corners, open on top. It keeps twelve raw goods, Rough Stone, ore, coal or soil, three to each quarter.",
+  "model": "res://assets/models/furniture/raw_materials_crate.glb",
+  "item_key": "base:resources:furniture:raw_materials_crate",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 2,
+    "depth": 2
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        2,
+        0.5625,
+        2
+      ]
+    }
+  ],
+  "storage": {
+    "accepts": [
+      "stockpile_stone",
+      "stockpile_ore",
+      "stockpile_soil"
+    ],
+    "capacity": 4,
+    "per_slot": 3,
+    "slot_word": "quarters",
+    "priority": 4,
+    "anchors": [
+      [
+        0.625,
+        0,
+        0.625
+      ],
+      [
+        1.375,
+        0,
+        0.625
+      ],
+      [
+        0.625,
+        0,
+        1.375
+      ],
+      [
+        1.375,
+        0,
+        1.375
+      ]
+    ]
+  },
+  "material_group": "wood",
+  "material_palette": "hand_hewn_timber",
+  "appeal": {
+    "design": 1,
+    "material_factor": 0.5
+  }
+}

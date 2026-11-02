@@ -98,7 +98,7 @@ func retry_order(order_key: String, reason: String = "Retry requested") -> void:
 func worker_availability(agent: DwarfAgent) -> String:
 	if not is_instance_valid(agent): return "Unavailable"
 	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending(): return "Self-care"
-	if agent.needs_bridge_exit() or agent.needs_ladder_exit(): return "Recovering access"
+	if agent.needs_ladder_exit(): return "Recovering access"
 	if not NavGrid.is_navigable(agent.current_cell()): return "Trapped: no navigable footing"
 	if _active.has(agent.dwarf_id): return "Working"
 	return "Available"
@@ -123,7 +123,7 @@ func job_diagnostics() -> Array[Dictionary]:
 			else:
 				pending = true
 				row.reason = task.wait_reason
-				var eligible := _idle_dwarves.any(func(id: int): return is_instance_valid(_agents.get(id)) and task.type in scheduler.types_for(_agents[id]))
+				var eligible: bool = scheduler.has_idle_crafter(task) if task.type == Task.Type.CRAFT else _idle_dwarves.any(func(id: int): return is_instance_valid(_agents.get(id)) and scheduler.takes(_agents[id], task.type))
 				if not eligible and not task.recovery_paused: row.reason = "No eligible available worker"
 				row.state = "attention" if task.recovery_paused else "waiting"
 		if not row.attempts.is_empty(): row.state = "running"
@@ -152,7 +152,7 @@ func _reconcile_workers() -> void:
 		if agent.current_task_id >= 0:
 			# An orphan executor must relinquish its real cargo before rejoining.
 			agent.abort_task()
-		if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending() or agent.needs_bridge_exit() or agent.needs_ladder_exit():
+		if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending() or agent.needs_ladder_exit():
 			TaskManager.notify_dwarf_unavailable(id)
 		elif not id in _idle_dwarves:
 			TaskManager.notify_dwarf_idle(id)

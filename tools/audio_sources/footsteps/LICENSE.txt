@@ -1,0 +1,36 @@
+Deepdraft - recorded dwarf footsteps
+
+All four sources by Fission9 are CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+Hiking Boot Footsteps on Stone
+Author: Fission9
+Source: https://freesound.org/people/Fission9/sounds/521590/
+Preview: https://cdn.freesound.org/previews/521/521590_9395330-hq.mp3
+Master: boots_stone.wav
+Six hiking-boot steps recorded on stone with a Zoom H4n Pro; edited by the uploader in Audacity.
+
+Hiking Boot Footsteps on Wooden Planks
+Author: Fission9
+Source: https://freesound.org/people/Fission9/sounds/521589/
+Preview: https://cdn.freesound.org/previews/521/521589_9395330-hq.mp3
+Master: boots_wood.wav
+Six light hiking-boot steps recorded on a wooden plank with a Zoom H4n Pro; edited by the uploader in Audacity.
+
+Hiking Boot Footsteps on Gravel
+Author: Fission9
+Source: https://freesound.org/people/Fission9/sounds/521588/
+Preview: https://cdn.freesound.org/previews/521/521588_9395330-hq.mp3
+Master: boots_gravel.wav
+Four hiking-boot steps recorded on crunchy gravel with a Zoom H4n Pro; edited by the uploader in Audacity.
+
+Hiking Boot Footsteps on Grass
+Author: Fission9
+Source: https://freesound.org/people/Fission9/sounds/521587/
+Preview: https://cdn.freesound.org/previews/521/521587_9395330-hq.mp3
+Master: boots_grass.wav
+Six grass-footstep foley events: the uploader layered a recorded thud with moving grass, using a Zoom H4n and Audacity.
+
+Public HQ MP3 previews were decoded, not the original lossless uploads. Complete previews are retained as mono 48 kHz PCM16 masters. source.json records download/master hashes and exact edit regions. Stone and wood are direct boot recordings. Grass is recorded foley layered by the uploader. Gravel is filtered and used as earth-path foley, not a claim of a separate compacted-earth recording. Our preparation trims individual steps, filters, applies short edge fades and adjusts gain; it adds no synthesis or reverberation and does not change speed or pitch.

@@ -22,12 +22,12 @@ sleep heights, hinges and walking surfaces, and all four woods.
 | Crude Workbench | One great squared stump: root flare, bark plates and rim, growth rings, drying crack, chopping notch. |
 | Log bed | The proposal's Notched Log Bed; hay under the sleeper's torso is flat and one leaf lowered to keep 15 cells. |
 | Log doors (2, 3, double) | Vertical split slabs with bark edges and stepped chopped tops, pegged battens on both faces, rope lashed round the hinge end, a rope pull loop. |
-| Fence post, rails, gate | Squared pole with a chopped point and rope bands at rail height; split-pole rails; gate of chopped stiles, split rails and a stepped brace. |
+| Fence post, rails, gate | Squared pole with a chopped point and rope bands at rail height; split-pole rails; gate of chopped stiles, split rails and a stepped brace. Peeled since doc 278. |
 | Rough ladders (1–4) | Bark poles with chopped tops; stick rungs every 8 cells lashed with rope. |
 | Log bridges (1–5) | Four split logs, riven face up; the deck ends short so both ends settle into the banks; rope lashings near each bank. |
 | Ladder/bridge kits, packed furniture | Rope-bound bundles of poles and split logs; a crate of split slats on bark corner posts. |
-| Hearth | Squared stones in uneven courses on a hearthstone, a lintel, crossed logs, embers, soot. |
-| Torch, campfire | Proposal designs (wooden peg torch; eight-stone campfire); animated flames unchanged. |
+| Hearth | Since doc 279 a fire-back: an open fire on four flagstones against three stacked slabs, with low wing stones and no wood. |
+| Torch, campfire | Proposal designs (wooden peg torch; eight-stone campfire, without its logs and embers since doc 279); animated flames unchanged. |
 | Settlement flag | A rough pole in a stone cairn, a lashed crossbar and the banner. |
 
 The water stones are rocks and unchanged. Tier 2 · Carpenter Era designs remain in

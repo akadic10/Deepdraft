@@ -23,6 +23,7 @@ const SOURCE_ID_BASE := 1_000_000
 const LEASE_REFRESH_S := 0.25
 
 var _zones: Dictionary = {}          # source_id -> StockpileZoneComponent
+var _containers: Dictionary = {}     # source_id -> a furniture container (doc 294; FurnitureStorage)
 var _totals: Dictionary = {}         # item_key -> stored count (aggregate)
 var _max_haulers: int = 2
 var _carry_mult_heavy: float = 0.7
@@ -34,6 +35,12 @@ var _drop_manager_connected: bool = false
 var _lease_dirty: bool = false
 var _lease_accum: float = 0.0
 var hauling_revision: int = 0 # invalidates read-only scheduler pickup quotes
+var _better := {}             # "key/priority" -> whether a better store takes it (better_store_takes)
+var _better_revision := -1
+var _better_msec := 0
+const FoodSpoilage = preload("res://scripts/components/FoodSpoilage.gd")
+## Food spoilage (doc 42 "Spoilage"): an hourly pass over stored, loose and carried food.
+var spoilage: FoodSpoilage
 
 
 func _ready() -> void:
@@ -46,6 +53,8 @@ func _ready() -> void:
 	TaskManager.task_released.connect(_on_task_released)
 	TaskManager.task_cancelled.connect(_on_task_gone_signal)
 	TaskManager.task_failed.connect(_on_task_failed)
+	spoilage = FoodSpoilage.new(self)
+	WorldClock.hour_changed.connect(func(_hour: int) -> void: spoilage.on_hour())
 	print("StockpileManager: ready (max haulers/zone %d, heavy carry ×%.2f)." % [
 		_max_haulers, _carry_mult_heavy])
 
@@ -62,6 +71,8 @@ func _process(delta: float) -> void:
 			# Backfill zones registered before the scene node entered the tree.
 			for source_id: int in _zones:
 				(_zones[source_id] as StockpileZoneComponent).drop_manager = _drop_manager
+			for container: StorageComponent in _containers.values(): container.drop_manager = _drop_manager
+	spoilage.tick()
 	if not _lease_dirty:
 		return
 	_lease_accum += delta
@@ -71,6 +82,36 @@ func _process(delta: float) -> void:
 	_lease_dirty = false
 	for source_id: int in _zones:
 		(_zones[source_id] as StockpileZoneComponent).update_leases()
+	for container: StorageComponent in _containers.values(): container.update_leases()
+
+
+## Every store, ground zones and furniture containers (doc 294). Containers stay out of
+## get_zones(), whose callers expect zones.
+func get_stores() -> Array:
+	return _zones.values() + _containers.values()
+
+
+## A furniture container goes live on install (FurnitureStorage); its source id is the caller's.
+func register_container(container: StorageComponent) -> void:
+	container.max_haulers = _max_haulers
+	container.carry_speed_mult_heavy = _carry_mult_heavy
+	container.carry_capacity = _carry_capacity
+	container.pouch_bundle_radius = _pouch_radius
+	container.drop_manager = _drop_manager
+	container.changed_callback = _on_zone_deposit
+	_containers[container.source_id] = container
+	TaskManager.register_work_source(container.source_id, container)
+	_mark_dirty()
+
+
+## A container leaves on uninstall; its contents are the caller's to drop first.
+func deregister_container(container: StorageComponent) -> void:
+	if not _containers.has(container.source_id): return
+	TaskManager.cancel_source_tasks(container.source_id)
+	container.release_storage_claims()
+	_containers.erase(container.source_id)
+	TaskManager.unregister_work_source(container.source_id)
+	_mark_dirty()
 
 
 # ── Zone registry (called by StockpileDesignationController) ──────────────────
@@ -86,6 +127,7 @@ func register_zone(zone: StockpileZoneComponent) -> void:
 	zone.carry_speed_mult_heavy = _carry_mult_heavy
 	zone.carry_capacity = _carry_capacity
 	zone.pouch_bundle_radius = _pouch_radius
+	zone.spoil_band = float(spoilage.config.merge_band)
 	zone.drop_manager = _drop_manager
 	zone.changed_callback = _on_zone_deposit
 	_zones[zone.source_id] = zone
@@ -134,6 +176,10 @@ func get_item_locations(item_key: String) -> Array[Dictionary]:
 				position = Vector3(cell) + Vector3(.5, 1, .5)
 		if count > 0:
 			result.append({"kind": "stockpile", "owner": zone, "count": count, "position": position})
+	for container: StorageComponent in _containers.values():
+		var held := int(container.contents().get(item_key, 0))
+		if held > 0 and is_instance_valid(container.display_parent):
+			result.append({"kind": "container", "owner": container, "count": held, "position": container.display_parent.global_position + Vector3(0, 1, 0)})
 	return result
 
 
@@ -156,12 +202,14 @@ func reset_runtime_state() -> void:
 		_drop_manager.drop_spawned.disconnect(_on_drop_spawned)
 		_drop_manager.loose_items_changed.disconnect(_mark_dirty)
 	_zones.clear()
+	_containers.clear()
 	_totals.clear()
 	_drop_manager = null
 	_drop_manager_connected = false
 	_lease_dirty = false
 	_lease_accum = 0.0
 	hauling_revision += 1
+	spoilage.clear()
 
 
 ## Recomputes aggregate counts after all restored storage owners are present.
@@ -175,6 +223,9 @@ func rebuild_totals() -> void:
 			var count := int(stack.get("count", 0))
 			if not key.is_empty() and count > 0:
 				_totals[key] = int(_totals.get(key, 0)) + count
+	for container: StorageComponent in _containers.values():
+		var held := container.contents()
+		for key: String in held: _totals[key] = int(_totals.get(key, 0)) + int(held[key])
 	_mark_dirty()
 	stockpile_changed.emit("", 0)
 
@@ -185,7 +236,7 @@ func rebuild_totals() -> void:
 func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id: String = "", material_id: String = "") -> Node3D:
 	if not instance_id.is_empty() or not material_id.is_empty():
 		var candidates: Array = []
-		for source: StorageComponent in _zones.values():
+		for source: StorageComponent in get_stores():
 			for slot in source.stored_entries():
 				var stack: Dictionary = source.stored_entries()[slot]
 				if not source.slot_allowed(slot) or source._outgoing.has(slot) or String(stack.item) != item_key: continue
@@ -221,14 +272,19 @@ func withdraw_item(item_key: String, near: Vector3i, dwarf_id: int, instance_id:
 	if best_zone != null:
 		var node := best_zone.withdraw_nearest(item_key, near, dwarf_id)
 		if node != null: return node
-	return null
+	var keys: Array[String] = [item_key]
+	return _withdraw_from(_containers.values(), keys, near, dwarf_id)
 
 
 ## Crafting may permit several species. Choose a nearby unclaimed stored unit
 ## across the allowed keys instead of treating key sorting as a wood preference.
 func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) -> Node3D:
+	return _withdraw_from(get_stores(), keys, near, dwarf_id)
+
+
+func _withdraw_from(sources: Array, keys: Array[String], near: Vector3i, dwarf_id: int) -> Node3D:
 	var candidates: Array[Dictionary] = []
-	for source: StorageComponent in _zones.values():
+	for source: StorageComponent in sources:
 		var entries := source.stored_entries()
 		for slot in entries:
 			var stack: Dictionary = entries[slot]
@@ -249,10 +305,10 @@ func withdraw_matching_item(keys: Array[String], near: Vector3i, dwarf_id: int) 
 ## Read-only, resumable material search. Compare storage with loose goods;
 ## withdrawal happens only after the scheduler has chosen a reachable worker.
 func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictionary, deadline: int, excluded: Dictionary,
-		claim_owner := -1, material_id := "", instance_id := "") -> bool:
+		claim_owner := -1, material_id := "", instance_id := "", spoil_margin := 0.0) -> bool:
 	if query.is_empty():
-		query.merge({"sources":_zones.values(), "index":0,
-			"slots":[], "slot_index":0, "best":{}, "distance":0x7FFFFFFF})
+		query.merge({"sources":get_stores(), "index":0,
+			"slots":[], "slot_index":0, "best":{}, "score":INF, "distance":0x7FFFFFFF})
 	while int(query.index) < query.sources.size():
 		if Time.get_ticks_usec() >= deadline: return false
 		var source: StorageComponent = query.sources[query.index]
@@ -272,8 +328,11 @@ func advance_material_quote(keys: Array[String], near: Vector3i, query: Dictiona
 				if cell.x < 0 or excluded.has(cell): continue
 				var delta := cell-near
 				var distance := absi(delta.x)+absi(delta.y)+absi(delta.z)
-				if distance < int(query.distance):
-					query.distance = distance
+				# Meals take older food first (ItemDropManager.advance_material_quote).
+				var score := distance-spoil_margin*float(stack.get("spoil",0.0))
+				if score < float(query.score):
+					query.score = score
+					query.distance = distance   # the chosen stack's, which callers compare across sources
 					query.best = {"source":source, "slot":slot, "key":String(stack.item), "cell":cell, "distance":distance,
 						"material_id":String(stack.get("material_id","")),"instance_id":String(stack.get("instance_id","")),"claim_owner":claim_owner}
 		query.index += 1
@@ -296,7 +355,7 @@ func withdraw_material_quote(quote: Dictionary, dwarf_id: int) -> Node3D:
 
 
 func is_registered(storage: StorageComponent) -> bool:
-	return _zones.get(storage.source_id) == storage
+	return _zones.get(storage.source_id) == storage or _containers.get(storage.source_id) == storage
 
 
 func storage_rules_changed() -> void:
@@ -306,7 +365,7 @@ func storage_rules_changed() -> void:
 
 func get_available_total(key: String) -> int:
 	var total := 0
-	for storage: StorageComponent in _zones.values():
+	for storage: StorageComponent in get_stores():
 		for slot in storage.stored_entries():
 			var stack: Dictionary = storage.stored_entries()[slot]
 			if storage.slot_allowed(slot) and String(stack.item)==key: total += int(stack.count)
@@ -315,7 +374,7 @@ func get_available_total(key: String) -> int:
 
 func get_disallowed_total(key: String) -> int:
 	var total := 0
-	for storage: StorageComponent in _zones.values():
+	for storage: StorageComponent in get_stores():
 		for slot in storage.stored_entries():
 			var stack: Dictionary = storage.stored_entries()[slot]
 			if not storage.slot_allowed(slot) and String(stack.item)==key: total += int(stack.count)
@@ -325,7 +384,7 @@ func get_disallowed_total(key: String) -> int:
 func permissions_changed() -> void:
 	# Cancel only hauls touching the newly unavailable source or destination.
 	var owners := {}
-	for storage: StorageComponent in _zones.values():
+	for storage: StorageComponent in get_stores():
 		for dwarf_id in storage._pulls:
 			var pull: Dictionary = storage._pulls[dwarf_id]
 			for item in pull.items:
@@ -338,24 +397,53 @@ func permissions_changed() -> void:
 	storage_rules_changed()
 
 
-## Only rejected stored goods may relocate. A claim never changes ownership
-## or totals; the source withdraws when the worker physically reaches it.
+## Whether a store ranked better than `store` (a lower priority number, doc 294) would take `key`
+## now: it accepts the goods, has room for them, and its haulers aren't all blocked from reaching
+## them. Worse stores leave such goods to it. Kept for a hauling revision and at most a second,
+## since a blocked haul job frees on its own clock.
+func better_store_takes(key: String, store: StorageComponent) -> bool:
+	var now := Time.get_ticks_msec()
+	if _better_revision != hauling_revision or now - _better_msec > 1000:
+		_better.clear()
+		_better_revision = hauling_revision
+		_better_msec = now
+	var cache_key := "%s/%d" % [key, store.priority]
+	if _better.has(cache_key): return bool(_better[cache_key])
+	var taken := false
+	for other: StorageComponent in get_stores():
+		if other.priority >= store.priority or not other.accepts_key(key): continue
+		if other.has_room_for(key) and not other.hauling_blocked():
+			taken = true
+			break
+	_better[cache_key] = taken
+	return taken
+
+
+## A stored stack moves when its store no longer takes it, or to a store ranked better than its
+## own that takes it (doc 294): never between equal ones, so goods don't shuttle. A claim never
+## changes ownership or totals; the source withdraws when the worker physically reaches it.
+static func moves_to(origin: StorageComponent, destination: StorageComponent, key: String) -> bool:
+	return (not origin.accepts_key(key) or destination.priority < origin.priority) and destination._can_haul_key(key)
+
+
+## Rejected stored goods, and goods a better store takes, relocate (moves_to).
 func relocation_candidates(destination: StorageComponent, near: Vector3i, exclude: Dictionary = {}, limit: int = 0) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if not is_registered(destination): return result
-	for origin: StorageComponent in _zones.values():
+	for origin: StorageComponent in get_stores():
 		if origin == destination: continue
 		for slot in origin.stored_entries():
 			if origin._outgoing.has(slot) or exclude.has(origin.relocation_id(slot)): continue
-			if exclude.has(origin.slot_cell(slot)): continue
+			if exclude.has(origin.withdrawal_item_cell(slot)): continue
 			var stack: Dictionary = origin.stored_entries()[slot]
 			if not origin.slot_allowed(slot): continue
 			var key := String(stack.item)
-			if origin.accepts_key(key) or not destination._can_haul_key(key): continue
-			var cell := origin.slot_cell(slot)
+			if not moves_to(origin, destination, key): continue
+			var cell := origin.withdrawal_item_cell(slot)
 			var distance := absi(cell.x - near.x) + absi(cell.y - near.y) + absi(cell.z - near.z)
+			# One good, or one crate of produce, per trip: a crate's quarter holds 3 stones (doc 294).
 			result.append({"source": origin, "distance": distance,
-				"token": {"slot": slot, "item": key, "count": int(stack.count), "active": false}})
+				"token": {"slot": slot, "item": key, "count": mini(int(stack.count), _drop_manager.item_capacity(key)), "active": false}})
 			if limit > 0 and result.size() >= limit: return result
 	result.sort_custom(func(a: Dictionary, b: Dictionary): return a.distance < b.distance)
 	return result
@@ -363,7 +451,7 @@ func relocation_candidates(destination: StorageComponent, near: Vector3i, exclud
 
 func get_outgoing_totals() -> Dictionary:
 	var result := {}
-	for origin: StorageComponent in _zones.values():
+	for origin: StorageComponent in get_stores():
 		for token: Dictionary in origin._outgoing.values():
 			result[token.item] = int(result.get(token.item, 0)) + int(token.count)
 	return result
@@ -373,7 +461,7 @@ func get_outgoing_totals() -> Dictionary:
 ## Source/slot snapshots are transient, contain no claims and never own goods.
 func advance_relocation_quote(destination: StorageComponent, near: Vector3i, query: Dictionary, deadline_usec: int, exclude_cells: Dictionary = {}) -> bool:
 	if query.is_empty():
-		query.merge({"sources": _zones.values(), "source_index": 0,
+		query.merge({"sources": get_stores(), "source_index": 0,
 			"slots": [], "slot_index": 0, "cell": Vector3i(-1, -1, -1), "distance": 0x7FFFFFFF})
 	while int(query.source_index) < query.sources.size():
 		if Time.get_ticks_usec() >= deadline_usec: return false
@@ -390,8 +478,8 @@ func advance_relocation_quote(destination: StorageComponent, near: Vector3i, que
 			var stack: Dictionary = origin.stored_entries().get(slot, {})
 			if stack.is_empty() or not origin.slot_allowed(slot): continue
 			var key := String(stack.item)
-			if origin.accepts_key(key) or not destination._can_haul_key(key): continue
-			var cell := origin.slot_cell(slot)
+			if not moves_to(origin, destination, key): continue
+			var cell := origin.withdrawal_item_cell(slot)
 			if exclude_cells.has(cell): continue
 			var distance := absi(cell.x - near.x) + absi(cell.y - near.y) + absi(cell.z - near.z)
 			if distance < int(query.distance):
@@ -429,9 +517,9 @@ func _apply_total(item_key: String, delta: int) -> void:
 func _route(task: Task, dwarf_id: int) -> void:
 	if task.source_id < SOURCE_ID_BASE:
 		return
-	var zone: StockpileZoneComponent = _zones.get(task.source_id)
-	if zone != null:
-		zone.on_task_gone(task.id, dwarf_id)
+	var store: StorageComponent = _zones.get(task.source_id, _containers.get(task.source_id))
+	if store != null:
+		store.on_task_gone(task.id, dwarf_id)
 	_mark_dirty()
 
 
@@ -446,9 +534,9 @@ func _on_task_released(task: Task, dwarf_id: int, _reason: int) -> void:
 	# max_haulers, so only the dwarf's reservations are freed here.
 	if task.source_id < SOURCE_ID_BASE:
 		return
-	var zone: StockpileZoneComponent = _zones.get(task.source_id)
-	if zone != null:
-		zone.cancel_haul(dwarf_id)
+	var store: StorageComponent = _zones.get(task.source_id, _containers.get(task.source_id))
+	if store != null:
+		store.cancel_haul(dwarf_id)
 	_mark_dirty()
 
 
@@ -461,7 +549,7 @@ func _on_task_failed(task: Task, _reason: String) -> void:
 
 
 func has_stored_instance(item_key: String, instance_id: String) -> bool:
-	for source: StorageComponent in _zones.values():
+	for source: StorageComponent in get_stores():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
 			if not source.slot_allowed(slot): continue
@@ -472,7 +560,7 @@ func has_stored_instance(item_key: String, instance_id: String) -> bool:
 func get_promised_totals() -> Dictionary:
 	var result := {}
 	if not is_instance_valid(_drop_manager) or not _drop_manager.has_instance_promises(): return result
-	for source: StorageComponent in _zones.values():
+	for source: StorageComponent in get_stores():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
 			if not source.slot_allowed(slot): continue
@@ -483,7 +571,7 @@ func get_promised_totals() -> Dictionary:
 ## Available physical units by material, excluding permissions and outgoing claims.
 func available_materials(item_key: String) -> Dictionary:
 	var result := {}
-	for source: StorageComponent in _zones.values():
+	for source: StorageComponent in get_stores():
 		for slot in source.stored_entries():
 			var stack: Dictionary = source.stored_entries()[slot]
 			if String(stack.item) != item_key or not source.slot_allowed(slot): continue

@@ -3,10 +3,24 @@
     "Profession data read by DwarfAssets.",
     "promotion_screen: career-map entries (role, position, summary, availability, optional starter_tool).",
     "work_permissions: per-dwarf work categories and the task types each covers.",
-    "experience_thresholds: cumulative task counts for levels 2-5 (only Miner experience advances today).",
+    "experience_thresholds: cumulative counts for levels 2-5, for a career that earns experience without its own.",
     "professions: icon (one Hearthblock picture shared by the career map, the equipment view and Crafters, doc 259),",
     "  display_name, promotes_from, promotion_enabled, required_tool, equipment_preview;",
-    "  Miner also has work_speed_bonus_per_level.",
+    "  stats: the main and the second stat (data/entities/dwarves/stats.json), for the career map's fit (doc 41);",
+    "  work: the task types a career does instead of the common work (Task.COMMON_WORK), in the order it does them:",
+    "  work it could start earlier in the list keeps an idle dwarf from later work (doc 292); none names the common work;",
+    "  work_first: the task types a career that takes the common work does before it (doc 293: the Carpenter's and the",
+    "  Stonemason's crafting): an idle dwarf whose first work is waiting takes no common work meanwhile;",
+    "  craft_section: the crafting section (worker_crafting.json) whose orders the career makes; craft_tool: the hand tool its",
+    "  crafting swing holds in place of the axe; craft_work: the kind of work its crafting counts as for the stats (the",
+    "  Stonemason's 'stonework' is Strength's); craft_sound: the strike its crafting makes ('hammer', else the axe's chop);",
+    "  experience: a career that earns it (doc 41): earned_by (the task type that earns one), noun (what is counted),",
+    "  per (how it is earned), master (the level 5 title), to_go (the career map's count to the next level), noun_one and",
+    "  to_go_one (the same for a count of one, where the plural differs: '1 batch made', '1 more batch'), disabled",
+    "  (the roster's note with its work off), optional thresholds, catch_log (the sheet shows the Ranger's log, doc 292),",
+    "  and rewards: {level, text} with what the level gives (big_chance, season_speed); level 1's text is the focus.",
+    "  work_speed_bonus_per_level: less work time for each level above 1, at the career's own work: the Miner's digging, the",
+    "  Carpenter's and the Stonemason's crafting; its rewards read experience.speed_text (default: less digging time).",
     "Planned profession design (tasks, rooms, level perks) is in docs/40_economy_colony/41_dwarf_agents.md."
   ],
 
@@ -14,22 +28,21 @@
     {"role": "worker", "position": [278, 12], "summary": "A versatile colony member. Mines, gathers, hauls, builds and crafts basic goods.", "availability": "No requirements. Return to Worker at any time."},
     {"role": "miner", "position": [8, 116], "summary": "Keeps the tunnels moving. Prioritizes mining within work priorities, then helps with permitted general work.", "availability": "No tool or level requirement."},
     {"role": "farmer", "position": [116, 116], "summary": "Plants, tends and harvests cultivated crops. Planned support for fields, underground crops and beehives.", "starter_tool": "base:resources:tools:stone_hoe", "availability": "Planned: farming and tool equipping are not available yet."},
-    {"role": "hunter", "position": [224, 116], "summary": "Hunts designated wildlife for the colony. Tracking and trapping may follow later.", "starter_tool": "base:resources:tools:hunting_spear", "availability": "Planned: requires player hunting, tool equipping and animal resource yields."},
-    {"role": "carpenter", "position": [332, 116], "summary": "Collects a carpentry kit to join this profession. Helps with general colony work; specialist wooden goods are planned.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it. Specialist workshop and recipes are planned."},
-    {"role": "stonemason", "position": [440, 116], "summary": "Shapes stone into furniture, building components and decorative pieces.", "availability": "Planned: requires a stone workshop and recipes. Promotion requirements are not finalized."},
-    {"role": "blacksmith", "position": [548, 116], "summary": "Smelts ore and forges metal tools and hardware. Leads to weaponsmithing and armorsmithing.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Planned: requires smelting, forging and tool equipping."},
-    {"role": "weaponsmith", "position": [440, 250], "summary": "An experienced Blacksmith specializing in weapons for the colony.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."},
-    {"role": "armorsmith", "position": [548, 250], "summary": "An experienced Blacksmith specializing in armor and shields.", "availability": "Planned: Blacksmith level 3 and an operational Forge. Metalworking is not available yet."}
+    {"role": "ranger", "position": [224, 116], "summary": "Fishes the colony's waters and dries the catch on the rack. Hunting comes later.", "starter_tool": "base:resources:tools:ranger_kit", "availability": "Requires one available Ranger's kit. Promotion completes after the dwarf collects it."},
+    {"role": "carpenter", "position": [332, 116], "summary": "Works timber with basic tools at the carpenter's bench, which they make first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it."},
+    {"role": "stonemason", "position": [440, 116], "summary": "Shapes rough stone at the mason's bench, which they make first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:masonry_kit", "availability": "Requires one available crude masonry kit. Promotion completes after the dwarf collects it."},
+    {"role": "blacksmith", "position": [548, 116], "summary": "Smelts ore and forges the colony's metal tools, hardware, weapons and armor.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Planned: requires smelting, forging and tool equipping."}
   ],
   "work_permissions": [
     {"id": "haul", "label": "Haul", "description": "Unrelated hauling to storage. Carrying supplies for another permitted job stays allowed.", "tasks": ["HAUL"]},
     {"id": "gather", "label": "Gather", "description": "Chop trees, gather stone, harvest wild plants and clear or uproot plants.", "tasks": ["FELL_TREE", "CLEAR_BOULDER", "GATHER_SCREE", "HARVEST_SHRUB", "CLEAR_SHRUB", "CLEAR_PLANT", "UPROOT_SHRUB", "HARVEST_TREE"]},
     {"id": "mine", "label": "Mine", "description": "Mine designated terrain. Miners gain experience for completed blocks.", "tasks": ["MINE"]},
     {"id": "build", "label": "Build", "description": "Place and remove furniture, ladders and plants, including carrying their supplies.", "tasks": ["FETCH_BUILD", "UNINSTALL"]},
-    {"id": "craft", "label": "Craft", "description": "Craft basic Worker recipes. Available to Workers; return a Miner to Worker to craft.", "tasks": ["CRAFT"]}
+    {"id": "craft", "label": "Craft", "description": "Craft the career's own recipes: Workers at the workbench; Carpenters and Stonemasons their own, before other work; Rangers hang fish on the drying rack and take them down dried.", "tasks": ["CRAFT", "COLLECT"]},
+    {"id": "fish", "label": "Fish", "description": "Fish from Fishing zones until the colony keeps enough fish. Rangers only.", "tasks": ["FISH"]}
   ],
   "experience_thresholds": {
-    "__comment": "Cumulative task counts; the level is derived at runtime and only the raw count is saved.",
+    "__comment": "Cumulative counts; the level is derived at runtime and only the raw count is saved. A career's own experience.thresholds replace these.",
     "level_2":  10,
     "level_3":  100,
     "level_4":  500,
@@ -45,12 +58,14 @@
         "default_name": "Basic work tools",
         "default_description": "Standard tools for general colony work. No crafted upgrade equipped.",
         "upgrade_name": "Profession tools",
-        "upgrade_description": "A Carpenter collects a crude carpentry kit when promoted. Other specialist tool careers are planned.",
-        "upgrade_method": "Craft a kit under Rudimentary › Starter tools, then choose Carpenter in Profession."
+        "upgrade_description": "Carpenters, Stonemasons and Rangers collect their kits when promoted. Other specialist tool careers are planned.",
+        "upgrade_method": "Craft a kit under Rudimentary › Starter tools, then choose the career in Profession."
       },
       "display_name": "Worker",
       "description": "The foundation of every dwarven colony. Workers haul goods, clear rubble, and fill in wherever a specialist is unavailable. Every dwarf begins as a Worker and retains this as a fallback when reassigned.",
-      "promotes_from": null
+      "promotes_from": null,
+      "stats": ["base:stat:strength", "base:stat:agility"],
+      "craft_section": "rudimentary"
     },
 
     "base:profession:miner": {
@@ -66,22 +81,75 @@
       "display_name": "Miner",
       "description": "Breaks stone, carves tunnels, and expands the colony's underground domain. The colony's primary engine of growth.",
       "promotes_from": "base:profession:worker",
-      "work_speed_bonus_per_level": 0.05
+      "work_speed_bonus_per_level": 0.05,
+      "stats": ["base:stat:strength", "base:stat:toughness"],
+      "experience": {
+        "earned_by": "MINE", "noun": "blocks mined", "noun_one": "block mined", "per": "One experience per completed block. Walking speed stays unchanged.", "master": "Master Miner", "to_go": "more blocks", "to_go_one": "more block", "disabled": "Mining disabled",
+        "rewards": [{"level": 1, "text": "Mining focus"}]
+      }
     },
 
-    "base:profession:hunter": {
-      "icon": "res://assets/ui/icons/hunter.png",
-      "display_name": "Hunter", "promotes_from": "base:profession:worker"
+    "base:profession:ranger": {
+      "icon": "res://assets/ui/icons/ranger.png",
+      "promotion_enabled": true,
+      "required_tool": "base:resources:tools:ranger_kit",
+      "equipment_preview": {
+        "default_name": "No Ranger's kit equipped",
+        "default_description": "A Ranger's kit is required for this profession."
+      },
+      "display_name": "Ranger",
+      "description": "Lives off the wild for the colony: fishes its waters and dries the catch, and will hunt once hunting comes.",
+      "promotes_from": "base:profession:worker",
+      "stats": ["base:stat:wisdom", "base:stat:agility"],
+      "work": ["COLLECT", "CRAFT", "FISH", "HAUL"],
+      "craft_section": "ranger",
+      "experience": {
+        "earned_by": "FISH", "noun": "fish caught", "per": "One experience per catch. Levels make catches bigger, not faster.", "master": "Master Ranger", "to_go": "more catches", "to_go_one": "more catch", "disabled": "Fishing disabled",
+        "catch_log": true,
+        "thresholds": {"level_2": 10, "level_3": 50, "level_4": 150, "level_5": 400},
+        "rewards": [
+          {"level": 1, "text": "Fishing focus"},
+          {"level": 2, "text": "One catch in six is a big fish", "big_chance": 0.15},
+          {"level": 3, "text": "Patient: winter slows them half as much", "season_speed": {"winter": 0.75}},
+          {"level": 4, "text": "One catch in three is big", "big_chance": 0.30},
+          {"level": 5, "text": "Almost every other catch is big", "big_chance": 0.45}
+        ]
+      }
     },
     "base:profession:stonemason": {
       "icon": "res://assets/ui/icons/stonemason.png",
-      "display_name": "Stonemason", "promotes_from": "base:profession:worker"
+      "promotion_enabled": true,
+      "required_tool": "base:resources:tools:masonry_kit",
+      "equipment_preview": {
+        "default_name": "No masonry kit equipped",
+        "default_description": "A crude masonry kit is required for this profession.",
+        "upgrade_name": "Iron chisels", "upgrade_status": "Planned · Not craftable yet",
+        "upgrade_description": "Future Blacksmith-made upgrade beyond the maul and stone point, for dressed stone and a better bench.",
+        "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
+      },
+      "display_name": "Stonemason",
+      "description": "Shapes rough stone with a maul and a stone point at the mason's bench, which they make first. Dressed stone waits for better tools.",
+      "promotes_from": "base:profession:worker",
+      "stats": ["base:stat:strength", "base:stat:wits"],
+      "work_first": ["CRAFT"],
+      "craft_section": "stonemason",
+      "craft_tool": "res://assets/models/characters/dwarves/tools/stone_maul.glb",
+      "craft_work": "stonework",
+      "craft_sound": "hammer",
+      "work_speed_bonus_per_level": 0.05,
+      "experience": {
+        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Stonemason's own page.", "master": "Master Stonemason", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
+        "thresholds": {"level_2": 10, "level_3": 50, "level_4": 150, "level_5": 400},
+        "speed_text": "%d%% less work time crafting",
+        "rewards": [{"level": 1, "text": "Masonry focus"}]
+      }
     },
     "base:profession:farmer": {
       "icon": "res://assets/ui/icons/farmer.png",
       "display_name": "Farmer",
       "description": "Plants, tends, and harvests all crops — both underground cave soil plots and surface dirt fields. Also responsible for tending beehives.",
-      "promotes_from": "base:profession:worker"
+      "promotes_from": "base:profession:worker",
+      "stats": ["base:stat:wisdom", "base:stat:toughness"]
     },
 
     "base:profession:carpenter": {
@@ -92,33 +160,31 @@
         "default_name": "No carpentry tool equipped",
         "default_description": "A crude carpentry kit is required for this profession.",
         "upgrade_name": "Iron saw", "upgrade_status": "Planned · Not craftable yet",
-        "upgrade_description": "Future Blacksmith-made upgrade beyond the mallet and stone adze. Carpentry benefits will be defined with specialist recipes.",
+        "upgrade_description": "Future Blacksmith-made upgrade beyond the mallet and stone adze, for sawn planks and a better bench.",
         "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
       },
       "display_name": "Carpenter",
-      "description": "Processes raw timber into furniture, structural components, and crafted wooden goods.",
-      "promotes_from": "base:profession:worker"
+      "description": "Works timber with a mallet and a stone adze at the carpenter's bench, which they make first. Planks wait for a saw.",
+      "promotes_from": "base:profession:worker",
+      "stats": ["base:stat:wits", "base:stat:strength"],
+      "work_first": ["CRAFT"],
+      "craft_section": "carpenter",
+      "craft_tool": "res://assets/models/characters/dwarves/tools/stone_adze.glb",
+      "work_speed_bonus_per_level": 0.05,
+      "experience": {
+        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Carpenter's own page.", "master": "Master Carpenter", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
+        "thresholds": {"level_2": 10, "level_3": 50, "level_4": 150, "level_5": 400},
+        "speed_text": "%d%% less work time crafting",
+        "rewards": [{"level": 1, "text": "Carpentry focus"}]
+      }
     },
 
     "base:profession:blacksmith": {
       "icon": "res://assets/ui/icons/blacksmith.png",
       "display_name": "Blacksmith",
-      "description": "Smelts raw ore into metal ingots and forges tools, weapons, and hardware.",
-      "promotes_from": "base:profession:worker"
-    },
-
-    "base:profession:weaponsmith": {
-      "icon": "res://assets/ui/icons/weaponsmith.png",
-      "display_name": "Weaponsmith",
-      "description": "A promoted Blacksmith working exclusively at the Forge, crafting weapons and crossbows for the military.",
-      "promotes_from": "base:profession:blacksmith"
-    },
-
-    "base:profession:armorsmith": {
-      "icon": "res://assets/ui/icons/armorsmith.png",
-      "display_name": "Armorsmith",
-      "description": "A promoted Blacksmith working exclusively at the Forge, producing armour and shields for enlisted dwarves.",
-      "promotes_from": "base:profession:blacksmith"
+      "description": "Smelts raw ore into metal ingots and forges tools, hardware, weapons, armor and shields. The colony's only metalworking profession.",
+      "promotes_from": "base:profession:worker",
+      "stats": ["base:stat:strength", "base:stat:wits"]
     }
   }
 }

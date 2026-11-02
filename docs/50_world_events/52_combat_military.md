@@ -275,12 +275,17 @@ All invaders share the same objective: reach the colony's deepest occupied room 
 ```
 APPROACHING  → path from world-edge entry node toward colony
 ENGAGING     → attack any dwarf within aggro radius
-BREACHING    → if no defenders in path, continue inward toward colony rooms
+BREACHING    → if no defenders in path, continue inward toward colony rooms,
+               breaking any shut door in the way (Invader Behaviour, below)
 RETREATING   → flee to world edge if < 20% health; surviving retreating units
                 report back — next wave of same tier has +1 additional unit
 ```
 
-Invaders do **not** mine blocks. They path through existing tunnels and can open doors. A fully sealed corridor with no door is impassable to them. Putting a door in it makes it openable.
+Invaders do **not** mine blocks. They path through existing tunnels and **cannot open colony doors** (owner, 2026-10-31): to them a shut door is a wall, so they head for the doors on their way in and break them. A fully sealed corridor with no door is impassable to them; a door in it is the weak point they attack. Walls stay unbreakable (Hard Rule 3), so the doors are where a colony defends.
+
+- **Door hit points** are live: the design's number times the wood's toughness, 150 for a pine log door and 180 for an oak one (doc 62). Nothing damages a door yet.
+- **A broken door** leaves an open doorway: anyone can pass, and the room loses its seal, its warmth and its room type (a Bedroom stops being one) until a new door goes in. The broken door drops some of its logs.
+- **A damaged door** gets a repair job for a Worker, and a save keeps a damaged door's hit points. Whether mending takes a log, and whether dwarves can lock doors during a raid so their own comings and goings don't open the way, are open (`00_todo.md`, "Stats and hit points left for later").
 
 ### Invasion Signal
 
@@ -309,7 +314,7 @@ Combat is resolved at the agent level — each dwarf and each invader ticks thei
 5. Target health reduced; if health ≤ 0 → target dies
 ```
 
-`target_armour_reduction` is computed from the sum of the target's equipped armour pieces. An unarmed dwarf has 0% reduction; a fully plated Stoneclad has ~35%.
+`target_armour_reduction` is computed from the sum of the target's equipped armour pieces. An unarmed dwarf has 0% reduction; a fully plated Stoneclad has ~35%. The body stats are planned into this (doc 41, "Stats"): Strength for damage, Agility for aim and dodging, Toughness for the blows taken; invaders get the body stats too, so one formula serves both sides.
 
 ### Damage Parameters (High Level)
 
@@ -324,8 +329,8 @@ Exact values are TBD in a future balance pass. These are design-intent ratios.
 
 ### Death & Injury
 
-- A dwarf whose `health` reaches `0.0` enters the `DEAD` state. All equipped gear drops as item entities.
-- Dwarves reduced below `0.50` health gain `base:thought:injured` and are assigned a forced bed-rest task until health recovers above `0.75`.
+- Health is whole hit points, 70–130 by Toughness (doc 41, "Health"); until combat, nothing takes a dwarf below one. A dwarf whose hit points reach 0 enters the `DEAD` state. All equipped gear drops as item entities.
+- Dwarves reduced below half their hit points gain `base:thought:injured` and are assigned a forced bed-rest task until health recovers above three quarters.
 - Corpses persist and trigger `base:thought:saw_corpse` for any dwarf passing within 3 tiles.
 - Nothing removes a dwarf from the colony yet, and leaving the scene tree is not a
   cleanup: `DwarfAgent._exit_tree` only cancels recreation and frees meal, rest, idle and
@@ -345,7 +350,7 @@ The Military Build tab (currently stubbed in the UI) will expose the following d
 | Guard Post | Single fixed-point stance (one-waypoint route) |
 | Murder Hole | Ceiling tile designation — Marksmen on upper level fire down through it into the tunnel below |
 | Barricade | Low constructed block (half-height) — blocks invader movement, does not block Marksman fire lines |
-| Gate | Reinforced door variant — takes 5× longer for invaders to breach |
+| Gate | Reinforced door variant — about 5× a log door's hit points, so 5× longer for invaders to breach (iron's toughness is 5, doc 62) |
 
 ## Player UI (future)
 
@@ -354,8 +359,9 @@ overhaul. Stonehearth's version is the reference, not a template:
 - a town-wide defence toggle (a shield);
 - one coloured banner per squad with its member count, used to select and command it;
 - its own tile colour, so combat commands stand apart from the rest of the menus;
-- health, once dwarves can be hurt: a badge on a dwarf's compact panel and a line in the
-  character sheet's header (doc 23).
+- health: a badge on a dwarf's compact panel and a line in the character sheet's header
+  (doc 23). The owner moved it forward on 2026-10-31: it shows now, full until something
+  can hurt a dwarf (doc 41, "Health").
 
 ---
 
@@ -391,7 +397,7 @@ overhaul. Stonehearth's version is the reference, not a template:
 - **Combat skill progression** — enlisted dwarves could gain experience over time, improving damage and speed, making veterans more valuable and their loss more costly.
 - **Champion invader AI** — wave champions need a more sophisticated target-selection loop than rank-and-file raiders. Defer to a dedicated invader AI doc.
 - **Burial tasks and memorial hall** — morale recovery mechanic for dwarf deaths. Hooks into the thought system via `base:thought:honored_dead`.
-- **Armoury crafting** — weapons and armour will eventually be craftable by a Weaponsmith profession at a dedicated workshop. Until then, they are acquired exclusively through trade (buy orders on the Trade Counter).
+- **Armoury crafting** — weapons and armour will eventually be forged by the Blacksmith at the Forge (`44_crafting_workshops.md`); there is no Weaponsmith or Armorsmith. Until then, they are acquired exclusively through trade (buy orders on the Trade Counter).
 - **Allied caravans** — high `trade_reputation` could unlock caravan guards who assist during invasion events.
 - **Equipment quality tiers** — iron is the baseline. Steel (future) would offer improved damage reduction and weapon damage, providing a clear progression goal for the late game.
 

@@ -2,6 +2,7 @@ extends RefCounted
 
 ## Table slot geometry and chair preview/clearance, using definitions owned by
 ## FurniturePlacementController. Slots describe separate optional build items.
+const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var controller
 var snap: Dictionary = {}
 var guides: Array[Node3D] = []
@@ -31,11 +32,13 @@ func slots_for(piece) -> Array[Dictionary]:
 	return slots_for_layout(piece.def, piece.origin_cell, piece.yaw_steps)
 
 
+## A table's `chair_keys` name the stools its guides take, any of them (doc 293: the log
+## stool and the stone stool). They share one footprint, so the first sizes the slots.
 func slots_for_layout(def: Dictionary, origin: Vector3i, table_yaw: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var seating: Dictionary = def.get("seating", {})
-	var key := String(seating.get("chair_key", ""))
-	var chair: Dictionary = controller.get_defs().get(key, {})
+	var keys: Array = seating.get("chair_keys", [])
+	var chair: Dictionary = controller.get_defs().get(String(keys[0]), {}) if not keys.is_empty() else {}
 	if chair.is_empty():
 		return result
 	for slot: Dictionary in seating.get("slots", []):
@@ -45,7 +48,7 @@ func slots_for_layout(def: Dictionary, origin: Vector3i, table_yaw: int) -> Arra
 			size = Vector3(size.z, 0, size.x)
 		var lo := Vector3(float(slot.chair_origin[0]), 0, float(slot.chair_origin[1]))
 		var box := rotate_box(def, lo, lo+size, table_yaw)
-		result.append({"id": String(slot.id), "key": key,
+		result.append({"id": String(slot.id), "keys": keys,
 			"origin": origin + Vector3i(box.position),
 			"yaw": posmod(table_yaw+yaw, 4),
 			"snap_radius": float(seating.get("snap_radius", 1.5))})
@@ -70,7 +73,7 @@ func chair_definition(def: Dictionary, origin: Vector3i, yaw: int, layout: Dicti
 		var profile: Dictionary = table.def.get("seating", {}).get("chair_profile", {})
 		if profile.is_empty(): continue
 		for slot in slots_for_layout(table.def, table.origin, table.yaw):
-			if slot.key != def.furniture_key or slot.origin != origin or slot.yaw != posmod(yaw,4): continue
+			if not def.furniture_key in slot.keys or slot.origin != origin or slot.yaw != posmod(yaw,4): continue
 			var result := def.duplicate()
 			var settings: Dictionary = def.seating_chair.duplicate(true)
 			settings.merge(profile,true)
@@ -90,6 +93,55 @@ static func clearance_yaw(piece) -> int:
 	if piece is InstalledFurnitureComponent and piece.idle_seat_owner >= 0 and piece.idle_seat_yaw_steps >= 0:
 		return piece.idle_seat_yaw_steps
 	return piece.yaw_steps
+
+
+## Which way a sitter faces this seat, resting or eating (doc 41). A seat that may
+## turn (`face_nearby_fire`, the round stool) faces a table its front meets, else
+## the nearest fire on its level within `radius`, lit or cold, that terrain does not
+## hide; otherwise its placed facing. Each only when that seated pose fits.
+## Returns {"yaw"}, with "fire_id" for a fire, or {} when no facing fits. Dining
+## settles its own table arrangement first and asks with tables = false.
+func facing(seat: InstalledFurnitureComponent, radius: float, tables := true) -> Dictionary:
+	if bool(chair_settings(seat).get("face_nearby_fire", false)):
+		var at := seat.node.global_position
+		var fires: Array[InstalledFurnitureComponent] = []
+		for piece: InstalledFurnitureComponent in controller.get_installed_pieces():
+			if piece.flagged_uninstall or not is_instance_valid(piece.node) or piece.origin_cell.y != seat.origin_cell.y: continue
+			if tables and piece.def.has("seating"):
+				var yaw := table_yaw(seat, piece)
+				if yaw >= 0 and placement_reason(seat.def, seat.origin_cell, yaw, seat).is_empty(): return {"yaw": yaw}
+			# A cold campfire by day still draws its stools (owner, 2026-10-29).
+			if piece.def.get("seating_focus", "") == "fire" and piece.node.global_position.distance_to(at) <= radius:
+				fires.append(piece)
+		fires.sort_custom(func(a, b): return a.node.global_position.distance_squared_to(at) < b.node.global_position.distance_squared_to(at))
+		for fire in fires:
+			var offset := fire.node.global_position - at
+			if offset.length_squared() < .001: continue
+			var yaw := posmod(roundi(atan2(offset.x, offset.z) / (PI * .5)), 4)
+			if not placement_reason(seat.def, seat.origin_cell, yaw, seat).is_empty(): continue
+			var eyes := at + Vector3(0, 2.5, 0)
+			var sight := fire.node.global_position + Vector3.UP - eyes
+			if not Picking.terrain_hit(eyes, sight.normalized(), WorldData.WORLD_SIZE_Y - 1, sight.length()).is_empty(): continue
+			return {"yaw": yaw, "fire_id": fire.installed_id}
+	if placement_reason(seat.def, seat.origin_cell, seat.yaw_steps, seat).is_empty():
+		return {"yaw": seat.yaw_steps}
+	return {}
+
+
+## Seat fronts must actually meet the tabletop; callers match the floor height.
+## Backed chairs keep their yaw; round stools may turn toward the table. -1 if not.
+func table_yaw(seat: InstalledFurnitureComponent, table: InstalledFurnitureComponent) -> int:
+	var box: AABB = controller.visual_bounds(table.def, table.origin_cell, table.yaw_steps)
+	var center := seat.node.global_position
+	var nearest := Vector3(clampf(center.x, box.position.x, box.end.x), center.y, clampf(center.z, box.position.z, box.end.z))
+	var offset := nearest - center
+	var distance := offset.length()
+	if distance < .1 or distance > 1.6: return -1
+	var yaw := seat.yaw_steps
+	if bool(seat.def.seating_chair.get("face_nearby_fire", false)):
+		yaw = posmod(roundi(atan2(offset.x, offset.z) / (PI * .5)), 4)
+	var front := Vector3(sin(yaw * PI * .5), 0, cos(yaw * PI * .5))
+	return yaw if front.dot(offset.normalized()) > .98 else -1
 
 
 static func clearance(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
@@ -221,7 +273,7 @@ func exceeds_capacity(def: Dictionary, origin: Vector3i, yaw: int, skip = null) 
 					continue
 				var slots := slots_for(table)
 				for slot in slots:
-					if slot.key == def.furniture_key and slot.origin == origin and slot.yaw == posmod(yaw, 4):
+					if def.furniture_key in slot.keys and slot.origin == origin and slot.yaw == posmod(yaw, 4):
 						if _chair_count(slots, skip) >= int(seating.get("max_chairs", slots.size())):
 							return true
 	elif def.has("seating"):
@@ -258,7 +310,7 @@ func is_recreation_seat(piece) -> bool:
 
 
 static func matches_slot(chair, slot: Dictionary) -> bool:
-	return chair != null and is_chair(chair.def) and chair.furniture_key == slot.key \
+	return chair != null and is_chair(chair.def) and chair.furniture_key in slot.keys \
 		and chair.origin_cell == slot.origin and chair.yaw_steps == slot.yaw
 
 
@@ -280,7 +332,8 @@ func resolve(cell: Vector3i) -> void:
 	clear_guides()
 	aim = cell
 	dirty = false
-	var def: Dictionary = controller.get_defs().get(controller._active_key, {})
+	var key: String = controller._active_key   # the stool being placed: its guides show it
+	var def: Dictionary = controller.get_defs().get(key, {})
 	if not is_chair(def):
 		return
 	var nearby: Array[Dictionary] = []
@@ -293,7 +346,7 @@ func resolve(cell: Vector3i) -> void:
 			if piece.origin_cell.y != cell.y or not controller._piece_visible(piece.def, piece.origin_cell, piece.yaw_steps):
 				continue
 			for slot in slots_for(piece):
-				if slot.key != controller._active_key:
+				if not key in slot.keys:
 					continue
 				var center: Vector3 = controller._world_pos(def, slot.origin, slot.yaw) - Vector3.UP
 				var distance := cursor.distance_to(center)
@@ -322,7 +375,7 @@ func resolve(cell: Vector3i) -> void:
 		var material: StandardMaterial3D = controller.make_ghost_material()
 		var tint: Color = controller.TINT_VALID if reason.is_empty() else controller.TINT_INVALID
 		material.albedo_color = Color(tint.r, tint.g, tint.b, .18)
-		var guide: Node3D = controller._instance_model(slot.key, material)
+		var guide: Node3D = controller._instance_model(key, material)
 		if guide != null:
 			controller.add_child(guide)
 			guide.position = controller._world_pos(def, slot.origin, slot.yaw)

@@ -92,6 +92,7 @@ func _run() -> void:
 	_expect(builder._hover==Vector3i(45,22,43),"wall-side picking targets adjacent cleared air")
 	await _capture_ui("stone")
 	await _check_copy_wall()
+	await _check_replace()
 	for resolution in [Vector2i(1280,720),Vector2i(960,540)]:
 		root.size = resolution
 		await _frames(6)
@@ -198,6 +199,30 @@ func _check_copy_wall() -> void:
 	await _frames(2)
 
 
+## Replace (doc 285) with the real keys and mouse: F switches Build to Replace, and a drag along
+## the stone wall's face plans only the copper block in it. The object explorer leaves the clicks
+## to the tool.
+func _check_replace() -> void:
+	explorer.clear_selection()
+	var copper := Vector3i(45,22,42)
+	var stone: int = world.get_terrain_block(copper.x,copper.y,copper.z)
+	world.set_block(copper.x,copper.y,copper.z,blocks.get_id("base:terrain:ore:copper"))
+	var key := InputEventKey.new()
+	key.keycode = KEY_F; key.pressed = true
+	root.push_input(key,true)
+	_expect(builder._replace and explorer._click_tool_active(),"F switches Build to Replace, and the explorer leaves its clicks to it")
+	var a := camera.unproject_position(Vector3(43.5,22.5,43))
+	var b := camera.unproject_position(Vector3(47.5,22.5,43))
+	_move(a); _mouse_button(a,true); _move(b); _mouse_button(b,false)
+	var plans: Array = builder.orders.values().filter(func(order) -> bool: return order.replace)
+	_expect(plans.size()==1 and plans[0].cells==[copper],"a real drag along the wall plans only its copper block: %s" % [plans.map(func(order) -> Array: return order.cells)])
+	for order in plans: builder.cancel_order(order.ghost_id)
+	root.push_input(key,true)
+	_expect(builder.is_active() and not builder._replace,"F again goes back to building")
+	world.set_block(copper.x,copper.y,copper.z,stone)
+	await _frames(2)
+
+
 ## On a shelf of two rows, a button's hover card stands above the whole shelf, never over the
 ## row above it (doc 23, "Copy and Blueprints").
 func _check_shelf_card() -> void:
@@ -273,6 +298,7 @@ func _check_plan_inspector(id: int) -> void:
 	_expect(compact._status.text.ends_with("0 / 3 rough stone delivered"),"panel shows delivered stone")
 	_expect(explorer._outline.visible and explorer._outline_bounds.size.is_equal_approx(Vector3(3,1,1)),"selected area has a visible outline")
 	await _capture_ui("construction_inspector")
+	await _check_materials_card(compact,point)
 	var frame: Rect2 = compact._frame.get_global_rect()
 	_click(Vector2(frame.position.x+40,frame.end.y-12))
 	_expect(builder.orders.size()==1 and explorer._object_id==id,"panel consumes UI clicks")
@@ -319,6 +345,11 @@ func _check_plan_inspector(id: int) -> void:
 		await _frames(5)
 		_expect(Rect2(Vector2.ZERO,Vector2(size)).encloses(compact.get_global_rect()),"construction panel fits %s" % size)
 		await _capture_ui("construction_inspector_%d" % size.x)
+		_click(compact.get_action_button("materials").get_global_rect().get_center())
+		await _frames(3)
+		_expect(compact._card.visible and Rect2(Vector2.ZERO,Vector2(size)).encloses(compact._card.get_global_rect()),"the Materials card fits %s" % size)
+		_click(compact.get_action_button("materials").get_global_rect().get_center())
+		await _frames(2)
 	_click(compact.get_action_button("cancel").get_global_rect().get_center())
 	await _frames(3)
 	_expect(builder.orders.is_empty() and not compact.visible,"Cancel construction removes the selected order and closes the panel")
@@ -333,6 +364,38 @@ func _check_plan_inspector(id: int) -> void:
 	await _frames(5)
 	builder.create_order(cells)
 	builder._on_tool_requested("construct_stone")
+
+## The Materials card (owner's option C, 2026-10-27), with real clicks: its tile opens it above
+## the panel and stays lit, a refresh keeps it open, the tile closes it, and so does a new
+## selection.
+func _check_materials_card(compact: Control, point: Vector2) -> void:
+	var tile: Button = compact.get_action_button("materials")
+	_expect(tile != null and tile.icon != null,"a plan's panel has a Materials tile")
+	if tile == null: return
+	_click(tile.get_global_rect().get_center())
+	await _frames(3)
+	var card: Control = compact._card
+	_expect(card.visible and tile.button_pressed and compact._card_title.text=="Materials" and compact._card_rows.get_child_count()==1,
+		"the Materials tile opens a card of the plan's goods and stays lit")
+	if compact._card_rows.get_child_count() > 0:
+		var words: Node = compact._card_rows.get_child(0).get_child(1)
+		_expect(words.get_child(0).text=="Rough stone" and words.get_child(1).text=="0 of 3 delivered · 0 on the way",
+			"its row names the good and counts it: %s · %s" % [words.get_child(0).text,words.get_child(1).text])
+	_expect(card.get_global_rect().end.y <= compact.get_global_rect().position.y,"the card stands above the panel")
+	await _capture_ui("construction_materials")
+	explorer._process(explorer.REFRESH_SECONDS+.01)
+	await _frames(2)
+	_expect(card.visible and tile.button_pressed,"a refresh keeps the card open")
+	_click(tile.get_global_rect().get_center())
+	await _frames(2)
+	_expect(not card.visible and not tile.button_pressed,"its tile closes it again")
+	_click(tile.get_global_rect().get_center())
+	await _frames(2)
+	explorer.clear_selection()
+	await _frames(2)
+	_expect(not card.visible,"clearing the selection closes the card")
+	_click(point)
+	await _frames(3)
 
 func _move(point: Vector2) -> void:
 	var motion := InputEventMouseMotion.new()

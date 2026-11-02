@@ -8,6 +8,7 @@ import * as P from './proposal.mjs';
 import * as T from './tier1.mjs';
 import * as D from './dwarves.mjs';
 import * as W from './wildlife.mjs';
+import * as S from './sky.mjs';
 
 const { Vox } = P;
 
@@ -408,13 +409,51 @@ define('animal_pasture', v => {
   replayInto(v, T.fencePost().log, [3, 2, -13]);
   replayInto(v, T.fenceRails().log, [-5, 2, -13]);
   replayInto(v, T.fencePost().log, [-13, 2, 3]);
-  for (const y0 of [8, 17]) {                                // rails along the left side
-    v.cutZ(-15, -12, y0, y0 + 3, -11, 1, 1, 'bark');
-    v.paint(-14, -13, y0 + 2, y0 + 3, -11, 1, 'riven');
+  for (const y0 of [7, 16]) {                                // rails along the left side
+    v.cutZ(-15, -11, y0, y0 + 3, -10, 0, 1, 'riven_dark');
+    v.paint(-14, -12, y0 + 2, y0 + 3, -10, 0, 'riven');
   }
   v.cut(1, 13, 2, 8, 1, 13, 4, 'hay');                       // a pile of hay
   v.cut(3, 11, 8, 11, 3, 11, 3, 'hay_light'); v.cut(5, 9, 11, 12, 5, 9, 1, 'straw');
   for (const [x, z] of [[0, 8], [13, 5], [6, 13]]) v.box(x, x + 2, 2, 3, z, z + 1, 'straw');
+});
+
+// Fishing (doc 289): a marked earth bank beside open water. The dwarves' peeled rod rests
+// on a forked stick and reaches out over the water, and a perch hangs from its line, just
+// caught.
+// The caught perch lies along +X, hung by its mouth at X 0: swapping X for Y (and turning Y
+// down) stands it on end, head up, so its edges along X now run along Y.
+function hangInto(v, ops, [dx, dy, dz]) {
+  for (const [op, a, c] of ops) {
+    const s = [a[2] + dx, a[3] + dx, -a[1] + dy, -a[0] + dy, a[4] + dz, a[5] + dz, ...a.slice(6)];
+    if (op === 'box') v.box(...s, c); else if (op === 'paint') v.paint(...s, c);
+    else if (op === 'cutbox_x') v.cut(...s, c);
+    else throw new Error('hangInto: unsupported op ' + op);
+  }
+}
+define('fishing_zone', v => {
+  v.box(-16, -1, 0, 2, -16, 16, 'earth_dark');                // the bank, a cell above the water
+  v.box(-16, -1, 2, 3, -16, 16, 'earth');
+  for (const [x, z] of [[-14, -12], [-9, 9], [-5, -8], [-13, 4]]) v.box(x, x + 3, 3, 4, z, z + 2, 'grass');
+  for (let i = -16; i < 16; i += 5) {                         // its dashed zone edge
+    v.paint(-16, -15, 2, 3, i, i + 3, 'zone_line'); v.paint(-2, -1, 2, 3, i, i + 3, 'zone_line');
+  }
+  for (let i = -16; i < -1; i += 5) {
+    v.paint(i, Math.min(i + 3, -1), 2, 3, -16, -15, 'zone_line'); v.paint(i, Math.min(i + 3, -1), 2, 3, 15, 16, 'zone_line');
+  }
+  v.box(-1, 16, 0, 1, -16, 16, 'water_dark');                 // the open water
+  v.box(-1, 16, 1, 2, -16, 16, 'water');
+  for (const [x0, x1, z0, z1] of [[6, 14, -3, -2], [6, 14, 3, 4], [6, 7, -2, 3], [13, 14, -2, 3], [1, 4, 9, 10], [10, 14, -11, -10]]) {
+    v.paint(x0, x1, 1, 2, z0, z1, 'water_light');              // rings where the fish left the water
+  }
+  v.box(-5, -3, 3, 11, -1, 1, 'rod_bark');                    // the forked stick
+  v.box(-6, -5, 9, 13, -1, 1, 'rod_bark'); v.box(-3, -2, 9, 13, -1, 1, 'rod_bark');
+  for (let i = 0; i <= 10; i++) {                             // the rod, rising over the water
+    v.box(-12 + 2 * i, -10 + 2 * i, 3 + 2 * i, 5 + 2 * i, -1, 1, i < 2 ? 'rod_bark' : 'rod_wood');
+  }
+  v.paint(-4, -2, 11, 13, -1, 1, 'rope');                     // lashed where it rests
+  v.box(9, 10, 18, 23, 0, 1, 'rod_line');                     // the line
+  hangInto(v, D.build('tools/caught_perch').log, [5, 18, 0]);
 });
 
 // Build's materials (doc 273): one block of each across x0..x1, y0..y1, z0..z1, dressed as
@@ -459,27 +498,26 @@ function earthCube(v, x0, x1, y0, y1, z0, z1, grassy) {
   }
 }
 
-// Wood: four boards stacked up the sides and laid across the top, with end joints.
-function woodCube(v, x0, x1, y0, y1, z0, z1) {
-  const h = y1 - y0, d = z1 - z0, boards = 4;
-  v.cut(x0, x1, y0, y1, z0, z1, 1, 'plank_riven');
-  v.paint(x0, x1, y1 - 1, y1, z0, z1, 'plank');
-  for (let i = 1; i < boards; i++) {
-    const y = Math.round(y0 + h * i / boards), z = Math.round(z0 + d * i / boards);
-    v.paint(x0, x1, y, y + 1, z0, z1, 'plank_seam');
-    v.paint(x0, x1, y1 - 1, y1, z, z + 1, 'plank_seam');
-  }
-  const jx = Math.round(x0 + (x1 - x0) * 0.35), jz = Math.round(z0 + d * 0.6);
-  v.paint(jx, jx + 1, y0, Math.round(y0 + h / boards), z1 - 1, z1, 'plank_seam');
-  v.paint(x1 - 1, x1, Math.round(y0 + h * 2 / boards), Math.round(y0 + h * 3 / boards), jz, jz + 1, 'plank_seam');
-  v.paint(Math.round(x0 + (x1 - x0) * 0.7), Math.round(x0 + (x1 - x0) * 0.7) + 3, Math.round(y0 + h * 0.6), Math.round(y0 + h * 0.6) + 1, z1 - 1, z1, 'plank_grain');
+// Wood: a peeled log lying along the wall, as Build lays it (docs 275 and 278), clipped like
+// the loose log. Its upper corner steps are lit and its lower ones shaded; a knot on the
+// front, and its end grain (a ring, the pith and a drying split) faces the camera.
+function logCube(v, x0, x1, y0, y1, z0, z1) {
+  v.cutX(x0, x1, y0, y1, z0, z1, 2, 'riven_dark');
+  for (const [y, z] of [[y1 - 1, z0 + 2], [y1 - 2, z0 + 1], [y1 - 3, z0], [y1 - 1, z1 - 3], [y1 - 2, z1 - 2], [y1 - 3, z1 - 1]]) v.paint(x0, x1, y, y + 1, z, z + 1, 'riven');
+  for (const [y, z] of [[y0, z0 + 2], [y0 + 1, z0 + 1], [y0 + 2, z0], [y0, z1 - 3], [y0 + 1, z1 - 2], [y0 + 2, z1 - 1]]) v.paint(x0, x1, y, y + 1, z, z + 1, 'pith');
+  v.paint(x1 - 1, x1, y0, y1, z0, z1, 'riven_dark');                       // the end: a peeled rim round the cut face
+  v.paint(x1 - 1, x1, y0 + 1, y1 - 1, z0 + 2, z1 - 2, 'wood_top'); v.paint(x1 - 1, x1, y0 + 2, y1 - 2, z0 + 1, z1 - 1, 'wood_top');
+  const py = y0 + 5, pz = z0 + 5;
+  P.endRings(v, 'x', x1 - 1, py, pz, [2]);
+  v.box(x1 - 1, x1, py + 1, py + 2, pz + 2, z1, null); v.box(x1 - 5, x1 - 1, py + 1, py + 2, z1 - 1, z1, null);   // the drying split
+  v.paint(x0 + 2, x0 + 5, y0 + 3, y0 + 6, z1 - 1, z1, 'bark_light'); v.paint(x0 + 3, x0 + 4, y0 + 4, y0 + 5, z1 - 1, z1, 'bark');   // a knot
 }
 
-// Build: a wall going up in stone, wood and grass-topped earth, its next block still the
-// game's blue plan.
+// Build: a wall going up in stone, a peeled log and grass-topped earth, its next block still
+// the game's blue plan.
 define('build', v => {
   stoneCube(v, -14, -2, 0, 11, -8, 4);
-  woodCube(v, -1, 11, 0, 11, -8, 4);
+  logCube(v, -1, 11, 0, 11, -8, 4);
   earthCube(v, -8, 4, 11, 22, -8, 4, true);
   const [x0, x1, y0, y1, z0, z1] = [5, 16, 11, 22, -8, 3];
   for (const x of [x0, x1 - 2]) for (const z of [z0, z1 - 2]) v.box(x, x + 2, y0, y1, z, z + 2, 'plan');
@@ -654,33 +692,6 @@ define('blacksmith', v => {
   for (const [x, y, z] of [[-3, 21, 0], [3, 24, 1], [0, 27, -1], [6, 20, 0]]) v.box(x, x + 1, y, y + 1, z, z + 1, 'flame_core');
 }, { yaw: 20 });
 
-// Weaponsmith: a sword and a smith's hammer, crossed.
-define('weaponsmith', v => {
-  stroke(v, -12, 2, 1, 1, 6, 'wood');                         // the hammer's haft, lower left to upper right
-  v.box(-1, 7, 12, 21, -2, 3, 'iron_dark'); v.paint(-1, 7, 20, 21, -2, 3, 'iron');   // its head
-  stroke(v, 12, 2, -1, 1, 3, 'tool_leather');                 // the sword's grip, lower right
-  v.box(13, 16, 0, 3, -2, 3, 'brass');                        // the pommel
-  stroke(v, 4, 7, 1, 1, 3, 'brass', -2, 3);                    // the crossguard
-  stroke(v, 6, 7, -1, 1, 8, 'steel');                         // the blade, rising to the upper left
-  stroke(v, -9, 22, -1, 1, 1, 'steel', 0, 1);
-}, { yaw: 40 });
-
-// Armorsmith: a dark steel helm with a brass rim, cheek guards and a T-shaped face
-// opening, turned to face the camera.
-define('armorsmith', v => {
-  v.cut(-9, 9, 2, 10, -9, 9, 3, 'iron');                      // the bowl, narrowing to the crown
-  v.cut(-8, 8, 10, 15, -8, 8, 3, 'iron');
-  v.cut(-6, 6, 15, 19, -6, 6, 3, 'iron');
-  v.cut(-3, 3, 19, 22, -3, 3, 1, 'iron');
-  v.paint(-8, 8, 14, 15, -8, 8, 'steel'); v.paint(-6, 6, 18, 19, -6, 6, 'steel'); v.paint(-3, 3, 21, 22, -3, 3, 'steel');
-  v.cut(-10, 10, 0, 2, -10, 10, 3, 'brass');                  // the brass rim
-  v.box(-9, -5, -2, 8, 4, 9, 'iron'); v.box(5, 9, -2, 8, 4, 9, 'iron');   // cheek guards
-  v.box(-6, 6, 9, 11, 8, 10, 'iron_dark');                    // the eye opening, dark
-  v.box(-2, 2, 2, 11, 8, 10, 'iron_dark');                    // down the middle, a T
-  v.box(-1, 1, 2, 9, 9, 11, 'steel');                         // the nose guard over it
-  for (const x of [-8, 7]) v.box(x, x + 1, 5, 6, 8, 10, 'brass');   // rivets
-}, { yaw: 40 });
-
 // Farmer: the stone hoe over a heap of earth, turnips pulled beside it.
 define('farmer', v => {
   v.cut(-14, 10, 0, 3, -7, 7, 3, 'earth'); v.paint(-14, 10, 2, 3, -7, 7, 'earth_light');
@@ -694,17 +705,26 @@ define('farmer', v => {
   v.box(6, 9, 15, 19, -2, 3, 'rope');
 }, { yaw: 40 });
 
-// Hunter: the stone-pointed hunting spear over a paw print in the earth.
-define('hunter', v => {
-  v.box(-14, 14, 0, 2, -10, 10, 'earth'); v.paint(-14, 14, 1, 2, -10, 10, 'earth_light');
-  v.cut(-6, 4, 1, 2, -1, 7, 3, 'bark_dark');                  // the pad
-  for (const [x, z] of [[-9, -4], [-4, -7], [1, -7], [5, -3]]) v.box(x, x + 3, 1, 2, z, z + 3, 'bark_dark');   // toes
-  for (const [x, z] of [[-13, 7], [10, -8], [11, 6]]) v.box(x, x + 2, 2, 5, z, z + 1, 'grass');
-  stroke(v, -14, 2, 1, 1, 9, 'wood', -1, 2);                  // the haft, rising to the right
-  v.box(2, 6, 18, 22, -1, 2, 'rope');                         // the lashing
-  stroke(v, 6, 21, 1, 1, 3, 'stone', -2, 3);                   // the stepped stone point
-  v.box(11, 13, 27, 29, -1, 2, 'stone_light');
-}, { yaw: 40 });
+// Ranger (doc 292, concept A): the Hunter's stone-pointed spear crossed over the dwarves' peeled
+// rod, both planted in a turf; the rod's line hangs from its tip past the turf's edge, with the
+// red-tipped float.
+define('ranger', v => {
+  v.cut(-11, 11, 0, 4, -7, 7, 3, 'earth');                    // the turf
+  v.paint(-11, 11, 3, 4, -7, 7, 'grass'); v.paint(-11, 11, 0, 1, -7, 7, 'earth_dark');
+  for (const [x, z] of [[-9, 4], [6, -5], [8, 3], [-3, 5]]) v.box(x, x + 2, 4, 7, z, z + 1, 'grass_light');
+  for (let i = 0; i < 26; i++) v.box(10 - i, 12 - i, 2 + i, 4 + i, -3, -1, i < 4 ? 'rod_bark' : 'rod_wood');   // the rod, behind
+  for (const i of [7, 14]) v.box(9 - i, 13 - i, 2 + i, 4 + i, -4, 0, 'rope');                                  // its lashings
+  v.box(-14, -13, 12, 27, -2, -1, 'rod_line');                // the line from the tip
+  v.box(-14, -13, 4, 6, -2, -1, 'float_wood');                // the float's keel, carved body and dyed tip
+  v.cut(-15, -12, 6, 9, -3, 0, 1, 'float_wood');
+  v.paint(-15, -12, 8, 9, -3, 0, 'float_red');
+  v.box(-14, -13, 9, 12, -2, -1, 'float_red');
+  v.paint(-14, -13, 11, 12, -2, -1, 'float_dark');
+  stroke(v, -11, 2, 1, 1, 9, 'wood', 1, 4);                   // the spear, in front, rising right
+  v.box(5, 9, 18, 22, 0, 5, 'rope');                          // the lashing
+  stroke(v, 9, 21, 1, 1, 3, 'stone', 0, 5);                    // the stepped stone point
+  v.box(14, 16, 27, 29, 1, 4, 'stone_light');
+}, FACE);
 
 // Brewer: a hooped brewing tub frothing with mash, a paddle in it, barley beside.
 define('brewer', v => {
@@ -953,6 +973,20 @@ define('food', v => {
   v.paint(-4, -2, 11, 13, 10, 11, 'linen');                   // a shine
 });
 
+// Health (doc 41 "Health"): a red heart with a shine, beside Rest and Food, and over a badly hurt
+// dwarf's head.
+define('health', v => {
+  const tiers = [[0, 2, 2], [2, 4, 4], [4, 6, 6], [6, 8, 8], [8, 10, 10], [10, 12, 12], [12, 18, 13]];
+  for (const [y0, y1, half] of tiers) v.box(-half, half, y0, y1, -3, 3, 'apple');
+  for (const [y0, y1, a, b] of [[18, 21, 1, 13], [21, 23, 2, 12], [23, 24, 4, 10]]) {   // the two lobes
+    v.box(-b, -a, y0, y1, -3, 3, 'apple'); v.box(a, b, y0, y1, -3, 3, 'apple');
+  }
+  v.cutZ(-9, 9, 6, 19, -4, 4, 5, 'apple');                     // a fuller middle
+  v.paint(-13, 13, 0, 7, -4, 4, 'apple_dark');                 // the shaded point
+  v.paint(-12, -3, 18, 24, -3, 3, 'apple_light');              // the lit left lobe
+  v.box(-9, -6, 16, 20, 3, 4, 'linen');                        // the shine
+}, FACE);
+
 // A brass Z facing the camera, `steps` two-cell steps tall, with a lit top and a dark foot.
 function zGlyph(v, x0, y0, steps) {
   const w = 2 * steps + 3, h = 2 * steps + 4;
@@ -1057,6 +1091,318 @@ define('warning', v => {
   }
   v.paint(-2, 2, 18, 28, 0, 1, 'char'); v.paint(-2, 2, 13, 16, 0, 1, 'char');            // the "!"
   v.paint(-15, 15, 8, 9, -1, 1, 'flag');                                                 // a darker foot
+}, FACE);
+
+// ── Development (doc 23, DEV only) ───────────────────────────────────────────
+// The Development menu's tools, on the DEV tile. Where the game has the subject, the
+// picture replays the real model: Build's stone block, an elder from the dwarf head
+// parts, the deer's head as Events shows its arrival, and the Sky Dial's storm cloud.
+// Water, snow, pine and the cloud keep their world and Sky Dial colours (write_data.py).
+
+// A square pine as the world grows them: a short trunk under three stepped tiers.
+function pine(v, x, y, z) {
+  v.box(x - 1, x + 1, y, y + 3, z - 1, z + 1, 'bark');
+  v.cut(x - 4, x + 4, y + 3, y + 6, z - 4, z + 4, 2, 'pine_dark');
+  v.cut(x - 3, x + 3, y + 6, y + 9, z - 3, z + 3, 2, 'pine');
+  v.cut(x - 2, x + 2, y + 9, y + 12, z - 2, z + 2, 1, 'pine_light');
+}
+
+// A brass cog facing +z round (cx, cy), 22 cells across: Menu's cog, smaller, its hub dark.
+function cog(v, cx, cy, z0, z1) {
+  v.cutZ(cx - 8, cx + 8, cy - 8, cy + 8, z0, z1, 4, 'brass');
+  for (const [x0, x1, y0, y1] of [[-2, 2, 8, 11], [-2, 2, -11, -8], [8, 11, -2, 2], [-11, -8, -2, 2]])
+    v.box(cx + x0, cx + x1, cy + y0, cy + y1, z0, z1, 'brass');
+  for (const [x0, y0] of [[5, 5], [-9, 5], [5, -9], [-9, -9]]) v.box(cx + x0, cx + x0 + 4, cy + y0, cy + y0 + 4, z0, z1, 'brass');
+  v.paint(cx - 11, cx + 11, cy + 8, cy + 11, z0, z1, 'brass_light');
+  v.paint(cx - 11, cx + 11, cy - 11, cy - 8, z0, z1, 'brass_dark');
+  v.cutZ(cx - 3, cx + 3, cy - 3, cy + 3, z0, z1, 2, 'ash');
+}
+
+// Another model's operations mirrored front to back (cell z becomes -z - 1), so a head
+// built facing -z faces +z.
+const flipZ = ops => ops.map(([op, a, c]) => op === 'mirror_x' ? [op, flipZ(a)]
+  : op === 'ring' ? [op, [a[0], a[1], a[2], -a[4], -a[3]], c] : [op, [a[0], a[1], a[2], a[3], -a[5], -a[4], ...a.slice(6)], c]);
+
+// Block inspector: a dressed stone block with ore in its face, a brass glass held up to its
+// corner, the ore it finds swollen in the lens.
+define('dev_block_inspector', v => {
+  stoneCube(v, -16, 4, 0, 20, -15, 5);
+  v.paint(-9, -7, 13, 15, 4, 5, 'ore_gold'); v.paint(-13, -11, 5, 7, 4, 5, 'ore_copper');
+  v.paint(3, 4, 14, 16, -11, -9, 'ore_gold'); v.paint(-12, -10, 19, 20, -12, -10, 'ore_gold');
+  v.cutZ(-4, 12, 5, 21, 7, 10, 4, 'brass');                   // the rim
+  v.cutZ(-1, 9, 8, 18, 9, 10, 3, 'stone_light');              // the lens, the stone behind it swollen
+  for (const [x0, x1, y0, y1] of [[1, 5, 11, 14], [3, 7, 13, 16], [5, 7, 10, 12]]) v.box(x0, x1, y0, y1, 9, 10, 'ore_gold');
+  v.paint(3, 5, 14, 16, 9, 10, 'brass_light');
+  v.paint(0, 1, 13, 17, 9, 10, 'glass_light'); v.paint(1, 2, 16, 18, 9, 10, 'glass_light');   // a shine
+  v.paint(-4, 12, 19, 21, 7, 9, 'brass_light'); v.paint(-4, 12, 5, 7, 7, 9, 'brass_dark');
+  for (let i = 0; i < 5; i++) v.box(8 + 2 * i, 11 + 2 * i, 6 - 2 * i, 9 - 2 * i, 7, 10, i < 1 ? 'brass_dark' : 'wood');   // the handle
+  v.paint(13, 19, -4, 3, 7, 10, 'tool_leather');
+}, { yaw: 25 });
+
+// World Build: a cut of the generated world, its strata on the sides, a mountain with a
+// snowy peak and a lower shoulder, pines on the grass and a stream running off the edge.
+define('dev_world_build', v => {
+  v.box(-15, 15, 0, 12, -15, 15, 'stone');
+  v.paint(-15, 15, 0, 3, -15, 15, 'ash');                     // the deep rock
+  v.paint(-15, 15, 8, 11, -15, 15, 'earth');
+  v.paint(-15, 15, 11, 12, -15, 15, 'grass');
+  for (const [x0, x1] of [[-12, -8], [1, 5], [9, 13]]) v.paint(x0, x1, 7, 8, 14, 15, 'earth');   // ragged seams
+  for (const [z0, z1] of [[-11, -7], [0, 4]]) v.paint(14, 15, 7, 8, z0, z1, 'earth');
+  for (const [x0, x1] of [[-14, -10], [-3, 1], [6, 9]]) v.paint(x0, x1, 3, 4, 14, 15, 'ash');
+  v.paint(-7, -5, 4, 6, 14, 15, 'ore_gold'); v.paint(14, 15, 4, 6, 7, 9, 'ore_copper');   // ore in the rock
+  for (const [x, z] of [[-2, 6], [8, -12], [-13, 11], [10, 10]]) v.paint(x, x + 4, 11, 12, z, z + 3, 'grass_light');
+  v.cut(-15, 6, 12, 15, -15, 3, 3, 'stone');                  // the mountain, in uneven tiers
+  v.cut(-14, 0, 15, 18, -13, 0, 3, 'stone'); v.cut(-2, 5, 15, 19, -9, -1, 2, 'stone');   // and its shoulder
+  v.cut(-12, -2, 18, 22, -12, -3, 2, 'stone');
+  for (const [x0, x1, y, z0, z1] of [[-15, 6, 14, -15, 3], [-14, 0, 17, -13, 0], [-12, -2, 21, -12, -3]])
+    v.paint(x0, x1, y, y + 1, z0, z1, 'stone_light');
+  v.cut(-1, 4, 19, 20, -8, -2, 1, 'snow');
+  v.paint(-15, 4, 12, 13, -15, 2, 'stone_dark');
+  v.cut(-11, -4, 22, 25, -11, -5, 2, 'snow');                 // its snowy peak
+  v.cut(-10, -6, 25, 27, -10, -7, 1, 'snow');
+  v.paint(-11, -4, 22, 23, -11, -5, 'snow_shade'); v.paint(-12, -2, 21, 22, -12, -3, 'snow_shade');
+  v.box(4, 9, 9, 12, -1, 15, null);                           // the stream, cut into the grass
+  v.box(4, 9, 9, 11, -1, 15, 'water'); v.paint(4, 9, 10, 11, -1, 15, 'water_light');
+  v.box(4, 9, 9, 12, -3, -1, 'stone_dark');                   // its spring at the mountain's foot
+  pine(v, 11, 12, -8); pine(v, -10, 12, 9);
+});
+
+// Cave explorer: a lump of buried rock with a cave in it, opened on its face, the
+// explorer's highlight round the mouth and a lantern hanging inside.
+define('dev_cave_explorer', v => {
+  v.cut(-15, 15, 0, 20, -13, 13, 3, 'stone');                 // the rock, in uneven lumps
+  v.cut(-13, 6, 20, 25, -11, 8, 3, 'stone'); v.cut(3, 13, 20, 23, -10, 6, 2, 'stone');
+  v.paint(-15, 15, 19, 20, -13, 13, 'stone_light'); v.paint(-13, 6, 24, 25, -11, 8, 'stone_light');
+  v.paint(3, 13, 22, 23, -10, 6, 'stone_light');
+  v.paint(-15, 15, 0, 1, -13, 13, 'stone_dark');
+  v.paint(-15, 15, 5, 6, -13, 13, 'stone_dark'); v.paint(-13, 6, 20, 21, -11, 8, 'stone_dark');   // its courses
+  v.paint(10, 12, 9, 11, 12, 13, 'ore_gold'); v.paint(14, 15, 13, 15, 2, 4, 'ore_copper');
+  const mouth = [[-11, 7, 2, 5], [-12, 8, 5, 9], [-11, 7, 9, 12], [-10, 5, 12, 15], [-8, 3, 15, 17], [-6, 0, 17, 18]];   // a ragged mouth
+  v.paint(-13, 9, 1, 19, -1, 12, 'stone_dark');               // its walls in shadow
+  for (const [x0, x1, y0, y1] of mouth) v.box(x0, x1, y0, y1, 0, 13, null);
+  for (const [x0, x1, y0, y1] of mouth) v.box(x0, x1, y0, y1, -1, 0, 'char');   // the dark far end
+  v.paint(-8, 2, 1, 2, 3, 11, 'hay_dark');                    // lamplight on the floor
+  v.paint(-8, 2, 5, 14, -1, 0, 'bark_dark');                  // and on the far wall
+  v.box(-10, -9, 13, 15, 8, 12, 'stone_dark'); v.box(3, 4, 13, 15, 8, 12, 'stone_dark');   // drips from the roof
+  v.box(-6, -5, 16, 17, 8, 12, 'stone_dark');
+  const holes = new Set();
+  for (const [x0, x1, y0, y1] of mouth) for (let x = x0; x < x1; x++) for (let y = y0; y < y1; y++) holes.add(x + ',' + y);
+  for (let x = -14; x < 10; x++) for (let y = 1; y < 20; y++) {   // the highlight round the mouth
+    if (holes.has(x + ',' + y)) continue;
+    if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => holes.has((x + dx) + ',' + (y + dy)))) v.paint(x, x + 1, y, y + 1, 12, 13, 'cave_line');
+  }
+  v.box(-4, -2, 13, 17, 6, 8, 'iron_dark');                   // the chain
+  v.box(-5, -1, 7, 13, 5, 9, 'brass');                        // the lantern
+  v.paint(-5, -1, 8, 12, 8, 9, 'flame_mid'); v.paint(-2, -1, 8, 12, 5, 9, 'flame_mid');
+  v.paint(-4, -2, 9, 11, 8, 9, 'flame_core'); v.paint(-2, -1, 9, 11, 6, 8, 'flame_core');
+  v.box(-6, 0, 13, 14, 4, 10, 'brass_dark'); v.box(-6, 0, 6, 7, 4, 10, 'brass_dark');
+}, { yaw: 25 });
+
+// Dwarf tools: an elder dwarf's head from the real parts, bald and white-bearded so it is
+// not Colony's ginger one (the third tints, hair3 and skin2), with a brass cog at its beard.
+const ELDER = { hair: 'hair3', hair_mid: 'hair3_mid', hair_shade: 'hair3_shade', skin: 'skin2',
+  skin_shade: 'skin_shade2', nose: 'nose2', blush: 'blush2', mouth: 'mouth2' };
+define('dev_dwarf_tools', v => {
+  for (const part of ['body/head_elder', 'body/eyes', 'eyebrows/brows_m_bushy', 'hair/hair_m_shaved', 'beards/beard_forked'])
+    replayInto(v, D.build(part).log, [-5, 0, -2], ELDER);
+  cog(v, 10, 31, 11, 15);
+}, { yaw: 32 });
+
+// Water: a stone channel with a plank gate across it, the water spilling over the step into
+// a pool, foaming where it lands.
+define('dev_water', v => {
+  v.box(-15, 15, 0, 3, -15, 15, 'stone_dark');                // the bed
+  v.cut(-15, 15, 3, 18, -15, -1, 2, 'stone');                 // the upper step
+  v.paint(-15, 15, 17, 18, -15, -1, 'stone_light');
+  v.paint(-15, 15, 10, 11, -15, -1, 'stone_dark'); v.paint(-15, 15, 3, 4, -15, -1, 'stone_dark');
+  for (const [x, y0, y1] of [[-11, 4, 10], [9, 11, 17], [-9, 11, 17]]) v.paint(x, x + 1, y0, y1, -2, -1, 'stone_dark');
+  v.box(-7, 7, 12, 18, -15, -1, null);                        // the channel through it
+  v.box(-7, 7, 12, 16, -15, -1, 'water'); v.paint(-7, 7, 15, 16, -15, -1, 'water_light');
+  v.box(-9, -7, 12, 25, -11, -8, 'bark'); v.box(7, 9, 12, 25, -11, -8, 'bark');   // the gate's posts
+  v.paint(-9, -7, 24, 25, -11, -8, 'wood_top'); v.paint(7, 9, 24, 25, -11, -8, 'wood_top');
+  v.box(-7, 7, 14, 23, -10, -9, 'riven');                     // the gate, lifted off the bed
+  for (const x of [-3, 1, 4]) v.paint(x, x + 1, 14, 23, -10, -9, 'riven_dark');
+  v.box(-8, 8, 22, 24, -11, -8, 'bark_light');
+  v.box(-7, 7, 4, 16, -1, 1, 'water');                        // the fall
+  for (const x of [-6, -2, 3]) v.paint(x, x + 1, 5, 16, 0, 1, 'water_light');
+  v.box(-15, 15, 3, 6, -1, 15, 'stone');                      // the pool's rim
+  v.paint(-15, 15, 5, 6, -1, 15, 'stone_light');
+  v.box(-12, 12, 4, 6, -1, 12, null);
+  v.box(-12, 12, 4, 5, -1, 12, 'water_dark');                 // the pool
+  v.paint(-12, 12, 4, 5, 5, 12, 'water');
+  v.box(-9, 9, 4, 6, 1, 4, 'foam'); v.box(-7, 7, 5, 7, 1, 3, 'foam');   // foam where it lands
+  for (const [x, z] of [[-10, 7], [8, 8], [1, 9]]) v.box(x, x + 3, 4, 5, z, z + 1, 'water_light');   // ripples
+}, { yaw: 20 });
+
+// Arrival status: the deer's real head, as Events shows a deer's arrival, beside a board
+// tallying what came: four strokes struck through and a fifth group begun.
+define('dev_arrival_status', v => {
+  for (const part of ['deer/neck', 'deer/head', 'deer/ears', 'deer/antlers'])
+    replayInto(v, flipZ(W.build(part).log), [-6, -18, -4], own('deer'));
+  v.box(10, 12, -3, 4, 4, 6, 'bark');                         // the board's post
+  v.cut(2, 20, 3, 13, 5, 7, 1, 'riven');                      // the board
+  v.paint(2, 20, 12, 13, 5, 7, 'wood_top'); v.paint(2, 20, 3, 4, 5, 7, 'riven_dark');
+  for (const x of [4, 6, 8, 10]) v.paint(x, x + 1, 5, 11, 6, 7, 'char');
+  v.paint(3, 12, 7, 8, 6, 7, 'char'); v.paint(3, 4, 8, 9, 6, 7, 'char'); v.paint(11, 12, 6, 7, 6, 7, 'char');
+  for (const x of [14, 16]) v.paint(x, x + 1, 5, 11, 6, 7, 'char');
+}, { yaw: 32 });
+
+// Item stamper: a hewn stamp with a red knob, lifted off a flagged floor where it has just
+// set down a log and a rough stone; its shadow on the flags below.
+define('dev_item_stamper', v => {
+  v.box(-15, 15, 0, 2, -15, 15, 'stone'); v.paint(-15, 15, 1, 2, -15, 15, 'stone_light');
+  for (const c of [-5, 5]) { v.paint(c, c + 1, 1, 2, -15, 15, 'stone_dark'); v.paint(-15, 15, 1, 2, c, c + 1, 'stone_dark'); }
+  v.paint(-14, 1, 1, 2, -13, 2, 'stone_dark');                // its shadow
+  logX(v, -1, 14, 2, 6, 6);                                   // what it set down
+  v.cut(5, 13, 2, 9, -5, 3, 2, 'stone'); v.paint(5, 13, 8, 9, -5, 3, 'stone_light');
+  v.cut(-15, 2, 9, 16, -14, 3, 1, 'wood_side');               // the stamp's block
+  v.paint(-15, 2, 15, 16, -14, 3, 'wood_top');
+  v.paint(-15, 2, 9, 11, -14, 3, 'wood_dark');                // its pad
+  v.box(-9, -4, 16, 21, -8, -3, 'wood');                      // the neck
+  v.cut(-12, -1, 21, 29, -11, 0, 3, 'apple');                 // the knob
+  v.paint(-12, -1, 28, 29, -11, 0, 'apple_light'); v.paint(-12, -1, 21, 22, -11, 0, 'apple_dark');
+}, { yaw: -15 });
+
+// Remove objects: a patch of grass where the tool's red outline rings a pine that is going,
+// its crown coming apart into loose cubes that drift off; a boulder and a low blueberry bush
+// wait beside it.
+define('dev_remove_objects', v => {
+  v.box(-15, 15, 0, 4, -15, 15, 'earth');                     // the ground
+  v.paint(-15, 15, 3, 4, -15, 15, 'grass'); v.paint(-15, 15, 0, 1, -15, 15, 'earth_dark');
+  for (const [x, z] of [[-13, 9], [7, -13], [-2, 12]]) v.paint(x, x + 4, 3, 4, z, z + 3, 'grass_light');
+  for (const [x0, x1, z0, z1] of [[-15, 1, -15, -13], [-15, 1, -1, 1], [-15, -13, -15, 1], [-1, 1, -15, 1]])
+    v.box(x0, x1, 4, 5, z0, z1, 'apple');                     // the red outline, lying on the grass
+  v.box(-9, -5, 4, 12, -9, -5, 'bark'); v.paint(-9, -8, 4, 12, -6, -5, 'bark_light');   // the trunk
+  v.cut(-13, -1, 11, 15, -13, -1, 3, 'pine_dark');            // the lowest tier, still whole
+  v.paint(-13, -1, 14, 15, -13, -1, 'pine');
+  v.cut(-11, -3, 15, 18, -11, -3, 2, 'pine');                 // the next, breaking up
+  for (const [x0, x1, z0, z1] of [[-5, -3, -11, -8], [-11, -8, -5, -3], [-6, -3, -6, -3]]) v.box(x0, x1, 15, 18, z0, z1, null);
+  for (const [x, y, z, s, c] of [[-10, 19, -9, 3, 'pine'], [-6, 20, -10, 3, 'pine_light'], [-8, 22, -6, 3, 'pine'],
+    [-3, 23, -8, 2, 'pine_light'], [-11, 25, -5, 2, 'pine'], [-5, 26, -3, 2, 'pine_light'], [-1, 28, -7, 2, 'pine'],
+    [-8, 29, -10, 1, 'pine_light'], [1, 30, -4, 1, 'pine_light']])
+    v.box(x, x + s, y, y + s, z, z + s, c);                   // its crown, drifting off in cubes
+  v.cut(3, 13, 4, 10, 3, 13, 3, 'stone');                     // a boulder
+  v.cut(4, 12, 10, 13, 4, 12, 3, 'stone_light'); v.paint(3, 13, 4, 5, 3, 13, 'stone_dark');
+  v.paint(8, 9, 6, 10, 12, 13, 'stone_dark');                 // a crack in its face
+  v.cut(-14, -6, 4, 9, 5, 13, 3, 'bush_dark');                // a low blueberry bush
+  v.cut(-13, -7, 9, 11, 6, 12, 2, 'bush'); v.paint(-12, -8, 10, 11, 7, 11, 'bush_light');
+  for (const [x, y, z] of [[-11, 5, 11], [-8, 7, 10], [-7, 5, 7], [-11, 9, 9], [-9, 10, 6]])
+    v.paint(x, x + 2, y, y + 2, z, z + 2, 'berry_blue');      // its berries
+}, { yaw: 25 });
+
+// Time & weather: an hourglass half run through, beside the Sky Dial's rain cloud.
+define('dev_time_weather', v => {
+  v.cut(-13, 5, 0, 3, -6, 6, 1, 'riven'); v.paint(-13, 5, 2, 3, -6, 6, 'wood_top');
+  v.cut(-13, 5, 27, 30, -6, 6, 1, 'riven'); v.paint(-13, 5, 29, 30, -6, 6, 'wood_top');
+  for (const x of [-12, 2]) for (const z of [-5, 3]) v.box(x, x + 2, 3, 27, z, z + 2, 'wood_side');
+  v.cutZ(-10, 2, 3, 13, -3, 3, 3, 'glass');                   // the lower bulb
+  v.cutZ(-6, -2, 12, 18, -2, 2, 1, 'glass');                  // the neck
+  v.cutZ(-10, 2, 17, 27, -3, 3, 3, 'glass');                  // the upper bulb
+  v.paint(-10, 2, 3, 8, -3, 3, 'hay'); v.paint(-7, -1, 8, 10, -3, 3, 'hay');   // sand run through
+  v.paint(-5, -3, 10, 18, -3, 3, 'straw');                    // the stream
+  v.paint(-10, 2, 17, 21, -3, 3, 'hay');                      // sand still to run
+  v.paint(-9, -8, 21, 25, 2, 3, 'glass_light'); v.paint(-9, -8, 6, 11, 2, 3, 'glass_light');
+  replayInto(v, S.build('sky/storm_small').log, [9, 19, 6]);
+  for (const [x, y] of [[4, 13], [8, 11], [12, 14], [15, 11]]) { v.box(x, x + 1, y, y + 3, 7, 8, 'rain'); v.box(x - 1, x, y - 2, y, 7, 8, 'rain'); }
+}, FACE);
+
+// ── Dwarf stats (doc 41 "Stats") ────────────────────────────────────────────────────
+// The six stats on the character sheet's Traits tab and the career map. Wits is
+// dividers, not a cog: the System menu's picture is already a cog.
+
+// Strength: a clenched mitten fist raised from its sleeve, the curled fingers and the
+// thumb across them facing the camera, the knuckles on top.
+define('stat_strength', v => {
+  v.cut(-8, 8, 0, 7, -6, 5, 2, 'tunic_dark');                 // the sleeve
+  v.paint(-8, 8, 6, 7, -6, 5, 'tunic');
+  v.cut(-10, 10, 7, 22, -6, 3, 2, 'skin2');                    // the back of the fist
+  for (let i = 0; i < 4; i++) {                                // four curled fingers, grooved apart
+    const x0 = -10 + 5 * i;
+    v.cut(x0, x0 + 4, 13, 25, -2, 6, 1, 'skin2');
+    v.paint(x0, x0 + 4, 24, 25, -2, 6, 'skin');                // the knuckle, lit
+    v.paint(x0, x0 + 4, 18, 19, 5, 6, 'skin_shade2');          // the middle joint
+    v.paint(x0, x0 + 4, 13, 14, -2, 6, 'skin_shade2');         // tucked under
+  }
+  v.cut(-11, 3, 9, 14, 5, 10, 1, 'skin2');                     // the thumb across them
+  v.paint(-11, 3, 13, 14, 5, 10, 'skin'); v.paint(-11, 3, 9, 10, 5, 10, 'skin_shade2');
+  v.cut(1, 5, 9, 14, 4, 9, 1, 'skin2'); v.paint(1, 5, 13, 14, 4, 9, 'skin');
+}, { yaw: 30 });
+
+// Agility: a dwarf's square boot, doubled, with a white wing at its ankle.
+define('stat_agility', v => {
+  v.cut(-16, 7, 0, 3, -6, 6, 2, 'sole');                       // the sole, the toe to the left
+  v.cut(-16, -1, 3, 10, -6, 6, 2, 'boot');                     // the round-square toe
+  v.paint(-16, -1, 9, 10, -6, 6, 'boot_light');                // its cap, lit
+  v.cut(-3, 7, 3, 22, -6, 6, 2, 'boot');                       // the shaft
+  v.cut(-4, 8, 22, 26, -7, 7, 2, 'boot_dark');                 // the folded cuff
+  v.paint(-4, 8, 25, 26, -7, 7, 'boot_light'); v.box(-2, 6, 25, 26, -5, 5, 'boot_dark');
+  for (const [z0, z1] of [[6, 8], [-8, -6]]) {                 // a wing each side: three feathers fanned back
+    v.box(6, 15, 14, 17, z0, z1, 'snow'); v.box(15, 17, 14, 16, z0, z1, 'snow_shade');
+    v.box(6, 16, 18, 21, z0, z1, 'snow'); v.box(16, 18, 19, 21, z0, z1, 'snow_shade');
+    v.box(6, 11, 22, 25, z0, z1, 'snow'); v.box(9, 14, 24, 27, z0, z1, 'snow'); v.box(12, 16, 26, 29, z0, z1, 'snow');
+    v.box(14, 16, 29, 31, z0, z1, 'snow_shade');
+    for (const y of [14, 18, 22]) v.paint(6, 18, y, y + 1, z0, z1, 'snow_shade');   // each feather's shaded underside
+    v.cut(3, 9, 13, 26, z0, z1 + (z0 > 0 ? 1 : 0), 1, 'linen');   // the root at the ankle
+  }
+}, FACE);
+
+// Toughness: a round shield, oak planks in an iron rim, a steel boss and brass rivets.
+define('stat_toughness', v => {
+  v.cutZ(-14, 14, 0, 28, -2, 2, 8, 'iron');                    // the rim
+  v.cutZ(-12, 12, 2, 26, 2, 3, 7, 'wood_side');                // the planks, proud of it
+  for (const x of [-6, 0, 6]) v.paint(x, x + 1, 2, 26, 2, 3, 'wood_dark');
+  v.paint(-12, 12, 24, 26, 2, 3, 'wood_top');
+  v.cutZ(-5, 5, 9, 19, 3, 6, 3, 'steel'); v.paint(-5, 5, 9, 11, 3, 6, 'iron');              // the boss
+  v.box(-3, -1, 15, 17, 6, 7, 'glint');
+  for (const [x, y] of [[-1, 26], [-1, 0], [-14, 13], [12, 13]]) v.box(x, x + 2, y, y + 2, 2, 3, 'brass');   // rivets
+}, FACE);
+
+// Wits: brass dividers stood open, steel points down: the clever hand's instrument.
+define('stat_wits', v => {
+  for (let i = 0; i < 11; i++) {                               // the legs, spreading from the hinge
+    const dx = Math.round(i * 0.9);
+    v.box(-3 - dx, -dx, 22 - 2 * i, 25 - 2 * i, -1, 2, i < 9 ? 'brass' : 'steel');
+    v.box(dx, 3 + dx, 22 - 2 * i, 25 - 2 * i, -1, 2, i < 9 ? 'brass' : 'steel');
+  }
+  v.cutZ(-4, 4, 23, 30, -2, 3, 2, 'brass');                    // the hinge
+  v.paint(-4, 4, 29, 30, -2, 3, 'brass_light'); v.box(-1, 1, 25, 27, 3, 4, 'brass_dark');   // its pin
+  v.box(-1, 1, 30, 34, -1, 2, 'brass_dark');                   // the handle
+  v.box(-7, 7, 13, 15, -1, 1, 'brass_dark');                   // the arc that sets the spread
+}, FACE);
+
+// Wisdom: a brown owl on a branch, its round cream face and gold eyes on the camera.
+define('stat_wisdom', v => {
+  v.box(-15, 15, 0, 3, -2, 2, 'bark'); v.paint(-15, 15, 2, 3, -2, 2, 'bark_light');   // the branch
+  for (const x of [-5, 2]) v.box(x, x + 3, 3, 5, 0, 3, 'brass_dark');                // talons
+  v.cut(-9, 9, 4, 20, -5, 5, 3, 'bark_light');                 // the body
+  v.paint(-9, -6, 5, 18, -5, 5, 'bark'); v.paint(6, 9, 5, 18, -5, 5, 'bark');        // folded wings
+  v.paint(-5, 5, 6, 16, 2, 5, 'deer_cream');                   // the breast
+  for (const [x, y] of [[-3, 13], [1, 12], [-1, 9], [2, 8], [-4, 7]]) v.paint(x, x + 1, y, y + 1, 4, 5, 'bark');   // its specks
+  v.cut(-10, 10, 19, 30, -5, 5, 3, 'bark_light');              // the head
+  v.box(-10, -6, 30, 33, -2, 2, 'bark_dark'); v.box(6, 10, 30, 33, -2, 2, 'bark_dark');   // ear tufts
+  v.cutZ(-9, 0, 20, 29, 4, 6, 2, 'deer_cream'); v.cutZ(0, 9, 20, 29, 4, 6, 2, 'deer_cream');   // the face
+  v.cutZ(-7, -2, 22, 27, 6, 7, 1, 'ore_gold'); v.cutZ(2, 7, 22, 27, 6, 7, 1, 'ore_gold');      // the eyes
+  v.box(-5, -3, 23, 26, 7, 8, 'char'); v.box(3, 5, 23, 26, 7, 8, 'char');
+  v.box(-5, -4, 25, 26, 8, 9, 'glint'); v.box(3, 4, 25, 26, 8, 9, 'glint');
+  v.box(-8, -2, 28, 29, 6, 7, 'bark_dark'); v.box(2, 8, 28, 29, 6, 7, 'bark_dark');   // the brows
+  v.box(-1, 1, 18, 22, 6, 8, 'hay_dark');                      // the beak
+}, FACE);
+
+// Charisma: two dwarves' mittens clasped in greeting, rising from a teal sleeve and a rust one.
+define('stat_charisma', v => {
+  for (let i = 0; i < 5; i++) {                                // the two sleeves, rising to meet
+    v.box(-16 + 2 * i, -9 + 2 * i, 2 * i, 7 + 2 * i, -4, 3, 'tunic');
+    v.box(9 - 2 * i, 16 - 2 * i, 2 * i, 7 + 2 * i, -3, 4, 'rust');
+  }
+  v.paint(-8, -6, 8, 15, -4, 3, 'tunic_light'); v.paint(6, 8, 8, 15, -3, 4, 'rust_light');   // the cuffs' lit rims
+  v.cut(-8, 5, 13, 22, -4, 3, 2, 'skin'); v.paint(-8, 5, 13, 15, -4, 3, 'skin_shade');       // the left hand
+  v.cut(-4, 8, 14, 23, 0, 6, 2, 'skin2'); v.paint(-4, 8, 14, 16, 0, 6, 'skin_shade2');      // the right hand, in front
+  for (let i = 0; i < 3; i++) {                                // its fingers wrapped over the left hand
+    v.box(-8, -3, 15 + 2 * i, 17 + 2 * i, 3, 6, 'skin2');
+    v.paint(-8, -3, 15 + 2 * i, 16 + 2 * i, 5, 6, 'skin_shade2');
+  }
+  v.cut(-3, 5, 22, 26, 1, 5, 1, 'skin2'); v.paint(-3, 5, 25, 26, 1, 5, 'skin');             // the right thumb on top
+  v.box(1, 7, 21, 24, -3, 1, 'skin');                          // the left thumb behind it
 }, FACE);
 
 export function build(name) { const v = new Vox(); icons[name](v); return v; }

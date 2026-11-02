@@ -253,9 +253,9 @@ func refresh() -> void:
 		row.permissions.visible = _work_view
 		for key: String in row.checks:
 			var check: CheckBox = row.checks[key]
-			check.disabled = key == "craft" and agent.profession != "base:profession:worker"
+			check.disabled = not DwarfAssets.profession_allows(agent.profession, key)   # the Ranger fishes; Workers craft
 			check.set_pressed_no_signal(bool(agent.work_permissions.get(key, true)) and not check.disabled)
-		row.work_note.text = "Mining disabled" if agent.profession == "base:profession:miner" and not bool(agent.work_permissions.get("mine", true)) else "Mining focus" if agent.profession == "base:profession:miner" else "General work"
+		row.work_note.text = _work_note(agent)
 		row.activity.text = data.summary
 		row.activity.add_theme_color_override("font_color", UITheme.HEARTH_COPPER if data.group == "resting" else UITheme.SUCCESS if data.group == "working" else UITheme.HEARTH_TEXT)
 		row.rest.value = roundi(float(data.rest) * 100)
@@ -296,9 +296,18 @@ func refresh() -> void:
 	_empty.text = "No dwarves have arrived yet.\nPlace a settlement flag to welcome your first settlers." if agents.is_empty() else "No dwarves match this view.\nTry another filter or name."
 	_detail_empty.visible = not _card.visible
 	_footer.text = "%d of %d dwarves · Select a row for details · Locate moves the camera" % [shown, agents.size()]
-	if _work_view: _footer.text = "Checked = allowed · Miners prefer mining · Supplies for a job stay allowed · Rest is automatic"
+	if _work_view: _footer.text = "Checked = allowed · Miners prefer mining · Rangers fish and dry · Supplies for a job stay allowed · Rest is automatic"
 	_queue_portrait_update()
 	# Never sort by changing activity, rebuild rows or refit on these wakes.
+
+
+## A specialist's focus (its level 1 reward: "Mining focus", "Fishing focus"), or that its own
+## work is switched off; "General work" for the others.
+static func _work_note(agent: DwarfAgent) -> String:
+	var info: Dictionary = DwarfAssets.profession_definition(agent.profession).get("experience", {})
+	if info.is_empty(): return "General work"
+	if not bool(agent.work_permissions.get(DwarfAssets.work_category(String(info.earned_by)), true)): return String(info.disabled)
+	return String(DwarfAssets.level_rewards(agent.profession)[0].text)
 
 
 func _build_row(agent: DwarfAgent) -> void:

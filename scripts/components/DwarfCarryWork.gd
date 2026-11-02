@@ -12,6 +12,7 @@ const BodyRig = preload("res://scripts/components/DwarfBodyRig.gd")
 const Movement = preload("res://scripts/components/DwarfMovement.gd")
 const FellingPose = preload("res://scripts/components/DwarfFellingPose.gd")
 const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
+const FishingPose = preload("res://scripts/components/DwarfFishingPose.gd")
 const ConstructionPose = preload("res://scripts/components/DwarfConstructionPose.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
 
@@ -51,6 +52,7 @@ var _handling_fruit_topup := false
 var _haul_deposit: Vector3i = Vector3i(-1, -1, -1)
 var _haul_failures: int = 0
 var _haul_exclude: Dictionary = {}   # Node3D -> true; this-round item blacklist
+var _haul_pickup_cell := Vector3i(-1, -1, -1) # the load the scheduler's route search reached
 
 ## Furniture pipeline (doc 19 §3.3). FETCH_BUILD: reserve item via the ghost
 ## work source -> walk -> pick up -> walk to the ghost -> set down. Interrupts
@@ -112,7 +114,8 @@ func _haul_pull_next() -> void:
 		agent.current_task_id = -1
 		fail(agent.dwarf_id, "stockpile zone gone")
 		return
-	var pull: Dictionary = source.call("reserve_haul", agent.dwarf_id, agent.current_cell(), _haul_exclude)
+	var pull: Dictionary = source.call("reserve_haul", agent.dwarf_id, agent.current_cell(), _haul_exclude, _haul_pickup_cell)
+	_haul_pickup_cell = Vector3i(-1, -1, -1) # only the assignment's first load was planned
 	if pull.is_empty():
 		_finish_haul_state()
 		agent.current_task_id = -1
@@ -379,7 +382,7 @@ func _process_item_handling(delta: float) -> void:
 			_clear_item_handling()
 			if action == DwarfAgent.TaskPhase.HAUL_PICKUP:
 				_haul_skip_current()
-			else:
+			elif not _fetch_skip_extra():
 				_fetch_fail_release()
 			return
 		# Finish facing the item before contact, keeping its untouched world
@@ -392,7 +395,7 @@ func _process_item_handling(delta: float) -> void:
 				_clear_item_handling()
 				if action == DwarfAgent.TaskPhase.HAUL_PICKUP:
 					_haul_skip_current()
-				else:
+				elif not _fetch_skip_extra():
 					_fetch_fail_release()
 				return
 			var took := _haul_take_current() if action == DwarfAgent.TaskPhase.HAUL_PICKUP else _fetch_take_item()
@@ -417,7 +420,7 @@ func _process_item_handling(delta: float) -> void:
 			_haul_index += 1
 			_haul_walk_current()
 		DwarfAgent.TaskPhase.FETCH_PICKUP:
-			_fetch_travel_to_ghost()
+			if not _fetch_next_extra(): _fetch_travel_to_ghost()
 		DwarfAgent.TaskPhase.HAUL_DEPOSIT:
 			_haul_deposit_now()
 		DwarfAgent.TaskPhase.FETCH_DEPOSIT:
@@ -480,7 +483,7 @@ func _fetch_begin() -> void:
 ## furniture withdrawn from a ground stockpile or a storage container.
 func _fetch_pickup() -> void:
 	if not is_instance_valid(_fetch_item):
-		_fetch_fail_release()
+		if not _fetch_skip_extra(): _fetch_fail_release()
 		return
 	_begin_item_pickup(_fetch_item, DwarfAgent.TaskPhase.FETCH_PICKUP)
 
@@ -488,7 +491,7 @@ func _fetch_pickup() -> void:
 func _fetch_take_item() -> bool:
 	var source := fetch_source()
 	if source == null or _fetch_item == null or not is_instance_valid(_fetch_item):
-		_fetch_fail_release()
+		if not _fetch_skip_extra(): _fetch_fail_release()
 		return false
 	var manager := ItemDropManager.find(agent.get_tree())
 	if manager == null:
@@ -503,7 +506,7 @@ func _fetch_take_item() -> bool:
 	else:
 		key = manager.take(_fetch_item)
 	if key.is_empty():
-		_fetch_fail_release()   # vanished / raced
+		if not _fetch_skip_extra(): _fetch_fail_release()   # vanished / raced
 		return false
 	_fetch_picked_up = true
 	source.call("notify_picked_up", agent.dwarf_id)
@@ -516,6 +519,35 @@ func _fetch_take_item() -> bool:
 	_handling_item = _fetch_item # A single cutting may be split from a larger crate.
 	return true
 
+
+## A craft trip carries several ingredients, as hauling does: after each pickup,
+## the next one the batch needs, lying near, while the carrying limit allows
+## (doc 44, "Trips"). True when that took over: a walk to it, or on to the bench.
+func _fetch_next_extra() -> bool:
+	var source := fetch_source()
+	if source == null or not source.has_method("reserve_trip_extra"): return false
+	var pull: Dictionary = source.reserve_trip_extra(agent.dwarf_id, agent.current_cell())
+	if pull.is_empty(): return false
+	_fetch_item = pull.item
+	_fetch_picked_up = false
+	_fetch_heavy = _fetch_heavy or bool(pull.get("heavy", false))
+	if _walk_to_handling_stand(StorageComponent.ground_access_cells(agent.item_floor_cell(_fetch_item)), DwarfAgent.TaskPhase.FETCH_TO_ITEM):
+		return true
+	return _fetch_skip_extra()
+
+## An extra ingredient out of reach is left where it lies; the Worker carries on
+## to the bench with the rest. False when nothing is carried yet.
+func _fetch_skip_extra() -> bool:
+	var source := fetch_source()
+	if source == null or not source.has_method("drop_trip_extra"): return false
+	var last: Node3D = source.drop_trip_extra(agent.dwarf_id)
+	if not is_instance_valid(last): return false
+	_clear_item_handling()
+	_fetch_item = last
+	_fetch_picked_up = true
+	rig.carry_pose.hold(rig.carried_entries)
+	_fetch_travel_to_ghost()
+	return true
 
 func _fetch_travel_to_ghost() -> void:
 	var source := fetch_source()
@@ -563,12 +595,18 @@ func _fetch_complete() -> void:
 		if not commit(agent.dwarf_id,unit,func(): return bool(source.stage_ingredient(agent.dwarf_id))):
 			_fetch_fail_release()
 			return
-		rig.carried_entries = rig.carried_entries.filter(func(entry: Array) -> bool: return entry[0] != _fetch_item)
+		# The trip's goods are set down; a batch now complete keeps its last log in hand.
+		var kept: Node3D = source.held_item()
+		rig.carried_entries = rig.carried_entries.filter(func(entry: Array) -> bool: return entry[0] == kept)
+		rig.carry_pose.clear_items()
+		rig.reset_part_offsets()
+		if is_instance_valid(kept):
+			_fetch_item = kept
+			_begin_fetch_work()
+			return
 		_fetch_item = null
 		_fetch_picked_up = false
 		movement.carry_speed_mult = 1.0
-		rig.carry_pose.clear_items()
-		rig.reset_part_offsets()
 		_fetch_begin()
 		return
 	# A wall can be mined during the work swing. Release the intact item if
@@ -620,7 +658,7 @@ func _begin_fetch_work() -> void:
 		return
 	if not source.has_method("remaining_work"):
 		# Finished furniture only needs one set-down; no invisible build delay
-		# before it. Bridge/ladder assembly, crafting and planting own their time.
+		# before it. Ladder assembly, crafting and planting own their time.
 		_begin_fetch_deposit()
 		return
 	task_phase = DwarfAgent.TaskPhase.FETCH_WORKING
@@ -645,26 +683,57 @@ func _plant_pose(source: RefCounted, phase: float) -> void:
 func _construction_work_pose(source: RefCounted) -> Vector3:
 	var face: Vector3i = source.work_facing(agent.current_cell())
 	agent.rotation.y = atan2(face.x,face.z)
+	# A replaced block is dug out with the pick before the new one is hammered in (doc 285).
+	if source.digging():
+		if is_instance_valid(rig.construction_pose.tool) and rig.construction_pose.tool.visible: rig.construction_pose.reset()
+		var dig := MiningPose.contact_point(source.target,agent.global_position,agent.global_basis.z)
+		rig.mining_pose.apply(source.dig_phase(),agent.to_local(dig))
+		return dig
+	if is_instance_valid(rig.mining_pose.tool) and rig.mining_pose.tool.visible: rig.mining_pose.reset()
 	var contact := ConstructionPose.contact_point(source.target,agent.global_position,agent.global_basis.z)
 	var inward := -ConstructionPose.contact_normal(source.target,contact)
 	# Use the near side's horizontal clearance for the entire work session,
 	# including low blocks struck on top. Higher targets must not move the feet.
 	rig.construction_pose.prepare_stance(agent.to_local(MiningPose.contact_point(source.target,agent.global_position,agent.global_basis.z)))
-	rig.construction_pose.apply(float(source.progress)/ConstructionPose.CYCLE_SECONDS,agent.to_local(contact),agent.global_basis.inverse()*inward)
+	rig.construction_pose.apply(source.hammer_progress()/ConstructionPose.CYCLE_SECONDS,agent.to_local(contact),agent.global_basis.inverse()*inward)
 	return contact
+
+
+## A strike as the work crosses its tool's contact: the pick's while a replaced block is dug out
+## (doc 285), then the hammer's. Actual clamped progress crosses contact once: stalls coalesce
+## hits, and resuming a partly built block cannot replay an earlier impact.
+func _construction_strike(source: RefCounted, before: float, contact: Vector3) -> void:
+	var dig: float = source.dig_seconds_of(source.target)
+	var after := float(source.progress)
+	if after <= dig:
+		var swing: float = source.dig_swing_seconds()
+		if floori(after/swing-MiningPose.CONTACT_PHASE) > floori(before/swing-MiningPose.CONTACT_PHASE):
+			source.play_dig_impact(contact,ConstructionPose.contact_normal(source.target,contact))
+	elif floori((after-dig)/ConstructionPose.CYCLE_SECONDS-ConstructionPose.CONTACT_PHASE) \
+			> floori(maxf(before-dig,0.0)/ConstructionPose.CYCLE_SECONDS-ConstructionPose.CONTACT_PHASE):
+		WorkFeedback.play_hammer(contact,int(source.target.y))
 
 
 func _craft_pose(source: RefCounted) -> Vector3:
 	var contact: Vector3 = source.call("work_surface")
 	var toward := contact-agent.global_position
 	agent.rotation.y = atan2(toward.x,toward.z)
+	if source.has_method("work_motion") and String(source.call("work_motion")) == "hands":
+		# The drying rack (doc 289): the goods wait at the dwarf's feet and the hands reach up
+		# to hang them on the crossbar.
+		if is_instance_valid(_fetch_item):
+			_fetch_item.global_position = agent.global_position+agent.global_basis.z*.55
+			_fetch_item.rotation = Vector3.ZERO
+		rig.carry_pose.gather(fposmod(float(source.get("progress")),1.0),agent.to_local(contact))
+		return contact
 	if is_instance_valid(_fetch_item):
 		var bounds: AABB = rig.carry_pose.item_bounds(_fetch_item)
 		_fetch_item.global_position = contact-Vector3.UP*bounds.position.y
 		_fetch_item.rotation = Vector3.ZERO
 		contact += Vector3.UP*bounds.size.y
 	if rig.felling_pose != null:
-		rig.felling_pose.apply(float(source.get("progress"))/FellingPose.CYCLE_SECONDS,agent.to_local(contact))
+		# The career's own tool in the Worker's swing (doc 293): the Carpenter's adze, the Stonemason's maul.
+		rig.felling_pose.apply(float(source.get("progress"))/FellingPose.CYCLE_SECONDS,agent.to_local(contact),DwarfAssets.craft_tool(agent.profession))
 	return contact
 
 
@@ -687,7 +756,14 @@ func _finish_fetch_state() -> void:
 	var source := fetch_source()
 	if source != null:
 		source.call("cancel_fetch", agent.dwarf_id)
+	var carried: Array[Node3D] = []
+	for entry: Array in rig.carried_entries:
+		if is_instance_valid(entry[0]): carried.append(entry[0])
 	drop_carried_at_feet()   # covers the picked-up case; no-op otherwise
+	# A craft keeps the ingredients that land beside its bench (doc 44, "Interruption").
+	if source != null and source.has_method("keep_dropped"):
+		for node: Node3D in carried:
+			if is_instance_valid(node): source.keep_dropped(node)
 	_fetch_item = null
 	_fetch_picked_up = false
 	_fetch_source_id = -1

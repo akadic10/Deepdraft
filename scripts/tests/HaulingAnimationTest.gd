@@ -39,6 +39,7 @@ func _new_trip(key := ACORN, amount := 12) -> void:
 	stockpiles._process(0)
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	var data: Dictionary = factory.generate(141, {})
+	data.erase("stats")   # Average in each, so the timings below are the plain ones (doc 41 "Stats")
 	if key in [LOG, STONE]:
 		data.gender = "male"
 		data.appearance.gender = "male"

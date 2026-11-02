@@ -1,0 +1,16 @@
+Frog sound source — CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source page and its CC0 declaration checked 2026-10-28.
+
+FROGS: Small Frog Croaks — clif_creates
+https://freesound.org/people/clif_creates/sounds/802737/
+The author describes one small frog isolated from a group with a shotgun
+microphone in Ojai, California. The uploaded recording already has iZotope RX
+noise reduction. The species is not identified. Three separate, complete
+croaks provide the variations; no synthetic or human-imitation voice is used.
+
+The master was decoded from Freesound's public HQ MP3 preview, not downloaded
+from the original-upload WAV endpoint. source.json records download hashes,
+master conversion, crop positions, filters, fades and levels. Preparation
+resamples with anti-alias filtering to mono 22050 Hz while preserving original
+speed and pitch. No time stretching, rearrangement or reverb is added.

@@ -2,6 +2,8 @@
   "id": "base:animal:wolf",
   "display_name": "Wild Wolf",
   "description": "A cautious predator. Hunts only when hungry, gives up long chases and rests after feeding. Avoids approaching dwarves.",
+  "__comment_hit_points": "Hit points (doc 45): what the Ranger's blows will have to wear down once hunting comes. Nothing hurts an animal yet.",
+  "hit_points": 60,
   "model_parts": {
     "body": "res://assets/models/animals/wolf/body.glb",
     "head": "res://assets/models/animals/wolf/head.glb",

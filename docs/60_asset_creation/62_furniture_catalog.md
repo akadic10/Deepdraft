@@ -1,7 +1,8 @@
 # 62 — Furniture catalogue and Stonehearth comparison
 
 All furniture in the game is **Tier 1 · Axe-Hewn** Hearthblock art: split slabs, bark,
-chopped stepped ends, notches, rope lashings and loose hay, with no iron. See
+chopped stepped ends, notches, rope lashings and loose hay, with no iron. The fence posts,
+rails and gate and the carpenter's bench are peeled, as built logs are (doc 278). See
 [64 — Hearthblock art direction](64_hearthblock_art_direction.md) for the look and the
 tier rules, and [63](63_shared_art_standard.md) for the pipeline. The models are
 authored in `tools/hearthblock/art/tier1.mjs` and `proposal.mjs`. Wooden pieces
@@ -20,29 +21,34 @@ Footprints are width × depth in blocks. Heat values come from each definition's
 | Piece | Key | Footprint | Tier 1 design | What it does |
 |---|---|---|---|---|
 | Log Stool | `log_chair` | 1×1 | Bark stump with raised bark plates, a square growth ring and a drying split | Seat for resting, dining and games |
+| Stone Stool | `stone_stool` | 1×1 | A Rough Stone knocked square all the way down (doc 293, B), in the Rough Stone's own greys: its top a little uneven with one corner a cell lower, lumps left on its sides | Seats as the log stool does: resting, dining at a table's guides and games at the board. Stonemasons make it at the mason's bench from one Rough Stone; appeal is its design alone |
 | Log bench | `bench` | 2×1 | Half a split log dropped into notches in two short logs | One broad seat for meals and leisure |
 | Log Dining Table | `log_table` | 3×3 | Two riven halves on two short logs crossed in a notch | Four separate stools in a 5 × 5 dining layout |
 | Board-game Table | `board_game_table` | 3×3 | The same table with a board scratched into the top and six counters | Solo or two-player games for happiness |
 | Crude Workbench | `crude_workbench` | 3×3 | One great squared stump with root flare, bark, growth rings, a crack and a chopping notch | Worker crafting from any open side |
+| Drying Rack | `drying_rack` | 2×1 | Two forked bark posts on root flares with a peeled pole lashed into the forks, bare when idle; while a batch dries, three dried fish (look A, split along the belly) hang head down from cords (`parts/drying_rack_fish`) | The Ranger's workbench: Rangers make it and hang two fresh fish of one kind on it, by hand, from either long side; they dry for a day, then a Ranger takes them down as two dried fish (docs 289, 292) |
+| Carpenter's Bench | `carpenter_bench` | 3×1 | The owner's picture, peeled (doc 293, A): a thick slab, half a great log hewn flat on top, on four peeled log legs braced low with round log rails across both ends and a little higher along both sides; knots trimmed flush, end grain at every cut | The Carpenter's workbench, work top at 1.125: Carpenters make it from three matching logs at the crude workbench (doc 293) |
+| Tool Rack | `tool_rack` | 3×1, on a wall | Half a split log, its round back to the wall and its split face out, lashed with rope to two wall pegs, with three stout pegs driven in and angled up (doc 294, B); it hangs 2 blocks up over its three floor cells | Holds three tools, one hung upright on each peg, at storage priority 4 (ahead of ground storage). Carpenters make it at the carpenter's bench from one log; it needs a wall behind it as high as it is (3 blocks), and falls with its tools when that wall is mined |
+| Raw Materials Crate | `raw_materials_crate` | 2×2 | A log crib (doc 294, A): two courses of notched bark logs crossing at the corners, open on top, inside its footprint | Holds twelve raw goods (Rough Stone, the ores and coal, soil), three to each quarter, at storage priority 4; each filled quarter shows one of its goods over the rim. Carpenters make it at the carpenter's bench from two matching logs |
+| Mason's Bench | `mason_bench` | 3×1 | A split stone slab in the Rough Stone's own greys across two bark log stumps set in from the ends, with stone chips at their feet | The Stonemason's workbench, work top at 0.9375: Stonemasons make it from a log and three Rough Stones at the crude workbench; no wood recolours it (doc 293) |
 | Log bed | `log_bed` | 4×3 | Notched log frame with flat hay under the sleeper | One sleeper; counts toward bedrooms |
 | Log door (2, 3 wide) | `door`, `log_door_3` | 2×1, 3×1 | Vertical split slabs with stepped chopped tops, pegged battens, rope lashing and a rope pull | Opens on approach; seals rooms |
 | Double log door | `log_door_4` | 4×1 | Two such leaves | Leaves swing apart; seals rooms |
-| Log Fence Post | `log_fence` | grid corner | Squared pole with a chopped point and rope bands; split-pole rails | Posts at neighbouring grid corners join with two rails |
-| Log Gate | `log_gate` | 2 edges | Chopped stiles, split rails and a stepped brace | Opens on approach; shares posts with fences |
+| Log Fence Post | `log_fence` | 1×1 | Peeled 6 × 6 pole with an earth-dark foot, a knot, a drying check and a flat top showing its rings; peeled split rails, split face up, set into the posts | Posts on neighbouring tiles join with two rails |
+| Log Gate | `log_gate` | 3×1 | Peeled stiles with chopped tops, two split rails and one brace laid over the front from the hinge's foot to the latch's head; rope ties at the hinge, a rope loop at the latch, a one-cell gap at the latch | One open tile between two posts; opens on approach; shares posts with fences |
 | Rough wooden ladder | `crude_ladder` | 1×1 | Bark poles with chopped tops, lashed stick rungs every 8 cells | Each crafted section installs four blocks of ladder |
-| Log bridge | `log_bridge` | 2 wide | Four split logs, riven face up, lashed near each bank | Spans one to five water blocks between level banks |
 | Log torch | `wooden_torch` | wall | The proposal's wooden peg torch | Light and 75 heat units; no fuel |
-| Campfire | `campfire` | 3×3 area | The proposal's eight-stone campfire | Rudimentary crafting, light and 900 heat units |
-| Rudimentary hearth | `hearth` | 2×2 | Squared stones in uneven courses on a hearthstone, a lintel, crossed logs and embers | Small-room heater, 1600 heat units counted once |
+| Campfire | `campfire` | 3×3 area | The proposal's eight-stone ring with no wood: grey ash, a charred centre, soot on each stone's face toward the fire; the night's log is the real good | Rudimentary crafting; lit at dusk with a log until dawn: light and 900 heat units while it burns (doc 279); dwarves grill fresh fish at it while it burns (doc 290) |
+| Rudimentary hearth | `hearth` | 2×2 | Fire-back (the owner's pick of four concepts, doc 279): an open fire on four flagstones, scorched round the ash, against three stacked slabs with soot fading up them, and low wing stones at the back corners; no wood, the night's log is the real good | Room heater for up to about 600 cells; lit at dusk with a log until dawn, or at bedtime by a dwarf sleeping in its room (doc 34), 9600 heat units counted once while it burns, tended so its room never passes 18°C (doc 34) |
 | Settlement flag | `settlement_flag` | 1×1 | A rough pole in a stone cairn with a lashed crossbar | Marks the settlement; can be packed and moved |
 | Wet stone, dry stone | `wet_stone`, `dry_stone` | 1×1 | Rocks (unchanged) | Supply or absorb water while placed |
 
-Ladder and bridge kits, packed furniture and the materials crate are rope-bound
+Ladder kits, packed furniture and the materials crate are rope-bound
 bundles of poles and split logs, or a crate of split slats on bark corner posts.
 All packed furniture, the settlement flag included, shares one crate
 (`assets/models/furniture/packed_furniture.glb`, the `model` of each packed item in
 `resources.json`), one world block in size and carried and stored at that size. Only
-the ladder and bridge kits, the water stones and uprooted plants keep models of their
+ladder kits, the water stones and uprooted plants keep models of their
 own when packed. Menus never show the crate: Place, crafting, Inventory, storage and the
 compact panel picture a packed piece by its placed form
 (`assets/ui/furniture/<key>.png`, from `FurnitureCatalogThumbnails.gd`; doc 116).
@@ -63,8 +69,8 @@ chilly and hot sleep can separately cause temperature penalties (doc 34).
 
 `RoomManager` counts each installed heat source once, including multi-cell fires.
 Heating adds `total heat units / max(room volume, 128)` °C to the ambient
-temperature. Packed items don't heat rooms, and no installed source needs fuel or
-ignition yet.
+temperature. Packed items don't heat rooms. The campfire and the hearth are nightly
+fires: a worker lights each at dusk with a log, and it heats only until dawn (doc 34).
 
 ### Doors, fences and gates
 
@@ -79,28 +85,48 @@ are kept for better doors in later tiers (owner, 2026-10-12).
 - The hinges are looks only: navigation, the room seal and door lighting never follow
   the pose, and doors load shut with nothing saved. Doors stay walkable, and each
   footprint column of a door seals rooms at any pose (doc 34).
+- **Hit points** (owner, 2026-10-31): the design's `hit_points` times the material's
+  `toughness` (`CraftMaterials.hit_points`), the way appeal is design plus material, in the
+  one health model dwarves and animals share (doc 41, "Health"). Log doors have 150 in pine
+  or applewood, 165 in juniper and 180 in oak, and the gate 100 in pine; iron's toughness
+  is 5, for a later iron door of about 750. The Place card shows them on a shield chip
+  under appeal ("150–180" across the woods), and an installed door's panel says "Intact ·
+  180 hit points". Nothing damages a door yet: invaders will break doors instead of
+  opening them, and a broken door will unseal its room (doc 52, "Invader Behaviour").
+- **Better doors, planned:** an iron door with the Smelter and Forge (doc 44), and perhaps a
+  stone door with the Stonemason, both using the fixed jambs and lintels kept for them.
 
-**Fences and gates** (doc 201; `placement: grid_fence`, `GridFence.gd`, a helper of
+**Fences and gates** (doc 277; `placement: grid_fence`, `GridFence.gd`, a helper of
 `FurniturePlacementController`):
-- A Log Fence Post stands on a grid corner, not a tile: the pointer snaps to the
-  nearest intersection. The four tiles around that corner must be solid ground at one
-  level, with room for the post and a walkable tile beside it for the worker.
-- Posts one grid edge apart at the same height join with two rails; diagonal and more
-  distant posts don't. Runs, corners and T or four-way junctions share one post. A plan
-  previews its rails, and rails turn solid once both of their posts are installed.
-- The Log Gate spans two grid edges, with its middle corner left empty. It uses posts
-  already at its ends (hiding its own there) and joins neighbouring posts; R turns it.
-  Gates have no locks or animal permissions: the opening blocks no one.
+- A Log Fence Post stands in the middle of the tile under the pointer and blocks that
+  tile, like a stool; the tiles beside it stay walkable. Its tile takes the
+  floor-furniture tile rule (solid floor, three blocks of headroom, no zone, furniture or
+  hidden cave), and the worker needs a walkable tile beside it.
+- Posts on neighbouring tiles at the same height join with two rails, from tile centre
+  to tile centre; diagonal and more distant posts don't. Runs, corners and T or
+  four-way junctions share one post. A plan previews its rails, and rails turn solid
+  once both of their posts are installed.
+- Diagonal posts get no rail, but dwarves never cut corners, so the gap between them is
+  closed all the same. So is the gap between neighbouring posts at different heights.
+- The Log Gate covers three tiles in a line: an end post, one open tile and another end
+  post. The pointer aims at the open tile, and R turns the gate. Its ends reuse posts
+  already there (hiding its own) and join neighbouring posts. The leaf hinges at its
+  post's face (`door_animation.hinge_inset` 0.1875, doc 278).
+- Each fence tile has one role: a post, which a post and gate ends may share, or a gate
+  opening, which nothing else may use (so two gates can't cross).
+- The opening is one tile wide: dwarves, rabbits and ducks pass, but deer (2 wide) and
+  wolves (4 wide) don't fit. Gates have no locks or animal permissions.
 - Rails are worked out from the posts' positions; they are neither items nor saved.
   They are rebuilt when plans or pieces change and once after a load, and moving or
-  removing a post changes only its own rails.
-- Posts and rails are thin barriers in `PlacedEntityRegistry`, not filled cells: a post
-  is 0.24 blocks across and 1.3 high (`grid_fence.post_radius` and `height`), and rails
-  block up to 1.1 (`GridFence.rail_box`). The tiles on both sides stay walkable, and
-  routes and animals sweep against the barriers (doc 32). A plan reserves its space
-  against other furniture but blocks no route. Neither fences nor gates seal a room.
-- A post or gate that loses its ground drops its packed item, and its rails go with it;
+  removing a post changes only its own rails. Rails lie inside post tiles, so they are
+  looks only.
+- An installed post's tile is ordinary occupancy in `PlacedEntityRegistry`: one box per
+  post tile, `ceil(grid_fence.height)` blocks high, registered by `GridFence.sync` so a
+  shared post counts once. A plan reserves its tiles against furniture, storage zones
+  and construction but blocks no route. Neither fences nor gates seal a room.
+- A post or gate that loses its floor drops its packed item, and its rails go with it;
   a plan there is cancelled.
+- A piece saves its first tile as its origin: the post's tile, or a gate's first end.
 
 ## Retired and planned furniture
 
@@ -109,6 +135,9 @@ settlement flag and the wet and dry stones stayed, though no recipe makes them):
 - the aging rack, anvil, storage barrel, brazier, brewing vat and smelter;
 - the communal dining table, personal dining table, wooden chair and dwarven bed;
 - the storage chest, storage shelf, tavern bar, trade counter and wall torch.
+
+The log bridge and its kit were retired on 2026-10-27: rivers are crossed on logs built
+from Build, which make crossings of any width and length (doc 32, "River crossings").
 
 When one returns, design it fresh in Hearthblock, in the tier that its progression
 step calls for. Planned pieces without a design yet include:
@@ -192,7 +221,8 @@ Deepdraft's multipliers are different:
    Beds, chairs, benches, tables, shelves and anything else dwarves *use* are wood.
    Stone and iron are for industrial anchors (anvil, trade counter, workshop bodies) and
    monuments (rune shelf, standing stones). Wood is plentiful on the forested map, so
-   this is identity, not scarcity.
+   this is identity, not scarcity. One exception (owner, 2026-11-01): the Stonemason's first
+   piece is a stone stool, in place of a stone door "for now" (doc 293).
 
 Recommendation: keep the archetype list tight (SH proves ~25 is enough for a full
 game) and defer quality variants until crafting quality exists.

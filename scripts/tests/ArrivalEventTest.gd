@@ -57,7 +57,7 @@ func _run() -> void:
 	# Decided calendar draws never depend on animal population or removals.
 	events.initialize_schedule()
 	checkpoint = events.serialize_state()
-	_check(float(events.schedules.rabbit_arrival.next.due)-clock_node.elapsed_days() >= 2, "first opportunity is delayed")
+	_check(float(events.schedules.rabbit_arrival.next.due)-clock_node.elapsed_days() >= float(event.interval_days[0]), "first opportunity is delayed")
 	events.restore_state({})
 	events.initialize_schedule()
 	_check(events.serialize_state() == checkpoint, "same world and date give same schedule")
@@ -156,7 +156,7 @@ func _run() -> void:
 	clock_node.advance_hours(24*20)
 	events.advance(.1)
 	_check(wildlife.animals.is_empty() and events.history.back().result == "missed", "large clock jump creates no backlog")
-	_check(float(events.schedules.rabbit_arrival.next.due) > clock_node.elapsed_days()+1.99, "next opportunity starts at the new calendar time")
+	_check(float(events.schedules.rabbit_arrival.next.due) > clock_node.elapsed_days()+float(event.interval_days[0])-0.01, "next opportunity starts at the new calendar time")
 	# Real blocks inserted after planning cancel the remaining members.
 	events.restore_state(event_save)
 	wildlife.restore_state(animal_save)
@@ -180,7 +180,7 @@ func _run() -> void:
 	clock_node.year = 4
 	root.get_node("SaveManager")._loading = false
 	events.advance(0)
-	_check(float(events.schedules.rabbit_arrival.next.due) >= clock_node.elapsed_days()+2, "old save gets a delayed opportunity in its restored year")
+	_check(float(events.schedules.rabbit_arrival.next.due) >= clock_node.elapsed_days()+float(event.interval_days[0]), "old save gets a delayed opportunity in its restored year")
 	var existing: Dictionary = events.schedules.rabbit_arrival.duplicate(true)
 	var future: Dictionary = event.duplicate(true)
 	future.id = "future_arrival_test"

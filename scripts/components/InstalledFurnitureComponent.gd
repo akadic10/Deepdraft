@@ -33,6 +33,9 @@ var idle_seat_yaw_steps := -1 # A round stool's occupant can face independently.
 var dining_claims: Dictionary = {} # Transient table access positions, worker IDs.
 var sleep_owner := -1 # Transient bed use; released on wake/removal and rebuilt on load.
 var assigned_dwarf_id := -1 # Persistent ownership, separate from the current sleeper.
+var fire_log := "" # A nightly fire's burning log (doc 279): its item key, "" while cold. Saved.
+var storage: StorageComponent = null # A container's store (doc 294, FurnitureStorage), else null.
+var fire_log_material := ""
 
 var _lease_id: int = -1              # the ONE UNINSTALL lease, -1 = none
 
@@ -56,6 +59,11 @@ func set_uninstall(flag: bool) -> void:
 	if flag == flagged_uninstall:
 		return
 	flagged_uninstall = flag
+	if storage != null:
+		# Marked for uninstall, a container takes nothing more and its haulers stand down (doc 294).
+		storage.set("suspended", flag)
+		if flag: TaskManager.cancel_source_tasks(storage.source_id)
+		StockpileManager.storage_rules_changed()
 	if flag:
 		if _lease_id < 0 and source_id >= 0:
 			_lease_id = int(TaskManager.add_task(

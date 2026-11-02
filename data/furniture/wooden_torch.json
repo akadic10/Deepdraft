@@ -75,7 +75,8 @@
     }
   },
   "heat_source": {
-    "heat_units": 75
+    "heat_units": 75,
+    "radius": 2
   },
   "fire_sound": "torch",
   "material_group": "wood",

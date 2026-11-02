@@ -158,9 +158,9 @@ selection. Wildlife does not discover caves.
 
 Quiet rabbit audio shipped in doc 91. Explicit selection (the
 `on_explorer_selected` provider callback, never an inspector refresh) plays a short
-breath/tooth-tick cue even while paused, with three variations, one voice, a
+recorded nibble/tooth cue even while paused, with three variations, one voice, a
 twenty-four-block range and a shared 0.75-second real-time click cooldown. Grazing
-emits two soft leaf/nibble phrases, at 8% and 52% of the existing meal animation. It
+emits two recorded chewing phrases, at 8% and 52% of the existing meal animation. It
 has three variations, a fourteen-block audible radius, zoom attenuation (silent past
 zoom 56) and a two-voice cap. WildlifeManager derives these cues from crossings of the
 existing meal progress: a stalled frame plays one cue, and panning, pausing or
@@ -171,8 +171,26 @@ These rabbit cues consume only cosmetic RNG, never animal RNG, and create no
 save fields. Ducks instead save their behavior's quack timer; playback variation
 still uses cosmetic RNG.
 
-All wildlife sounds are synthesized foley from `tools/generate_<species>_audio.py`,
-not recordings. WorkFeedback plays them through per-kind profiles in
+Wildlife sounds are prepared by `tools/generate_<species>_audio.py`. Duck splashes
+use three separate excerpts of vero.marengere's CC0 lake-water splash recording
+as foley; the source does not claim recorded ducks. The duck generator delegates
+these 0.58/0.64/0.70-second mono 48 kHz cues to `generate_water_audio.py`.
+Their 0.32 peak cap retains headroom; average levels are 6.4–12.3 dB below the old
+synthetic splashes because the recordings have stronger transients and quieter
+tails. Existing quacks and playback rules are unchanged. Rabbit selection and grazing use six different
+excerpts of davi-sh's CC0 recording of a European rabbit eating cucumber: short
+nibble fragments for selection and longer chewing phrases as grazing foley.
+Duck quacks use three distinct
+excerpts of gibarroule's CC0 field recording. Wolf howls use Paresh's CC0 recording
+of wolves at Wolf Haven International; wolf selection and eating use recorded dog
+sniffing and chewing as canine foley, not recordings of wolves. Deer selection
+uses three actual deer calls from msantoro11's CC0 nature-park recording; deer
+grazing uses gibarroule's CC0 horse grass-chewing recording as herbivore foley.
+Source masters, licenses and edit provenance live in
+`tools/audio_sources/duck_quack/`, `tools/audio_sources/wolf/`,
+`tools/audio_sources/deer/`, `tools/audio_sources/rabbit/` and
+`tools/audio_sources/water/`. Each recorded bank rebuilds offline from its masters.
+WorkFeedback plays them through per-kind profiles in
 `data/audio/work_feedback.json` (doc 13, `WorkFeedback`). Each species' `feedback`
 section names its sounds and meal cue fractions.
 
@@ -203,7 +221,8 @@ species fields are required by SaveSnapshotValidator before restoration.
 - Six voxel parts form an antlered deer, with four animated instances of the
   leg mesh. Neck and head joints lower the muzzle for grazing; rest lowers the
   body and folds legs. The first model has no sex, age or seasonal coat variants.
-- Three selection and three leafy eating sounds share WorkFeedback's existing
+- Three recorded deer selection calls and three recorded grass-chewing cues
+  (horse foley) share WorkFeedback's existing
   bus/pool. Selection has a 0.85-second cooldown; two graze cues occur at 10% and
   55% of the meal, with an eighteen-block radius and two-voice cap. Pause, zoom,
   visibility and source cleanup follow the rabbit rules. Sleeping is silent.
@@ -245,9 +264,18 @@ species fields are required by SaveSnapshotValidator before restoration.
   rest between 08:00 and 17:00 with the common per-animal time offset. Exhaustion
   can end a hunt and trigger rest outside that window.
 - Original grey voxel art animates walking/running, head/ears/tail, eating and
-  folded rest. Three soft selection chuffs and three eating phrases reuse the
+  folded rest. Three recorded canine selection cues and three eating phrases reuse the
   Work bus. Eating cues occur at 12% and 58%, audible nearby with an eighteen-
   block range. Sleep has no ambient audio; selection can play while paused.
+- Selection uses distinct dog sniff/snort excerpts (jedg); eating uses distinct
+  dog chewing excerpts (16FVolejnikovaA). All are CC0. The three howls are separate
+  excerpts of Paresh's real wolf pack recording, so more than one wolf may be
+  audible. Sources retain natural pitch and timing, with light filtering and edge
+  fades. Source RMS levels target the previous bank, allowing peaks up to 0.60 to
+  retain recorded transients. Selection/eating remain mono 48 kHz; howls remain
+  mono 22.05 kHz. Runtime cooldowns, distance/zoom attenuation and howl eligibility
+  are unchanged. Both `generate_wolf_audio.py` and the wolf branch in
+  `generate_environment_details.py` use the same recorded howl preparation.
 - The inspector shows activity, needs, diet and hunting/satisfaction status.
 - `wolves` and `wolf_initialized` are required in the `wildlife` save section.
   Target ID, pursuit time, retry/satisfaction hours and common state persist.
@@ -264,7 +292,7 @@ plant should survive and ordinary vegetation should remain reliable food.
 
 ## Scheduled rabbit arrivals — live 2026-10-09
 
-WorldEventDirector schedules 1–4-member opportunities every 2–4 game days,
+WorldEventDirector schedules 1–4-member opportunities every 1.5–3 game days,
 independent of kills and population. Seasonal chance, the 48-rabbit cap, local
 recent hunting pressure, nearby dwarves and suitable connected habitat can
 prevent entry. Opportunities expire rather than accumulate. Rabbits enter one
@@ -292,16 +320,29 @@ Tuning is in `data/world_events/arrivals.json`.
   animal. The compact panel's status reads Travelling inland, Settled or Journey
   interrupted.
 
-Player hunting will be the planned Hunter profession's work; there are no trapping
+Player hunting will be the Ranger's work (doc 292, which renamed the Hunter when it took
+fishing); there are no trapping
 grounds (owner, 2026-10-23). The existing wolf prey floors remain unchanged. The
 scheduler, provider contract, hunting pressure and saves are in
 [51 — Visitors](../50_world_events/51_visitors.md#implementation-status--2026-10-10).
 
+**Hit points (2026-10-31).** From the owner: animals get hit points only, which will decide
+when a hunt kills them. `hit_points` in each species file, read by WildlifeManager: rabbit
+10, duck 8, deer 40, wolf 60, in the one health model dwarves and doors share (doc 41,
+"Health"). The compact panel shows them on its badge beside a red heart, with "Healthy · 40
+hit points" on hover and in a Health row. Nothing hurts an animal yet, so nothing is saved.
+Planned with the Ranger's hunting:
+- a spear blow might do about 15: one for a rabbit, three for a deer;
+- blows wear hit points down, and a struck animal flees as it does today;
+- at 0 the animal dies (corpse resources are a separate decision);
+- a wounded animal heals to full over about a game day and saves its hit points while hurt;
+- wolf captures stay as they are: instant and atomic, with the prey floors kept.
+
 ## Deer and wolf arrivals — live 2026-10-09
 
-Deer opportunities bring 2–4 members every 4–7 days, capped at 18. Each group
+Deer opportunities bring 2–4 members every 3–5.25 days, capped at 18. Each group
 has one saved herd identity and separate connected homes at least four blocks
-apart, at least 40 blocks inland. Wolf opportunities bring 1–2 every 7–12 days,
+apart, at least 40 blocks inland. Wolf opportunities bring 1–2 every 5.25–9 days,
 capped at four, with destinations at least 48 blocks inland. Both retain seasonal
 chance, local hunting-pressure avoidance, expiry and the no-compensation rule.
 
@@ -353,14 +394,19 @@ duck sends it flying or, with no flight found, down to the exposed floor; it nev
 floats or teleports.
 
 Male/female voxel art has articulated wings, heads and feet; wakes, splashes and
-quiet procedural quacks use existing water/world presentation and Work audio.
+quiet recorded quacks use existing water/world presentation and Work audio.
+The three quacks are separate natural performances, trimmed to 0.37–0.41 seconds,
+lightly filtered and faded, with RMS near -26.4 dBFS and a 0.32 peak ceiling.
+Selection and ambient calls share this bank; cooldowns and runtime pitch variation
+remain owned by WorkFeedback. The grazing mapping names the same bank, but the duck
+has no grazing cue fractions, so it does not add separate meal calls.
 The inspector and Follow work while walking, swimming or flying. Airborne state,
 needs, group identity and RNG survive current saves, including pending arrivals.
 Each duck also saves its flock, sex, mode (water, land, air), step origin, flight
 waypoints and cursor, and its takeoff, next-flight, shore and quack timers.
 SaveSnapshotValidator rejects malformed duck states and duck arrival routes before
 restoring; wakes and splashes are cosmetic and rebuilt.
-New 2–5-member aerial opportunities every 4–7 days share the event director's
+New 2–5-member aerial opportunities every 3–5.25 days share the event director's
 seasonal/habitat/pressure gates and a population cap of 16. A group picks a habitat
 by the seeded-flock rules, at least `settlement_spacing` (24) from existing ducks and
 clear of dwarves and hunting pressure, and enters at the nearest map edge, 16 blocks

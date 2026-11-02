@@ -11,6 +11,9 @@ extends Node
 ## JSON = what things are (weather defs + the weighted schedule); GDScript = what things do (picking,
 ## scheduling, applying).
 
+## A different weather took over; the Temperature view's colours follow it (doc 34).
+signal weather_changed(id: String)
+
 const SCHEDULE_PATH := "res://data/calendar/weather_schedule.json"
 ## Every JSON file here is one weather type, loaded in file-name order.
 const WEATHER_DIR := "res://data/weather/"
@@ -136,9 +139,11 @@ func _apply(id: String) -> void:
 	if not _weather_by_id.has(id):
 		push_warning("WeatherManager: unknown weather id '%s'." % id)
 		return
+	var changed := id != _current_id
 	_current_id = id
 	if _sky != null and _sky.has_method("apply_weather"):
 		_sky.call("apply_weather", _weather_by_id[id])
+	if changed: weather_changed.emit(id)
 
 
 # ── Public API ────────────────────────────────────────────────────────────────

@@ -48,7 +48,9 @@ func _run() -> void:
 	root.push_input(escape, true)
 	_expect(not chop.is_active(), "Escape exits chop tool")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
-	worker = factory.spawn(factory.generate(101, {}), 101)
+	var data: Dictionary = factory.generate(101, {})
+	data.erase("stats")   # Average in each, so the timings below are the plain ones (doc 41 "Stats")
+	worker = factory.spawn(data, 101)
 	scene.add_child(worker)
 	worker.position = Vector3(34.5,21,40.5)
 	worker.set_process(false)
@@ -81,6 +83,7 @@ func _run() -> void:
 	_expect(worker.is_sleeping() and source.reserved_by == -1, "sleep releases tree")
 	_check_stowed_axe("sleep")
 	_expect(is_equal_approx(source.state.work_seconds, partial), "sleep preserves work")
+	worker.sleep = 1.0 # a whole rest: waking keeps the meter it filled
 	worker._wake_up()
 	_expect(await _until_working(), "job resumes after waking")
 	explorer.select_object(flora, oak_id)
@@ -124,7 +127,16 @@ func _run() -> void:
 	_expect(flora._trees[oak_id].node == null and flora.get_explorer_data(oak_id).is_empty(), "felled tree disappears and cannot be inspected")
 	_expect(not flora._felling_markers.has(oak_id), "felling removes the axe marker")
 	_expect(not root.get_node("PlacedEntityRegistry").occupies(Vector3i(40,21,40)), "felling removes trunk occupancy")
-	_expect(_item_count("base:resources:wood:oak_log") == 4, "mature oak drops four raw logs")
+	var oak_logs := _log_yield("oak", "mature")
+	_expect(oak_logs > 0 and _item_count("base:resources:wood:oak_log") == oak_logs, "mature oak drops its authored raw logs")
+	# The logs lie one to a tile over the cleared 3x3 footprint, not in one heap.
+	var log_tiles := {}
+	for item: Node3D in drops._loose:
+		if drops._loose[item] == "base:resources:wood:oak_log":
+			var tile: Vector3i = drops.item_floor_cell(item)
+			log_tiles[tile] = int(log_tiles.get(tile, 0)) + 1
+	_expect(log_tiles.size() == mini(oak_logs, 9) and log_tiles.has(Vector3i(41,20,41)), "felled logs spread one to a tile from the stump's centre")
+	_expect(log_tiles.keys().all(func(t: Vector3i) -> bool: return t.y == 20 and t.x >= 40 and t.x < 43 and t.z >= 40 and t.z < 43), "felled logs stay on the cleared footprint")
 	_expect(not drops._missing_models.has("res://assets/models/items/wood/oak_log.glb"), "oak drops use the real timber model")
 	_expect(_item_count("base:resources:wood:oak_stave") == 0, "felling never creates crafted staves")
 	var drop_count: int = drops.get_stats().loose
@@ -171,11 +183,11 @@ func _run() -> void:
 		storage._process(.3)
 		tasks._run_scheduler()
 		worker._process(.1)
-		if storage.get_total("base:resources:wood:oak_log") == 4:
+		if storage.get_total("base:resources:wood:oak_log") == oak_logs:
 			break
 		if i % 30 == 0:
 			await process_frame
-	_expect(storage.get_total("base:resources:wood:oak_log") == 4 and _item_count("base:resources:wood:oak_log") == 0, "felled oak logs are hauled into the wood stockpile")
+	_expect(storage.get_total("base:resources:wood:oak_log") == oak_logs and _item_count("base:resources:wood:oak_log") == 0, "felled oak logs are hauled into the wood stockpile")
 	worker.force_interrupt()
 	storage.deregister_zone(zone)
 	# Fully blocked work backs off and remains designated.
@@ -191,13 +203,23 @@ func _run() -> void:
 	var blocked_task = tasks.get_task(flora.work.sources[blocked_id].lease_id)
 	_expect(blocked_task.retry_at > Time.get_ticks_msec() and flora._tree_changes[blocked_id].designated, "unreachable tree backs off without losing designation")
 	flora.cancel_felling(blocked_id)
+	# A built block on a stump tile is passed over; extra logs wrap round the open tiles.
+	world.set_block(90, 21, 90, stone)
+	var stump: Array[Vector3i] = [Vector3i(90,21,90), Vector3i(91,21,90)]
+	drops.spawn_spread("base:resources:wood:juniper_log", 3, stump)
+	var spread := {}
+	for item: Node3D in drops._loose:
+		if drops._loose[item] == "base:resources:wood:juniper_log" and drops.item_floor_cell(item).x >= 90:
+			var tile: Vector3i = drops.item_floor_cell(item)
+			spread[tile] = int(spread.get(tile, 0)) + 1
+	_expect(spread == {Vector3i(91,20,90): 3}, "a blocked stump tile is passed over and the logs wrap round the open one")
 	# Old saves with no forestry changes remain valid.
 	flora.restore_state({})
 	_expect(flora.serialize_state().trees.is_empty(), "empty legacy forestry state accepted")
 	for failure in failures:
 		push_error(failure)
 	if failures.is_empty():
-		print("TREE_FELLING_OK: click/rectangle input, axe markers, worker execution, cancel/sleep/resume, pause, season, JSON restore, timber drops/hauling, occupancy, saplings, unreachable retries")
+		print("TREE_FELLING_OK: click/rectangle input, axe markers, worker execution, cancel/sleep/resume, pause, season, JSON restore, timber drops/spread/hauling, occupancy, saplings, unreachable retries")
 	quit(0 if failures.is_empty() else 1)
 
 
@@ -467,6 +489,14 @@ func _until_felled(id: Vector2i) -> bool:
 		if i % 30 == 0:
 			await process_frame
 	return false
+
+
+## Logs a felled tree of this species and stage drops, read from its data.
+func _log_yield(species: String, stage: String) -> int:
+	var def: Dictionary = root.get_node("ContentRegistry").tree_species("base:flora:%s_tree" % species)
+	for drop: Dictionary in def.stages[stage].harvest.yields:
+		if drop.item == def.harvest_resource: return int(drop.count)
+	return 0
 
 
 func _item_count(key: String) -> int:

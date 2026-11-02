@@ -1,8 +1,12 @@
 {
-  "__comment": "Presentation weather: visible precipitation and contextual sound; does not create simulated flood water. Scheduled and saved by WeatherManager.",
+  "__comment": [
+    "Presentation weather: visible precipitation and contextual sound; does not create simulated flood water. Scheduled and saved by WeatherManager.",
+    "precipitation keys are explained in rain.json."
+  ],
   "id": "base:weather:storm",
   "display_name": "Storm",
   "is_dark_during_daytime": true,
+  "temperature": {"offset_c": -2.0, "daily_swing_scale": 0.4, "wet": true},
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 1.0,
@@ -12,14 +16,16 @@
     }
   },
   "precipitation": {
+    "style": "rain",
     "intensity": 1.0,
-    "radius": 24.0,
     "height": 14.0,
-    "streaks": 180,
-    "speed": 17.0,
-    "slant": 1.5,
-    "width": 0.023,
-    "length": 0.65,
-    "color": "#9fb6c6"
+    "speed": 20.0,
+    "slant": 0.3,
+    "width_px": 2.0,
+    "length_px": 36.0,
+    "splash_seconds": 0.15,
+    "ripple_seconds": 0.45,
+    "opacity": 0.6,
+    "color": "#94a9ba"
   }
 }

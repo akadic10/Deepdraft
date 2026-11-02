@@ -81,33 +81,6 @@ def crate(name, level):
     return v
 
 
-def starter(name):
-    v=Voxels(); stone=linear('7C8587')
-    if name=='hunting_spear':
-        block(v,(-1,0,-18),(1,2,12),'tool:wood')
-        for z in range(10,19):
-            r=2 if z<14 else 1
-            block(v,(-r,0,z),(r,3 if z<14 else 2,z+1),stone)
-        block(v,(-1,0,9),(1,3,12),'tool:bark')
-        block(v,(-1,3,10),(1,4,11),'tool:grain')
-    elif name=='carpentry_kit':
-        for x in (-5,5): block(v,(x-1,0,-10),(x+1,2,9),'tool:wood')
-        block(v,(-9,0,4),(-1,6,9),'tool:grain',1)
-        block(v,(2,0,4),(8,4,10),stone,1)
-        block(v,(4,4,5),(6,5,7),'tool:bark')
-    elif name=='stone_hammer':
-        block(v,(-1,1,-9),(1,3,6),'tool:wood')
-        block(v,(-6,0,1),(6,8,7),stone,1)
-        block(v,(-1,0,1),(1,8,7),'tool:bark')
-        block(v,(-1,8,3),(1,9,5),'tool:grain')
-    else:
-        block(v,(-1,0,-14),(1,2,11),'tool:wood')
-        block(v,(-6,0,7),(6,3,13),stone,1)
-        block(v,(-1,3,8),(1,5,11),'tool:bark')
-        block(v,(-1,5,9),(2,6,10),'tool:grain')
-    return v
-
-
 def drink(name):
     v=Voxels(); h=11 if 'gin' in name else 13; r=5
     profile(v,[(0,4,4,0,0),(2,r,r,0,0),(h-2,r,r,0,0),(h,4,4,0,0)],'crate_board',colors=['crate_board','crate_shadow','crate_board','crate_edge'])
@@ -183,7 +156,7 @@ def assets(only=None):
         for i,stage in enumerate(['low','half','full']):
             if name in NOT_IN_GAME: add('crates',name+'_'+stage,lambda n=name,i=i:crate(n,i))
             else: hearthblock_add('crates',name+'_'+stage,lambda n=name,i=i:goods.crate(n,i))
-    for name in ['stone_hoe','stone_hammer','hunting_spear','carpentry_kit']: hearthblock_add('tools',name,lambda n=name:goods.starter(n))
+    for name in ['stone_hoe','stone_hammer','ranger_kit','carpentry_kit','masonry_kit']: hearthblock_add('tools',name,lambda n=name:goods.starter(n))
     for name in PROFILE['drink_marks']: add('drink',name,lambda n=name:drink(n))
     for name in ['cloth_bolt','water_bucket','honey_jar','fossil_fragment']: add('misc',name,lambda n=name:misc(n))
     for name in ['plump_helmet','pig_tail','hops','grape']: add('flora',name,lambda n=name:flora(n))

@@ -1,5 +1,59 @@
 # 31 — Task System
 
+**Storage priority and storage furniture (2026-11-02, 294):** every store (`StorageComponent`)
+has a `priority` from 1 (filled first) to 5 (last). Ground zones start at 5, storage furniture at
+its JSON `storage.priority` (the tool rack 4), and a project's materials crate is 0.
+- A store's HAUL skips loose goods that a better store accepts and has room for
+  (`StockpileManager.better_store_takes`). A better store doesn't count while every haul lease it
+  has posted is waiting out reach failures (`hauling_blocked`), so a walled-off store never holds
+  goods back. The answer is cached per hauling revision, for at most a second.
+- Relocation (`StockpileManager.moves_to`): goods leave a store that stops taking them, or move
+  to a store of better priority; never between equal ones. Withdrawals stay nearest-first.
+- Storage furniture (`ContainerStorageComponent`) registers with StockpileManager beside the zones
+  (`register_container`). `get_stores()` lists both; `get_zones()` lists only zones, for callers
+  that need cells.
+- A container's goods are set down, reserved, on the stand nearest their slot
+  (`withdrawal_item_cell`), and every pickup plans from that cell: fetches, promotions and
+  relocations. A relocation's hidden handoff marker keeps that cell as its floor (`floor_cell`
+  meta, read by both `item_floor_cell`s), while the hands reach for the hook.
+- A container's slot may hold several of one good (`storage.per_slot`: the raw materials crate's
+  quarters hold 3). Its goods still leave one at a time: a relocation takes one good, or one crate
+  of produce, per trip (`relocation_candidates`), and `withdraw_stack` refuses more.
+- `StoragePriorityTest`, `ToolRackTest` and `CrateTest` (storage area) cover them.
+
+**Pickup searches by direction (2026-10-30, 286):** one HAUL pickup search now covers
+the quoted load and the nearest other eligible loads lying the same way, and ends at
+whichever it reaches first. Before, every dwarf searched every load separately. With
+logs on a shelf reached by a long detour, that rotation took over a minute at 60 fps
+before anyone moved, while idle dwarves showed Ready for work.
+- **The group** (`StorageComponent.pickup_group`): the quoted load first, then up to
+  `hauling.pickup_search_cells` (16) of the nearest loads that keep the search's distance
+  estimate at least half the quoted load's. A load on the dwarf's other side or on a level
+  below it keeps a search of its own, so a load without a route still only gets its turn
+  (milestone 213's fairness rule). A group yields, waits and is ruled out as a whole.
+- **The claim follows the proof.** The assignment carries the load the search reached
+  (`haul_pickup_cell`), and `reserve_haul` builds the bundle round it.
+- **Searches survive other claims.** Loads claimed since a search began leave its goals
+  (`TaskScheduler._prune_pickup_goals`). Every lease on a shared search holds one goal
+  dictionary, and `_advance_haul_probe` drops a cache entry whose search no longer
+  matches its key instead of restarting it in place. A quote landing in a group the dwarf
+  already searches continues it (`_pickup_route_key`).
+- **A finished proof whose load was claimed** carries on to the group's next load
+  (`NavGrid.reopen_search`, about 0.3 ms for a typical search), or the pickup is planned
+  again. It is never handed to a dwarf.
+- **Not covered:** the route back to storage is still searched once per pickup stand.
+  `HaulingFarLoadsTest` (hauling area) covers the shelf.
+
+**Lighting nightly fires (2026-10-28, 279):** at dusk each cold campfire or hearth adds
+one FETCH_BUILD source (`FireLightingComponent`, a placement fetch owned by
+`FurnitureFires`) that brings any log and sets it in the fire; completion lights it, and
+dawn retires the source, so a worker caught carrying drops the log intact. The source's
+`fetch_keys()` lets `FurnitureFetchPlanner` quote every log key, loose or stored, and the
+chosen quote fixes the wood. Unlike a placement it never redirects a storage haul. A
+hearth's worker stands in front of its fire when it can. Sources are not saved: a restored
+or skipped clock (`WorldClock.hour_changed`) and the per-frame check post them again, and
+installing at night posts at once, so a save taken right away holds the order.
+
 **Fruit hauling (2026-10-19, 253):** HAUL reuses the scheduler’s successful
 pickup/delivery proofs to plan bounded matching-fruit top-ups. A load whose one
 item is edible produce (crate capacity above 1, no unique instance) may fill that
@@ -52,7 +106,7 @@ capacity remain source-owned.
   scheduler's runtime state (`TaskManager.reset_runtime_state`).
 
 **Hauling fairness (2026-10-17, 213):** pickup/delivery searches retain one
-context per worker/start/pickup within a lease. Long searches yield after the
+context per worker/start/pickup group (286) within a lease. Long searches yield after the
 existing planning quantum so reachable alternatives can run. Idle-pool changes
 re-rank workers while preserving unchanged searches; repeated personal-need
 checks cannot continually erase progress. Proximity, navigation validation,
@@ -91,7 +145,8 @@ reuse normal bundles; stored portions are reserved, collected at legal source
 stands and deposited together. Once all remaining stone is delivered, one
 FETCH_BUILD lease proves access and performs three seconds of hammer work per
 voxel at normal labor speed, without another pickup. The builder works from stands
-outside unfinished blueprint cells, so later blocks cannot bury it. Final support/occupancy and
+outside unfinished blueprint cells, so later blocks cannot bury it, except beside a boxed-in
+block (below). Final support/occupancy and
 worker contact checks precede consumption. Release preserves project stock and
 per-cell progress. Cancellation drops unused stock at the crate; completed blocks remain.
 Cells are internal units, not tasks (doc 205). Since 2026-10-26 a plan stages its
@@ -99,10 +154,45 @@ material's own good (rough stone, soil or logs). The crate keeps goods by item, 
 material, so a crate of mixed logs builds each block from the log it used, and blocks taken
 out of a plan drop the goods it no longer needs beside the crate
 (`ConstructionMaterials.refund_excess`).
+- **A placed blueprint is one plan** whose blocks can need different goods (doc 276). Each block
+  keeps its own kind and wood where they differ from the plan's (`ConstructionWork.own`).
+- **Staging:** the crate takes each good only up to what that good's unbuilt blocks still need,
+  less what is delivered or on the way (`ConstructionMaterials.room_for`). Up to two haulers work
+  for each good still short.
+- **Building:** a good's blocks are built once all of that good is in, so a cabin's walls go up
+  while its roof's soil is still arriving. Each block takes its own good, and one builder works
+  the plan.
+- A plan of one good, as Build and Shapes make, behaves exactly as above.
+- **Boxed-in blocks** (doc 276), in every plan: Build, Shapes and blueprints.
+  - Each unbuilt block has a depth at its own layer (`ConstructionWork.depths`): 1 beside open
+    space, 2 when its four sides are its plan's unbuilt blocks or solid, and so on inward.
+    Examples at 2 or more: a log cabin's crossed corners, a terrace's inside, the middle of a
+    platform two or more layers thick.
+  - The builder works the deepest blocks first, from the middle outward (`work_stands` keeps
+    the floors for each depth; the route search tries the deepest first and moves to the next
+    when none can be reached). It keeps on from the same floor only at the same depth
+    (`continue_staged_build`).
+  - Beside a boxed-in block, the builder may stand under the plan's own unbuilt blocks, but
+    only blocks nearer the edge than the one it builds (`_stand_allowed`). So it always has a
+    way out, and nothing deeper is closed off. Nothing is ever built into a dwarf.
+  - A block waits while it may be the way in to a deeper boxed-in block that can't be built
+    just now but soon can: its good is not all in, or a dwarf or a loose item is in it
+    (`_keeps_access`). A block too high to reach holds nothing back, so working middle first
+    never stalls the rest.
+  - Not helped: a block walled in by finished blocks, a block boxed in by another plan's blocks
+    (it can wait on the other plan's order), and blocks more than 5 above every floor a
+    builder can reach.
+- **Replace plans** (2026-10-29, doc 285): Build's Replace plans solid blocks, staged and leased
+  as above. The same FETCH_BUILD work first digs the old block with the pick for its mining
+  time (`MiningZoneWork.get_block_work`, at base speed), then hammers the new block in; the
+  commit swaps one solid block for another in one terrain write and drops the old block's goods
+  at the builder's feet. Nothing changes before the commit, so a release keeps the cell as it
+  was and keeps its progress. Every block is depth 1, since a swap closes nothing off. A block
+  mined out or made to match under the plan leaves it (`ConstructionController._sweep_replaced`).
 - The crate is automatic packaging, placed on level, walkable ground within six blocks
   of the blueprint (`materials_crate_radius` in `data/construction/blocks.json`, beside
   `cost`, `work_seconds` and the builder's reach). It needs four walkable sides and
-  keeps clear of plans, storage, furniture, access structures and fence barriers. It
+  keeps clear of plans, storage, furniture (fences included) and access structures. It
   occupies one voxel, so nothing is built into it.
 - With no site the project reports **No delivery access** and keeps looking. If the
   crate loses its floor or fills with water, its delivery leases are cancelled, the
@@ -146,10 +236,10 @@ stays active until the physical item is packed. The stones' rules are in doc 33.
 > **HAUL live:** stockpile zones are the
 > second work-source family, proving the lease pattern generalises. A zone posts ≤
 > `max_haulers` HAUL leases; the `DwarfAgent` executor pulls bundles within the JSON
-> `hauling.carry_capacity` budget (4 points: rock/ore 1, raw log 2, crate 4)
+> `hauling.carry_capacity` budget (4 points: rock/ore/raw log 1, crate 4)
 > from `ItemDropManager`'s loose-item index, with owner-guarded item
 > reservations and the release protocol (any interrupt drops the whole pouch at the
-> dwarf's feet as loose items). When mining or a removed bridge takes away support,
+> dwarf's feet as loose items). When mining takes away support,
 > `ItemDropManager` coalesces the changed columns and settles only the loose items
 > in them; a settling item's pickup reservation is invalidated, and stored or
 > carried goods are never moved. Stockpile source ids live at `1_000_000 + zone_id`
@@ -167,7 +257,7 @@ stays active until the physical item is packed. The stones' rules are in doc 33.
 > between storage areas still count as ready in Place and in the colony inventory:
 > `TaskManager.placement_haul_offers()` adds `StorageComponent.placement_haul_items()`
 > to `FurniturePlacementController.get_catalog_stock()`, with outgoing stored claims
-> counted once. Plants, ladder sections and bridge kits share that stock. Only live
+> counted once. Plants and ladder sections share that stock. Only live
 > HAUL pulls qualify, never crafting, fetching or another plan, and an exact
 > instance promised to another plan stays out.
 > - Browsing Place and choosing a design leave hauling alone. Once a designation
@@ -234,10 +324,44 @@ never got a turn (roadmap 88; `LadderSchedulingTest`).
 > assigned Worker retains the current batch, including later inputs
 > (`CraftIngredientPlanner`); the next batch returns to normal selection.
 
+> **Craft queue order (2026-10-30):** craft leases follow the player's queue, so the next
+> free bench goes to the top-most order that can start. `CraftingManager._refresh` keeps
+> unassigned leases in queue order: a lease that would go before an earlier order is
+> posted again behind it, as when the earlier order's wood arrives late or the player
+> moves an order. A pick no longer moves the craft scan's cursor: the scan starts at the
+> top and returns there after each assignment, and only a search yielding after its
+> planning quantum moves it past the top until then. Before, the scan kept the index of
+> its last pick, so after
+> one pick below the top (the orders above it in backoff) later orders went first
+> (`CraftingQueueTest`). An order waiting only for a claimed bench holds no lease; its
+> status is its turn ("Next in line"), not a missing bench (doc 44, "The queue").
+
+> **Interrupted crafts keep their goods (2026-10-30):** a craft order's staged goods are
+> reserved under the order's own claim (`WorkerCraftOrder.claim_owner_id`, the furniture
+> ghost's scheme), not the Worker's. A Worker's release frees its own reservation and the
+> bench claim; the order keeps the goods, and the ingredient the Worker carried once it
+> lands beside the bench (`DwarfCarryWork._finish_fetch_state` calls `keep_dropped`).
+> With no Worker, the order waits its turn for that bench only, and its next Worker is
+> quoted for the next missing ingredient there, or for the last staged log when every
+> ingredient is there (`CraftingManager.advance_worker_quote`). `CraftingManager._refresh`
+> releases the goods once the order can no longer use them (doc 44, "Interruption";
+> `CraftInterruptTest`). `DwarfWorkExecution.clear_task_state` tears the fetch state
+> down before the haul state, so a fetch drops its own cargo and a craft can keep a
+> whole trip's load; the haul teardown's drop stays the catch-all.
+
+> **Craft trips carry a load (2026-10-30):** a craft trip carries up to the hauling
+> carrying limit (doc 44, "Trips"). Only the trip's first ingredient goes through the
+> scheduler's quote and `CraftIngredientPlanner`; the rest are reserved one at a time
+> after each pickup, nearest first within the pouch radius, by a bounded quote
+> (`CraftingManager.reserve_nearby`, `supervision.trip_extra_budget_usec`).
+> `WorkerCraftOrder.carried` holds the load; `stage_ingredient` sets it down and keeps
+> the batch's last log in hand (`held_item`) when the load completes it
+> (`CraftTripTest`).
+
 ## Overview
 
 **Idle leisure live (2026-10-09):** available dwarves can stroll locally or sit
-on an installed log stool or bench without creating an IDLE lease or leaving
+on an installed stool or bench without creating an IDLE lease or leaving
 `_idle_dwarves`. `receive_task` cancels leisure movement and releases any seat
 before the work executor starts. Existing priority, profession, permission and
 proximity rules remain responsible for selecting workers. Sleep still removes
@@ -330,12 +454,15 @@ other fetch sources retain their existing selection contract.
 **Cutting planting live (doc 80):** the same planting source uses `FETCH_BUILD`
 with one cutting as its input. The whole crate is reserved only until pickup,
 which splits one unit (`take_planting_item`) and retargets the animation to the
-new cargo; the remainder stays in place, and its spare units can back other
-standing Place requests (`spare_claimed_units`). Cancelling before pickup keeps
+new cargo (a craft order takes fish from a loose crate the same way, doc 289);
+the remainder stays in place, and its spare units can back other standing Place
+requests (`spare_claimed_units`). Cancelling before pickup keeps
 the stock, cancelling while carrying drops the intact cutting at the worker's
 feet, interruption retains plan work, and removing the plan abandons its work
 without spending a cutting. Completion creates one young player plant after the
-final site check. Calendar-driven growth needs no worker lease.
+final site check. Calendar-driven growth needs no worker lease. Tree seeds (doc 284) use
+the same plan with one seed: the final check is `SurfaceFloraSpawner.planting_reason`, and
+completion plants a sapling through `plant_tree` (doc 42, "Planting Seeds").
 
 **Planting animation (doc 83):** planting work drives reach/lower/release from
 arrival (or at once if the dwarf already stands at the site), then commits
@@ -365,7 +492,7 @@ pickup/carry/set-down presentation. Walk results, aborts, sleep and
 `force_interrupt` reach them through `walk_finished`, `abort` and
 `clear_task_state`.
 
-**Shared work-source table (doc 258 step 6, 2026-10-22).** Ladders, bridges, tree
+**Shared work-source table (doc 258 step 6, 2026-10-22).** Ladders, tree
 felling/harvest (`SurfaceFloraSpawner`), surface details (`SurfaceDetailManager`) and
 furniture ghosts and uninstall leases (`FurniturePlacementController`) keep their
 sources in one helper, `scripts/components/WorkSourceTable.gd` (a plain `RefCounted`,
@@ -383,7 +510,7 @@ TaskManager events:
   `work_source_retired()` (ghosts release their item claim).
 
 `FurnitureGhostComponent`, `InstalledFurnitureComponent` and `TreeFellingComponent`
-implement the three hooks, and the ladder and bridge sources inherit them. The table
+implement the three hooks, and the ladder sources inherit them. The table
 saves nothing: owners save their own records and rebuild their sources on restore,
 which gives each source a fresh id. Mining, stockpiles, construction, crafting and
 water stones keep their own routing. The work-journal key
@@ -397,11 +524,11 @@ enum number, so reordering `Task.Type` does not orphan saved journal entries.
 # scripts/systems/Task.gd — as shipped
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 # Task-type categories, listed only here (doc 258 step 6):
-const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work: one executor, the surface matcher
+const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work, and fishing spots: one executor, the surface matcher
 const GATHER_WORK  := [...]  # surface work done by hand (gather pose and contact)
 const SHRUB_WORK   := [...]  # HARVEST_SHRUB, CLEAR_SHRUB
 const COMMON_WORK  := [...]  # what any dwarf may take before permissions; Workers add CRAFT
@@ -456,7 +583,7 @@ waiting for a named reason, completed, cancelled or visibly failed. No order or
 assigned dwarf may sit in unexplained inactivity. Completion still depends on a
 feasible world, eligible workers, available supplies and fair scheduling, so a
 permanent obstruction needs the player. Recovery never invents supplies,
-teleports a dwarf, creates prerequisite work (no automatic ladders or bridges) or
+teleports a dwarf, creates prerequisite work (no automatic ladders or crossings) or
 marks unfinished work complete.
 
 - **Orders.** The work source owns the order and its physical progress (mined
@@ -510,15 +637,17 @@ pickup stand → work stand.
   every legal approach rather than trusting the nearest cell. The source receives
   the material, exact instance and both stands; reservation and physical transfer
   validate them again. A ladder section installs from the floor or the section
-  below, a bridge from either legal bank; those sources keep paid sections, decks
-  and safe departure.
+  below; ladder sources keep paid sections and safe departure.
 - Hauling proves pickup access and the route on to storage. Opportunistic bundle
   extras check their own access during execution and can be skipped
   (`StorageComponent.skip_item`).
-- Crafting proves both legs for the first and every later ingredient.
+- Crafting proves both legs for the first ingredient of every trip.
   `CraftIngredientPlanner` (the `FETCH_PLANNING` phase) keeps the batch's staged
-  goods and bench while it searches; interruption returns goods through
-  `WorkerCraftOrder.cancel_fetch`.
+  goods and bench while it searches. A trip's later ingredients lie within the
+  hauling pouch radius and check their own access during execution, like hauling's
+  bundle extras; one out of reach is skipped (`WorkerCraftOrder.reserve_trip_extra`,
+  `DwarfCarryWork._fetch_skip_extra`). An interruption frees the Worker and the bench
+  through `WorkerCraftOrder.cancel_fetch`; the staged goods stay with the order.
 - Mining keeps its exact multi-stand search (doc 32), surface work its stands, and
   uninstall revalidates its source at commit.
 
@@ -567,8 +696,9 @@ through a Labor window remain planned.
 | `HARVEST_TREE` | 50 | Pick seasonal fruit from a standing juniper or apple tree |
 | `CLEAR_BOULDER` | 50 | Clear a marked surface stone; modest rough-stone yield |
 | `GATHER_SCREE` | 50 | Gather a walkable loose-stone clump; one rough stone |
-| `CRAFT` | 46 | Worker bench/torch orders; after mining/felling, before placement/hauling |
-| `FETCH_BUILD` | 45 | Install finished furniture |
+| `COLLECT` | 47 | Take a finished batch down from its workshop: the drying rack's dried fish (doc 292). Rangers only; before new crafts, so the rack comes free |
+| `CRAFT` | 46 | Craft orders, each made by its page's career; after mining/felling, before placement/hauling. A Carpenter or Stonemason takes an order of their own page before any other work (doc 293) |
+| `FETCH_BUILD` | 45 | Install finished furniture; bring the night's log to a cold fire |
 | `UNINSTALL` | 40 | Pack marked furniture for storage |
 | `HAUL` | 40 | Keeps workshops fed; slightly less urgent than mining |
 
@@ -604,10 +734,10 @@ reserve goods, and `reserve_haul` still owns claims and bundling
 (`TaskScheduler`). Distance is a floor-cell Manhattan estimate from the worker to
 the quoted pickup, followed by bounded pickup and delivery reachability probes; it
 is not an optimal assignment or a shortest-path comparison. Equal distances keep
-idle-queue order. A pickup cell that fails its probe is excluded for that worker
-only and the candidates are ranked again, so a farther worker or other supplies
-can still win. The chosen executor receives that worker's exclusions, so its
-reservation matches the quote.
+idle-queue order. A pickup group (286) that fails its probe is excluded for that
+worker only and the candidates are ranked again, so a farther worker or other
+supplies can still win. The chosen executor receives that worker's exclusions and
+the load its search reached, so its reservation matches the proof.
 
 > **As implemented (supersedes the original pure-polling engine).** The
 > scheduler runs on **wake events** (task added, dwarf idle, zone destination changed, chunk
@@ -682,7 +812,15 @@ backs off only after its worker/pickup alternatives are exhausted.
 0.7 off-profession proposal below is not applied. Miner levels shorten digging
 duration by 0/5/10/15/20 percent. Idle Miners get first refusal within the existing
 mining bucket, without bypassing higher priorities or reachability. Work permissions
-filter eligibility and safely release disallowed current jobs. An unreachable Miner
+filter eligibility and safely release disallowed current jobs. A career that names its
+own `work` does it in that order: every matcher asks `TaskScheduler.takes`, which keeps an
+idle Ranger from fishing or hauling while an available drying order waits for them (doc
+292). Without it a craft search spanning several wakes lost the Ranger between wakes, every
+time, to the bucket after it: the fishing spot at their feet. A failed search backs its
+order off, which frees the Ranger for later work meanwhile. A career that takes the common
+work may name what comes before it (`work_first`): the Carpenter and the Stonemason craft
+their own page's orders first (doc 293), and only orders they could make hold them. An
+unreachable Miner
 never holds a lease back from a reachable Worker. Profession rules:
 `41_dwarf_agents.md`, Profession System (doc 96).
 
@@ -751,7 +889,8 @@ decides what happens to the work:
   `SEARCH_BUDGET_EXHAUSTED`) also apply backoff.
 - Reservations are freed by the work source on `task_released`. A mining lease's
   reserved block returns to the zone's destination set.
-- Source-level progress is never lost (completed blocks, saved per-source work).
+- Source-level progress is never lost (completed blocks, saved per-source work, a
+  craft order's staged ingredients, which stay under the order's own claim).
   Progress on the current atomic unit, such as a partial swing on a block, is
   discarded.
 - A carried item is dropped at the dwarf's feet as a normal loose item.

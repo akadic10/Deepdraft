@@ -1,0 +1,219 @@
+{
+  "sources": [
+    {
+      "kind": "wind",
+      "title": "Wind on top of Saleve mountains Switzerland, MS",
+      "author": "YannSauvin",
+      "id": "816725",
+      "description": "Mountain wind recorded with an MKH60 and ATE308 M/S setup, supplied as a stereo file.",
+      "page": "https://freesound.org/people/YannSauvin/sounds/816725/",
+      "download": "https://cdn.freesound.org/previews/816/816725_6921828-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "75d5bab82085b2ba564094bb430730eb659c88b22448cab9d9bbe988b0666b9c",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 89.5,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "mountain_wind.wav",
+      "master_sha256": "58ea544e21843b2aa8bef20e04f161ad1beb506ba280b8064e73385f0a155a0b",
+      "master_region_in_download_seconds": [
+        0,
+        89.5
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 5.782701274521142,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels preserved as supplied; joint gain",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "foliage",
+      "title": "wind_forest_08_strong_l_01.wav",
+      "author": "teadrinker",
+      "id": "403051",
+      "description": "Wind through trees on a summer afternoon at Rosendal, Nerikes Kil, Sweden, recorded with a Zoom H4n.",
+      "page": "https://freesound.org/people/teadrinker/sounds/403051/",
+      "download": "https://cdn.freesound.org/previews/403/403051_338690-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "e83241dd2780ebb9771e6163deac01e731c2d0d9cea8f987755df45fbaa681e6",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 81.36285714285714,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "tree_foliage.wav",
+      "master_sha256": "114c2e1fbf63cac48fb5bba5b881dab57d165cf76056f34668c68388bd5ad8dd",
+      "master_region_in_download_seconds": [
+        0,
+        81.36285714285714
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 4.347997931321362,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels preserved as supplied; joint gain",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "dry_leaves",
+      "title": "Autumn wind and dry leaves.wav",
+      "author": "Stek59",
+      "id": "457318",
+      "description": "Autumn wind blowing dry leaves over a sidewalk, recorded with a Tascam DR-05; the author notes a rain-like background texture.",
+      "page": "https://freesound.org/people/Stek59/sounds/457318/",
+      "download": "https://cdn.freesound.org/previews/457/457318_9065275-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "a6e6b0dd2d2ac8cffc72a52f631d6501504731caf47f00e2ab00dd763a14d54a",
+      "rate": 48000,
+      "channels": 2,
+      "seconds": 42.91347916666667,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "autumn_leaves.wav",
+      "master_sha256": "ebe129079960bdf2e25ec489cd9ffd9db91fb2b95f2f25484a07ccc94756d6a1",
+      "master_region_in_download_seconds": [
+        0,
+        42.91347916666667
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.1302464192945267,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels preserved as supplied; joint gain",
+        "48000 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    },
+    {
+      "kind": "winter_wind",
+      "title": "winter wind 01a.aiff",
+      "author": "klangfabrik",
+      "id": "117504",
+      "description": "Variable cold wind with a slight whistle, recorded beside a partially open window in Toronto; separate excerpts supply winter wind and filtered sheltered air.",
+      "page": "https://freesound.org/people/klangfabrik/sounds/117504/",
+      "download": "https://cdn.freesound.org/previews/117/117504_181941-hq.mp3",
+      "license": "CC0-1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "retrieved": "2026-10-28",
+      "download_sha256": "21d58a65a60a3da3246ebd27575adedda6285c1f20ce483d3417dda2235c76e4",
+      "rate": 44100,
+      "channels": 2,
+      "seconds": 439.31226757369615,
+      "preview": "Public HQ MP3 preview, not the original lossless upload.",
+      "master": "window_wind.wav",
+      "master_sha256": "e50432e59e446fa146f3222e3196dccb9e29ea87ba3edaf15c198c8d207b3c8b",
+      "master_region_in_download_seconds": [
+        0,
+        90.0
+      ],
+      "master_rate": 22050,
+      "master_channels": 2,
+      "master_encoding": "PCM_16",
+      "master_linear_gain": 3.261223665896907,
+      "master_conversion": [
+        "HQ preview decoded to float PCM",
+        "stereo channels preserved as supplied; joint gain",
+        "44100 to 22050 Hz using normalized 256-tap rational-phase Kaiser-windowed sinc per channel, radius 128, beta 8.6, cutoff 9500 Hz, reflect-padded; original speed and pitch preserved"
+      ],
+      "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+    }
+  ],
+  "banks": {
+    "wind": {
+      "master": "mountain_wind.wav",
+      "rate": 22050,
+      "channels": 2,
+      "region_seconds": [
+        34,
+        67
+      ],
+      "loop_seconds": 31,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 80,
+      "low_pass_hz": 1500,
+      "target_rms": 0.06448745479874615,
+      "peak_ceiling": 0.6
+    },
+    "foliage": {
+      "master": "tree_foliage.wav",
+      "rate": 22050,
+      "channels": 2,
+      "region_seconds": [
+        49,
+        80
+      ],
+      "loop_seconds": 29,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 250,
+      "low_pass_hz": 8500,
+      "target_rms": 0.03966694086725529,
+      "peak_ceiling": 0.6
+    },
+    "dry_leaves": {
+      "master": "autumn_leaves.wav",
+      "rate": 22050,
+      "channels": 2,
+      "region_seconds": [
+        5,
+        34
+      ],
+      "loop_seconds": 27,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 400,
+      "low_pass_hz": 8000,
+      "target_rms": 0.022738968105500412,
+      "peak_ceiling": 0.6
+    },
+    "winter_wind": {
+      "master": "window_wind.wav",
+      "rate": 22050,
+      "channels": 2,
+      "region_seconds": [
+        5,
+        36
+      ],
+      "loop_seconds": 29,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 90,
+      "low_pass_hz": 5000,
+      "target_rms": 0.0467208194515149,
+      "peak_ceiling": 0.6
+    },
+    "shelter": {
+      "master": "window_wind.wav",
+      "rate": 22050,
+      "channels": 2,
+      "region_seconds": [
+        50,
+        75
+      ],
+      "loop_seconds": 23,
+      "crossfade_seconds": 2,
+      "high_pass_hz": 70,
+      "low_pass_hz": 450,
+      "target_rms": 0.03055464675478942,
+      "peak_ceiling": 0.6
+    }
+  },
+  "production_script": "tools/generate_wind_foliage_audio.py",
+  "environmental_entry_points": [
+    "tools/generate_environment_audio.py delegates wind, foliage and shelter",
+    "tools/generate_environment_details.py delegates dry_leaves and winter_wind"
+  ],
+  "processing": "Per-channel DC removal, zero-phase high/low-pass filtering, two-second equal-power tail-to-head crossfades and joint gain to the previous RMS levels with a peak cap. Shelter uses a separate window-wind excerpt with a 450 Hz low-pass. No synthesis, pitch shifting, time stretching, reverb or artificial stereo widening. Stereo files are used as supplied; no assumed M/S matrix conversion."
+}

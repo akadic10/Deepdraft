@@ -7,6 +7,7 @@
   "id": "base:weather:overcast",
   "display_name": "Overcast",
   "is_dark_during_daytime": true,
+  "temperature": {"offset_c": 0.0, "daily_swing_scale": 0.5, "wet": false},
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 0.85,

@@ -194,7 +194,7 @@ func _try_select_wall(screen_pos: Vector2, terrain_hit: Dictionary) -> bool:
 			var piece = pieces[id]
 			if piece.node == null or not piece.node.is_visible_in_tree():
 				continue
-			var bounds: AABB = controller.visual_bounds(piece.def,piece.origin_cell,piece.yaw_steps) if GridFence.applies(piece.def) else WallMount.bounds_for(piece.def, piece.origin_cell, piece.yaw_steps)
+			var bounds: AABB = rules.fences.pick_bounds(piece.def,piece.origin_cell,piece.yaw_steps) if GridFence.applies(piece.def) else WallMount.bounds_for(piece.def, piece.origin_cell, piece.yaw_steps)
 			var intersection: Variant = bounds.intersects_segment(start, start + direction * ray_max)
 			if intersection == null:
 				continue
@@ -223,7 +223,10 @@ func pick_explorer_object(start: Vector3, end: Vector3) -> Dictionary:
 		for piece in pieces:
 			if not is_instance_valid(piece.node) or not piece.node.is_visible_in_tree():
 				continue
-			if controller.visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps).intersects_segment(start, end) == null:
+			# A fence's rails reach into its neighbours' tiles, past its own bounds.
+			var bounds: AABB = rules.fences.pick_bounds(piece.def, piece.origin_cell, piece.yaw_steps) if GridFence.applies(piece.def) \
+				else controller.visual_bounds(piece.def, piece.origin_cell, piece.yaw_steps)
+			if bounds.intersects_segment(start, end) == null:
 				continue
 			var distance := _picking.hit_distance(piece.node, start, end)
 			if distance < nearest:
@@ -269,8 +272,19 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		]
 	else:
 		rows.append(["Status", "Marked for uninstall" if piece.flagged_uninstall else "Installed"])
+		# A door's or a gate's hit points (doc 62): what invaders will have to break. Nothing
+		# damages one yet, so it is always intact.
+		if piece.def.has("hit_points"):
+			in_use = {"text": "Intact · %d hit points" % CraftMaterials.hit_points(piece.def, piece.material_id), "tone": "fine"}
+		# A nightly fire (doc 279) is lit with a log at dusk, or at bedtime (doc 34).
+		var fire: Dictionary = controller.fire_status(piece) if piece.def.has("nightly_fire") else {}
+		if not fire.is_empty():
+			rows.append(["Fire", String(fire.text)])
+			if not String(fire.get("log", "")).is_empty(): rows.append(["Burning", String(fire.log)])
+			in_use = {"text": String(fire.text), "tone": String(fire.tone)}
 		if bool(piece.def.get("room_heater", false)):
-			var heating := RoomManager.heat_source_status(piece.origin_cell + Vector3i.UP, int(piece.def.heat_source.heat_units))
+			var lit: bool = preload("res://scripts/components/FurnitureFires.gd").burning(piece)
+			var heating := RoomManager.heat_source_status(piece.origin_cell + Vector3i.UP, int(piece.def.heat_source.heat_units), lit)
 			if heating.is_empty():
 				rows.append(["Heating", "No enclosed room"])
 				details += "\n\nNot inside an enclosed room. Walls, a roof and a door let this hearth heat a room."
@@ -278,13 +292,13 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			else:
 				rows.append(["Heating room", "%s · #%d" % [heating.room_label, heating.room_id]])
 				rows.append(["Temperature", "%.1f°C · %s" % [heating.temperature_c, heating.comfort]])
-				rows.append(["This hearth", "+%.1f°C" % heating.contribution_c])
-				in_use = {"text": "Heating the %s · %.1f°C" % [String(heating.room_label).to_lower(), heating.temperature_c], "tone": "fine"}
+				rows.append(["This hearth", ("+%.1f°C" if lit else "+%.1f°C while lit") % heating.contribution_c])
+				if lit: in_use = {"text": "Heating the %s · %.1f°C" % [String(heating.room_label).to_lower(), heating.temperature_c], "tone": "fine"}
 		if piece.def.get("recreation","") == "board_game":
 			var seat_count: int = controller.get_dining_seats(piece.installed_id).filter(func(slot): return not controller.get_installed(slot.chair_id).flagged_uninstall).size()
 			var game = controller.get_board_games().games.get(piece.installed_id)
 			rows.append(["Log stools", "%d / 2 installed" % seat_count])
-			rows.append(["Game", "Playing together" if game != null and game.together else "Playing alone · partner welcome" if game != null and game.playing else "Going to play" if game != null else "Needs a log stool" if seat_count==0 else "Ready for solo or shared play"])
+			rows.append(["Game", "Playing together" if game != null and game.together else "Playing alone · partner welcome" if game != null and game.playing else "Going to play" if game != null else "Needs a stool" if seat_count==0 else "Ready for solo or shared play"])
 			in_use = {"text": rows[-1][1], "tone": "waiting" if seat_count == 0 else "fine"}
 			var effect: Dictionary = TaskManager.get_config_section("mood").recreation
 			rows.append(["Happiness", "Solo +%d · Together +%d for %.0f game hours after a completed game" % [roundi(float(effect.solo_bonus)*100),roundi(float(effect.bonus)*100),float(effect.duration_hours)]])
@@ -294,6 +308,11 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			in_use = {"text": "%s's bed" % assigned.dwarf_name if is_instance_valid(assigned) else "Anyone may sleep here", "tone": "fine"}
 			var sleeper: DwarfAgent = TaskManager.get_agent(piece.sleep_owner)
 			rows.append(["Sleeper", sleeper.dwarf_name if is_instance_valid(sleeper) else "Available"])
+		if piece.storage != null:   # a container (doc 294): how full, its rank, and its storage window
+			var holding: String = controller.get_furniture_storage().holding(piece)
+			rows.append(["Holds", holding])
+			rows.append(["Priority", "%d · 1 is filled first" % piece.storage.priority])
+			in_use = {"text": "Holding " + holding, "tone": "fine"}
 		rows.append_array(CraftMaterials.inspection_rows(piece.def, piece.material_id))
 		actions = [
 			{"id": "uninstall", "text": "Cancel uninstall", "icon": "res://assets/ui/icons/cancel.png"} if piece.flagged_uninstall else {"id": "uninstall", "text": "Uninstall"},
@@ -306,6 +325,7 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			actions[actions.size()-2] = {"id":"cancel_move","text":"Cancel move"}
 		elif not piece.flagged_uninstall:
 			actions.push_front({"id":"move","text":"Move"})
+		if piece.storage != null: actions.push_front({"id": "storage", "text": "Storage"})
 	if piece.def.has("placement_label"):
 		rows.append(["Footprint", String(piece.def.placement_label)])
 	if piece is FurnitureGhostComponent and moves.records.has(piece.required_instance_id):
@@ -316,12 +336,29 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	if WallMount.is_wall(piece.def):
 		rows.append(["Mount level",str(WallMount.mount_cell(piece.def,piece.origin_cell).y)])
 		if piece is InstalledFurnitureComponent and piece.flagged_uninstall and piece.wall_work_stands().is_empty(): rows[0][1] = "Waiting for reachable work position"
-	if piece is InstalledFurnitureComponent and piece.furniture_key == "base:furniture:crude_workbench" and not piece.flagged_uninstall:
-		actions.push_front({"id":"craft", "text":"Craft items"})
-		rows.append(["Crafter", "Any Worker"])
-		in_use = {"text": "Any Worker crafts here", "tone": "fine"}
+	# A workshop (its `crafting_recipe`): the workbench's Craft items, the drying rack's Dry fish (doc 289).
+	if piece is InstalledFurnitureComponent and piece.def.has("crafting_recipe") and not piece.flagged_uninstall:
+		actions.push_front({"id":"craft", "text":String(piece.def.get("crafting_action", "Craft items"))})
+		# The career that makes its recipe (doc 292): Workers at the workbench, Rangers at the rack.
+		var crafting: Node = controller.get_tree().get_first_node_in_group("crafting_manager")
+		var recipe: Dictionary = crafting.recipes.get(String(piece.def.crafting_recipe), {}) if crafting != null else {}
+		var crafter: String = crafting.crafter_name(recipe) if not recipe.is_empty() else "Worker"
+		rows.append(["Crafter", "Any " + crafter])
+		in_use = {"text": "Any %s crafts here" % crafter, "tone": "fine"}
+		# A batch left on it to dry, and when it comes down.
+		var hanging: Dictionary = crafting.hanging_status(piece.installed_id) if crafting != null else {}
+		if not hanging.is_empty():
+			rows.append(["Drying", String(hanging.row)])
+			in_use = {"text": String(hanging.text), "tone": String(hanging.tone)}
 	if piece.def.has("water_stone"):
 		return _compact({"title":piece.display_name(),"rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}, piece, in_use)
+	if piece.def.has("tree_species"): # A seed's plan (doc 284).
+		var seed_name := String(piece.def.display_name).to_lower()
+		rows[0] = ["Status", "Worker delivery / planting" if piece.has_lease() else "Awaiting " + seed_name]
+		rows.append(["Planting", "%d%%" % floori(piece.progress / float(piece.def.planting_seconds) * 100)])
+		return _compact({"title": piece.display_name(), "rows": rows,
+			"details": "Uses one %s to plant a sapling that grows to an ancient tree. Cancelling before completion keeps the %s." % [seed_name, seed_name],
+			"actions": [{"id": "cancel", "text": "Cancel planting"}]}, piece, in_use)
 	if bool(piece.def.get("plant", false)):
 		var cutting := bool(piece.def.get("from_cutting", false))
 		var status := "Awaiting cutting" if cutting else "Awaiting whole plant"
@@ -362,9 +399,11 @@ func perform_explorer_action(object_id: Variant, action_id: String) -> void:
 			controller.cancel_ghost(piece.ghost_id)
 		elif action_id == "build":
 			controller.dev_instant_build(piece.ghost_id)
-	elif action_id == "craft" and piece.furniture_key == "base:furniture:crude_workbench" and not piece.flagged_uninstall:
+	elif action_id == "craft" and piece.def.has("crafting_recipe") and not piece.flagged_uninstall:
 		var dock_ui: Node = controller.get_dock_ui()
-		if dock_ui != null: dock_ui.open_crafting("base:recipe:worker:wooden_torch")
+		if dock_ui != null: dock_ui.open_crafting(String(piece.def.crafting_recipe))
+	elif action_id == "storage" and piece.storage != null:
+		controller.get_furniture_storage().open_window(piece)
 	elif action_id.begins_with("assign_bed:"):
 		controller.assign_bed(piece.installed_id,int(action_id.get_slice(":",1)))
 	elif action_id == "move":

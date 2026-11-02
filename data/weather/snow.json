@@ -2,11 +2,14 @@
   "__comment": [
     "Snow weather. WeatherManager owns schedule and persistence.",
     "sky_overrides.atmosphere smoothly overrides the clear atmosphere from data/sky/sky_settings.json.",
-    "Cloud cover and haze affect presentation; streaming, visibility budgets and the sun/moon light curves stay unchanged."
+    "Cloud cover and haze affect presentation; streaming, visibility budgets and the sun/moon light curves stay unchanged.",
+    "precipitation: falling flakes (doc 24, 'Rain and snow'); the shared keys are explained in rain.json. size_px is the flake",
+    "size in pixels of a 1080-line screen, sway its flutter in blocks, settle_seconds how long it rests on the ground."
   ],
   "id": "base:weather:snow",
   "display_name": "Snow",
   "is_dark_during_daytime": true,
+  "temperature": {"offset_c": -2.0, "daily_swing_scale": 0.4, "wet": true},
   "sky_overrides": {
     "atmosphere": {
       "cloud_cover": 0.9,
@@ -14,5 +17,17 @@
       "fog_begin": 35,
       "fog_end": 260
     }
+  },
+  "precipitation": {
+    "style": "snow",
+    "intensity": 0.55,
+    "height": 14.0,
+    "speed": 1.6,
+    "slant": 0.25,
+    "size_px": 6.0,
+    "sway": 0.35,
+    "settle_seconds": 1.2,
+    "opacity": 0.9,
+    "color": "#f3f7fc"
   }
 }

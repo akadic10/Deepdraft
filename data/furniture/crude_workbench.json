@@ -8,6 +8,7 @@
   "placement": "floor",
   "yaw_steps": 4,
   "crafting_surface_height": 1.0,
+  "crafting_recipe": "base:recipe:worker:wooden_torch",
   "footprint": {
     "width": 3,
     "depth": 3

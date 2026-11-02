@@ -1,0 +1,42 @@
+{
+  "__comment": [
+    "The Carpenter's own workbench (doc 293): a thick slab hewn flat on top, half of a great log with its round side down, on four peeled log legs braced low with log rails, after the owner's picture of a log workbench. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Carpenters make it at the crude workbench from three matching logs; it keeps their wood. The slab's top stands 1.125 blocks high inside the 3 x 1 collision envelope.",
+    "Its window's Craft items opens the Carpenter's page (crafting_recipe); the page's other recipes will be made here, their goods lying on the slab where it is nearest the Carpenter, crafting_surface_inset inside its edges."
+  ],
+  "furniture_key": "base:furniture:carpenter_bench",
+  "furniture_category": "workshops",
+  "display_name": "Carpenter's Bench",
+  "description": "A thick slab hewn flat on top, on four peeled log legs braced low with log rails: the Carpenter's own workbench. Occupies a 3 by 1 space and is worked from either long side.",
+  "model": "res://assets/models/furniture/carpenter_bench.glb",
+  "item_key": "base:resources:furniture:carpenter_bench",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "crafting_surface_height": 1.125,
+  "crafting_surface_inset": 0.4375,
+  "crafting_recipe": "base:recipe:worker:tool_rack",
+  "footprint": {
+    "width": 3,
+    "depth": 1
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        3,
+        1.125,
+        1
+      ]
+    }
+  ],
+  "material_group": "wood",
+  "material_palette": "hand_hewn_timber",
+  "appeal": {
+    "design": 1,
+    "material_factor": 0.5
+  }
+}

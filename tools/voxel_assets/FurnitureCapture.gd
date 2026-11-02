@@ -39,7 +39,7 @@ func _ready() -> void:
 	sun.rotation_degrees=Vector3(-48,-35,0); sun.light_energy=1.15; sun.light_color=Color("FFF1D8")
 	for child in get_children():
 		if child is DirectionalLight3D and child!=sun: child.queue_free()
-	source=FurniturePlacementController.new(); source._load_defs()
+	source=FurniturePlacementController.new()
 	_ui()
 	DirAccess.make_dir_recursive_absolute(output)
 	_capture_all.call_deferred()
@@ -77,14 +77,13 @@ func _show(definition: Dictionary,pose: String="",angle: float=30,material: Stri
 	for i in 2:
 		var group := Node3D.new(); add_child(group); pairs.append(group)
 		var def := definition
-		var prop: Node3D=source._instance_model("",source._make_solid_material(),def)
+		var prop: Node3D=source._instance_model("",source.make_solid_material(),def)
 		group.add_child(prop)
 		if not material.is_empty(): CraftMaterials.apply_palette(prop,def,"base:material:"+material)
 		if def.has("light_source"):
 			preload("res://scripts/components/FurnitureLighting.gd").attach(prop,def)
 			prop.get_node("FlameAnimation").set_process(false)
 		var bounds := _bounds(prop)
-		if "bridge" in String(def.model): prop.position.y=-bounds.position.y
 		if pose=="Open":
 			var hinges := preload("res://scripts/components/FurnitureDoorAnimation.gd").new()
 			prop.add_child(hinges); hinges.setup(prop,def.door_animation); hinges.set_process(false)
@@ -110,7 +109,7 @@ func _show(definition: Dictionary,pose: String="",angle: float=30,material: Stri
 	for i in 2:
 		pairs[i].position=Vector3(40+(i-.5)*spacing,21,40)
 		pairs[i].rotation_degrees.y=angle+180*i
-	var target := Vector3(40,21+height*.48,40-(depth*.25 if "bridge" in String(definition.model) else 0))
+	var target := Vector3(40,21+height*.48,40)
 	camera.position=target+Vector3(0,17,30); camera.look_at(target)
 	camera.size=maxf((spacing+width+3)/1.6,height*1.4+depth*.5+2.2)
 	caption.text=String(definition.get("display_name",String(definition.model).get_file().get_basename())).replace("_"," ")+ (" · "+pose if not pose.is_empty() else "")+(" · "+material if not material.is_empty() else "")
@@ -143,9 +142,8 @@ func _capture_all() -> void:
 		if id=="campfire" or (all_woods and def.has("material_palette")):
 			for wood in ["pine","juniper","applewood"]:
 				_show(def,"",30,wood); await _capture(id+"_"+wood)
-	var extras := ["packed_furniture","ladder_kit","bridge_kit"]
+	var extras := ["packed_furniture","ladder_kit"]
 	for height in range(1,4): extras.append("crude_ladder_"+str(height))
-	for span in range(1,5): extras.append("log_bridge_"+str(span))
 	for id in extras:
 		if not only_ids.is_empty() and not id in only_ids: continue
 		_show({"model":"res://assets/models/furniture/"+id+".glb"})

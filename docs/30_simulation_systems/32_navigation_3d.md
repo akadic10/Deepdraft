@@ -1,14 +1,13 @@
 # 32 — 3D Navigation
 
-**Grid-edge fences (2026-10-17, 201):** fence posts and rails are thin barriers in
-`PlacedEntityRegistry` (`register_barrier`), kept apart from cell occupancy. These do
-not make either adjacent floor tile unwalkable. A* transitions, flat route smoothing
-and live dwarf movement sweep a standing body against the barriers
-(`barrier_blocks_segment`), including diagonal post corners.
-Ground-animal clearance and hops use the same barriers. Gate openings remain
-passable under the existing door convention. Creation/removal emits the normal
-occupancy invalidation signal; plans have no physical barrier. Terrain cells
-remain owned by WorldData, and three-block dwarf clearance is unchanged.
+**Tile fences (2026-10-27, 277):** an installed fence post blocks its own tile as
+ordinary occupancy in `PlacedEntityRegistry`, and so do a gate's end posts; the gate's
+open tile stays walkable. Rails lie inside post tiles and add nothing. The tiles beside
+a fence stay walkable, and no-corner-cutting closes the gap between diagonal posts.
+Dwarves, ground animals and route smoothing need no fence-specific checks: the thin
+barriers of the old grid-corner fences (`register_barrier`, `barrier_blocks_segment`,
+`edge_clear`) were removed with them. Plans have no occupancy. Terrain cells remain
+owned by WorldData, and three-block dwarf clearance is unchanged.
 
 **Wall-light access (2026-10-12, 129):** wall lights (the log torch) install and
 uninstall from a reachable walkable floor below the bracket or beside it, never
@@ -82,17 +81,18 @@ physical support and the existing clearance margin are unchanged.
 
 `BridgeCornerWalkingTest` covers four orientations, both directions, four frame
 steps, interruption at the failing fractional position and leisure rejection.
+Since the log bridge was retired (2026-10-27), its deck is two rows of solid
+blocks over a trench, as a crossing of built logs is.
 The copied player world completes all 27 reachable test crossings without falls
 (four reproduced falls before the correction). NavigationRegressionTest,
-DwarfSupportTest, DwarfIdleBehaviorTest, LogBridgeTest, LadderTest and
+DwarfSupportTest, DwarfIdleBehaviorTest, LadderTest and
 HaulingAnimationTest also cover surrounding movement. Investigation copies and
 traces live in `tmp/bogorn_bridge_20261011/`; player saves are not rewritten by
 this movement fix, and already submerged actors still need recovery.
 
 A navigation node at `(x, y, z)` is **walkable** if and only if:
 
-1. The block at `(x, y, z)` is **solid**, or a completed log bridge registers a
-   deck support there (the floor to stand on).
+1. The block at `(x, y, z)` is **solid** (the floor to stand on).
 2. The block at `(x, y+1, z)` is **air** (dwarf's feet level is clear).
 3. The block at `(x, y+2, z)` is **air** (dwarf's mid-body).
 4. The block at `(x, y+3, z)` is **air** (dwarf's head).
@@ -108,33 +108,18 @@ y+1  [ AIR ]   ← feet clearance
 y    [SOLID]   ← floor node
 ```
 
+## River crossings
+
+Dwarves cross water on built blocks: a row of horizontal logs from Build (doc 23,
+"Build"; doc 31, "Stone construction") is solid floor like any other, with the same
+clearance, step and corner rules, and no structure-owned supports. Each block needs
+a solid neighbour, so a deck grows out from a bank, and a builder stands on the last
+finished block to lay the next. Construction never builds into standing water, so
+where a river is level with its banks the deck goes one block higher, with a log on
+each bank as a one-block step (`LogCrossingTest`). The log bridge furniture, which
+registered deck supports over the water, was retired on 2026-10-27.
+
 ## Entity Obstacles
-
-**Log bridge supports (2026-10-11):** BridgeSystem registers completed deck
-cells separately from terrain; a plan never supports anyone. Normal walking, hauling and flat smoothing use
-these supports with the same three-block clearance and diagonal corner rules.
-Each deck cell also registers a `PlacedEntityRegistry` box, so nothing below can
-stand with its body through the deck.
-Closing decks retain physical support but reject new entry, including shortcuts;
-occupants, idle and sleeping ones too, drop their cargo on the deck and walk to the
-nearest landing. Structural changes invalidate cached/progressing
-searches and active routes through the shared route revision. Loose goods use
-the same deck support for resting and restoring. No water or terrain volume is
-modified (doc 113).
-
-A bridge is two blocks wide, with a clear span of 1–5 blocks
-(`data/furniture/log_bridge.json` → `bridge`) and one solid landing row at each end.
-Both lanes must meet the opposite bank at the same distance and height, so
-diagonal, sloping and uneven crossings are rejected. Each gap column needs water
-below it when the bridge is placed, and the deck and both landings need three clear
-blocks above them (`BridgeSystem.describe`). A worker installs the whole deck from
-whichever landing is nearer, so no route across the water is needed. Dismantling
-can be cancelled, which reopens the deck without making a kit. When terrain,
-water or occupancy later breaks these rules (a gap that dries out excepted), an
-unbuilt plan is cancelled; a finished deck closes like a dismantled one, keeps its
-support while anyone is on it, then drops its kit at a walkable landing. This is the
-starter crossing only: longer spans, sloping landings, piers, stone bridges and
-crossings over dry chasms are outside it.
 
 Placed entities (trees, workshops, boulders, furniture — see `12_world_grid.md`) are **not** stored in the terrain grid. The A* walkability check must therefore query two sources:
 
@@ -215,7 +200,7 @@ access. A ladder climbs a continuous terrain cliff from a walkable floor at
 its base to a walkable landing; a one-block rise uses step-assist instead. The whole
 climbing column, including the part above a rounded-up final section, needs three
 air blocks of body clearance and stays reserved while the route exists. Water,
-occupied clearance, other ladders, bridges and their plans, furniture and queued
+occupied clearance, other ladders, furniture and queued
 placements, plants or stones within their 3×3 spacing, and storage zones reject
 placement with a reason (`LadderSystem.describe`); the upper landing must be inside
 the slice.
@@ -282,7 +267,7 @@ uses the nearest goal height.
   lower ground before it commits to the climb, so a spent slice proves nothing.
   The forward limit matches ordinary walking (**6000**),
   with up to 64 extra nodes for a quick reverse check that rejects a sealed
-  destination pocket. That check is skipped while any ladder or bridge is closing,
+  destination pocket. That check is skipped while any ladder is closing,
   because a closing route is one-way (`NavGrid._new_approach_probe`). Reaching the
   forward limit means reachability unknown (`ProbeResult.BUDGET_EXHAUSTED`), not a proven
   missing route; how scheduler searches widen the allowance before backing off is in
@@ -291,6 +276,10 @@ uses the nearest goal height.
   relevant chunk/occupancy edits (even one that opens an approach it rejected) and
   ladder changes invalidate it; unrelated terrain changes preserve progress
   (milestone 88).
+- A finished exact-goal search can carry on past the cell it stopped at
+  (`NavGrid.reopen_search`). Hauling uses it when the load a proof reached is claimed
+  before the dwarf gets there (doc 31, milestone 286). It returns a copy, so a finished
+  proof that other leases share never changes under them.
 - Mining searches all valid working positions together, requiring an exact
   reached stand. An isolated cliff shelf cannot reject the whole zone. All
   alternatives share the same search bound, and the chosen worker receives

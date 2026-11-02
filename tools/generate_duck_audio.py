@@ -1,40 +1,54 @@
-"""Original quiet duck calls and small water splashes; deterministic synthesis."""
+"""Prepare recorded duck quacks and small recorded water splashes.
+
+Quacks are distinct excerpts of gibarroule's CC0 field recording, not oscillators.
+Quack provenance lives in tools/audio_sources/duck_quack/; splash foley in
+tools/audio_sources/water/ (three separate lake-water splashes, not recorded ducks).
+Requires only numpy; no network or audio decoder is needed to rebuild the bank.
+"""
+import wave
 import numpy as np
-from generate_chopping_audio import ROOT, RATE, filtered_noise, write
-from generate_rabbit_audio import pulse
+from generate_chopping_audio import ROOT, RATE, write
+
+SOURCE = ROOT/'tools/audio_sources/duck_quack/duck_quacks.wav'
+QUACK_REGIONS = [(0.31, 0.72), (0.88, 1.25), (1.49, 1.87)]
 
 
-def sound(seed, splash=False):
-    rng = np.random.default_rng(seed)
-    duration = .48 if splash else .75
-    t = np.arange(round(duration * RATE)) / RATE
-    noise = filtered_noise(rng, len(t), 2800)
-    result = np.zeros_like(t)
-    if splash:
-        result = noise * pulse(t, .01, .43)
-        for onset in [.045, .13, .24]:
-            result += np.sin(2*np.pi*(700*t-350*t*t)) * pulse(t, onset, .075) * .15
-    else:
-        # Breath-driven, descending nasal pulses, softened before playback.
-        for onset, length in [(.025, .24), (.36, .18)]:
-            local = np.maximum(0, t-onset)
-            base = rng.uniform(250, 295)
-            phase = 2*np.pi*(base*local-95*local*local)
-            tone = np.sin(phase)+.42*np.sin(3*phase)+.22*np.sin(5*phase)
-            result += (tone*.24 + noise*.24) * pulse(t, onset, length)
+def quack(index):
+    with wave.open(str(SOURCE), 'rb') as source:
+        assert (source.getnchannels(), source.getsampwidth(), source.getframerate()) == (1, 2, RATE)
+        samples = np.frombuffer(source.readframes(source.getnframes()), dtype='<i2').astype(float)/32768
+    start, end = QUACK_REGIONS[index]
+    result = samples[round(start*RATE):round(end*RATE)].copy()
     result -= result.mean()
-    result *= np.minimum(t/.012, 1)*np.minimum((duration-t)/.03, 1)
-    result *= .32/max(float(abs(result).max()), .001)
+    # Gentle, zero-phase band limiting removes rumble without altering pitch.
+    padding = RATE//10
+    padded = np.pad(result, padding, mode='reflect')
+    frequencies = np.fft.rfftfreq(len(padded), 1/RATE)
+    high_pass = 1/np.sqrt(1+(110/np.maximum(frequencies, 1e-6))**4)
+    low_pass = 1/np.sqrt(1+(frequencies/9500)**8)
+    result = np.fft.irfft(np.fft.rfft(padded)*high_pass*low_pass, n=len(padded))[padding:-padding]
+    result -= result.mean()
+    # The short fades sit outside the recorded call; no gating or time stretching.
+    result[:round(.005*RATE)] *= np.linspace(0, 1, round(.005*RATE))
+    result[-round(.025*RATE):] *= np.linspace(1, 0, round(.025*RATE))
+    # Match the old bank's ~-26 dBFS RMS without exceeding its 0.32 peak ceiling.
+    rms = np.sqrt(np.mean(result**2))
+    result *= min(.048/max(float(rms), 1e-8), .32/max(float(abs(result).max()), 1e-8))
     return result
+
+
+def splash(index):
+    from generate_water_audio import sound
+    return sound(f'duck_splash_{index+1:02}')
 
 
 if __name__ == '__main__':
     sampler = []
     for family in ['quack', 'splash']:
         for i in range(3):
-            pcm = sound(84050+i, family == 'splash')
+            pcm = quack(i) if family == 'quack' else splash(i)
             write(ROOT/'assets/audio/wildlife'/f'duck_{family}_{i+1:02}.wav', pcm)
             sampler.extend([pcm, np.zeros(RATE//2)])
             assert np.isfinite(pcm).all() and abs(pcm).max() < .4
     write(ROOT/'tmp/duck_review/duck_sampler.wav', np.concatenate(sampler))
-    print('Duck audio: 6 original mono PCM clips; peak <= 0.32')
+    print('Duck audio: 3 recorded quacks + 3 recorded water splashes; mono 48 kHz PCM; peak <= 0.32')

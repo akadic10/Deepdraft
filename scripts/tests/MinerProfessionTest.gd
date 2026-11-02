@@ -9,17 +9,18 @@ func _run() -> void:
 	await _setup_mining_fixture()
 	var assets := root.get_node("DwarfAssets")
 	var block := Vector3i(42,22,40)
+	worker.stats["base:stat:strength"] = 3   # Average, so the times below are the plain ones (doc 41 "Stats")
 	var id: int = await _begin_block(block)
 	var normal_time: float = worker._work_execution._swing_time
-	worker._process(100)
+	_work_for(100)
 	_expect(int(worker.profession_experience.get(MINER, 0)) == 0, "Worker mining does not earn specialist experience")
 	_expect(not worker.change_profession("base:profession:farmer"), "planned role cannot be assigned via API")
 	_expect(worker.change_profession(MINER), "Worker can become Miner without a tool or level")
 	id = await _begin_block(block)
 	_expect(is_equal_approx(worker._work_execution._swing_time, normal_time), "level one and Worker have equal digging times")
-	worker._process(100)
+	_work_for(100)
 	_expect(int(worker.profession_experience[MINER]) == 1, "final block of a zone earns exactly one experience")
-	worker._process(100)
+	_work_for(100)
 	_expect(int(worker.profession_experience[MINER]) == 1, "ended lease does not award again")
 	for pair in [[9, 1], [10, 2], [99, 2], [100, 3], [500, 4], [2500, 5], [10000, 5]]:
 		worker.profession_experience[MINER] = pair[0]
@@ -33,8 +34,11 @@ func _run() -> void:
 	_expect(int(worker.profession_experience[MINER]) == 2500 and world.get_block(block.x,block.y,block.z) != blocks.AIR_ID, "interruption grants neither terrain nor experience")
 	for i in range(5): tasks._run_scheduler()
 	_expect(worker.current_task_id < 0, "disabled mining cannot be reassigned")
+	worker.stats["base:stat:strength"] = 5   # the resumed block starts a fresh swing with it
 	worker.set_work_permission("mine", true)
 	_expect(await _until_mining(), "reenabling mining resumes pending work")
+	_expect(is_equal_approx(worker._work_execution._swing_time, normal_time * .8 / 1.12), "Excellent Strength swings 12% faster, on top of the Miner's levels (doc 41, Stats)")
+	worker.stats["base:stat:strength"] = 3
 	worker.change_profession(WORKER)
 	_expect(await _until_mining(), "returning to Worker keeps mining available")
 	_expect(is_equal_approx(worker._work_execution._swing_time, normal_time), "returning Worker has normal time despite retained Miner experience")

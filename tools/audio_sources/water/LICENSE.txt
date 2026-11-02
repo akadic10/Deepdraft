@@ -1,0 +1,45 @@
+Deepdraft - recorded water sources
+
+All five recordings were published under CC0 1.0 Universal.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-10-28
+
+Water,Lapping,Rocky,Beach,Ambiance.wav
+Author: Filipe Chagas
+Source: https://freesound.org/people/Filipe%20Chagas/sounds/91919/
+Preview: https://cdn.freesound.org/previews/91/91919_1512131-hq.mp3
+Local master: rocky_beach.wav
+Water lapping on a small rocky beach, recorded with a pair of Shure SM81 microphones and a Sound Devices 702T.
+
+Many drops of water in a big cave (Karstic system Ojo Guareña, Burgos, Spain)
+Author: nomadas
+Source: https://freesound.org/people/nomadas/sounds/609161/
+Preview: https://cdn.freesound.org/previews/609/609161_938246-hq.mp3
+Local master: cave_drips.wav
+Real cave drips in Cacique hall in the Ojo Guareña cave system, Spain, recorded with Sony PCM-D50; natural cave reverberation.
+
+Small brook, stream, water sound
+Author: SamsterBirdies
+Source: https://freesound.org/people/SamsterBirdies/sounds/584269/
+Preview: https://cdn.freesound.org/previews/584/584269_5487341-hq.mp3
+Local master: small_brook.wav
+Water flowing through a small brook at Kettle Falls, Washington, recorded with Primo EM272 capsules and a Tascam DR100mkIII.
+
+Waterfall_Small
+Author: Brikaro
+Source: https://freesound.org/people/Brikaro/sounds/855677/
+Preview: https://cdn.freesound.org/previews/855/855677_16235608-hq.mp3
+Local master: small_waterfall.wav
+A small waterfall draining onto rock, recorded with a Zoom H1 Essential.
+
+Water Splash in Lake 05.wav
+Author: vero.marengere
+Source: https://freesound.org/people/vero.marengere/sounds/524524/
+Preview: https://cdn.freesound.org/previews/524/524524_6605732-hq.mp3
+Local master: water_splashes.wav
+Recorded splashes in a lake, captured with Zoom H4N Pro and processed by the uploader with accusonus Noise Remover. Excerpts used as duck splash foley; the source does not claim recorded ducks.
+
+Masters are decoded from public HQ MP3 previews, not original lossless uploads. Shoreline remains stereo; cave drips retain the left microphone to avoid cancellation, and moving-water/duck foley sources are averaged to mono for spatial playback. Sources retain their natural speed and pitch. Duck splashes stay at 48000 Hz; other sources are converted to 22050 Hz with anti-alias filtering. All masters use PCM16.
+
+The three cave cues are short phrases from an actual cave field recording, with natural reverberation and background drips. Duck cues are excerpts of recorded splashes in lake water, used as foley; no claim that the source recorded ducks. River output uses soft peak control to keep close-mic transients from making the whole bed too quiet. Crops, channel choices, conversion, gains, hashes and reproducible output edit profiles are documented in source.json.

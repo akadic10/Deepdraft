@@ -17,7 +17,7 @@
     "stages": {
       "shrub": {
         "clearance_height": 2,
-        "growth_duration_days": 4,
+        "growth_duration_days": 3,
         "models": {
           "spring": "res://assets/models/flora/bushes/elderberry/elderberry_young_spring.glb",
           "summer": "res://assets/models/flora/bushes/elderberry/elderberry_young_summer.glb",
@@ -47,7 +47,7 @@
             }
           ],
           "work_seconds": 3.0,
-          "regrow_days": 2.0
+          "regrow_days": 1.5
         },
         "picked_models": {
           "autumn": "res://assets/models/flora/bushes/elderberry/elderberry_autumn_picked.glb"

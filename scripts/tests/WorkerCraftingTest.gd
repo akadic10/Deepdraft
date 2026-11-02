@@ -61,7 +61,7 @@ func _run() -> void:
 	var assigned_cell: Vector3i = worker.current_cell()
 	drops.spawn_drop(PINE,3,timber_cell+Vector3i.UP)
 	await _frames(2)
-	_expect(crafting.get_order(id).lease_id < 0 and crafting.status(crafting.get_order(id),inventory_script.snapshot(drops,furniture)) == "Waiting for a free workbench", "torches require installed workshop")
+	_expect(crafting.get_order(id).lease_id < 0 and crafting.status(crafting.get_order(id),inventory_script.snapshot(drops,furniture)) == "Needs a crude workbench", "torches require installed workshop")
 	crafting.remove_order(id)
 	id = crafting.queue_order(BENCH_RECIPE,1)
 	_expect(await _phase(worker.TaskPhase.FETCH_PICKUP), "Worker reaches distant timber")
@@ -262,7 +262,8 @@ func _test_competing_workers() -> void:
 	var progress: float = order.progress
 	agent.dev_make_tired()
 	agent._process(.01)
-	_expect(_count(PINE)==2 and crafting.bench_claims.is_empty(),"sleep releases crafting timber and bench")
+	_expect(_count(PINE)==2 and crafting.bench_claims.is_empty() and order.staged_items.size()==1
+		and drops.reserved_by(order.staged_items[0],order.claim_owner_id()),"sleep frees the bench and keeps the log beside it for its order")
 	_expect(order.progress==progress,"sleep retains completed crafting work")
 	# Cancel a pending reservation before contact as well as a carried job.
 	for entry in crafting.orders.duplicate(): crafting.remove_order(entry.id)

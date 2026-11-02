@@ -83,9 +83,6 @@ func describe(base: Vector3i, yaw: int, ignore := -1) -> Dictionary:
 			result.reason = "Another ladder occupies this space"
 			return result
 	var parent := get_parent()
-	if is_instance_valid(parent.get_bridges()) and parent.get_bridges().reserves(area):
-		result.reason = "Keep the ladder clear of bridges and bridge plans"
-		return result
 	var plants := get_tree().get_first_node_in_group("surface_details")
 	if plants != null:
 		for x in range(base.x - 1, base.x + 2):

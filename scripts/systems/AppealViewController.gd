@@ -1,6 +1,7 @@
 extends Node3D
 
-## The Appeal view (doc 23 "The Appeal view"): a view toggle at the dock's end, before X-ray.
+## The Appeal view (doc 23 "The Appeal view"): a view toggle at the dock's end, before
+## Temperature and X-ray.
 ## While it is on:
 ## - the world dims and greys (a full-screen pass, appeal_dim.gdshader);
 ## - each sealed room's floor takes its appeal word's tint (appeal.json); a room whose floor
@@ -9,6 +10,7 @@ extends Node3D
 ## - hovering a room's floor shows a card with its word, number and parts, and clicking it
 ##   opens the room window on its Appeal tab (ObjectExplorerController's terrain clicks reach
 ##   it as they reach zones).
+## This view and the Temperature view take turns: turning one on turns the other off.
 ## It redraws when rooms change and on each refresh while it is on. Presentation only, never
 ## saved: RoomManager works out the appeal (RoomAppeal).
 const Xray = preload("res://scripts/systems/XrayController.gd")
@@ -87,6 +89,7 @@ func set_active(value: bool) -> void:
 	if value == active: return
 	active = value
 	if active:
+		for view: Node in get_tree().get_nodes_in_group("temperature_view"): view.set_active(false)
 		_build()
 		_refresh()
 	else:

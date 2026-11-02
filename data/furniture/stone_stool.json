@@ -1,0 +1,137 @@
+{
+  "__comment": [
+    "The Stonemason's stone stool (doc 293, B, the rough block): a Rough Stone knocked square all the way down with the maul, the log stool's size, its top a little uneven and lumps left on its sides. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs, in the Rough Stone's own greys.",
+    "Stonemasons make it at the mason's bench from one Rough Stone. It is the first stone piece dwarves use (the owner's exception to doc 62's material rule), so it keeps no wood identity: appeal is its design alone.",
+    "It seats a dwarf exactly as the log stool does, with the same seat height (0.875), seating_chair, clearance and access, so it takes a table's guides and a board's game seats (the tables' seating.chair_keys)."
+  ],
+  "furniture_key": "base:furniture:stone_stool",
+  "furniture_category": "seating",
+  "display_name": "Stone Stool",
+  "description": "A Rough Stone knocked square all the way down, its top a little uneven. A seat like the log stool: by a fire, at a table's guides or at the board.",
+  "model": "res://assets/models/furniture/stone_stool.glb",
+  "item_key": "base:resources:furniture:stone_stool",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "depth": 1,
+    "width": 1
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        1,
+        0.875,
+        1
+      ]
+    }
+  ],
+  "seating_chair": {
+    "face_nearby_fire": true,
+    "rest_pose": {
+      "right_hand": [
+        0.5625,
+        0.0,
+        0.8125
+      ],
+      "left_foot": [
+        0.3125,
+        0,
+        0.25
+      ],
+      "left_hand": [
+        -0.5625,
+        0.0,
+        0.8125
+      ],
+      "body": [
+        0,
+        0.25,
+        0
+      ],
+      "right_foot": [
+        -0.3125,
+        0,
+        0.25
+      ]
+    },
+    "clearance_regions": [
+      {
+        "shape": "cylinder",
+        "min": [
+          -0.875,
+          1.475,
+          -0.875
+        ],
+        "max": [
+          1.875,
+          3.75,
+          1.875
+        ]
+      },
+      {
+        "min": [
+          -0.1875,
+          0.875,
+          -0.0625
+        ],
+        "max": [
+          1.1875,
+          2.125,
+          1.0625
+        ]
+      },
+      {
+        "min": [
+          -0.25,
+          1.0,
+          1.125
+        ],
+        "max": [
+          1.25,
+          1.5,
+          1.75
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "min": [
+          -0.6875,
+          1.225,
+          -0.6875
+        ],
+        "max": [
+          1.6875,
+          2.675,
+          1.6875
+        ]
+      }
+    ],
+    "access_cells": [
+      [
+        -1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  "appeal": {
+    "design": 1,
+    "material_factor": 0
+  }
+}

@@ -117,10 +117,12 @@ func _run() -> void:
 		report["upland"] = upland
 		report["scree"] = scree
 		report["reeds_by_water"] = reeds_by_water
+		# Re-pinned 2026-10-29 when the ancient juniper's footprint became 3 × 3 (doc 284):
+		# its wider trunk keeps a few more stones back.
 		if seed_value in SEEDS:
-			_expect(lowland + upland == [81,83,64,76,62,58,77,51][SEEDS.find(seed_value)], "scree preserves established boulder populations")
+			_expect(lowland + upland == [81,83,63,76,61,57,75,51][SEEDS.find(seed_value)], "scree preserves established boulder populations")
 		if seed_value in SEEDS:
-			_expect(scree == [205,183,227,180,208,192,140,170][SEEDS.find(seed_value)], "shrubs preserve established scree populations")
+			_expect(scree == [205,181,227,179,208,192,140,170][SEEDS.find(seed_value)], "shrubs preserve established scree populations")
 		for species: String in ["blueberry", "elderberry", "wild_strawberry"]:
 			_expect(int(report.categories.get(species, 0)) >= 50, "each sampled seed has at least 50 " + species)
 		_expect(int(report.categories.get("flowers",0)) >= 100, "sampled seed retains abundant flowers")

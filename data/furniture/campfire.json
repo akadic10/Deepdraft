@@ -2,7 +2,7 @@
   "furniture_key": "base:furniture:campfire",
   "furniture_category": "lighting",
   "display_name": "Campfire",
-  "description": "A low outdoor stone-ring fire centered in a 3 × 3 camp area. Place stools around its edges to gather by the light; always lit while installed.",
+  "description": "A low outdoor stone-ring fire centered in a 3 × 3 camp area. A worker lights it at dusk with a log, and it burns until dawn. Place stools around its edges to gather by the light.",
   "model": "res://assets/models/furniture/campfire.glb",
   "item_key": "base:resources:furniture:campfire",
   "placement": "floor",
@@ -31,6 +31,7 @@
   ],
   "__comment": "The two-block fire sits in the middle of a three-block area. Occupancy rounds its centered bounds outward so dwarves walk around the ring. Installed and queued fires always use this current definition when loaded.",
   "seating_focus": "fire",
+  "grilling": true,
   "seating_obstacles": [
     {
       "min": [
@@ -100,11 +101,18 @@
     }
   },
   "heat_source": {
-    "heat_units": 900
+    "heat_units": 900,
+    "radius": 5
+  },
+  "nightly_fire": {
+    "__comment": "Doc 279: the model holds no wood. At dusk a worker brings any log with fuel_tag and sets it on the ash; it burns until dawn, when it is gone. Light, heat and crackle only while it burns. log_position is model-local blocks (footprint centre, floor top).",
+    "fuel_tag": "timber",
+    "log_position": [0, 0.0625, 0],
+    "log_scale": 0.75,
+    "log_yaw_degrees": 30
   },
   "fire_sound": "campfire",
   "material_group": "wood",
-  "material_palette": "oak_log",
   "appeal": {
     "design": 3,
     "material_factor": 0.25

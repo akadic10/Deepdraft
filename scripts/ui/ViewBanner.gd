@@ -3,7 +3,8 @@ extends PanelContainer
 ## The view banner (doc 23, "Views"): while a view changes how the world looks, a slab at
 ## the top centre names it, with one line on what it shows and how to leave. Tools name
 ## themselves at the bottom (the tool bar), views at the top. X-ray steps aside while a tool
-## works, and its line with it; Appeal stays on. With both views on, each has its line.
+## works, and its line with it; Appeal and Temperature stay on. With two views on (X-ray and
+## one of the others, which take turns), each has its line.
 ## The words come from the views' entries in data/ui/time_slice.json. Toasts sit below
 ## it, and the mouse passes through. DockUI hosts it on the toast layer (24).
 const KeyText = preload("res://scripts/ui/DockIconButton.gd")
@@ -17,7 +18,7 @@ const SIZES := {
 	"medium": {"picture": 40.0, "name": MEDIUM.heading, "line": MEDIUM.body, "top": 22.0, "gap": 12, "type": MEDIUM},
 	"small": {"picture": 30.0, "name": SMALL.heading, "line": SMALL.body, "top": 12.0, "gap": 8, "type": SMALL},
 }
-const VIEWS := ["appeal", "xray"]
+const VIEWS := ["appeal", "temperature", "xray"]
 
 var toasts: Control   # the toast stack, kept below the banner
 var size_key := "medium"
@@ -63,7 +64,8 @@ func _ready() -> void:
 	_fit()
 
 
-## Follows a view's controller: AppealViewController ("appeal") or XrayController ("xray").
+## Follows a view's controller: AppealViewController ("appeal"), TemperatureViewController
+## ("temperature") or XrayController ("xray").
 func bind(id: String, controller: Node) -> void:
 	if _controllers.get(id) == controller: return
 	_controllers[id] = controller

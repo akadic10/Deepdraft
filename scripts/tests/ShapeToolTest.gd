@@ -38,6 +38,9 @@ func _run() -> void:
 	print("SHAPE_TOOL_OK" if failures.is_empty() else "SHAPE_TOOL_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
+func _ids(entries: Array) -> Array:
+	return entries.map(func(entry: Dictionary) -> String: return entry.id)
+
 func _loose_of(key: String) -> int:
 	var total := 0
 	for entry: Dictionary in drops.serialize_state().loose:
@@ -72,8 +75,8 @@ func _tool_test() -> void:
 	var state: Dictionary = construction.tool_bar_state()
 	_expect(construction.is_active() and state.tool=="construct_shapes","Shapes is its own tool")
 	_expect(state.choices.size()==2 and state.choices[0].id=="shape" and state.choices[1].id=="material","Shapes chooses a shape, then a material")
-	_expect(state.toggle.id=="filled" and state.settings.map(func(setting: Dictionary) -> String: return setting.id)==["height","door"],
-		"a hollow rectangle offers its height, a door gap and Filled")
+	_expect(_ids(state.toggles)==["filled","guide"] and _ids(state.settings)==["height","door"],
+		"a hollow rectangle offers its height, a door gap, Filled and the 32 × 32 guide")
 	var key := InputEventKey.new()
 	key.pressed = true
 	key.keycode = KEY_TAB
@@ -94,7 +97,7 @@ func _tool_test() -> void:
 	_expect(construction._door==0,"and back past 1 to none")
 	construction.set_tool_setting("shape","stairs")
 	state = construction.tool_bar_state()
-	_expect(not state.has("settings") and not state.has("toggle"),"stairs take their height from the drag")
+	_expect(not state.has("settings") and _ids(state.toggles)==["guide"],"stairs take their height from the drag and are never filled")
 	var foot := Vector3i(44,21,44)
 	_expect(construction._shape_cells(foot,foot+Vector3i(3,0,0)).size()==10,"a four-step flight plans ten blocks")
 	world.set_block(foot.x+2,foot.y+5,foot.z,blocks.get_id("base:terrain:rock:rock01"))

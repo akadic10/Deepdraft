@@ -1,0 +1,29 @@
+Cricket and insect sound sources — CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+Source pages and their CC0 declarations checked 2026-10-28.
+
+NIGHT LOOP: Crickets_Clean.wav — johnnydekk
+https://freesound.org/people/johnnydekk/sounds/626180/
+The author isolated the cricket and removed background noise from an earlier
+field recording. The earlier recording identifies a Zoom H4N recorder:
+https://freesound.org/people/johnnydekk/sounds/436510/
+Stereo is preserved. A 1.5-second tail-to-head crossfade makes a 37-second loop.
+
+DAY LOOP: Cicadas — floft
+https://freesound.org/people/floft/sounds/527812/
+Cicadas recorded in the University of Idaho Experimental Forest on Zoom H2N
+M/S microphones with a Rode windscreen, decoded to stereo in Ardour by the
+author. Stereo is preserved. A 1.5-second crossfade makes a 31-second loop.
+
+CHIRPS: Single Cricket Chirping, Close Perspective 02 — HECKFRICKER
+https://freesound.org/people/HECKFRICKER/sounds/753272/
+A cricket on a rose bush, recorded with a Tascam DR-05X. The author isolated
+background noise and normalized the recording in iZotope RX 9. Three separate
+pairs of chirps are mixed to mono, retaining their original spacing and pitch.
+
+Masters were decoded from Freesound's public HQ MP3 previews, not downloaded
+from the original lossless upload endpoints. source.json records download
+hashes, master conversion, crop positions, filters, crossfades, fades and levels.
+Preparation resamples with anti-alias filtering to 22050 Hz. Loops overlap only
+at the crossfade; no synthetic oscillators, time stretching, pitch shifting,
+added reverb, or artificial stereo widening is used.
