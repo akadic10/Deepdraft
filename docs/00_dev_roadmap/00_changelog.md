@@ -9,6 +9,18 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**Moving to CachyOS, the plan (2026-11-02):** No change in play. From the owner: "I want to move
+this project to CachyOS, we will use claude code there in the terminal" and "I won't be dual
+booting, we will only run CachyOS". Doc [295](295_moving_to_cachyos.md) is the plan:
+- what carries over: file name case is clean, and the saves copy over as they are;
+- what breaks: the PowerShell test runner and scripts, 15 scripts that check `APPDATA`, Windows
+  paths in a few files, and the colony-check reminder, a desktop-only task;
+- the owner's backups before the install, and the steps for the first Linux session.
+
+No restart or reload needed.
+
+---
+
 **The raw materials crate (2026-11-02):** Doc [294](294_storage_furniture.md), step 4.
 - Crafters → Carpenter → Storage: a raw materials crate from two matching logs at the carpenter's
   bench. It is the log crib (concept A, the owner's change from C). Place → Storage sets it on the
