@@ -205,6 +205,39 @@
       "parts": [
         {
           "name": "main",
+          "cells": 3232,
+          "visual_triangles": 1430,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 572
+          },
+          "min": [
+            -1.0,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            1.0,
+            1.125,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 209184,
+      "sha256": "a60974cd7cc14e7849028d4e1fa50c2cfdef01dd2ad8a2bd67a40626662e9b92",
+      "path": "assets/models/furniture/basic_smelter.glb",
+      "authoring": {
+        "piece": "basic_smelter",
+        "source": "tools/art_data/voxel_hearthblock.json",
+        "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 2569,
           "visual_triangles": 408,
           "occlusion": true,
@@ -296,6 +329,72 @@
       "path": "assets/models/furniture/raw_materials_crate.glb",
       "authoring": {
         "piece": "raw_materials_crate",
+        "source": "tools/art_data/voxel_hearthblock.json",
+        "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2436,
+          "visual_triangles": 1508,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 452
+          },
+          "min": [
+            -1.0,
+            0.0,
+            -1.0
+          ],
+          "max": [
+            1.0,
+            0.4375,
+            1.0
+          ]
+        }
+      ],
+      "bytes": 206572,
+      "sha256": "3d85ff064895bf27cffd82a12560b79078ea9146af66f371fa174f1f63017a80",
+      "path": "assets/models/furniture/finished_goods_pallet.glb",
+      "authoring": {
+        "piece": "finished_goods_pallet",
+        "source": "tools/art_data/voxel_hearthblock.json",
+        "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3928,
+          "visual_triangles": 2602,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 680
+          },
+          "min": [
+            -1.5,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            1.5,
+            2.5,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 345688,
+      "sha256": "0bc6756326ac813f815f229519100c0d585ad1272d694dc9aeea18c03338049f",
+      "path": "assets/models/furniture/food_shelf.glb",
+      "authoring": {
+        "piece": "food_shelf",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -1127,6 +1226,39 @@
       "path": "assets/models/furniture/parts/drying_rack_fish.glb",
       "authoring": {
         "piece": "parts/drying_rack_fish",
+        "source": "tools/art_data/voxel_hearthblock.json",
+        "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "charge",
+          "cells": 96,
+          "visual_triangles": 112,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 48
+          },
+          "min": [
+            -0.6875,
+            0.0625,
+            -0.1875
+          ],
+          "max": [
+            0.75,
+            0.9375,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 18688,
+      "sha256": "0fd45885680fe25c312dde695062d21e7d3bd9c4d8203a02baddf6945ca1f8ac",
+      "path": "assets/models/furniture/parts/basic_smelter_charge.glb",
+      "authoring": {
+        "piece": "parts/basic_smelter_charge",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }

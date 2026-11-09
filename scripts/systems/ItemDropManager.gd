@@ -842,6 +842,12 @@ func _on_support_changed(pos: Vector3i, old_id: int, new_id: int) -> void:
 	_unsupported_columns[Vector2i(pos.x, pos.z)] = true
 
 
+## Goods that just became loose over a removed floor (a fallen piece, a lost storage cell).
+func settle_cells(cells: Array[Vector3i]) -> void:
+	if _unsupported_columns.is_empty(): _settle_changed_columns.call_deferred()
+	for cell: Vector3i in cells: _unsupported_columns[Vector2i(cell.x, cell.z)] = true
+
+
 func _settle_changed_columns() -> void:
 	var columns := _unsupported_columns
 	_unsupported_columns = {}

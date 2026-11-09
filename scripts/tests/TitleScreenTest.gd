@@ -9,7 +9,8 @@ extends "res://scripts/tests/SaveManagerRoundTripTest.gd"
 ## - Enter on New game makes a world; the game menu's Quit to main menu asks first, and Save
 ##   and quit writes the colony and returns to the title, with the world gone;
 ## - the title then shows that save on its board with Continue focused, and Continue loads it;
-## - Quit without saving returns to the title again.
+## - Quit without saving returns to the title again;
+## - a load from Load game… that fails, and a save deleted there, say so under the buttons.
 const TITLE_SCENE := "res://scenes/main/title_screen.tscn"
 var failures: Array[String] = []
 var quits := 0
@@ -87,7 +88,27 @@ func _run() -> void:
 	_choice(menu, "Quit without saving").pressed.emit()
 	title = await _wait_for_title()
 	_expect(title != null and title.board != null, "Quit without saving returns to the title, with the save still there")
+	if title != null: await _title_notices(title, menu)
 	_finish("")
+
+
+## What SaveManager says at the title shows under its buttons, as the dock shows it in play: a
+## load from Load game… that fails, and a save deleted there, which stays said once Back has
+## built the board again (the project review, 2026-11-09: both were silent).
+func _title_notices(title: Node, menu: Node) -> void:
+	title.buttons.load.pressed.emit()
+	await _frames(3)
+	menu._confirm_load("named_gone")
+	await _frames(2)
+	_expect(not menu.is_open() and title._notice.visible and title._notice.text == "That save no longer exists.",
+		"a load from Load game… that fails says why on the title: '%s'" % title._notice.text)
+	title.buttons.load.pressed.emit()
+	await _frames(3)
+	menu._confirm_delete("quick")
+	menu._back_button.pressed.emit()
+	await _frames(3)
+	_expect(title.board == null and title._notice.visible and title._notice.text == "The quick save was deleted.",
+		"a save deleted there says so on the title: '%s'" % title._notice.text)
 
 
 ## The title without a save, and what it opens.

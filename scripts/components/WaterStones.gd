@@ -102,9 +102,13 @@ func _settle(id: String) -> void:
 	var y := cell.y-1
 	while y>WorldGenerator.BEDROCK_MAX_Y and not BlockRegistry.is_solid(WorldData.get_terrain_block(cell.x,y,cell.z)): y-=1
 	var fall := y+1-cell.y
+	# A placed stone's water comes and goes at the stone itself, so its effect settles with it. The
+	# spring's natural wet stone feeds the river's mouth, another cell: its ledge mined away, the
+	# stone drops and the spring keeps its mouth and level.
+	if record.intake == cell:
+		record.intake += Vector3i(0,fall,0)
+		record.level += fall
 	record.cell += Vector3i(0,fall,0)
-	record.intake += Vector3i(0,fall,0)
-	record.level += fall
 	stones[id].position = Vector3(record.cell)+Vector3(.5,0,.5)
 
 func request_pack(id: String) -> bool:

@@ -128,6 +128,7 @@ func _chairs_and_interruptions() -> void:
 	_expect(await _seat_phase(worker,"sitting"),"standalone chair remains usable when a table is built in front")
 	worker._idle_behavior.timer = .1
 	_expect(await _seat_phase(worker,"waiting"),"normal rest finishes with a stand-up transition and releases the chair")
+	worker._rig.begin_frame()   # the true pose under any crossfade (doc 298)
 	_expect(chair.idle_seat_owner<0 and worker._body.position.is_zero_approx(),"normal standing restores all visual offsets")
 	_expect(await _seat_phase(worker,"sitting"),"free chair can be used again")
 	furniture.dev_remove_installed(chair.installed_id)

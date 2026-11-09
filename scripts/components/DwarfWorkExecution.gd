@@ -17,6 +17,10 @@ var _stand_index: int = 0
 var _swings_left: int = 0
 var _swing_time: float = 1.0
 var _swing_timer: float = 0.0
+var _opening_swing := false
+var _last_catch_phase := 0.0
+## Hands at arm's length in front of the chest, clear of the head and body (doc 298).
+const HAND_WORK := Vector3(0,1.25,.85)
 var _pull_failures: int = 0
 var _pull_exclude: Dictionary = {}   # Vector3i -> true; this-round blacklist (unpathable or nothing to mine)
 var _mine_contact := Vector3.ZERO
@@ -214,6 +218,8 @@ func _zone_try_stand() -> void:
 			return
 		if agent.walk_to(stand):
 			task_phase = DwarfAgent.TaskPhase.ZONE_MOVING
+			var feet := Vector3(stand)+Vector3(.5,1,.5)
+			agent.stop_short_of(MiningPose.contact_point(_zone_block,feet,agent.global_basis.z),MiningPose.STANCE_REACH)
 			return
 	# No stand cell pathable for this block.
 	var source := _zone_source()
@@ -228,9 +234,9 @@ func _zone_try_stand() -> void:
 	else:
 		_zone_pull_next()
 
-## Step 3: swing timer = (base × hardness / speed) ÷ durability per swing
-## (doc 43 block time, doc 16 durability-per-swing). Partial progress is
-## DISCARDED on any interruption — the block keeps full durability (§2.8).
+## Step 3: the block's dig time (base × hardness / speed, doc 43) split into calm swings
+## (MiningZoneWork.get_block_work). Partial progress is DISCARDED on any interruption: the
+## block starts again in full (§2.8).
 func _begin_swinging() -> void:
 	var source := _zone_source()
 	if source == null:
@@ -249,7 +255,14 @@ func _begin_swinging() -> void:
 	_face_cell(_zone_block)
 	rig.reset_part_offsets()
 	_mine_contact = agent.to_local(MiningPose.contact_point(_zone_block,agent.global_position,agent.global_basis.z))
-	rig.mining_pose.apply(0,_mine_contact)
+	_opening_swing = true
+	rig.mining_pose.apply(_mine_phase(0.0),_mine_contact)
+
+## A block's first swing starts from the ready pose rather than the loop's last strike, and still
+## lands when the work reaches contact (doc 298).
+func _mine_phase(phase: float) -> float:
+	if not _opening_swing or phase >= MiningPose.CONTACT_PHASE: return phase
+	return lerpf(MiningPose.READY_PHASE,MiningPose.CONTACT_PHASE,phase/MiningPose.CONTACT_PHASE)
 
 ## Nothing to mine at the reserved block: the reservation was lost, or the cell
 ## is already open (e.g. cave air revealed by the previous commit stays planned
@@ -283,13 +296,14 @@ func _process_swinging(delta: float) -> void:
 		normal[axis] = signf(offset[axis])
 		source.call("play_mining_impact",agent.dwarf_id,contact,normal)
 	_swing_timer -= delta
-	rig.mining_pose.apply(clampf(1.0-_swing_timer/_swing_time,0,1),_mine_contact)
+	rig.mining_pose.apply(_mine_phase(clampf(1.0-_swing_timer/_swing_time,0,1)),_mine_contact)
 	if _swing_timer > 0.0:
 		return
 	# Carry fractional time through swing boundaries at high speed/low FPS.
 	# At most this reserved block can complete; no catch-up work on a new block.
 	var completed_swings := mini(_swings_left,1+floori(-_swing_timer/_swing_time))
 	_swings_left -= completed_swings
+	_opening_swing = false
 	if _swings_left > 0:
 		_swing_timer += completed_swings*_swing_time
 		rig.mining_pose.apply(1.0-_swing_timer/_swing_time,_mine_contact)
@@ -430,6 +444,10 @@ func _fell_try_stand() -> void:
 		_begin_felling_work()
 	elif agent.walk_to(stand):
 		task_phase = DwarfAgent.TaskPhase.FELL_MOVING
+		var task := TaskManager.get_task(agent.current_task_id)
+		# Hand work and fishing have no swing to stand back for.
+		if task != null and task.type not in Task.GATHER_WORK and task.type != Task.Type.FISH:
+			agent.stop_short_of(_fell_source().call("chop_contact",Vector3(stand)+Vector3(.5,1,.5)),FellingPose.STANCE_REACH)
 
 
 func _begin_felling_work() -> void:
@@ -481,9 +499,11 @@ func _timed_kind() -> String:
 func _apply_clearing_pose(phase: float) -> void:
 	var task := TaskManager.get_task(agent.current_task_id)
 	if task != null and task.type == Task.Type.FISH:
+		if phase < _last_catch_phase: rig.blend_pose()   # the next catch: land back to the cast
+		_last_catch_phase = phase
 		rig.fishing_pose.apply(phase, _fell_contact)
 	elif task != null and task.type in Task.GATHER_WORK:
-		rig.carry_pose.gather(phase, _fell_contact)
+		rig.carry_pose.gather_loop(phase*_swing_time, _fell_contact)
 	elif _clearing_uses_pick():
 		rig.mining_pose.apply(phase, _fell_contact)
 	elif rig.felling_pose != null:
@@ -642,7 +662,7 @@ func tick(delta: float) -> bool:
 				var contact := _construction_work_pose(craft)
 				if agent.is_visible_in_tree(): _construction_strike(craft,before,contact)
 			else:
-				rig.carry_pose.gather(fposmod(float(craft.progress), 1.0), Vector3(0, 1.7, .4))
+				rig.carry_pose.gather(fposmod(float(craft.progress), 1.0), HAND_WORK)
 			if exec_timer <= 0.0: _fetch_complete()
 			return true
 		if craft != null and craft.has_method("advance_craft"):
@@ -683,7 +703,7 @@ func tick(delta: float) -> bool:
 			exec_timer = removal.advance_removal(work_delta, agent.dwarf_id)
 			var face: Vector3i = removal.work_facing()
 			agent.rotation.y = atan2(face.x, face.z)
-			rig.carry_pose.gather(fposmod(float(removal.progress), 1.0), Vector3(0, 1.7, .4))
+			rig.carry_pose.gather(fposmod(float(removal.progress), 1.0), HAND_WORK)
 			if exec_timer <= 0.0: _uninstall_complete()
 			return true
 		exec_timer -= work_delta

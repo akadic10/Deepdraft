@@ -254,6 +254,16 @@ func is_removed_terrain(cell: Vector3i) -> bool:
 	var changes: Dictionary = _edits.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{})
 	return changes.has(cell) and not BlockRegistry.is_solid(int(changes[cell]))
 
+## A cell the colony dug out of the world's ground, whatever stands there now: removed terrain, or
+## a block built where the world had solid ground (it was dug first). The faces beside it were
+## seen as they are. A block built into open air (a log against a cliff) digs nothing, and the
+## cliff keeps its strata (Hard Rule 11). The strata lookup runs for built cells only.
+func is_dug(cell: Vector3i) -> bool:
+	var changes: Dictionary = _edits.get(Vector3i(cell.x>>4,cell.y>>4,cell.z>>4),{})
+	if not changes.has(cell): return false
+	if not BlockRegistry.is_solid(int(changes[cell])): return true
+	return BlockRegistry.is_solid(WorldGenerator.get_overview_strata_block_id(cell.x, cell.y, cell.z))
+
 func removed_terrain_count() -> int:
 	var count := 0
 	for changes: Dictionary in _edits.values():
@@ -307,9 +317,6 @@ func serialize_edits(solid_only := false) -> Array:
 		return false)
 	return result
 
-func serialize_solid_edits() -> Array:
-	return serialize_edits(true)
-
 func restore_terrain(state: Dictionary) -> void:
 	begin_edit_batch()
 	for entry: Dictionary in state.edits:
@@ -322,10 +329,6 @@ func restore_terrain(state: Dictionary) -> void:
 
 func _chunk_key(wx: int, wy: int, wz: int) -> Vector3i:
 	return Vector3i(wx / CHUNK_SIZE, wy / CHUNK_SIZE, wz / CHUNK_SIZE)
-
-
-func _get_or_create_chunk(wx: int, wy: int, wz: int) -> Chunk:
-	return get_chunk(wx / CHUNK_SIZE, wy / CHUNK_SIZE, wz / CHUNK_SIZE)
 
 
 func _in_bounds(wx: int, wy: int, wz: int) -> bool:

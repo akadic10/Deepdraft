@@ -224,6 +224,6 @@ one lighting body; don't fork the lighting equations.
    the menu pictures that show the model.
 
 Use copied saves in isolated profiles. Never touch the player's original saves, and
-don't make a Windows playtest export unless asked. Compare full-world frame and GPU
+don't make a playtest build unless asked. Compare full-world frame and GPU
 cost against a matched fixture; a static gallery or a triangle reduction is not a
 whole-game speedup.

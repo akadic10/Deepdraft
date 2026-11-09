@@ -9,6 +9,8 @@ var rooms := {}
 var cell_to_room := {}
 var read_chunks := {}
 var next_room_id: int
+var room_id := 0
+var claimed := {}           # ids already given to a room in this scan
 var operations := 0
 var owner: Node
 var boundary := {}
@@ -111,7 +113,7 @@ func _step() -> void:
 				return
 			var cell: Vector3i = cells[cursor]
 			cursor += 1
-			cell_to_room[cell] = next_room_id
+			cell_to_room[cell] = room_id
 			var column := Vector2i(cell.x, cell.z)
 			if not columns.has(column) or cell.y < int(columns[column]): columns[column] = cell.y
 			if not visited.has(cell + Vector3i.UP) or not visited.has(cell + Vector3i.UP * 2): return
@@ -159,11 +161,20 @@ func _step() -> void:
 				room.bed_count += 1
 			else:
 				owner.classify(room, int(owner._bed_assignments.get(first_bed, -1)) if room.bed_count == 1 else -1)
-				rooms[next_room_id] = room
-				next_room_id += 1
+				rooms[room_id] = room
 				stage = Stage.SEEDS
 
+## A room keeps the id it had before the scan, the one at its first cell, so a window, a card
+## or a name holding the id outlasts mining elsewhere. Of a room split in two, the part found
+## first keeps it; a new room, or the other part, takes the next free id.
 func _begin_room() -> void:
+	var before: int = owner.get_room_id_at(queue[0])
+	if before >= 0 and not claimed.has(before):
+		room_id = before
+	else:
+		room_id = next_room_id
+		next_room_id += 1
+	claimed[room_id] = true
 	cells = visited.keys()
 	cursor = 0
 	columns = {}

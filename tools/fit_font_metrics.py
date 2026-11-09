@@ -7,7 +7,7 @@ descent in the hhea and OS/2 tables (with the line gap at 0) and fixes the check
 glyphs are untouched and still draw in full. The Open Font License allows this modified
 version under the same licence.
 
-    py tools/fit_font_metrics.py <source.ttf> <output.ttf> [ascent_em] [descent_em]
+    python3 tools/fit_font_metrics.py <source.ttf> <output.ttf> [ascent_em] [descent_em]
 
 The defaults, 0.95 and 0.23 em, sit inside Fredoka's 0.98 and 0.24 em.
 """

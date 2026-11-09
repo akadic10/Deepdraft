@@ -4,7 +4,7 @@ extends SceneTree
 ## rebuilds in a loaded save. Runs the live game for --seconds, then, after every
 ## water tick, compares each tile's visible surface with what each candidate
 ## policy last "rendered", and counts the rebuilds each policy would make.
-## Run with an isolated APPDATA holding a copy of the save as quicksave.json.
+## Run with an isolated user:// profile holding a copy of the save as quicksave.json.
 const THRESHOLDS := [0.0, 1.0/256.0, 1.0/128.0, 1.0/64.0, 1.0/32.0, 1.0/16.0]
 var output := ""
 var seconds := 30.0

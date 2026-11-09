@@ -456,11 +456,6 @@ func _free_overview_tile_node(key: Vector2i) -> void:
 	overview_tile_nodes.erase(key)
 
 
-func _set_overview_nodes_visible(make_visible: bool) -> void:
-	for key: Vector2i in overview_tile_nodes:
-		(overview_tile_nodes[key] as MeshInstance3D).visible = make_visible
-
-
 func _recompute_overview_stats() -> void:
 	_overview_sampled_top_faces = 0
 	_overview_merged_top_faces = 0
@@ -476,7 +471,6 @@ func _recompute_overview_stats() -> void:
 
 
 func _update_block_face_overview() -> void:
-	_set_overview_nodes_visible(true)
 
 	var stats := WorldGenerator.get_streaming_stats()
 	if not stats.get("maps_ready", false):
@@ -637,7 +631,9 @@ func _refresh_overview_snapshots() -> void:
 		_ovt_cut = visual_cut.duplicate()
 		_ovt_mined = discovered.duplicate()
 		_ovt_mined.merge(debug_caves)
-		_ovt_mined.merge(WorldData.terrain_overrides())
+		# Dug cells only: a block built into open air never exposed the face beside it (Hard Rule 11).
+		for cell: Vector3i in WorldData.terrain_overrides():
+			if WorldData.is_dug(cell): _ovt_mined[cell] = true
 		_overview_snapshot_dirty = false
 		_snapshot_dirty_cells.clear()
 		return
@@ -646,7 +642,7 @@ func _refresh_overview_snapshots() -> void:
 		if visual_cut.has(cell): _ovt_cut[cell] = true
 		else: _ovt_cut.erase(cell)
 		if discovered.has(cell) \
-				or debug_caves.has(cell) or WorldData.has_terrain_override(cell):
+				or debug_caves.has(cell) or WorldData.is_dug(cell):
 			_ovt_mined[cell] = true
 		else: _ovt_mined.erase(cell)
 	_snapshot_dirty_cells.clear()

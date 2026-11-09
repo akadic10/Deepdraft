@@ -47,7 +47,10 @@ func _run() -> void:
 	world.set_block(planned.x,planned.y,planned.z,root.get_node("BlockRegistry").get_id("base:construction:log:oak:x"))
 	renderer._flush_terrain_changes()
 	renderer.tiles._refresh_overview_snapshots()
-	_expect(renderer.tiles._ovt_mined.has(planned) and renderer.tiles._ovt_cut.has(planned), "solid terrain overrides invalidate snapshots")
+	# The world has no ground here (no maps), so the log stands in open air: it digs nothing, and the
+	# faces beside it keep their strata (Hard Rule 11; the project review, 2026-11-09).
+	_expect(not renderer.tiles._ovt_mined.has(planned) and renderer.tiles._ovt_cut.has(planned),
+		"solid terrain overrides invalidate snapshots, and a log built into open air reveals nothing")
 	cut = renderer.tiles._ovt_cut
 	renderer.tiles.invalidate_global()
 	renderer.tiles._refresh_overview_snapshots()

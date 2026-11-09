@@ -9,12 +9,14 @@ changelog: record finished work as described under "Recording Changes".
 
 | Field | Value |
 |---|---|
-| Engine | Godot 4.7 (Forward+, Direct3D 12 on Windows) |
+| Engine | Godot 4.7.2 (Forward+, Vulkan) |
+| Platform | CachyOS Linux (KDE Plasma on Wayland). Write tooling in Python or GDScript, never PowerShell. |
 | Language | GDScript |
 | Genre | Subterranean colony-builder RTS |
 | Core loop | Dig → Brew → Trade |
 | Perspective | Top-down RTS only (no WASD direct control) |
-| Godot install path | `S:\STEAM\steamapps\common\Godot Engine` |
+| Godot install path | `/home/akadic/Storage/STEAM/SteamLibrary/steamapps/common/Godot Engine/` (Steam, 4.7.2) |
+| Godot binary | `godot.x11.opt.tools.64` in that folder (not on `PATH`) |
 
 ---
 
@@ -51,7 +53,8 @@ changelog: record finished work as described under "Recording Changes".
 | File | Read before you… |
 |---|---|
 | [`41_dwarf_agents.md`](docs/40_economy_colony/41_dwarf_agents.md) | Work on dwarf stats, needs, state machine, or skill system. |
-| [`42_farming_brewing.md`](docs/40_economy_colony/42_farming_brewing.md) | Add crops, recipes, farm logic, or plant visual meshes. |
+| [`41b_dwarf_appearance_glb.md`](docs/40_economy_colony/41b_dwarf_appearance_glb.md) | Change how dwarves look: their appearance parts and GLBs, colours, portraits, the appearance registry, or the felling axe and mining pick models. |
+| [`42_farming_brewing.md`](docs/40_economy_colony/42_farming_brewing.md) | Add crops, recipes, farm logic or plant visual meshes, or work on fishing or food spoilage. |
 | [`43_mining_materials.md`](docs/40_economy_colony/43_mining_materials.md) | Add block types, change noise generation, or touch collapse logic. |
 | [`44_crafting_workshops.md`](docs/40_economy_colony/44_crafting_workshops.md) | Work on the Smelter or Forge workshops, the Blacksmith profession, metalworking recipes, or ingot stockpile logic. |
 | [`45_wildlife.md`](docs/40_economy_colony/45_wildlife.md) | Work on rabbits/deer/wolves/ducks, wildlife needs, ground/swim/flight navigation, flocks, hunting, spawning, inspection or future food connections. |
@@ -82,6 +85,8 @@ changelog: record finished work as described under "Recording Changes".
    "Read before you…" column says which. Do not read every doc up front.
 3. For recent context, skim the top of the changelog
    (`docs/00_dev_roadmap/00_changelog.md`) and any milestone doc it links for your area.
+4. If the colony check's "Last asked" date (Standing Decisions) is a week old or more, ask
+   the owner about a check as that rule says.
 
 ---
 
@@ -134,7 +139,7 @@ These come from the owner and override older guidance in milestone docs.
   review. Disclose substitute foley and preserve playback behavior during asset swaps.
 - **Git: the owner commits.** Do not commit, push, stash or branch, and do not ask or offer
   to commit. Leave changes in the working tree and list the changed files when handing over.
-- **Builds only when asked.** Do not create, rebuild or package a Windows playtest unless
+- **Builds only when asked.** Do not create, rebuild or package a playtest build unless
   the owner explicitly asks. Normal work uses the source project. When a build is wanted,
   export from the editor (Project → Export).
 - **Focus: gameplay and usability.** Proactive performance work has been paused since
@@ -155,14 +160,15 @@ These come from the owner and override older guidance in milestone docs.
   - Resource placement stays depth-based.
 - **Tests.** The job gate (the 55 tests under `gate` in `tools/test_suite.json`) is the
   regression bar for gameplay changes, so keep it green.
-  - Run tests through `tools/run_job_reliability.ps1`, not by launching Godot yourself. It
-    isolates the player profile, runs tests in parallel and cleans `tmp/`. Use `-Area` or
-    `-Tests` while working, and the gate (no arguments) before handing over.
-  - The gate and `-All` runs also run `tools/lint_project.py`, which fails on new
+  - Run tests through `python3 tools/run_job_reliability.py`, not by launching Godot yourself.
+    It isolates the player profile (per-test `XDG_*` folders), runs tests in parallel and
+    cleans `tmp/`. Use `--area` or `--tests` while working, and the gate (no arguments) before
+    handing over. After adding a WAV, PNG or GLB, run `python3 tools/import_assets.py` first.
+  - The gate and `--all` runs also run `tools/lint_project.py`, which fails on new
     violations of the mechanical code rules (private access, JSON outside its owner, DEV
     tools without the switch, garbled text, unused data, legacy code, world-size literals,
-    growing an over-long file). Fix the code rather than the baseline. After fixing known
-    violations, record that with `py tools/lint_project.py --update-baseline`, which only
+    growing an over-long file, text sizes typed as numbers). Fix the code rather than the baseline. After fixing known
+    violations, record that with `python3 tools/lint_project.py --update-baseline`, which only
     lowers counts. `--reset-baseline` is for the owner to approve.
   - Add a focused regression test with each real bug fix.
   - Delete stale or broken tests rather than repairing them, unless other tests are built
@@ -172,9 +178,12 @@ These come from the owner and override older guidance in milestone docs.
 - **Scratch and evidence.** Test output, review screenshots and reports go to `tmp/`,
   which git and Godot both ignore. Do not copy them into `docs/` unless the owner asks.
 - **Colony checks: weekly.** A check in a copy of the owner's colony runs once a week, not
-  after each change; a scheduled task reminds the owner on Mondays. Between times, run one only
-  when the owner asks. Log every check in
+  after each change. Between times, run one only when the owner asks. Log every check in
   [`00_colony_checks.md`](docs/00_dev_roadmap/00_colony_checks.md), which also says how to run one.
+  - **Asking.** At the start of a session, if the date below is 7 or more days old and the
+    changelog has entries since the log's last check, ask the owner once whether to run one.
+    Then set the date to today, whatever the answer.
+  - **Last asked:** 2026-11-09
 
 ---
 
@@ -243,7 +252,8 @@ These come from the owner and override older guidance in milestone docs.
   move any rule, gotcha or decision that is still true into the design doc for that area,
   put unfinished work in `00_todo.md`, and delete the milestone doc. The changelog entry
   stays as the record. Design docs must not depend on milestone docs for current rules.
-- Do not add dated entries to this file.
+- Do not add dated entries to this file. The one date is the colony check's "Last asked",
+  which is overwritten, never added to.
 
 ---
 
@@ -271,7 +281,8 @@ Deepdraft/
 │   ├── ui/               ← UI scripts
 │   ├── shaders/
 │   └── tests/            ← headless tests: godot --headless --script res://scripts/tests/<Name>.gd
-├── scenes/main/debug_world.tscn   ← the main scene
+├── scenes/main/title_screen.tscn  ← the main scene (the game opens on the title)
+├── scenes/main/debug_world.tscn   ← the world scene; run on its own it resumes the newest save
 ├── assets/               ← models, audio and UI art
 ├── tools/                ← art pipeline (hearthblock/, voxel_assets/, art_data/), test runners, previews
 └── tmp/                  ← scratch output; ignored by git and Godot
@@ -291,6 +302,9 @@ When creating any new file, follow the convention for its type:
 | `.glb` assets | `snake_case` | `apple_mature_autumn.glb` |
 
 GDScript filenames must match their `class_name` declaration exactly — this is a Godot requirement, not a style choice.
+
+Paths are case-sensitive on Linux: every `res://` path, and every file name built from an id,
+must match the file on disk exactly.
 
 ---
 

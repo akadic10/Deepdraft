@@ -69,7 +69,7 @@ func has_any_room() -> bool:
 func _has_room_for_key(key: String) -> bool:
 	return room_for(key) > 0
 
-func _reserve_deposit(key: String, _near: Vector3i, dwarf_id: int, amount := 1, material_id := "", _spoil := -1.0) -> Variant:
+func _reserve_deposit(key: String, _near: Vector3i, dwarf_id: int, amount := 1, material_id := "", _spoil := -1.0, _outside := true) -> Variant:
 	if not accepts_key(key) or room_for(key) <= 0: return null
 	var quantity := mini(amount,room_for(key))
 	var token := {"id":_next_token,"item":key,"count":quantity,"owner":dwarf_id,"active":true,"material_id":material_id}
@@ -223,21 +223,8 @@ func take_item(dwarf_id: int, index: int) -> Node3D:
 		pull.picked[marker] = true
 	return cargo
 
-func skip_item(dwarf_id: int, index: int) -> void:
-	var pull: Dictionary = _pulls.get(dwarf_id,{})
-	if pull.has("transfers") and index < pull.items.size():
-		var transfer: Dictionary = pull.transfers[pull.items[index]]
-		transfer.source.release_outgoing(transfer.token)
-	super.skip_item(dwarf_id,index)
-
-func cancel_haul(dwarf_id: int) -> void:
-	var pull: Dictionary = _pulls.get(dwarf_id,{})
-	if pull.has("transfers"):
-		for marker: Node3D in pull.transfers:
-			var transfer: Dictionary = pull.transfers[marker]
-			transfer.source.release_outgoing(transfer.token)
-			if is_instance_valid(marker): marker.queue_free()
-	super.cancel_haul(dwarf_id)
+# A skipped or cancelled stored good gives its claim back through StorageComponent.skip_item and
+# cancel_haul, which also free its marker when the haul ends.
 
 ## Up to `max_haulers` haulers for each good still short (doc 276), while it is in stock or
 ## lying loose.

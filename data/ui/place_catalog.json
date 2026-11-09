@@ -114,6 +114,11 @@
       "label": "Mason's bench"
     },
     {
+      "key": "base:furniture:basic_smelter",
+      "category": "workshops",
+      "label": "Basic smelter"
+    },
+    {
       "key": "base:furniture:tool_rack",
       "category": "storage",
       "label": "Tool rack"
@@ -122,6 +127,16 @@
       "key": "base:furniture:raw_materials_crate",
       "category": "storage",
       "label": "Raw materials crate"
+    },
+    {
+      "key": "base:furniture:finished_goods_pallet",
+      "category": "storage",
+      "label": "Finished goods pallet"
+    },
+    {
+      "key": "base:furniture:food_shelf",
+      "category": "storage",
+      "label": "Food shelf"
     },
     {
       "key": "base:furniture:drying_rack",

@@ -11,7 +11,7 @@ bench claim while drying). Crafters → Ranger → Food → Dried fish (doc 292;
 then) takes two fresh fish of one kind (perch, trout, char or cave fish) to an installed rack.
 Hanging them takes 12 seconds, and then they dry there by themselves (owner, 2026-11-01: "the
 fish dried instantly, I don't think we want it to work that way"):
-- **A day on the rack.** The recipe's `dry_hours` (24) pass on the world clock while the
+- **A day on the rack.** The recipe's `batch_hours` (24) pass on the world clock while the
   batch hangs, on show (the rack's `batch_model`). The order's batch counts as done once hung,
   so an order moves on to another free rack. A rack holds one batch: an order whose every rack
   is drying says "Waiting for a free drying rack · about 14 hours".
@@ -38,12 +38,14 @@ batch to the Ranger's log of fish dried.
 - **Its window's action.** `crafting_recipe` and `crafting_action` give a workshop its
   action: the workbench's Craft items and the rack's Dry fish.
 - **Its batch on show.** A workshop's `batch_model` is laid over it only while a dwarf works
-  a batch there (`CraftingManager._show_batches`, `FurniturePlacementController.show_batch`):
+  a batch there or a batch dries on it (`CraftingManager._show_batches`,
+  `FurniturePlacementController.show_batch`):
   the fish hang on the drying rack while they dry, and an idle rack is bare (owner: "the
   drying rack should not display fish if no fish are drying").
 
-**Log dining table (2026-10-18):** Craft → Rudimentary → Dining now offers a
-Log Dining Table for two matching logs and 16 seconds at a crude workbench.
+**Log dining table (2026-10-18):** Crafters → Carpenter → Dining offers a
+Log Dining Table for two matching logs and 16 seconds at a carpenter's bench (Rudimentary,
+at the crude workbench, until 2026-11-02; see "Specialist workbenches").
 Its 3×3 footprint is a split-slab top over a one-block central base (the Tier 1
 design in doc 62). Pine, Oak, Juniper and Applewood follow normal material selection,
 packed delivery, installation, Move and saving. Four separate stools fit
@@ -51,26 +53,26 @@ the displayed guides, one against the middle of each side, so table and four
 stools together occupy 5×5. Stools are crafted independently (docs 231, 232); the
 guides take log and stone stools alike (doc 293).
 
-**Recipe categories (2026-10-13):** Rudimentary groups items by their use, matching
-the Place catalogue: Rooms contains the log bed, hearth and three doors; Dining
-contains the log stool and bench; Lighting contains the log torch and campfire.
-These replace the mixed Camp furnishings group. Workshops, Access and Starter
-tools retain their existing recipes. Categories affect browsing and search only.
-Recreation holds the Board-game Table: two matching logs and one rough stone, 18
-seconds; Access also holds the Log Fence Post and Log Gate, one log and 10 seconds each
-(doc 198).
+**Recipe categories (2026-10-13):** Each page groups items by their use, matching
+the Place catalogue. Rudimentary: Workshops (the crude workbench), Lighting (log torch,
+campfire), Access (ladder section), Dining (log stool) and Starter tools. The Carpenter's
+page: Workshops, Storage, Dining (log dining table, log bench), Rooms (log bed, the 2-wide,
+3-wide and double 4-wide doors), Access (Log Fence Post and Log Gate, one log and 10 seconds
+each, doc 198) and Recreation (the Board-game Table: two matching logs and one rough stone,
+18 seconds). The Stonemason's page: Workshops, Dining (stone stool) and Rooms (the hearth).
+Categories affect browsing and search only.
 
-**Rudimentary hearth (2026-10-11):** Rudimentary → Rooms now offers a
-rough fieldstone hearth: two matching logs and four rough stones, physically delivered to
-a crude workbench before 18 seconds of work. It emits 9600 heat units, tended so a room
+**Rudimentary hearth (2026-10-11):** Crafters → Stonemason → Rooms offers a
+rough fieldstone hearth (Rudimentary until 2026-11-02): two matching logs and four rough
+stones, physically delivered to a mason's bench before 18 seconds of work. It emits 9600 heat units, tended so a room
 never goes past 18°C (1600 until 2026-10-30, 2400 until doc 199; doc 34), and quiet fire
 audio while lit. Unlike the other wooden
 starter pieces it keeps no wood identity, whichever logs it used (its definition has no
 `material_group`). Repeated ingredients appear as one quantity in the recipe detail. Fuel upkeep remains
 future work (doc 122).
 
-**Log bed cost (2026-10-11):** One bed requires four matching logs at the crude
-workbench, under Rudimentary → Rooms. Every log is physically delivered
+**Log bed cost (2026-10-11):** One bed requires four matching logs at the carpenter's
+bench, under Crafters → Carpenter → Rooms (Rudimentary until 2026-11-02). Every log is physically delivered
 before the 16 seconds of work. Mixed species cannot substitute for a complete
 batch; the finished bed retains its wood identity. Cancelled work releases all
 unconsumed timber (doc 120).
@@ -102,9 +104,9 @@ scaled material bonus, with future copper/gold tuning separate from recipes (doc
 - Goods without a `material_id` stay unspecified: original artwork and the design's
   appeal alone. Nothing guesses their wood.
 
-**Log furniture (2026-10-11):** Rudimentary → Rooms offers 2/3-wide single log
-doors and a 4-wide double log door. Dining offers a log bench. Each uses
-one allowed timber at a crude workbench, taking 12/18/24 seconds for doors and
+**Log furniture (2026-10-11):** Crafters → Carpenter → Rooms offers 2/3-wide single log
+doors and a 4-wide double log door, and Dining a log bench (all Rudimentary until
+2026-11-02). Each uses one allowed timber at a carpenter's bench, taking 12/18/24 seconds for doors and
 10 for the bench. Finished crates use normal haul/install work. The starter
 wooden torch is renamed Log torch; its four-per-log recipe is unchanged (doc 117).
 
@@ -280,14 +282,31 @@ This carpentry work is separate from the tree-felling milestone.
 
 ### Specialist workbenches (2026-11-01)
 
-From the owner: each specialist crafts its own starting workbench, and better tools later let
-it craft more advanced ones. A career's first workbench is made by that career alone at the
-crude workbench from raw goods, as Rangers make the drying rack. Built for the Carpenter and
-the Stonemason (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md), step 2):
+From the owner (2026-11-01): "each will have to craft their starting workbench, later as better
+tools become available they will be able to craft more advanced workbenches". A career's first
+workbench is made by that career alone at the crude workbench from raw goods, as Rangers make
+the drying rack. The same holds for every career to come (the Blacksmith, the Farmer, the
+Brewer): none waits on another to start, though better benches may take other careers' goods
+(iron tools, planks, dressed stone). Built for the Carpenter and the Stonemason (doc 293):
 - **The pages.** Crafters → Carpenter and Crafters → Stonemason are live sections
-  (`worker_crafting.json`), laid out as the Rudimentary page with no `later` box. A recipe's
+  (`worker_crafting.json`), laid out as the Rudimentary page with no `later` box (owner,
+  2026-11-01: "I can't think of a reason why it would not look the same as the rudimentary
+  crafting page"). Each career makes only its own page. A recipe's
   `section` names the career that makes it; with none in the colony its order reads "Needs a
   Carpenter" or "Needs a Stonemason".
+- **Rudimentary is for surviving (owner, 2026-11-02:** "Rudimentary was supposed to be
+  initial surviving"**).** Workers with an axe keep only the first camp's basics: the crude
+  workbench, light (log torch, campfire), a way down (the ladder), a seat (the log stool) and
+  every starter tool and kit. A kit never moves to a career page: no career may wait on
+  itself or another to start.
+  - **The Carpenter** makes all other log furniture at the carpenter's bench: the log dining
+    table, log bench, log bed, every log door (2-wide, 3-wide and double 4-wide), the fence
+    post, the gate and the board-game table.
+  - **The Stonemason** makes the hearth at the mason's bench: its flagstones and fire-back
+    are split stone.
+  - So a bedroom (bed, door, light) needs a Carpenter, and a warm one a Stonemason too; a
+    colony's first nights are spent by the campfire. The owner chose this over keeping the
+    bed, the 2-wide door, the bench and the hearth with Workers.
 - **The carpenter's bench:** three matching logs, 16 s, Workshops. A thick slab hewn flat on
   top on four peeled log legs braced low with log rails, from the owner's picture (peeled,
   A), 3 × 1 with its work top at 1.125. Its wood recolours it like other log furniture.
@@ -302,13 +321,54 @@ the Stonemason (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md), st
   (10 s, Dining; the recipe's `ingredient_tag` is `stockpile_stone`, the Rough Stone alone, with
   stone's `ingredient_words`). Without a mason's bench its order reads "Needs a mason's bench".
   The Rough Stone itself lies on the slab while the maul knocks it square.
-- **The tool rack** (doc [294](../00_dev_roadmap/294_storage_furniture.md), step 3): the
-  Carpenter's first goods. Carpenters make it at the carpenter's bench from one log (12 s,
-  Storage); without a carpenter's bench its order reads "Needs a carpenter's bench". It keeps
-  three of the colony's tools (doc 31, "Storage priority and storage furniture").
+- **The tool rack** (doc 294): the Carpenter's first goods. Carpenters make it at the
+  carpenter's bench from one log (12 s, Storage); without a carpenter's bench its order reads
+  "Needs a carpenter's bench". It keeps three of the colony's tools (doc 31, "Storage priority
+  and storage furniture").
+- **The raw materials crate** (doc 294): Carpenters make it there from two matching logs (16 s,
+  Storage), and it keeps their wood. It holds twelve raw goods: Rough Stone, the ores and coal,
+  and soil (doc 62).
+- **The finished goods pallet** (doc 296): Carpenters make it there from two matching logs (16 s,
+  Storage), and it keeps their wood. It holds four pieces of packed furniture, one to each
+  quarter, until they are placed (doc 62).
+- **The food shelf** (doc 299): Carpenters make it there from two matching logs (16 s, Storage),
+  and it keeps their wood. It holds six crates of food on two decks (doc 62; doc 42, "Spoilage").
 - The benches' Craft items now open what is made at them: the tool rack at the carpenter's
   bench, the stone stool at the mason's bench.
+- **The basic smelter** (doc 297): the Blacksmith's starter bench, made by Blacksmiths at the
+  crude workbench from a log, four Rough Stones and a Soil (20 s, Workshops; one Soil, not
+  two, so the recipe's board still fits a 1080p screen). Crafters →
+  Blacksmith holds it, copper bars and copper fittings; the page's `later` box says the Smelter
+  and the Forge come with iron.
+  - **Copper bar:** two copper ore (the recipe's `ingredient_tag` is `copper_ore`, so no other
+    ore) and a coal, charged in 12 s. The charge then melts for `batch_hours` (4) on the world
+    clock, as fish dry on the rack, heating the room meanwhile; then a Blacksmith takes one bar
+    off the casting stone in `collect_seconds` (4). One batch a smelter; the window's row and
+    the crafting list say Melting, from the recipe's `batch_words`.
+  - **Copper fittings:** one bar hammered cold on the casting stone into four, 10 s, no wait.
+    Their use (brewery and aging cellar building) waits for those features.
+  - **Practice:** each batch is one Blacksmith experience; iron will need level 2 (10 batches).
+  - **Storage:** bars and fittings are `stockpile_metal`, the Metal category under Materials.
+  - **The Blacksmith** is promoted with a stone hammer, crafts and collects before the common
+    work, and swings the stone maul at the bench with a hammer's knock.
 - Planks, dressed stone and the advanced benches wait for iron tools.
+
+**The ladder.** Both careers climb the same rungs. The upper two are planned, and the advanced
+benches' names are suggestions:
+
+| Rung | Carpenter | Stonemason |
+|---|---|---|
+| Kit (Workers make it at the crude workbench) | Crude carpentry kit: a wooden mallet and a stone adze | Crude masonry kit: a hammerstone maul and a stone point |
+| Starter bench (the career makes it there, from raw goods) | Carpenter's bench | Mason's bench |
+| Better tool (from the Blacksmith) | Iron saw | Iron chisels |
+| Advanced bench (made with that tool) | Joiner's bench: planks, Tier 2 · Carpenter Era pieces, chests and barrels, framed doors on iron hinges | Carver's bench: dressed stone, Build's dressed blocks, carved stone and finer doors |
+
+- **Stone tools make rough work** (doc 64, "Furniture tiers"). The kits hew timber and knock
+  stone square; nothing is sawn, dressed or tooled smooth before the iron tools.
+- **The tool gates the finer work.** A recipe will name the tool its maker must hold, the
+  advanced bench and that bench's own recipes alike, so their orders wait "Needs a Carpenter
+  with an iron saw".
+- What is left to build is in `00_todo.md` ("The Stonemason and the Carpenter left for later").
 
 ### Carpenter entry tools — dependency review (2026-10-09)
 
@@ -353,6 +413,13 @@ Full schema: `data/workshops/smelter.json` *(to be created)*.
 placed model in the game yet, and none of the production behavior in this
 section is live.
 
+**The basic smelter comes first (owner, 2026-11-02; built, doc 297).** The Blacksmith's starter bench is a
+**basic smelter** made from raw goods at the crude workbench (see "Specialist workbenches").
+It smelts copper ore with coal into copper bars, and the Blacksmith practises on copper before
+iron (owner: "the blacksmith might have to practice first on copper bars"). This Smelter
+becomes the advanced bench for iron, which needs Blacksmith level 2. Tin waits for it. No
+bronze yet. The planned tables below still say "ingot"; these goods are bars.
+
 ### Placement
 
 - Footprint: **2×2 floor cells, 3 blocks tall**, including the chimney (approved art design, 2026-10-03).
@@ -366,7 +433,7 @@ Coal is consumed as fuel in every smelting recipe. It is never a product and can
 | Recipe ID | Inputs | Output | Work Time | Min Skill |
 |---|---|---|---|---|
 | `base:recipe:smelt:iron_ingot`   | 2× iron ore + 1× coal   | 2× iron ingot   | 1 h | 1 |
-| `base:recipe:smelt:copper_ingot` | 2× copper ore + 1× coal | 2× copper ingot | 1 h | 1 |
+| `base:recipe:smelt:copper_ingot` | Moved to the basic smelter (doc 297): 2× copper ore + 1× fuel → 1× copper bar | | | 0 |
 | `base:recipe:smelt:tin_ingot`    | 2× tin ore + 1× coal    | 2× tin ingot    | 1 h | 1 |
 | `base:recipe:smelt:silver_ingot` | 2× silver ore + 1× coal | 1× silver ingot | 1 h | 2 |
 | `base:recipe:smelt:gold_ingot`   | 2× gold ore + 1× coal   | 1× gold ingot   | 2 h | 3 |
@@ -403,7 +470,7 @@ General metal goods. Any Blacksmith accepts these tasks.
 | `base:recipe:forge:torch_bracket`   | 1× iron ingot   | 4× torch bracket   | 0.5 h | 1 | Required to place wall torches |
 | `base:recipe:forge:door_hinge`      | 1× iron ingot   | 4× door hinge      | 0.5 h | 1 | Required to place constructed doors |
 | `base:recipe:forge:iron_nail_bundle`| 1× iron ingot   | 6× iron nail       | 0.5 h | 1 | Used in BUILD tasks for wood construction |
-| `base:recipe:forge:copper_fitting`  | 1× copper ingot | 4× copper fitting  | 0.5 h | 1 | Used in brewery/aging cellar construction |
+| `base:recipe:forge:copper_fitting`  | 1× copper bar | 4× copper fitting  | 0.5 h | 0 | Made at the basic smelter instead (doc 297). Used in brewery/aging cellar construction |
 
 ---
 
@@ -547,3 +614,9 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 ---
 
 *Prev: [43_mining_materials.md](./43_mining_materials.md) | Next: [51_visitors.md](../50_world_events/51_visitors.md)*
+
+## Bench motions
+
+Each crafting career has its own motion at the bench, named by `craft_motion` in `professions.json` and
+shaped in `DwarfFellingPose.BENCH_MOTIONS`: the Carpenter's adze stroke, the Stonemason's tap and the
+Blacksmith's hammer blow. All share the Worker's swing timing, so work time and sound are unaffected.

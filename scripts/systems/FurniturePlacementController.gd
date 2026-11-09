@@ -102,6 +102,7 @@ var _wall_to_ghost: Dictionary = {}      # Vector4i(placement reference x,y,z,ya
 var _wall_to_installed: Dictionary = {}  # separate from floor reservations
 var _wall_backed: Dictionary = {}        # installed id -> true: floor_wall pieces (the tool rack)
 var _wall_dirty: bool = false
+var _lost_floors := {}   # footprint cells whose floor block was removed this frame
 
 # ── Work-source plumbing (doc 19 Phase 3) ─────────────────────────────────────
 const LEASE_REFRESH_S := 0.25         # the StockpileManager throttle pattern
@@ -154,6 +155,7 @@ func _ready() -> void:
 	TaskManager.task_released.connect(func(_task: Task, _dwarf: int, _reason: int) -> void: mark_catalog_dirty())
 	StockpileManager.stockpile_changed.connect(func(_k: String, _d: int) -> void: _mark_lease_dirty())
 	WorldData.chunk_dirtied.connect(_on_terrain_changed, CONNECT_DEFERRED)
+	WorldData.block_changed.connect(_on_floor_block_changed)
 	WorldClock.season_changed.connect(_refresh_plant_models)
 	# A restored or skipped clock settles nightly fires at once, not on the next frame.
 	WorldClock.hour_changed.connect(func(_hour: int) -> void: _fires.tick())
@@ -416,6 +418,7 @@ func _process(delta: float) -> void:
 	if _wall_dirty:
 		_wall_dirty = false
 		_revalidate_wall_mounts()
+	if not _lost_floors.is_empty(): _drop_unsupported_pieces()
 	_fires.tick()
 	if _lease_dirty:
 		_lease_accum += delta
@@ -559,6 +562,24 @@ func _bounds_cells(bounds: AABB) -> Array[Vector3i]:
 ## walkable but still cannot pass through an elevated torch. Cache per asset.
 func visual_bounds(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
 	return _rules.visual_bounds(def, origin, yaw)
+
+
+## A floor piece stands on its footprint's blocks: mine one and the piece falls, packed, with its
+## goods, as a wall piece falls with its wall.
+func _on_floor_block_changed(cell: Vector3i, old_id: int, new_id: int) -> void:
+	if _cell_to_installed.has(cell) and BlockRegistry.is_solid(old_id) and not BlockRegistry.is_solid(new_id):
+		_lost_floors[cell] = true
+
+
+func _drop_unsupported_pieces() -> void:
+	var lost := _lost_floors
+	_lost_floors = {}
+	for cell: Vector3i in lost:
+		if not _cell_to_installed.has(cell) or BlockRegistry.is_solid(terrain_block_id(cell.x, cell.y, cell.z)): continue
+		var piece: InstalledFurnitureComponent = _installed[_cell_to_installed[cell]]
+		var columns := piece.cells.duplicate()
+		_teardown_installed(piece.installed_id, true)
+		if _drop_manager != null: _drop_manager.settle_cells(columns)
 
 
 func _on_terrain_changed(_cx: int, _cy: int, _cz: int) -> void:
@@ -820,7 +841,10 @@ func _on_ghost_build_complete(ghost: FurnitureGhostComponent) -> void:
 func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if not _ghosts.has(ghost.ghost_id):
 		return false
-	if GridFence.applies(ghost.def): return _fences.placement_reason(ghost.def,ghost.origin_cell,ghost.yaw_steps,ghost).is_empty()
+	if GridFence.applies(ghost.def):
+		# A post, or a gate's end, put up on a dwarf would wall it in; a gate's opening stays walkable.
+		if _dwarf_on(GridFence.ends(ghost.def,ghost.origin_cell,ghost.yaw_steps)): return false
+		return _fences.placement_reason(ghost.def,ghost.origin_cell,ghost.yaw_steps,ghost).is_empty()
 	if ghost.def.has("water_stone"):
 		var stones := get_tree().get_first_node_in_group("water_stones")
 		return WaterManager.stones.has(ghost.fetched_instance_id) and not WaterManager.stones[ghost.fetched_instance_id].placed and stones != null and stones.placement_reason(ghost.origin_cell).is_empty()
@@ -835,22 +859,26 @@ func _can_build_ghost(ghost: FurnitureGhostComponent) -> bool:
 	if not _seating.placement_reason(ghost.def, ghost.origin_cell, ghost.yaw_steps, ghost).is_empty():
 		return false
 	if not WallMount.is_wall(ghost.def):
-		if _moves.records.has(ghost.required_instance_id):
-			for cell: Vector3i in ghost.footprint_cells():
-				if not NavGrid.is_walkable(cell) or _cell_to_installed.has(cell): return false
+		# Its spot may have changed since it was planned: floor, head room, or a dwarf standing there.
+		var cells := ghost.footprint_cells()
+		for cell: Vector3i in cells:
+			if not NavGrid.is_walkable(cell) or _cell_to_installed.has(cell): return false
+		if _dwarf_on(cells): return false
 		# A floor_wall piece (the tool rack, doc 294) needs its wall still standing behind it.
-		if String(ghost.def.get("placement","floor")) == "floor_wall" and not _rules.has_wall_behind(ghost.def,ghost.origin_cell,ghost.yaw_steps): return false
-		if Seating.is_chair(ghost.def):
-			for cell: Vector3i in ghost.footprint_cells():
-				if not NavGrid.is_walkable(cell):
-					return false
-		return true
+		return String(ghost.def.get("placement","floor")) != "floor_wall" or _rules.has_wall_behind(ghost.def,ghost.origin_cell,ghost.yaw_steps)
 	if not _rules.wall_work_support_valid(ghost.def, ghost.origin_cell, ghost.yaw_steps):
 		return false
 	for cell: Vector3i in _bounds_cells(WallMount.bounds_for(ghost.def, ghost.origin_cell, ghost.yaw_steps)):
 		if PlacedEntityRegistry.occupies(cell):
 			return false
 	return true
+
+
+## Whether a dwarf stands on any of these floor cells.
+func _dwarf_on(cells: Array[Vector3i]) -> bool:
+	for actor: DwarfAgent in TaskManager.get_agents():
+		if is_instance_valid(actor) and actor.current_cell() in cells: return true
+	return false
 
 
 ## DEV: materialise a ghost without a dwarf (the DEV-mine precedent). It takes

@@ -53,6 +53,8 @@ var _probes_run: int = 0
 var _nodes_expanded_total: int = 0
 signal ladder_routes_changed
 var ladder_revision := 0
+const LADDER_CHANGE_LOG := 32
+var _ladder_changes: Array[Dictionary] = []   # the latest changes: {revision, cells}, oldest first
 var _ladders: Dictionary = {}
 var _rungs: Dictionary = {}
 var _min_climb_cost := COST_UP
@@ -64,13 +66,50 @@ enum ProbeResult { SEARCHING, REACHABLE, UNREACHABLE, BUDGET_EXHAUSTED }
 
 ## Rungs are explicit traversal supports, never solid terrain/walkable floors.
 func set_ladder(id: int, base: Vector3i, height: int, facing: Vector3i, speed: float, closing := false) -> void:
-	_ladders[id] = {"base":base, "height":height, "facing":facing, "speed":speed, "closing":closing}
+	var before: Dictionary = _ladders.get(id, {})
+	var after := {"base":base, "height":height, "facing":facing, "speed":speed, "closing":closing}
+	# A section added or taken off changes only those rungs; anything else changes the whole ladder.
+	var same_climb: bool = not before.is_empty() and before.base == base and before.facing == facing \
+			and before.speed == speed and before.closing == closing
+	var changed := _rung_cells(before)
+	changed.merge(_rung_cells(after))
+	if same_climb:
+		for y in range(base.y, base.y + mini(before.height, height) + 1):
+			changed.erase(Vector3i(base.x, y, base.z))
+	_note_ladder_change(changed)
+	_ladders[id] = after
 	_rebuild_ladders()
 
 
 func remove_ladder(id: int) -> void:
+	_note_ladder_change(_rung_cells(_ladders.get(id, {})))
 	_ladders.erase(id)
 	_rebuild_ladders()
+
+
+func _rung_cells(ladder: Dictionary) -> Dictionary:
+	var cells := {}
+	if ladder.is_empty(): return cells
+	for y in range(ladder.base.y, ladder.base.y + ladder.height + 1):
+		cells[Vector3i(ladder.base.x, y, ladder.base.z)] = true
+	return cells
+
+
+func _note_ladder_change(cells: Dictionary) -> void:
+	_ladder_changes.append({"revision":ladder_revision + 1, "cells":cells})
+	if _ladder_changes.size() > LADDER_CHANGE_LOG: _ladder_changes.pop_front()
+
+
+## Whether a ladder change since `since_revision` touched this route from `from_index` on (with the
+## waypoint just left, which a climber may still be on). A walk too old for the log counts as touched.
+func ladder_change_touches(path: Array, from_index: int, since_revision: int) -> bool:
+	if since_revision == ladder_revision: return false
+	if _ladder_changes.is_empty() or int(_ladder_changes[0].revision) > since_revision + 1: return true
+	for change: Dictionary in _ladder_changes:
+		if int(change.revision) <= since_revision: continue
+		for i in range(maxi(from_index - 1, 0), path.size()):
+			if change.cells.has(path[i]): return true
+	return false
 
 
 func _rebuild_ladders() -> void:
@@ -411,6 +450,7 @@ func get_stats() -> Dictionary:
 func clear_runtime_state() -> void:
 	_chunk_revisions.clear()
 	_ladders.clear()
+	_ladder_changes.clear()
 	_rebuild_ladders()
 	_walkable_cache.clear()
 	_path_cache.clear()

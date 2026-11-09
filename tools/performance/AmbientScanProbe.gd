@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Diagnostic: times each part of AmbientAudio._scan_environment in a loaded
 ## save while the game is paused and the camera pans (where 50-110 ms stalls
-## were seen 2026-10-22). Run with an isolated APPDATA holding quicksave.json.
+## were seen 2026-10-22). Run with an isolated user:// profile holding quicksave.json.
 var output := ""
 
 func _init() -> void:

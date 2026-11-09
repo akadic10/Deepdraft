@@ -100,40 +100,6 @@ review (§4.2) and by the 2026-10-22 code review (doc 258), and were re-checked 
 Found by the 2026-10-20 project review (doc 254) and re-checked against the code on
 2026-10-26, apart from the teardown item, which comes from the 2026-10-15 benchmarks.
 
-### A ladder change interrupts meals, games and promotions
-
-- **What happens.** Building, extending or removing any ladder, even one section
-  far away, makes every walking dwarf replan. A dwarf walking to a meal gives it up
-  ("Meal interrupted by movement."), one walking to a game cancels it, and one fetching a
-  promotion's tool cancels the promotion ("Promotion cancelled: the route to the tool
-  changed."). Work, rest and meal walks each run a new path search in that frame, after
-  the path cache is cleared.
-- **Why.** Each ladder change raises `NavGrid.ladder_revision` and clears the
-  path cache (`_rebuild_ladders`). `DwarfMovement.follow_path` then calls
-  `_repath_walk()`, which cancels recreation outright and otherwise calls
-  `DwarfAgent.walk_to`, whose first lines cancel a meal. `DwarfEquipment.tick` cancels a
-  promotion on its own revision check.
-- **Fix direction.** Replan without the cancellations: let the activity that owns the walk
-  replan its route (or call `DwarfMovement.walk_to` directly), and replan only the walks
-  whose route uses the changed ladder.
-- **Done when** finishing a ladder section elsewhere leaves dwarves walking to a meal, a
-  game or a tool still on their way.
-
-### Hunger stops work before knowing there is food
-
-- **What happens.** A hungry dwarf drops its job, and any cargo, before it looks for food.
-  With no reachable food it gives up and works again. A quarter of a game hour later it
-  drops everything again, for as long as the shortage lasts.
-- **Why.** `DwarfFoodBehavior.begin_if_needed` aborts and releases the current task (its
-  `clear_task_state` drops the cargo), then searches. After "No reachable food; will try
-  again." the next try waits only `food.retry_hours` (0.25 in
-  `data/tasks/task_config.json`), and the `shortage` flag doesn't hold it back.
-- **Fix direction.** Search first (the search is already budgeted and resumable) and take
-  the dwarf off work only once food is quoted. Or, while `shortage` stands, skip the
-  interruption until stock changes. A famished dwarf's foraging must keep working.
-- **Done when** a hungry hauler with no food in reach keeps hauling, and one with food in
-  reach still goes to eat.
-
 ### Proven routes a worker cannot walk
 
 - **What happens.** Traced in the code, not yet seen in play: work the scheduler proved
@@ -194,55 +160,63 @@ in doc 41 ("Stats", "Health"), doc 45 (animals) and docs 52 and 62 (doors).
   the career map's fit.
 - **Agility's first live job.** Walking and climbing speed, at a smaller 3% a step, would
   show it now. It touches every trip, so it waits for the owner's word.
-- **Wisdom's first live job.** Tree planting (doc 284) is the only farming work today.
 - **Charisma** does nothing until a Merchant, an Innkeeper or a squad leader exists.
-- **With the Hunter:** spear blows against animal hit points, fleeing when struck,
-  carcasses; Agility and Wisdom at work (doc 45).
+- **With the Ranger's hunting:** spear blows against animal hit points, fleeing when struck,
+  carcasses and experience for each animal; Agility and Wisdom at work (doc 45). Hunting also
+  brings the Ranger more workbenches, such as a rack for drying hides into leather (owner,
+  2026-11-01).
 - **With combat:** invaders breaking doors, armour, weapons, death and forced bed rest;
   Strength, Agility and Toughness in the damage formula; whether dwarves can lock doors
   during a raid, and whether mending a door takes a log (doc 52).
 - **A Medic:** Wisdom heals others, and a bed or an infirmary heals faster.
 - **Better doors:** iron with the Smelter and Forge, stone with the Stonemason (doc 62).
 
+### The Blacksmith left for later
+
+Left open when doc 297 (the basic smelter) was retired (2026-11-02); the rules are in doc 44
+("Specialist workbenches", "The Smelter"), doc 41, doc 31 (COLLECT) and doc 34 (batch heat).
+
+- **Iron:** the Smelter and the Forge as the advanced benches, for a level-2 Blacksmith; tin
+  bars with them (owner, 2026-11-02: "tin waits"). No bronze yet.
+- **Copper tongs and hammer,** the better tool the career map previews.
+- **Copper fittings' use:** the brewery and the aging cellar.
+- **Charcoal** as a second fuel; recipes would take a `fuel` tag.
+- **Tune in play:** the melt's 4 hours, the smelter's 2,400 heat, and where a bar lies on the
+  bench while it is hammered (at the seam between furnace and casting stone).
+- **A set bar holds the smelter:** no fittings order takes it until the bar is taken off.
+
+### The Stonemason and the Carpenter left for later
+
+Left open when doc 293 was retired (2026-11-02); the rules are in doc 44 ("Specialist
+workbenches", with the ladder), doc 41 (Profession System) and doc 64 ("Furniture tiers").
+
+- **Iron tools and the advanced benches.** With the Blacksmith (doc 44): the iron saw and the
+  iron chisels, which the career map already previews, then the joiner's and the carver's
+  benches made with them. A recipe names the tool its maker must hold (`tool`), so an order
+  waits "Needs a Carpenter with an iron saw".
+- **Planks and dressed stone,** held until the iron tools (owner, 2026-11-01: "I don't know how
+  the dwarves can make these without a saw yet, hold off on this"; "not yet, dwarves lack fancy
+  tools for now"). As planned, a Carpenter splits and adzes a log into two planks of its wood,
+  and a Stonemason dresses a Rough Stone into one block of dressed stone; both are hauled and
+  stored like logs and stones. Tier 2 · Carpenter Era pieces and the plank stool take planks,
+  the Stonemason's finer pieces dressed stone, and Build both ("Build textures by
+  progression"). Tier 2 straight from logs was not taken: it leaves no plank for Build. Dressed
+  faces want a warm grey like the hearth's stones; the Rough Stone's cool grey read as ice on a
+  sunlit wall.
+- **Later pieces,** at the owner's choice: a plank bed, a standing stone for appeal and a great
+  hearth that can warm a hall. The stone door is under "Better doors" above.
+- **Recordings.** The maul borrows the builder's hammer knock (`craft_sound` "hammer" in
+  `professions.json`) and the adze the axe's chop. Record an adze on wood and stone struck with
+  stone, by the sound workflow; the Worker's chop stays for Rudimentary.
+- **The careers' icons** (an open pick). The Carpenter's is a handsaw on a plank and the
+  Stonemason's a steel chisel in a dressed block, tools neither has yet
+  (`tools/hearthblock/art/icons.mjs`). Keep them as emblems, or redraw them with the stone adze
+  and the maul? The Ranger's kit was changed to match its icon.
+
 ## Furniture
 
 Found by the 2026-10-14 review (doc 177, parked by the owner) and the 2026-10-20 project
 review (doc 254), and re-checked against the code on 2026-10-26.
-
-### Floor furniture installs without rechecking its spot
-
-- **What happens.** A floor piece installs even when its spot changed after it was
-  planned. With the floor under it removed, at any time before or during the set-down,
-  it installs hanging over the hole and uses up the packed item. It also installs over a
-  dwarf standing in its footprint and registers its occupancy around them.
-- **Why.** `FurniturePlacementController._can_build_ghost`, run just before the item is
-  used, rechecks walkability only for Moves and chairs; any other floor piece passes
-  after the seating check. Nothing rechecks or cancels floor plans when terrain changes,
-  and ghost work stands exclude only the ghost's own footprint
-  (`FurnitureGhostComponent.work_stands`). `ConstructionController.build_reason` already
-  refuses a cell a dwarf occupies.
-- **Fix direction.** Before using the item, recheck every floor piece's footprint with the
-  placement rules (support, clearance, occupancy) and refuse while a dwarf stands in it.
-  A refused install keeps the exact packed item.
-- **Done when** a test that removes the floor before the set-down, and one that parks a
-  dwarf in the footprint, both end with no installed piece and the packed item intact.
-
-### Mining under furniture or a stockpile leaves it floating
-
-- **What happens.** Mining the block under an installed floor piece (a bed, table, stool,
-  bench, workbench, hearth, campfire, door or the flag) or under a stocked storage cell
-  leaves the piece or the stored goods hanging in the air, and haulers keep delivering to
-  that cell.
-- **Why.** `MiningDesignationController._filter_mineable_blocks` doesn't skip blocks under
-  furniture, ghosts or storage cells. After the edit only wall pieces
-  (`_revalidate_wall_mounts`) and grid fences and gates (`GridFence.revalidate_support`)
-  are rechecked, and storage doesn't listen to terrain edits. Loose items settle
-  (`ItemDropManager._settle_changed_columns`), but stored goods keep their owners.
-- **Fix direction.** Choose per kind: keep those blocks out of mining plans, or react when
-  the support goes (pack the piece, drop stored goods as loose items so they settle, and
-  remove the unsupported storage cell).
-- **Done when** mining the floor under a bed and under a stocked cell leaves nothing
-  floating, and no hauler targets the cell.
 
 ### Removing floor furniture tries only the nearest side
 
@@ -256,6 +230,21 @@ review (doc 254), and re-checked against the code on 2026-10-26.
   stand to the executor. Cover Uninstall and Move.
 - **Done when** a Log Stool at (45, 20, 40) whose nearest stand (44, 20, 40) is walled in
   is uninstalled from (45, 20, 39).
+
+### Nightly fires left for later
+
+- **Fix direction.** The nightly fires plan (2026-10-28) left four things for later. The
+  rules are in doc 34 ("Nightly fires", "Bedtime fires"), doc 31 and doc 62:
+  - **a lighting step:** setting the log in is the lighting itself; there is no separate
+    action to light the fire;
+  - **dark weather by day:** fires light only at dusk or at bedtime, never under a dark sky
+    by day as Stonehearth's do. `FurnitureFires` follows `WorldClock.is_night()`; this would
+    also read the day's weather (`WeatherManager.current_definition()`) and need a rule for
+    when a fire lit by day goes out;
+  - **torches** stay lit day and night and take no fuel; feeding them too is the owner's
+    call;
+  - **`FireLightingTest` in the job gate:** it runs only in the furniture area. Adding it
+    makes the gate 56 tests, the count CLAUDE.md gives.
 
 ---
 
@@ -276,8 +265,11 @@ review (doc 254), and re-checked against the code on 2026-10-26.
   overview snapshot patch is negligible. The long frame comes from another system.
   Unchecked candidates: the first dropped item (model load), the first underground
   lighting or NavGrid update after a load, water, and cave discovery.
-- **Reproduce** with `tools/performance/RunShaderSlots.ps1 -Mining`. Its report lists
-  the mined blocks in order, and the first one carries the hitch.
+- **Reproduce** with the shader-slot review in its mining mode. The review and its
+  launcher (`ShaderSlotReview.gd`, `RunShaderSlots.ps1`) were deleted in commit
+  `b3a95478`: restore the review from git history and start it as doc 13, "Measuring
+  performance", describes. Its report lists the mined blocks in order, and the first one
+  carries the hitch.
 - **Fix direction.** Profile that one frame to find the system doing first-time work,
   then do that work while the loading screen is still up.
 - **Done when** the first mined block after a load costs about the same as the next
@@ -315,13 +307,31 @@ review (doc 254), and re-checked against the code on 2026-10-26.
 - **Fix direction.** Run 30–60 minutes at normal speed on a copied mature save with 30
   dwarves, through autosaves, arrivals and a season change, recording frame times, engine
   memory, node and resource counts and job progress. Start from
-  `tools/performance/RunLongSession.ps1` (`LongSessionBenchmark.gd`), whose triggers
+  `tools/performance/LongSessionBenchmark.gd` (started as doc 13, "Measuring performance",
+  describes), whose triggers
   squeeze a save, a midnight, arrivals and a season change into the first few minutes.
   First fix its `arrival_finished` handler (`LongSessionBenchmark.gd:90`): a
   three-argument lambda on a signal that now has four. Method: doc 13, "Measuring
   performance".
 - **Done when** the run shows no unexplained growth in frame time or memory, or the cause
   of any growth is found.
+
+### Far hauls still wait on searches
+
+- **What happens.** Since 2026-10-30 one pickup search covers the loads lying the same way
+  (doc 31, "Pickup searches by direction"). In the owner's save, with logs on a shelf reached by
+  a long detour, the first load is now assigned after about 13–15 s at 60 fps instead of 75 s.
+  What is left of the wait:
+  - the route back to storage is still searched once per pickup stand; once the first dwarf is
+    on its way, most of the rest of the wait is these delivery searches;
+  - a crowd at the stockpile still searches one route per dwarf, so with 20 or more idle dwarves
+    heading for the same far loads the wait grows with the crowd;
+  - resuming a very long finished search (towards the 24,000-node limit) copies it whole, about
+    8 ms once, when its load is claimed first (`NavGrid.reopen_search`).
+- **Fix direction.** Only if play shows idle dwarves on Ready for work beside far loads: group
+  delivery searches the way pickups are grouped (`StorageComponent.pickup_group`), and share one
+  search among dwarves setting out from the same place. `HaulingFarLoadsTest` (hauling area)
+  counts the wait in scheduler wakes.
 
 ---
 
@@ -357,8 +367,9 @@ Owner decision 2026-10-21: log the proper fix and leave `buffer_size` unchanged
   (`UndergroundLighting.bind_door_tree`).
 - **Fallback.** Raising `buffer_size` lifts the cap at 16 bytes of GPU memory per slot.
   It changes a rendering setting, so it needs the owner's OK.
-- **Count** with `tools/performance/RunShaderSlots.ps1` (copy of a save, throwaway
-  profile). The report gives users, the cap and a per-system breakdown.
+- **Count** with the shader-slot review (`ShaderSlotReview.gd`, deleted in commit
+  `b3a95478`; restore it from git history) on a copy of a save in a throwaway profile. The
+  report gives users, the cap and a per-system breakdown.
 - **Done when** a slot count over a large save shows only actors and doors reserving
   slots, and dwarves, animals and doorways light exactly as before.
 
@@ -376,6 +387,19 @@ Left open when doc 287 was accepted (2026-10-30); not seen in play.
   reach casting, or add installed doors' boxes to the shadow rock.
 - **Done when** a closed door above the cut stops a sliced torch's light as it does with the
   slice off, and nothing else changes for pieces the slice shows.
+
+### Weather looks left for later
+
+- **Idea.** Left out when rain and snow were redrawn (doc 291, 2026-11-01):
+  - snow cover on open ground (its planned rates are in doc 24, "Planned weather effects") and
+    wet-looking ground in rain;
+  - cloud shadows drifting over the ground, so cloudy days read from the RTS angle: the sky is
+    almost never on screen at the default pitch;
+  - wind: the drops' `slant` always leans toward −X, and nothing sways trees or grass in a storm.
+- **Fix direction.** Snow cover and wet ground can start from the landing map the precipitation
+  already keeps, the top solid block and any water in each column (doc 24, "Drops land on what
+  is really there"). Wind needs a direction in the weather data that the drops and the foliage
+  both read.
 
 ---
 
@@ -469,6 +493,14 @@ Left open when doc 287 was accepted (2026-10-30); not seen in play.
   - **a sound** for new entries.
 - The log, its toasts, the window and the bell are in doc 23, "Toasts and the event log".
 
+### A third game speed
+
+- **Idea.** A 3× speed was discussed with the shorter days (2026-10-29) and not added: the
+  player has 1× and 2× (`play` and `fast` in `data/ui/time_slice.json`, keys 1 and 2). Other
+  colony sims stop at 3× to 7×.
+- **Fix direction.** A 3× button beside 2× under the Sky Dial, with its own input action,
+  through `WorldClock.set_speed`. Check that a 30-dwarf colony keeps up at 3×.
+
 ---
 
 ## World start
@@ -554,10 +586,26 @@ in [43 §Cave discovery](../40_economy_colony/43_mining_materials.md#cave-discov
 
 ## Forestry
 
-- **Tree growth and regrowth.** Trees keep their generated growth stage; saplings never
-  grow and felled trees never come back.
+- **Wild tree growth and regrowth.** Wild trees keep their generated growth stage: wild
+  saplings never grow and felled wild trees never come back. Only planted trees grow (doc 42,
+  "Planting Seeds"). A sapling, wild or planted, floats if the ground under it is mined.
 - **Forestry Zone and Clear Stumps.** Planned dock actions; neither is in
   `data/ui/dock.json`, and there are no persistent stump objects.
+
+### Tree planting's open picks
+
+Left open when tree planting was retired (2026-11-02); the rules are in doc 42, "Planting
+Seeds".
+
+- **Growth speed.** Every species reaches ancient in its first spring: planted on spring's
+  first day, a pine is ancient by day 6, a juniper by day 8, an apple by day 10 and an oak by
+  day 16. Slower, if planting should feel like a long investment, as the oak's JSON calls it.
+- **Seed returns.** A felled mature oak gives an acorn one time in five, an ancient one 0.7 on
+  average; pine, apple and juniper are similar. A planted forest gives back fewer seeds than it
+  took, so wild trees stay the seed supply.
+- **Fix direction.** Both are the owner's pick and data only: `stages.*.growth_duration_days`
+  and each stage's `harvest.yields` in `data/entities/flora/*_tree.json`. Wild trees don't
+  grow, so the growth days change only planted trees.
 
 ---
 
@@ -574,11 +622,12 @@ becomes a building object (the weak spot of Stonehearth's building editor).
   block in rock could be one of those.
 - **Replace in Shapes and blueprints** (doc 285): Shapes could take Build's Replace switch,
   for paths and borders inlaid in a floor.
+- **Replace's smaller pieces** (doc 285): turning a log in place (today a log of the same wood
+  counts as a match, so Replace leaves it), and a picture of its own for the block panel's
+  Replace… action, which uses Build's.
 - **Furniture in blueprints,** kept as placement plans that wait for their items.
 - **To the ceiling.** Walls raised to the rock above, so a room built in a cavern seals.
 - **Roofs and other shapes,** only if homes outside the mountain come.
-- **Each wood its colour.** Built oak, pine and juniper share one timber look; each could
-  take its wood's colour, as log furniture does.
 - **Copy inside Blueprints,** if the shelf feels long: Copy can move into the Blueprints
   window. The owner chose two shelf entries on 2026-10-26.
 - **Building vision (pencilled in).** Only if Deepdraft gets homes outside the mountain,
@@ -608,9 +657,15 @@ becomes a building object (the weak spot of Stonehearth's building editor).
 
 ### Build textures by progression
 
-- **Planned, then held (2026-11-01):** doc [293](293_stonemason_and_carpenter.md) proposed
-  dressed stone and planks as the first two textures, made by the Stonemason and the Carpenter.
-  The owner held them until the dwarves have iron tools ("they look too advanced").
+- **Planned, then held (2026-11-01):** doc 293 proposed dressed stone and planks as the first
+  two textures, made by the Stonemason and the Carpenter. Dressed stone joins Stone's menu
+  beside native stone and a planked block joins Wood's menu in each wood; each costs one of its
+  good and gives it back when mined, and both work with Replace (doc 285), so a dug room's walls
+  and floor are dressed in one drag. Each face of them a room shows, floor, walls and ceiling
+  alike, adds a little appeal: a 7 × 7 bedroom dressed on its floor and walls shows about 160
+  faces and gains about 5. The owner held them until the dwarves have iron tools ("let's hold
+  off on these, they look too advanced"); the goods wait with "The Stonemason and the Carpenter
+  left for later" (Dwarves).
 - **What happens.** Each of Build's materials has one look. The plank and stone floors,
   the only finer looks, were removed on 2026-10-26: every block is a whole cell, so a
   floor is just a block a dwarf stands on, and a floor block could always be stacked into
@@ -638,16 +693,85 @@ becomes a building object (the weak spot of Stonehearth's building editor).
 - **Done when** the owner's first chosen texture can be picked in Build, costs its good,
   builds, mines and saves like a block, and shows its own look.
 
+### Built logs left for later
+
+- **Fix direction.** The logs plan (2026-10-26) left four things for later. The rules are in
+  doc 23 ("Build", "Shapes", "Copy and Blueprints") and doc 24 ("Built logs"):
+  - **joints between lying logs and upright posts:** a lying log against an upright one just
+    ends;
+  - **a Crossed corners switch** for a hollow rectangle of logs: each side runs one block
+    past the corner, so every corner is a +, as on the owner's Pokopia reference cabin.
+    Today a hollow rectangle's corners are L joints;
+  - **choosing the wood when placing a blueprint:** each log keeps the wood it was copied
+    in;
+  - **ghost logs for pending plans and a blueprint's placing ghost,** which show cubes. Only
+    a Build or Shapes drag draws them (`BuiltLogs.ghost`).
+
+### Builders reach only 5 blocks up
+
+- **What happens.** A builder works only from floors at most 5 blocks below a block (doc 31,
+  "Reach"), and nothing lifts it higher. On flat ground the owner's Blueprint 7, an 11-tall oak
+  cabin with a grass roof, builds 188 of its 367 blocks; everything on layers 6 to 11 needs DEV:
+  Finish construction. A Shapes stair flight longer than 8 steps leaves holes at layers 6 and
+  up, and its plan stays on "No construction access".
+- **Fix direction.** Raised with the owner on 2026-10-27; no pick yet. The builder-reach study
+  (`tmp/builder_reach_20261027/README.md`, "Options" and "Recommendation") recommends:
+  - first, marking the blocks no floor reaches in Place, Build and Shapes, counting them on the
+    tag and naming them on the plan's panel;
+  - then automatic scaffolding, as its own milestone: towers the plan puts up beside such
+    blocks, builds first and takes down when done;
+  - not raising `reach_up`: the cabin still fails at 11, and the hammer pose can't strike
+    higher.
+- **Done when** Blueprint 7 (a copy is `tmp/builder_reach_20261027/blueprint_7.json`), placed
+  on flat ground, is finished by dwarves without DEV.
+
+### Smaller construction leftovers
+
+- **The Blueprints card and the placing tag count a shared good twice.** They list each
+  construction kind against the stock (`BlueprintLibrary.goods` groups by kind and wood), so the
+  Garden terrace shows "24 soil" for its dirt and again for its grass, against the same soil, and
+  can miss a shortage. The plan's crate counts right. Count each good once.
+- **A plan that starts high can find no crate site.** The crate search looks only 2 blocks up or
+  down from the floor under the plan's lowest block (doc 31), so a Build or Shapes plan such as a
+  slab off a ledge can stay on "No delivery access". It could search from a floor a builder can
+  stand on, as a Replace plan does (`ConstructionController._replace_origin`).
+- **More builders for a big project.** One builder works each plan (the owner's pick,
+  2026-10-27: in a building the second material mostly waits on the first, so a second builder
+  would rarely have work). More can follow if play shows big plans slow.
+
 ---
 
 ## Storage
 
-- **Storage furniture (barrels, chests, shelves).** Removed on 2026-10-22; it returns
-  with its own milestone (doc 258). Owner, 2026-10-23: each container type accepts only
-  certain goods (for example a supply shelf takes raw goods: resources, ores, metals),
-  and its filter lists only those. A container may hold one chosen item type, named in
-  its title, and shows its capacity (Used 9 / 12). Reference: Stonehearth's supply shelf
-  (the owner's screenshots, `tmp/ui_review_20261023/stonehearth/15_supply_shelf*`).
+- **More storage furniture.** The tool rack and the raw materials crate came first (doc 294;
+  doc 31, "Storage priority and storage furniture"). Still to come, each with its own `storage`
+  block and under the owner's container rule (doc 23, "The storage window"): barrels and chests
+  for food and drink, shelves, and a valuables chest or vault, which is where raw gems go (the
+  crate leaves them out). The food shelf came next (doc 299; doc 42, "Spoilage"). A planked shelf would
+  come with the iron saw (doc 44), and a shelf for drink or seeds wasn't asked for: nothing makes drink
+  yet.
+
+### The finished goods pallet's later goods
+
+- **Built with packed furniture** (doc 296, 2026-11-02): one piece to each of its four quarters.
+- **Still to come.** Its first plan was "a Finished Goods pallets for metal bars, refined stones,
+  planks, etc..." (owner, 2026-11-02). Those wait for iron tools (doc 44). With the first of them,
+  add its storage category (a `stockpile_*` tag, with its entry in `data/ui/storage_filters.json`)
+  and add the tag to the pallet's `accepts`. Doc 62 planned three of those to a quarter; decide
+  the capacity then, since a quarter now holds one packed piece.
+
+### Storage furniture's small leftovers
+
+- **The storage window is tall for a tool rack.** It keeps the zones' body height
+  (`StorageInspectorPanel`), so the rack's five tool pictures sit at the top of a mostly empty
+  grid. Furniture may want a shorter body.
+- **A crate's quarter shows one good,** whether it holds one or three. A heap would need smaller
+  goods or a pile model: a good is 12 cells wide, and a quarter is 12 inside.
+- **The settlement's storage meter says "cells used"** and counts a crate's goods among them
+  (`SettlementPanel`, from `storage_used()`: a zone's cells, a crate's goods, a shelf's places). Its
+  words should fit all three, or furniture should be counted apart.
+- **Several food shelves share a line in Events** ("on the food shelf"), one line for each food, where
+  each stockpile has its own number.
 
 ---
 
@@ -659,3 +783,182 @@ becomes a building object (the weak spot of Stonehearth's building editor).
   GDScript warnings (untyped declarations, unsafe property and method access) until the
   largest files were split, which its step 8 did. Turning them on changes `project.godot`
   (`debug/gdscript/warnings/...`), so it needs the owner's OK. Then fix what they report.
+
+### Climate, view and spoilage tests are outside the gate
+
+- **Idea.** `ClimateTest`, `TemperatureViewTest` and `FoodSpoilageTest` run in their areas
+  (rooms, ui, dwarves and storage) but not in the job gate. Whether they join it was left to the
+  owner (2026-10-29).
+- **Fix direction.** If the owner agrees, add them to `gate` in `tools/test_suite.json`; the
+  gate's test count in CLAUDE.md's Tests rule changes with it.
+
+---
+
+## Tools and builds
+
+Left from the move to Linux (2026-11-02). Doc 13, "Platform", has the setup.
+
+### The art capture launchers are still PowerShell
+
+- **Cause.** `tools/voxel_assets/Run.ps1`, `tools/sky_art/Run.ps1` and `Verify.ps1`, and
+  `tools/terrain_art/Capture.ps1`, `CaptureShoreline.ps1` and `Verify.ps1` were written for
+  Windows (the Steam `.exe` path, `APPDATA`) and can't run on Linux. They stay as guides.
+- **Fix direction.** When art work needs one, port it to Python on `isolated_env()` in
+  `tools/run_job_reliability.py`, as `tools/import_assets.py` is, and delete the `.ps1`.
+
+### No benchmark launcher on Linux
+
+- **Cause.** The Windows benchmark launchers (`tools/performance/Run*.ps1`) were deleted in
+  the move, at the owner's pick. Doc 13, "Measuring performance", says how to start a
+  benchmark by hand.
+- **Fix direction.** When performance work resumes, write one Python launcher: an isolated
+  profile, a new label per run, the save copied in as `user://saves/quicksave.json`, and the
+  original save's hash checked afterwards. The old launchers are in commit `4a300e8c`.
+
+### A Linux build
+
+- **Cause.** `export_presets.cfg` has one preset, Windows Desktop, still saved with the
+  Windows path `D:/Deepdraft.exe`.
+- **Fix direction.** Only when the owner asks for a build: install the 4.7.2 export
+  templates, add a Linux preset with the fonts' licences ("The fonts' licences are not in
+  the export yet", above), and point the Windows preset at `build/windows/manual_export/`.
+
+---
+
+## Food
+
+### Winter food
+
+Left open when the temperature and spoilage milestone was retired (2026-11-02); the rules are
+in doc 34 and doc 42 ("Spoilage").
+
+- **What happens.** Too little food grows near a start to last a winter. Counted in a copy of
+  the owner's colony (2026-10-29), within 48–64 blocks of the flag and three other spots stand
+  0–2 apple trees, 2–8 junipers and 0–7 elderberry bushes: 10–25 apples and juniper berries an
+  autumn. Five dwarves eat 15 portions a day, 315 in a 21-day winter, and a day-by-day model
+  left every start hungry for 15–21 of winter's days, cellar or yard. Given 300 apples and
+  juniper berries and six elderberry bushes, a valley cellar fed the whole winter and the yard
+  left 12 hungry days, so the keeping times do their job. Fishing (doc 289) came after the
+  count.
+- **From the owner (2026-10-29):** dwarves stock up for winter, and hunting comes later in the
+  game. The keeping times stay; meat will carry its own `keeps_days`.
+- **From the owner (2026-11-05):** winter food counts all food: berries, apples, juniper, fresh and
+  dried fish, and meat once hunting comes. No single food has to carry it.
+- **Counted with all food (2026-11-05):** a day-by-day model from the game's data, not a game run,
+  from the real start (summer, day 1), with one Ranger, the plant counts within 64 blocks above, and
+  an assumed lake of 240 fish (`tmp/winter_food_20261105/model4.py`, `model5.py`). Hungry winter days
+  of 21, cellar and yard:
+  - bushy starts, 2 racks: 0 and 4–7 with every bush picked as it ripens. Half picked: 0 and 7–10.
+    With 4 racks the yard falls to 0–4;
+  - starts with few bushes (the flag, the mountain): 21 and 21. No Ranger: 16–21 anywhere;
+  - why: bushes regrow every 1.5 days in season, so they can feed the colony through summer and
+    autumn while the fish go to the racks. If dwarves eat the fish before the racks get them, bushy
+    starts fall to 13–15 and 18–20, so this needs a game run;
+  - three moved elderberry bushes bring the flag to 0 and 3 if every crop is picked, but only 17 and
+    17 if half are;
+  - no yield or regrowth setting tried fixes poor starts and keeps the gap: where the flag recovers
+    (regrowth 0.05, or apple ×6 and juniper ×8) the yard is fed too. Lakes smaller than 240 aren't covered by this.
+- **Bushes need marking again after every crop.** A pick clears the harvest mark (`_stamp_crop` in
+  `SurfaceDetailManager`), so all this bush food takes a new order every 1.5 game days, 18 minutes at
+  ×1.
+- **From the owner (2026-11-06):** no standing harvest order. Once the Farmer is built, bushes inside a
+  farming zone get picked by the Farmer (doc 42, "Required future connection: bushes in a farming
+  zone"). Until then, the "every bush picked" counts above take a new order for every crop.
+- **Fix direction.** Hold the yields until the Farmer picks zoned bushes. Then a real game run from a
+  bushy start and from the flag to replace the model, then tune what's left. Tune the supply, not the
+  keeping times. Whether fish reach the racks before dwarves eat them doesn't depend on the Farmer, so
+  a game run can answer that sooner.
+- **Done when** a five-dwarf colony that keeps its autumn harvest in a cool cellar gets through
+  its first winter with at most a few hungry days, and one that leaves it in the yard goes
+  hungry for most of the winter.
+
+### Food keeping left for later
+
+Left out of the temperature and spoilage milestone (2026-10-29).
+
+- **Ice.** Only cellars just under the summit freeze, for about two weeks around winter's first
+  day. A freezer all year needs ice cut in winter and kept in a cellar, or a steeper height
+  rule. Ice on the tarn and lake, and fishing through it (doc 289), would come with it.
+- **Barrels and chests that slow spoiling,** with storage furniture's later steps (Storage).
+- **A rotten item,** when farming wants compost. Rotten food is simply gone today.
+- **Wildlife raiding food left outside,** and frost on crops once farm plots exist. A food shelf would be
+  a natural answer to the raiding.
+- **Fix direction.** Spoilage is one hourly rule (`FoodSpoilage`, `food.spoilage` in
+  `data/tasks/task_config.json`; doc 42, "Spoilage"): a container would scale its speed, and a
+  rotten item would replace the units it removes. Ice works through a room's temperature, and
+  the climate keeps no stored warmth, so ice would be the first feature to need thermal mass
+  (doc 34, "No warm-up").
+
+### Fishing's cast has no sound
+
+- **What happens.** A catch plays the float's plop, the bite and the landing (`fish_plop`,
+  `fish_bite` and `fish_land`, the recorded duck splashes reused), but the cast itself is
+  silent: a rod's whoosh needs a recording of its own (doc 13, WorkFeedback).
+- **Fix direction.** Source a real recording of a cast through the sound workflow (CLAUDE.md),
+  add a `fish_cast` bank and profile beside the other three in `data/audio/work_feedback.json`,
+  and play it as each cast begins, where `DwarfWorkExecution` plays the other cues.
+
+### Fishing ideas left for later
+
+- **Idea.** Left out when fishing was built (doc 289, 2026-10-31); fishing through ice is in
+  "Food keeping left for later":
+  - stocking a pond the player made, since water the colony makes holds no fish;
+  - fish in cave pools other than the spring cave's, once caves hold water ("World / caves");
+  - ducks reacting to fishers;
+  - fish in trade.
+- **Fix direction.** Each is its own feature. A water a zone can fish is an entry in
+  `fishing.waters` (`data/tasks/task_config.json`) matched to a generated footprint by
+  `FishingSystem.water_of_cell` (doc 42, "Fishing").
+
+### Grilling left for later
+
+- **Idea.** Left for later when grilling was built (doc 290, 2026-10-31):
+  - **the hearth,** also an open fire; the owner's pick was the campfire first;
+  - **a sizzle,** which needs a new free recording, downloaded only with the owner's OK; until
+    then the campfire's crackle carries the moment;
+  - **other foods,** such as meat once hunting brings it (fruit and dried fish aren't grilled);
+  - **whether a grilled fish should fill more than a raw one,** once winter food is weighed
+    ("Winter food");
+  - **a Cook** and cooked meals that can be stored (doc 41's Loves to Cook trait reserves one).
+- **Fix direction.**
+  - A fire grills when its definition says `grilling` (only `campfire.json` today). A grill's
+    places are the stools facing the fire, then the camp area's sides (`DwarfDining`); a hearth
+    against its wall needs places of its own.
+  - A food grills with `food.grill` in `resources.json` and its own stick models, raw and
+    grilled (`DwarfAssets.grill_sticks`).
+  - The sizzle would be a `fish_sizzle` bank in `data/audio/work_feedback.json`, through the
+    sound workflow (CLAUDE.md), played while the fish browns (`DwarfGrillPose`).
+  - Grilling's numbers, still to be settled in Play, are `food.grilling` and `mood.grilled` in
+    `data/tasks/task_config.json`.
+
+### The Ranger's step 4: rare fish
+
+- **Idea.** The owner's picks (2026-11-01), not built yet: one rare fish for each water,
+  perhaps pike in the lake, salmon in the river, golden trout in the tarn and a cave eel in the
+  spring cave.
+  - They bite from level 4: 3% of catches at level 4 and 6% at level 5, and those levels'
+    rewards say so ("rare fish start to bite", "rare fish bite twice as often").
+  - A rare fish lands as three portions.
+  - The journal names it: "Runbrin landed a pike at the lowland lake".
+  - The Ranger gets "Landed a rare fish", +4 for 12 game hours.
+  - The catch log gains a rare-fish row.
+- **Fix direction.** Art first, in the fish's look (doc 42, "Fishing"): each rare fish in
+  crates at three fills, on the line, raw and grilled on the stick, and its inventory picture.
+  Then the rare fish in `resources.json`, each water's rare fish and odds in `fishing.waters`,
+  the rewards' words in the Ranger's `experience` (`professions.json`), the memory in
+  `DwarfMood` with its journal lines, and the row in `CatchLog`.
+
+### The Ranger's later ideas
+
+- **Idea.** Left open when the Ranger was built (doc 292, 2026-11-01):
+  - **smoked fish,** beside the drying rack's dried fish;
+  - **better rods,** made by other careers; the kit's rod is Tier 1;
+  - **wild berries and fruit:** whether Rangers also pick them, which is Gather work for
+    everyone today;
+  - **rare fish worth more than food,** through trade or a trophy on the wall;
+  - **the levels and the big-fish odds,** still to be settled in Play (the Ranger's
+    `experience` in `professions.json`).
+- **Fix direction.** Ask the owner when step 4 or hunting is planned. A career does only the
+  work its `work` list in `professions.json` names (doc 41, "Each career's work"), so picking
+  for Rangers means adding the harvest tasks there; a better rod is an equipment upgrade (doc
+  41, "Agreed equipment progression").

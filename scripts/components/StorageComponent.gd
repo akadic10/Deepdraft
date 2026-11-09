@@ -51,8 +51,10 @@ func has_any_room() -> bool:
 
 
 ## Reserve one deposit for `item_key`. Returns a token, or null when full. `spoil` is the
-## food's (doc 42 "Spoilage"), -1 for goods that never spoil.
-func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amount: int = 1, _material_id: String = "", _spoil: float = -1.0) -> Variant:
+## food's (doc 42 "Spoilage"), -1 for goods that never spoil. `outside` is false for goods
+## moving from one store to another, which never top up a crate far from them in freshness.
+func _reserve_deposit(_item_key: String, _near: Vector3i, _dwarf_id: int, _amount: int = 1, _material_id: String = "", _spoil: float = -1.0,
+		_outside: bool = true) -> Variant:
 	return null
 
 
@@ -89,14 +91,16 @@ func set_priority(value: int) -> void:
 
 
 ## Whether every haul job this store has posted is waiting out repeated failures to reach goods
-## or its cells, so worse stores take the goods it would take meanwhile (doc 294).
+## or its cells, or is paused for attention until the player retries it, so worse stores take
+## the goods it would take meanwhile (doc 294). A paused haul's retry time has long passed, yet
+## no hauler takes it: counted as free, it kept the store first in line while food rotted outside.
 func hauling_blocked() -> bool:
 	var now := Time.get_ticks_msec()
 	var waiting := 0
 	for task_id: int in _lease_ids:
 		var task := TaskManager.get_task(task_id)
 		if task == null: continue
-		if task.status == Task.Status.BLOCKED or (task.status == Task.Status.PENDING and now < task.retry_at): waiting += 1
+		if task.status == Task.Status.BLOCKED or (task.status == Task.Status.PENDING and (task.recovery_paused or now < task.retry_at)): waiting += 1
 		else: return false
 	return waiting > 0
 
@@ -277,13 +281,34 @@ func storage_capacity() -> int:
 	return 0
 
 
-## What storage_capacity counts in use: a zone's cells, a container's goods (doc 294).
+## What storage_capacity counts in use: a zone's cells, a container's goods or places (doc 294).
 func storage_used() -> int:
 	return stored_entries().size()
 
 
 func slot_cell(_slot: Variant) -> Vector3i:
 	return Vector3i(-1, -1, -1)
+
+
+## The stands a dwarf should try first with this load; none means any delivery stand will do.
+func stands_beside_load(_dwarf_id: int) -> Array[Vector3i]:
+	return []
+
+
+## Rot (doc 42 "Spoilage"): a rotten slot loses the units nobody has claimed. Returns how many went.
+func discard_unclaimed(_slot: Variant) -> int:
+	return 0
+
+
+## Where its goods are, as Events says it: "in Stockpile 1", "on the food shelf".
+func place_words() -> String:
+	return "in storage"
+
+
+## The node a slot's goods show on, if any. `stored` is ItemDropManager.stored_nodes(), which the
+## spoilage pass keeps for the zones' cells.
+func shown_goods(slot: Variant, stored: Dictionary) -> Variant:
+	return stored.get(slot)
 
 
 ## Where a withdrawn good is set down: pickups from the slot are planned to stand beside it
@@ -322,6 +347,31 @@ func reserve_portion(slot: Variant, key: String, dwarf_id: int) -> Dictionary:
 	outgoing.count = int(outgoing.count)+1
 	StockpileManager.storage_rules_changed()
 	changed.emit()
+	return token
+
+
+## Whether any of a slot's goods are claimed to leave it.
+func has_outgoing(slot: Variant) -> bool:
+	return _outgoing.has(slot)
+
+
+## How many of a slot's goods are claimed to leave it.
+func outgoing_count(slot: Variant) -> int:
+	return int(_outgoing.get(slot, {}).get("count", 0))
+
+
+## Claims `count` of a slot's goods to leave on a haul, as one portion of the slot's outgoing
+## claim beside others (a trip taking several stones from one quarter, doc 31). `owner` names
+## the portion. Released with release_outgoing; {} if the slot is claimed another way.
+func claim_outgoing_portion(slot: Variant, key: String, count: int, owner: String) -> Dictionary:
+	var outgoing: Dictionary = _outgoing.get(slot, {})
+	if not outgoing.is_empty() and (not outgoing.has("portions") or outgoing.item != key): return {}
+	if outgoing.is_empty():
+		outgoing = {"slot": slot, "item": key, "count": 0, "active": true, "portions": {}}
+		_outgoing[slot] = outgoing
+	var token := {"slot": slot, "item": key, "count": count, "owner": owner, "active": true}
+	outgoing.portions[owner] = token
+	outgoing.count = int(outgoing.count) + count
 	return token
 
 
@@ -373,8 +423,9 @@ func release_outgoing(token: Dictionary) -> void:
 func pickup_stand_cells(dwarf_id: int, index: int) -> Array[Vector3i]:
 	var pull: Dictionary = _pulls.get(dwarf_id, {})
 	if pull.is_empty() or index >= pull.items.size(): return []
-	if pull.has("transfer"):
-		return pull.transfer.source.withdrawal_stands(pull.transfer.token.slot)
+	var transfer: Dictionary = pull.get("transfers", {}).get(pull.items[index], {})
+	if not transfer.is_empty():
+		return transfer.source.withdrawal_stands(transfer.token.slot)
 	return ground_access_cells(drop_manager.item_floor_cell(pull.items[index]))
 
 
@@ -458,38 +509,66 @@ static func _box_distance(cell: Vector3i, lo: Vector3i, hi: Vector3i) -> int:
 
 ## Destination owns the HAUL lease. A hidden handoff marker supplies the
 ## existing reach animation; it is never a loose, stored or saved item.
+## Goods moving from one store to another (to a better one, or out of one that no longer takes
+## them) fill a trip as a ground haul does (doc 49): the nearest stored good first, then others
+## stored within `pouch_bundle_radius` of it, each paying its carry_cost, until the carrying limit
+## (owner, 2026-11-02: four stones to a raw materials crate, not one a trip). A slot of several
+## goods (a crate's quarter of three stones) gives several in one trip too. Each good leaves as a
+## portion of its slot's outgoing claim, with its own transfer and handoff marker.
 func _reserve_relocation(dwarf_id: int, near: Vector3i, exclude: Dictionary) -> Dictionary:
+	var items: Array[Node3D] = []
+	var deposits: Dictionary = {}
+	var transfers: Dictionary = {}           # handoff marker -> {source, token}, as ConstructionMaterials keeps them
+	var remaining := carry_capacity
+	var first_cell := Vector3i(-1, -1, -1)
+	var any_heavy := false
 	for candidate: Dictionary in StockpileManager.relocation_candidates(self, near, exclude):
 		var origin: StorageComponent = candidate.source
-		var outgoing: Dictionary = candidate.token
-		var material_id := String(origin.stored_entries()[outgoing.slot].get("material_id", ""))
-		var spoil := _deposit_spoil(outgoing.item, float(origin.stored_entries()[outgoing.slot].get("spoil", 0.0)))
-		var deposit: Variant = _reserve_deposit(outgoing.item, near, dwarf_id, outgoing.count, material_id, spoil)
-		if deposit == null: continue
-		outgoing.count = int(deposit.count)
-		outgoing.active = true
-		origin._outgoing[outgoing.slot] = outgoing
-		var marker: Node3D = drop_manager.create_item_visual(outgoing.item, outgoing.count, "", material_id)
-		if marker == null:
-			_release_deposit(deposit)
-			origin.release_outgoing(outgoing)
-			continue
-		marker.set_meta("relocation_id", origin.relocation_id(outgoing.slot))
-		# The hands reach for the contact (a rack's hook, doc 294); the goods are set down on the
-		# floor cell, and the pickup's reach rules judge that cell.
-		marker.set_meta("floor_cell", origin.withdrawal_item_cell(outgoing.slot))
-		marker.position = origin.withdrawal_contact(outgoing.slot)
-		drop_manager.add_child(marker)
-		marker.visible = false
-		var items: Array[Node3D] = [marker]
-		_pulls[dwarf_id] = {"items": items, "deposits": {marker: deposit}, "cargo": {}, "picked": {},
-			"transfer": {"source": origin, "token": outgoing, "marker": marker}}
-		StockpileManager.storage_rules_changed()
-		origin.changed.emit()
-		var definition: Dictionary = drop_manager.get_item_def(outgoing.item)
-		return {"items": items, "deposit_target": _deposit_walk_target(deposit),
-			"carry_mult": carry_speed_mult_heavy if definition.get("weight_class") == "heavy" else 1.0}
-	return {}
+		var slot: Variant = candidate.token.slot
+		var key := String(candidate.token.item)
+		var unit := int(candidate.token.count)   # one good, or one crate of produce
+		var cost := _carry_cost(key)
+		if cost > remaining or origin.has_outgoing(slot): continue
+		var cell: Vector3i = origin.withdrawal_item_cell(slot)
+		if not items.is_empty() and Vector3(cell - first_cell).length() > pouch_bundle_radius: continue
+		var stack: Dictionary = origin.stored_entries()[slot]
+		var material_id := String(stack.get("material_id", ""))
+		var spoil := _deposit_spoil(key, float(stack.get("spoil", 0.0)))
+		var portion := 0
+		while cost <= remaining and int(stack.count) - origin.outgoing_count(slot) >= unit:
+			var deposit: Variant = _reserve_deposit(key, near, dwarf_id, unit, material_id, spoil, false)
+			if deposit == null: break
+			var token := origin.claim_outgoing_portion(slot, key, int(deposit.count), "haul %d/%d" % [dwarf_id, portion])
+			if token.is_empty():
+				_release_deposit(deposit)
+				break
+			portion += 1
+			var marker: Node3D = drop_manager.create_item_visual(key, int(token.count), "", material_id)
+			if marker == null:
+				_release_deposit(deposit)
+				origin.release_outgoing(token)
+				break
+			marker.set_meta("relocation_id", origin.relocation_id(slot))
+			# The hands reach for the contact (a rack's hook, doc 294); the goods are set down on
+			# the floor cell, and the pickup's reach rules judge that cell.
+			marker.set_meta("floor_cell", cell)
+			marker.position = origin.withdrawal_contact(slot)
+			drop_manager.add_child(marker)
+			marker.visible = false
+			if items.is_empty(): first_cell = cell
+			items.append(marker)
+			deposits[marker] = deposit
+			transfers[marker] = {"source": origin, "token": token}
+			if drop_manager.get_item_def(key).get("weight_class") == "heavy": any_heavy = true
+			remaining -= cost
+		if portion > 0: origin.changed.emit()
+		if remaining <= 0: break
+	if items.is_empty(): return {}
+	var ordered := _visit_order(items, near)
+	_pulls[dwarf_id] = {"items": ordered, "deposits": deposits, "cargo": {}, "picked": {}, "transfers": transfers}
+	StockpileManager.storage_rules_changed()
+	return {"items": ordered, "deposit_target": _deposit_walk_target(deposits[ordered[0]]),
+		"carry_mult": carry_speed_mult_heavy if any_heavy else 1.0}
 
 
 func _take_relocation(transfer: Dictionary, dwarf_id: int) -> Node3D:
@@ -505,11 +584,21 @@ func _take_relocation(transfer: Dictionary, dwarf_id: int) -> Node3D:
 	return drop_manager.take_quantity(cargo, token.count, dwarf_id)
 
 
-func _release_transfer(pull: Dictionary) -> void:
-	if not pull.has("transfer"): return
-	var transfer: Dictionary = pull.transfer
-	transfer.source.release_outgoing(transfer.token)
-	if is_instance_valid(transfer.marker): transfer.marker.queue_free()
+## Ends a relocation pull's transfers: each stored claim not yet picked up or skipped goes back,
+## and each handoff marker (never the carried good itself) is freed.
+func _release_transfers(pull: Dictionary) -> void:
+	var transfers: Dictionary = pull.get("transfers", {})
+	for marker: Variant in transfers.keys():
+		_release_claim(pull, marker)
+		if is_instance_valid(marker): marker.queue_free()
+
+
+## Gives one good's stored claim back to its store (a no-op once picked up). A skipped good's
+## marker stays in the bundle, hidden, until the haul ends, as a picked one does, so the
+## bundle's loops never meet a freed marker.
+func _release_claim(pull: Dictionary, marker: Variant) -> void:
+	var transfer: Dictionary = pull.get("transfers", {}).get(marker, {})
+	if not transfer.is_empty(): transfer.source.release_outgoing(transfer.token)
 
 
 ## Teardown also covers reservations whose worker no longer exists. Tokens
@@ -710,16 +799,17 @@ func placement_haul_items(dwarf_id: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var pull: Dictionary = _pulls.get(dwarf_id, {})
 	if pull.is_empty() or not is_instance_valid(drop_manager): return result
-	for item: Node3D in pull.items:
+	for item: Variant in pull.items:
 		if not is_instance_valid(item) or item.is_queued_for_deletion() or pull.picked.has(item): continue
 		var token: Dictionary = pull.deposits.get(item, {})
 		if not bool(token.get("active", false)): continue
-		var stored: bool = pull.has("transfer")
+		var transfer: Dictionary = pull.get("transfers", {}).get(item, {})
+		var stored := not transfer.is_empty()
 		if not stored and not drop_manager.reserved_by(item, dwarf_id): continue
 		var instance_id := String(item.get_meta("instance_id", ""))
 		if stored:
-			if not pull.transfer.source.slot_allowed(pull.transfer.token.slot): continue
-			var stack: Dictionary = pull.transfer.source.stored_entries().get(pull.transfer.token.slot, {})
+			if not transfer.source.slot_allowed(transfer.token.slot): continue
+			var stack: Dictionary = transfer.source.stored_entries().get(transfer.token.slot, {})
 			instance_id = String(stack.get("instance_id", ""))
 		result.append({"item": item, "key": String(token.item),
 			"count": int(token.count) if stored else int(drop_manager.quantity_of(item)),
@@ -738,15 +828,15 @@ func cancel_haul(dwarf_id: int) -> void:
 		return
 	var pull: Dictionary = _pulls[dwarf_id]
 	_pulls.erase(dwarf_id)
-	_release_transfer(pull)
+	_release_transfers(pull)
 	for token: Variant in pull["deposits"].values():
 		_release_haul_deposit(token)
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return
 	var items: Array = pull["items"]
 	for i: int in range(items.size()):
-		var item: Node3D = items[i]
-		if item != null and is_instance_valid(item):
+		var item: Variant = items[i]
+		if is_instance_valid(item):
 			# Owner-guarded: skipped items in this range may have been
 			# re-reserved by another hauler since (spam-robustness pass).
 			drop_manager.unreserve(item, dwarf_id)
@@ -769,7 +859,8 @@ func take_item(dwarf_id: int, index: int) -> Node3D:
 	if pull.picked.has(item):
 		return null
 	if not accepts_key(String(pull.deposits[item].item)): return null
-	var cargo: Node3D = _take_relocation(pull.transfer, dwarf_id) if pull.has("transfer") else drop_manager.take_quantity(item, int(pull.deposits[item].count), dwarf_id)
+	var transfers: Dictionary = pull.get("transfers", {})
+	var cargo: Node3D = _take_relocation(transfers[item], dwarf_id) if transfers.has(item) else drop_manager.take_quantity(item, int(pull.deposits[item].count), dwarf_id)
 	if cargo != null:
 		pull.picked[item] = true
 		if pull.has("fruit"):
@@ -800,12 +891,11 @@ func skip_item(dwarf_id: int, index: int) -> void:
 	if not _pulls.has(dwarf_id):
 		return
 	var pull: Dictionary = _pulls[dwarf_id]
-	_release_transfer(pull)
 	var items: Array = pull["items"]
 	if index >= 0 and index < items.size():
-		var item: Node3D = items[index]
-		if item != null and is_instance_valid(item) \
-				and drop_manager != null and is_instance_valid(drop_manager):
+		var item: Variant = items[index]
+		_release_claim(pull, item)
+		if is_instance_valid(item) and drop_manager != null and is_instance_valid(drop_manager):
 			drop_manager.unreserve(item, dwarf_id)
 		if pull.deposits.has(item):
 			_release_haul_deposit(pull.deposits[item])

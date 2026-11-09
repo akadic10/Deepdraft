@@ -178,6 +178,13 @@ func _test_rows() -> void:
 		colony.food_days = case[0]
 		panel.show_colony(colony)
 		_expect(_row_text("food") == case[1], "food in words: " + String(case[1]))
+	# With nobody to feed, the food row says so and carries no tag (the project review, 2026-11-09:
+	# it read "Short", in rust).
+	var nobody: Dictionary = colony.duplicate(true)
+	nobody.merge({"dwarves": 0, "groups": {"working": [], "resting": [], "idle": []}, "professions": {}, "food_days": 0.0, "beds": 0}, true)
+	panel.show_colony(nobody)
+	_expect(_row_text("food") == "No dwarves to feed" and _tags("food").is_empty(), "with nobody to feed, food carries no tag: %s" % [_tags("food")])
+	panel.show_colony(colony)
 	panel.set_process(true)
 
 

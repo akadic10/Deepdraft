@@ -32,6 +32,10 @@ var _stand_targets: Dictionary = {}
 var _needs: Dictionary = {}
 var _needs_size := -1
 var _plan_good := ""
+const OPEN_MARGIN := 2   # how far beyond the plan counts as out in the open
+const OPEN_DEPTH := 4    # how far below its lowest block a floor still counts
+var _open_floors: Dictionary = {}
+var _open_key: Array = []
 var _depths: Dictionary = {}
 var _depths_size := -1
 var _stand_levels: Array = []   # the stands for each depth, deepest first: [{stand: true}]
@@ -199,6 +203,67 @@ func _stand_allowed(stand: Vector3i, cell: Vector3i, depth: Dictionary) -> bool:
 		if int(depth[cell]) < 2 or under < 1 or under >= int(depth[cell]): return false
 	return true
 
+## The floors `cell` can be worked from. A floor the finished plan will seal off serves only a
+## block with no other floor, so a builder that starts inside a doorless room walks out to build its
+## walls, rather than walling itself in.
+func _work_floors(cell: Vector3i, depth: Dictionary) -> Array[Vector3i]:
+	var allowed: Array[Vector3i] = []
+	var open: Array[Vector3i] = []
+	var outside := _open_side()
+	for stand: Vector3i in controller.stands_for(cell):
+		if not _stand_allowed(stand,cell,depth): continue
+		allowed.append(stand)
+		if outside.has(stand): open.append(stand)
+	return open if not open.is_empty() else allowed
+
+## The floors from which a dwarf can still leave once the plan is finished: flooded inward from
+## just beyond the plan, every unbuilt block counted as built. Worked out again as blocks and
+## navigation change. Empty if nothing beyond the plan is walkable, so then no floor is preferred.
+func _open_side() -> Dictionary:
+	var key := [cells.size(),NavGrid.navigation_revision]
+	if key == _open_key: return _open_floors
+	_open_key = key
+	_open_floors = {}
+	if cells.is_empty(): return _open_floors
+	var low: Vector3i = cells[0]
+	var high: Vector3i = cells[0]
+	var plan := {}
+	for cell: Vector3i in cells:
+		plan[cell] = true
+		low = Vector3i(mini(low.x,cell.x),mini(low.y,cell.y),mini(low.z,cell.z))
+		high = Vector3i(maxi(high.x,cell.x),maxi(high.y,cell.y),maxi(high.z,cell.z))
+	low -= Vector3i(OPEN_MARGIN,OPEN_DEPTH,OPEN_MARGIN)
+	high += Vector3i(OPEN_MARGIN,1,OPEN_MARGIN)
+	var frontier: Array[Vector3i] = []
+	for x in range(low.x,high.x+1):
+		for z in range(low.z,high.z+1):
+			if x != low.x and x != high.x and z != low.z and z != high.z: continue
+			for y in range(low.y,high.y+1):
+				var edge := Vector3i(x,y,z)
+				if _floor_when_finished(edge,plan):
+					_open_floors[edge] = true
+					frontier.append(edge)
+	while not frontier.is_empty():
+		var floor_cell: Vector3i = frontier.pop_back()
+		for side: Vector3i in SIDES:
+			for dy in [-1,0,1]:
+				var next: Vector3i = floor_cell+side+Vector3i(0,dy,0)
+				if _open_floors.has(next) or next.x < low.x or next.x > high.x or next.z < low.z or next.z > high.z or next.y < low.y or next.y > high.y: continue
+				if not _floor_when_finished(next,plan): continue
+				_open_floors[next] = true
+				frontier.append(next)
+	return _open_floors
+
+## Whether a dwarf could stand on `cell` with every unbuilt block of the plan in place.
+func _floor_when_finished(cell: Vector3i, plan: Dictionary) -> bool:
+	for dy in range(1,NavGrid.CLEARANCE+1):
+		if plan.has(cell+Vector3i(0,dy,0)): return false
+	if plan.has(cell):
+		for dy in range(1,NavGrid.CLEARANCE+1):
+			if WorldData.get_live_block(cell.x,cell.y+dy,cell.z) != BlockRegistry.AIR_ID: return false
+		return true
+	return NavGrid.is_walkable(cell)
+
 ## Whether a block waits because it may be the way in to a deeper boxed-in block that can't be
 ## built just now but soon can: its good is not all in yet, or a dwarf or a loose item is in it.
 ## Building this one first could close that block off. A block too high to reach holds nothing
@@ -267,8 +332,7 @@ func work_stands(_from: Vector3i) -> Array[Vector3i]:
 		if not ready.has(good_of(cell)) or _keeps_access(cell,depth,ready,obstacles): continue
 		if not blocked_reason(cell,"stone",obstacles).is_empty(): continue
 		var level := maxi(int(depth[cell]),1)
-		for stand: Vector3i in controller.stands_for(cell):
-			if not _stand_allowed(stand,cell,depth): continue
+		for stand: Vector3i in _work_floors(cell,depth):
 			if not levels.has(level): levels[level] = {}
 			levels[level][stand] = true
 			if not _stand_targets.has(stand):
@@ -382,7 +446,7 @@ func continue_staged_build(dwarf_id: int) -> bool:
 		# Stay at the depth being built, so the middle is finished before the blocks around it.
 		if maxi(int(depth[cell]),1) != _level: continue
 		if not ready.has(good_of(cell)) or _keeps_access(cell,depth,ready,obstacles): continue
-		if stand not in controller.stands_for(cell) or not _stand_allowed(stand,cell,depth): continue
+		if stand not in _work_floors(cell,depth): continue
 		if not blocked_reason(cell,kind_of(cell),obstacles).is_empty(): continue
 		if next == INVALID: next = cell
 		# Finish the current column before turning to other reachable work.

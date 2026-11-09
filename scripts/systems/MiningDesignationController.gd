@@ -340,6 +340,7 @@ func _load_config() -> void:
 	_work.max_workers = int(zone_cfg.get("max_workers", FALLBACK_ZONE_MAX_WORKERS))
 	var exec_cfg: Dictionary = root.get("execution", {})
 	_work.swing_base_time = float(exec_cfg.get("swing_base_time_s", FALLBACK_SWING_BASE_TIME))
+	_work.visible_swing = float(exec_cfg.get("visible_swing_s", _work.visible_swing))
 	_reach_up = int(exec_cfg.get("reach_up_blocks", _reach_up))
 	_reach_down = int(exec_cfg.get("reach_down_blocks", _reach_down))
 
@@ -635,7 +636,7 @@ func _create_zone(blocks: Array[Vector3i], requested_id: int = -1) -> int:
 	TaskManager.register_work_source(zone_id, component)
 	_top_up_zone_leases(zone_id)
 	refresh_zone_overlay(zone_id)
-	Overlay.add_visual_cuts(_renderer, blocks, _zones)
+	Overlay.add_visual_cuts(_renderer, blocks)
 	# New cut blocks change the effective grid tops (Phase 2b) — re-grid now.
 	_rebuild_terrain_grid(true)
 	return zone_id
@@ -663,10 +664,6 @@ func _filter_mineable_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
 			continue
 		result.append(block)
 	return result
-
-
-func _block_id_at(pos: Vector3i) -> int:
-	return Work.block_id_at(pos)
 
 
 func _designation_block_id_at(pos: Vector3i) -> int:
@@ -967,7 +964,7 @@ func _remove_zone(zone_id: int) -> void:
 	refresh_zone_overlay(zone_id)   # frees the overlay of the erased zone
 	# zone["blocks"] holds only REMAINING blocks — already-mined ones left the
 	# list at execution time, so mined cuts are never un-cut here.
-	Overlay.remove_visual_cuts(_renderer, removed_blocks, _zones)
+	Overlay.remove_visual_cuts(_renderer, removed_blocks)
 	if _overlay.grid_node.visible:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
 
@@ -1003,7 +1000,7 @@ func _remove_blocks_from_zones(blocks: Array[Vector3i]) -> void:
 		close_zone_window()
 	for zone_id: int in affected.keys():
 		refresh_zone_overlay(zone_id)   # frees the overlay if the zone was erased
-	Overlay.remove_visual_cuts(_renderer, removed_blocks, _zones)
+	Overlay.remove_visual_cuts(_renderer, removed_blocks)
 	if _overlay.grid_node.visible:
 		_rebuild_terrain_grid(true)   # restored blocks change effective grid tops (Phase 2b)
 

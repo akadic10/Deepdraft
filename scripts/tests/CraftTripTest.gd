@@ -14,7 +14,11 @@ var _last_phase := -1
 func _run() -> void:
 	create_timer(170).timeout.connect(func(): push_error("Craft trip timed out"); quit(1))
 	await _setup_crafting_fixture()
-	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(46,20,40),0)
+	# The log bed is the Carpenter's and the hearth the Stonemason's (doc 44): one dwarf takes each
+	# career in turn, at its own bench.
+	_carpenter_bench_at(Vector3i(46,20,40))
+	var mason_bench := "base:furniture:mason_bench"
+	furniture._install(mason_bench,furniture.get_defs()[mason_bench],Vector3i(46,20,37),0)
 	# Two loose piles four blocks apart: all four logs in one trip.
 	drops.spawn_drop(PINE,2,Vector3i(38,21,39))
 	drops.spawn_drop(PINE,2,Vector3i(38,21,43))
@@ -33,7 +37,9 @@ func _run() -> void:
 	# A hearth: four stones fill the first trip, the two logs make the second.
 	drops.spawn_drop(STONE,4,Vector3i(38,21,39))
 	drops.spawn_drop(PINE,2,Vector3i(38,21,41))
+	_career("base:profession:stonemason")
 	await _craft(HEARTH_RECIPE)
+	_career("base:profession:carpenter")
 	_expect(deliveries==2 and most_carried==4 and _count(STONE)==0 and _count(PINE)==0,
 		"a hearth's six goods come in two trips: %d trips, %d carried at most" % [deliveries,most_carried])
 	# An extra that is gone when the Worker reaches it is skipped; the trip goes on.
@@ -71,6 +77,10 @@ func _craft(recipe: String) -> void:
 		if crafting.get_order(id)==null: return
 		await _tick()
 	_expect(false,"%s finishes" % recipe)
+
+func _career(profession: String) -> void:
+	worker.profession = profession
+	tasks.work_policy_changed()
 
 func _reset_counts() -> void:
 	deliveries = 0

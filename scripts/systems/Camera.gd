@@ -160,9 +160,11 @@ func get_work_audio_context() -> Dictionary:
 	return _audio_context
 
 
+## What the ear's ray meets: rock, standing water or air. A cave not yet found is rock to it,
+## so its sky and sounds stay hidden under the cut (Hard Rule 11).
 func _audio_surface_block(cell: Vector3i) -> int:
-	var id := WorldData.get_terrain_block(cell.x, cell.y, cell.z)
-	if BlockRegistry.is_solid(id): return id
+	var id := Picking.concealed_block(cell)
+	if id != BlockRegistry.AIR_ID: return id
 	if WaterManager.has_standing_water(cell): return BlockRegistry.get_id("base:terrain:water:source")
 	return BlockRegistry.AIR_ID
 

@@ -221,10 +221,6 @@ func set_settlement_anchor(cell: Vector3i) -> void:
 	settlement_anchor = cell
 
 
-func has_settlement() -> bool:
-	return settlement_anchor.y >= 0
-
-
 # ── Spawning ──────────────────────────────────────────────────────────────────
 
 ## DEV spawn: a squad on walkable ground around the camera's look point.
@@ -492,10 +488,6 @@ func toggle_window() -> void:
 		return
 	_window_manager.toggle("dwarves")
 	refresh_window()
-
-
-func is_window_visible() -> bool:
-	return _window_manager != null and _window_manager.is_open("dwarves")
 
 
 func open_professions(agent: DwarfAgent) -> void:

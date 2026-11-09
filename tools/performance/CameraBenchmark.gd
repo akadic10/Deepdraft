@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Rendered, real-time diagnostic. Run via Run.ps1 to isolate player storage.
+## Rendered, real-time diagnostic. Start it in an isolated profile (doc 13) so player storage is never touched.
 ## No fixed-fps delta; no production configuration or simulation algorithm changes.
 var output := ""
 var saved := false

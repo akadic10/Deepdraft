@@ -37,7 +37,8 @@ func _clear_layout() -> void:
 	chairs.clear()
 
 func _craft_and_place() -> void:
-	_piece(BENCH,Vector3i(45,20,42))
+	# The fence, gate and game table are the Carpenter's (doc 44), made at the carpenter's bench.
+	_carpenter_bench_at(Vector3i(45,20,42))
 	drops.spawn_drop(PINE,4,Vector3i(42,21,40))
 	drops.spawn_drop(STONE,1,Vector3i(42,21,41))
 	# The enlarged workbench also fills the south boundary beside the old fence site.
@@ -47,7 +48,7 @@ func _craft_and_place() -> void:
 		worker._food.value = 1.0
 		var recipe := "base:recipe:worker:"+key.get_slice(":",2)
 		var id: int = crafting.queue_order(recipe,1)
-		_expect(id >= 0 and await _completed(id),"Worker crafts "+key+" using actual materials")
+		_expect(id >= 0 and await _completed(id),"Carpenter crafts "+key+" using actual materials")
 		var item_key := "base:resources:furniture:"+key.get_slice(":",2)
 		_expect(_count(item_key)==1,"one packed output: "+key)
 		furniture.activate_for(key,true)

@@ -2,7 +2,7 @@ extends MarginContainer
 
 ## A Fishing zone's window (doc 289, concept A): the zone's own window, as Storage has one.
 ## - One line on what the zone does.
-## - Its water and fish: the fish's picture, the water's name, how long a fish keeps.
+## - Its water and fish: the fish's picture, the water's name, how long a fish keeps, its trait.
 ## - The fish in the water: Plenty, Some, Few or Fished out, the count, a bar, and how fast it
 ##   regrows.
 ## - Keep: − and + step how many fish the colony keeps before the zone stops, with how many
@@ -16,10 +16,10 @@ signal remove_requested
 const MUTED := Color("aeb5ad")
 const HAY := Color("e2c06a")
 
-var _hint: Label
 var _picture: TextureRect
 var _water: Label
 var _fish: Label
+var _trait: Label
 var _word: Label
 var _bar: ProgressBar
 var _regrowth: Label
@@ -40,7 +40,7 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
 	add_child(column)
-	_hint = _text(column, "Rangers stand on these cells and cast into the water. They stop while the colony keeps enough fish.", MUTED)
+	_text(column, "Rangers stand on these cells and cast into the water. They stop while the colony keeps enough fish.", MUTED)
 	var body := PanelContainer.new()
 	body.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
 	column.add_child(body)
@@ -62,6 +62,7 @@ func _ready() -> void:
 	water.add_child(words)
 	_water = _text(words, "", UITheme.CARD_TITLE, true)
 	_fish = _text(words, "")
+	_trait = _text(words, "", MUTED, false, "small")
 	_text(inner, "FISH IN THE WATER", HAY, false, "small")
 	_word = _text(inner, "", HAY, true, "heading")
 	_bar = ProgressBar.new()
@@ -107,10 +108,15 @@ func show_zone(data: Dictionary) -> void:
 		_picture.texture = load(_picture_path) if ResourceLoader.exists(_picture_path) else null
 	_water.text = String(data.water)
 	_fish.text = "%s · a portion each, keeps %d days" % [data.fish_name, roundi(float(data.keeps_days))]
+	_trait.text = String(data.trait)
 	_word.text = "%s · %d of %d" % [data.word, data.stock, data.maximum]
 	_bar.max_value = maxi(1, int(data.maximum))
 	_bar.value = int(data.stock)
-	_regrowth.text = "Regrows about %d a day · Fished out below %d" % [roundi(float(data.regrowth)), int(data.fished_out_below)]
+	# A small water regrows less than a fish a day: one every few days, never "about 0 a day".
+	var regrowth := float(data.regrowth)
+	var regrows := ("Regrows about %d a day" % roundi(regrowth)) if regrowth >= 0.5 \
+		else ("Regrows about one every %d days" % roundi(1.0 / regrowth) if regrowth > 0.0 else "Doesn't regrow")
+	_regrowth.text = "%s · Fished out below %d" % [regrows, int(data.fished_out_below)]
 	_keep.text = "%d fish" % int(data.keep)
 	var state := "fishing" if bool(data.wants) else ("the water is fished out" if data.word == "Fished out" else "enough kept, paused")
 	_kept.text = "%d kept now · %s" % [int(data.kept), state]

@@ -42,11 +42,11 @@ func _run() -> void:
 	mood.finish_sleep()
 	_expect(is_equal_approx(mood.value(),.6),"comfortable personal-room sleep keeps full bonus")
 	# Exercise real repeated-stone collection and conservation, not just recipe data.
-	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(45,20,42),0)
+	_mason_bench_at(Vector3i(45,20,42))   # the hearth is the Stonemason's (doc 44)
 	drops.spawn_drop(PINE,2,Vector3i(42,21,42))
 	drops.spawn_drop(STONE,4,Vector3i(43,21,42))
 	var hearths_before := _count("base:resources:furniture:hearth")
-	_expect(await _completed(crafting.queue_order("base:recipe:worker:hearth",1)),"worker physically collects all six ingredients and crafts hearth")
+	_expect(await _completed(crafting.queue_order("base:recipe:worker:hearth",1)),"a Stonemason physically collects all six ingredients and crafts the hearth")
 	_expect(_count("base:resources:furniture:hearth")==hearths_before+1 and _count(PINE)==0 and _count(STONE)==0,"hearth consumes exactly two timber and four stones")
 	for failure: String in failures: push_error(failure)
 	print("BEDROOM_COMFORT_OK" if failures.is_empty() else "BEDROOM_COMFORT_FAIL")

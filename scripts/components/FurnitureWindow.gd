@@ -345,10 +345,10 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		var crafter: String = crafting.crafter_name(recipe) if not recipe.is_empty() else "Worker"
 		rows.append(["Crafter", "Any " + crafter])
 		in_use = {"text": "Any %s crafts here" % crafter, "tone": "fine"}
-		# A batch left on it to dry, and when it comes down.
+		# A batch left on it to dry or melt, and when it comes down.
 		var hanging: Dictionary = crafting.hanging_status(piece.installed_id) if crafting != null else {}
 		if not hanging.is_empty():
-			rows.append(["Drying", String(hanging.row)])
+			rows.append([String(hanging.get("label", "Drying")), String(hanging.row)])
 			in_use = {"text": String(hanging.text), "tone": String(hanging.tone)}
 	if piece.def.has("water_stone"):
 		return _compact({"title":piece.display_name(),"rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}, piece, in_use)

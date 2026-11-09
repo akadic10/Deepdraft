@@ -3,7 +3,7 @@ extends "res://tools/terrain_art/CaptureTerrain.gd"
 ## Isolated generated-world listening and weather review, never player saves.
 func _run() -> void:
 	if not "/environment_details_20261013/" in OS.get_user_data_dir().replace("\\","/"):
-		push_error("Details review requires isolated APPDATA"); quit(2); return
+		push_error("Details review requires an isolated user:// profile"); quit(2); return
 	output = "res://tmp/environment_details_20261013/world/"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	create_timer(240).timeout.connect(func(): push_error("Details world review timed out"); quit(1))

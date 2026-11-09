@@ -12,7 +12,7 @@ func _init() -> void:
 func _run() -> void:
 	create_timer(150).timeout.connect(func(): push_error("Underground world review timed out"); quit(1))
 	if not "/underground_lighting_review/" in OS.get_user_data_dir().replace("\\","/"):
-		push_error("Review requires isolated APPDATA")
+		push_error("Review requires an isolated user:// profile")
 		quit(1)
 		return
 	root.get_node("SaveManager").configure_storage_for_testing("user://lighting_review")

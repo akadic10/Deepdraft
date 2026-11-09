@@ -473,8 +473,12 @@ func _show_rows(colony: Dictionary, count: int, step: Dictionary) -> void:
 	var goal := float(food.get("goal_days", 10))
 	var days := float(colony.food_days)
 	var food_tone := "blocked" if days < float(food.get("short_days", 3)) else ("waiting" if days < goal else "fine")
-	_show_meter(_rows.food, _food_words(days) if count > 0 else "No dwarves to feed", days / goal, food_tone,
-		"Goal %d days" % goal, {"blocked": "Short", "waiting": "Low", "fine": "Plenty"}[food_tone])
+	if count > 0:
+		_show_meter(_rows.food, _food_words(days), days / goal, food_tone,
+			"Goal %d days" % goal, {"blocked": "Short", "waiting": "Low", "fine": "Plenty"}[food_tone])
+	else:
+		# Nobody to feed is nothing short: no tag (it read "Short", in rust).
+		_show_meter(_rows.food, "No dwarves to feed", 0.0, "fine", "Goal %d days" % goal, "")
 	var beds := int(colony.beds)
 	_show_meter(_rows.beds, "%d of %d sleep in their own bedroom" % [beds, count], float(beds) / maxi(1, count),
 		"fine" if beds >= count else "waiting", "Goal: one each", "Everyone" if beds >= count else "%d without" % (count - beds))

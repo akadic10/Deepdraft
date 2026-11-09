@@ -274,7 +274,7 @@ func walk_finished(success: bool) -> void:
 
 func _look_around() -> void:
 	agent._idle_bob()
-	if is_instance_valid(agent._head): agent._head.rotation.y = sin(elapsed*.45+agent._bob_phase)*.16
+	if is_instance_valid(agent.get_head()): agent.get_head().rotation.y += sin(elapsed*.45+agent._bob_phase)*.16
 
 func _vector(values: Array) -> Vector3:
 	return Vector3(float(values[0]),float(values[1]),float(values[2]))
@@ -287,23 +287,36 @@ func _pose() -> void:
 	# Art viewers also supply a lightweight owner for the existing rest pose.
 	var settings: Dictionary = _furniture.get_seating().chair_settings(seat) if _furniture is FurniturePlacementController else seat.def.seating_chair
 	var pose: Dictionary = settings.rest_pose
-	var parts := {"body":agent._body,"left_hand":agent._hand_l,"right_hand":agent._hand_r,
+	var parts := {"body":agent.get_body(),"left_hand":agent._hand_l,"right_hand":agent._hand_r,
 		"left_foot":agent._foot_l,"right_foot":agent._foot_r}
+	# Sitting, the feet step to the chair and then the body lowers, leaning into it. Getting up runs it
+	# backward: the body pushes up from the planted feet, then they step clear.
+	var feet := smoothstep(0.0,.45,_sitting_blend)
+	var settle := smoothstep(.25,1.0,_sitting_blend)
+	var lean := sin(settle*PI)*.22
 	for key: String in parts:
-		if is_instance_valid(parts[key]): parts[key].position = (base+_vector(pose[key]))*_sitting_blend
+		if not is_instance_valid(parts[key]): continue
+		var foot: bool = key.ends_with("foot")
+		parts[key].position = (base+_vector(pose[key]))*(feet if foot else settle)
+		if foot: parts[key].position.y += sin(feet*PI)*.14
+	if is_instance_valid(agent.get_body()):
+		agent.get_body().rotation.x = lean
+		var center := Vector3(0,1.15,0)
+		agent.get_body().position += center-agent.get_body().basis*center
 	if not _relax_hands.is_empty():
 		var blend := smoothstep(0.0,maxf(.05,float(config.get("seat_transition_s",.5))),_relax_elapsed)
 		agent._hand_l.position = _relax_hands[0].lerp(agent._hand_l.position,blend)
 		agent._hand_r.position = _relax_hands[1].lerp(agent._hand_r.position,blend)
 		if blend >= 1.0: _relax_hands.clear()
-	if is_instance_valid(agent._head):
-		agent._head.position = (base+_vector(pose.get("head",pose.body))+Vector3(0,sin(elapsed*1.8)*.012,0))*_sitting_blend
+	if is_instance_valid(agent.get_head()):
+		agent.get_head().position = (base+_vector(pose.get("head",pose.body))+Vector3(0,sin(elapsed*1.8)*.012,0))*settle
+		agent.get_head().position.z += lean*.9   # the head leads the lean
 		var look := 0.0
 		var fire = _furniture.get_installed(_focus_fire_id)
 		if fire != null and not fire.flagged_uninstall and is_instance_valid(fire.node):
 			var direction: Vector3 = fire.node.global_position-seat.node.global_position
 			look = clampf(wrapf(atan2(direction.x,direction.z)-agent.rotation.y,-PI,PI),-PI*.25,PI*.25)
-		agent._head.rotation.y = (look+sin(elapsed*.7+agent._bob_phase)*.025)*_sitting_blend
+		agent.get_head().rotation.y = (look+sin(elapsed*.7+agent._bob_phase)*.025)*settle
 
 func describe() -> Dictionary:
 	match state:

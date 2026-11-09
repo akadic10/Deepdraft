@@ -132,8 +132,8 @@ func _invalidate_view() -> void:
 	_revision = WaterManager.revision
 	_slice = terrain.slice_y
 	_last_inputs.clear()
-	# An old slice must never linger while workers finish (including cave discovery).
-	# Normal level changes retain the old mesh until its replacement is complete.
+	# An old slice must never linger while workers finish (including cave discovery):
+	# every tile hides now and shows again once its replacement is built.
 	for tile: Vector2i in _tiles:
 		_tiles[tile].visible = false
 		_queue_tile(tile)

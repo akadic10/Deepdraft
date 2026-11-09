@@ -40,7 +40,6 @@ const SettlementName = preload("res://scripts/components/SettlementName.gd")
 const GHOST_VALID := Color(0.35, 1.0, 0.45, 0.55)
 const GHOST_INVALID := Color(1.0, 0.30, 0.25, 0.55)
 
-signal flag_placed(cell: Vector3i)
 ## The settlement was founded, renamed or restored: Colony's page follows it.
 signal settlement_changed
 ## A click chose where to plant the flag; the founding card asks for the name.
@@ -329,7 +328,6 @@ func _place_flag(cell: Vector3i, spawn_squad: bool = true, new_name := "") -> vo
 	var detail := ""
 	if arrived > 0: detail = "%s arrived with the flag." % ("1 dwarf has" if arrived == 1 else "%d dwarves have" % arrived)
 	EventLog.post("colony", "%s is founded." % settlement_name, {"detail": detail, "picture": PICTURE, "place": cell})
-	flag_placed.emit(cell)
 	settlement_changed.emit()
 	deactivate()
 

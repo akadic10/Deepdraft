@@ -11,6 +11,7 @@
     {"tag": "stockpile_ore", "label": "Ores", "group": "materials", "picture": "res://assets/ui/items/base_resources_ore_iron.png"},
     {"tag": "stockpile_gem", "label": "Gems", "group": "materials", "picture": "res://assets/ui/items/base_resources_gem_ruby_raw.png"},
     {"tag": "stockpile_soil", "label": "Soil", "group": "materials", "picture": "res://assets/ui/items/base_resources_soil_soil.png"},
+    {"tag": "stockpile_metal", "label": "Metal", "group": "materials", "picture": "res://assets/ui/items/base_resources_metal_copper_bar.png"},
     {"tag": "stockpile_food", "label": "Food", "group": "food_farming", "picture": "res://assets/ui/items/base_resources_flora_apple.png"},
     {"tag": "stockpile_drink", "label": "Drink", "group": "food_farming", "picture": "res://assets/ui/items/base_resources_drink_ale.png"},
     {"tag": "stockpile_seed", "label": "Seeds & cuttings", "group": "food_farming", "picture": "res://assets/ui/items/base_resources_seed_oak_acorn.png"},

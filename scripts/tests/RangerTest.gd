@@ -32,8 +32,8 @@ func _run() -> void:
 	_expect(assets.profession_allows(WORKER, "craft") and not assets.profession_allows(WORKER, "fish")
 		and not assets.profession_allows("base:profession:miner", "fish") and not assets.profession_allows("base:profession:miner", "craft"),
 		"Workers craft and no longer fish; Miners do neither")
-	_expect(assets.craft_section(RANGER) == "ranger" and assets.craft_section(WORKER) == "rudimentary" and assets.craft_section("base:profession:blacksmith").is_empty(),
-		"Rangers make the Ranger's page and Workers Rudimentary; the Blacksmith's is still planned")
+	_expect(assets.craft_section(RANGER) == "ranger" and assets.craft_section(WORKER) == "rudimentary" and assets.craft_section("base:profession:farmer").is_empty(),
+		"Rangers make the Ranger's page and Workers Rudimentary; the Farmer's is still planned")
 	# A Worker beside a zone never fishes, and the window says the colony has no Ranger.
 	var cells: Array[Vector3i] = []
 	for z in range(31, 35): cells.append(Vector3i(SHORE_X, 20, z))
@@ -112,6 +112,34 @@ func _run() -> void:
 	var summer: float = fishing.patience(worker.dwarf_id)
 	_expect(is_equal_approx(slow, 1.0) and is_equal_approx(patient, 1.5) and is_equal_approx(asked, 1.5) and is_equal_approx(summer, 1.0),
 		"winter's half speed becomes three quarters from level 3, and only in winter: %.2f, %.2f, %.2f" % [slow, patient, summer])
+	# Each water's fish differ (step 3): big trout, char that keep, cave fish that bite all year.
+	var spot = fishing.spot_at(cells[0])
+	worker.profession_experience[RANGER] = 0
+	spot.roll = .05
+	var lake_big: bool = fishing.big_catch(spot, worker)
+	fishing._zones[zone_id].water = "river"
+	_expect(not lake_big and fishing.big_catch(spot, worker), "trout add ten points to the big-fish chance, even at level 1")
+	spot.roll = .15
+	_expect(not fishing.big_catch(spot, worker), "and no more than ten")
+	_expect(String(fishing.zone_data(zone_id).trait).contains("Trout"), "the zone's window names the water's trait")
+	fishing._zones[zone_id].water = "spring_cave"
+	clock_node.season = "winter"
+	worker.profession_experience[RANGER] = 50
+	_expect(fishing.patience(worker.dwarf_id, "spring_cave") == 1.0 and fishing.spot_at(cells[0]).rate_for(worker.dwarf_id) == 1.0, "patience adds nothing to a cave with no seasons")
+	_expect(fishing._seasonless("spring_cave") and not fishing._seasonless("lake"), "only the cave ignores the seasons")
+	var cave_hours: float = fishing._catch_seconds(spot) / clock_node.get_real_seconds_per_game_hour()
+	fishing._zones[zone_id].water = "lake"
+	var lake_hours: float = fishing._catch_seconds(spot) / clock_node.get_real_seconds_per_game_hour()
+	_expect(lake_hours > cave_hours, "in winter a cave catch comes sooner than a lake's: %.2f, %.2f" % [cave_hours, lake_hours])
+	clock_node.season = "summer"
+	worker.profession_experience[RANGER] = 400
+	_expect(float(drops.food_definition("base:resources:fish:char").keeps_days) == 3.0 and float(drops.food_definition(PERCH).keeps_days) == 2.0, "char keep three days, the others two")
+	# A catch lifts the Ranger: "A quiet hour by the water", once in the journal however often renewed.
+	var quiet: Array = worker._mood.thoughts().filter(func(row: Dictionary) -> bool: return row.id == "quiet_hour")
+	_expect(quiet.size() == 1 and int(quiet[0].points) == 3 and bool(quiet[0].steady), "each catch leaves a Ranger a quiet hour, +3")
+	_expect(JSON.parse_string(JSON.stringify(worker._mood.serialize())).has("quiet_hour_hours"), "it saves while it lasts")
+	worker._mood.tick(9.0)
+	_expect(worker._mood.quiet_hour_hours == 0.0, "and fades without another catch")
 	# The roster: Fishing focus, or Fishing disabled with Fish unticked.
 	var roster = load("res://scripts/ui/DwarfRosterPanel.gd")
 	_expect(roster._work_note(worker) == "Fishing focus", "the roster's note: Fishing focus")
@@ -143,7 +171,8 @@ func _run() -> void:
 	var state: Dictionary = JSON.parse_string(JSON.stringify(worker.serialize_state()))
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
 	var rule: Dictionary = validator.SCENE.dwarves.roster[0]
-	_expect(state.has("catch_log") and validator._validate(state, rule, "save.scene.dwarves.roster[0]", {}).is_empty(), "the catch log matches the save's rules")
+	var catalogs: Dictionary = root.get_node("SaveManager")._capture_catalogs()   # professions and traits are checked by name
+	_expect(state.has("catch_log") and validator._validate(state, rule, "save.scene.dwarves.roster[0]", catalogs).is_empty(), "the catch log matches the save's rules")
 	_expect(not bystander.serialize_state().has("catch_log"), "a dwarf who never fished saves no log")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	var data: Dictionary = factory.generate(603, {})

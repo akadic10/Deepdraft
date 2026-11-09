@@ -133,7 +133,7 @@ class Game extends RefCounted:
 		agent._recreation = self
 		players.append({"agent":agent,"seat":seat,"goal":goal,"arrived":false,"blend":0.0})
 		TaskManager.notify_dwarf_unavailable(agent.dwarf_id)
-		agent.get_food().start_walk(path)
+		agent.get_food().start_walk(path, true)   # its route was checked for privacy
 		if agent.current_cell() == goal: walk_finished(agent,true)
 
 	func valid() -> bool:

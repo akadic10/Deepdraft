@@ -68,8 +68,11 @@ func is_work_position(cell: Vector3i) -> bool:
 	return cell == origin and NavGrid.is_walkable(cell)
 
 
+## Only the fisher holding the spot works it. The zone may stop wanting fish mid-cast (its Keep
+## met, its water fished out): that fisher still lands this one catch, as withdraw_lease says,
+## rather than casting on with nothing to land.
 func advance_work(dwarf_id: int, seconds: float) -> bool:
-	if reserved_by != dwarf_id or not bool(state.designated):
+	if reserved_by != dwarf_id:
 		return false
 	state.work_seconds = minf(float(state.work_seconds) + maxf(seconds, 0.0), duration)
 	if float(state.work_seconds) >= duration and complete_callback.is_valid():

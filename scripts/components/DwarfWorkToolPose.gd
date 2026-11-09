@@ -3,6 +3,8 @@ extends RefCounted
 ## Shared floating-hand attachment and safe mirrored-part restoration.
 const PALM := Vector3(1.0625,1.25,.1875)
 const SUPPORT_GRIP := Vector3(0,.625,0)
+## A swing's reach: closer work than this draws the body back, and a walk to it stops short by the same.
+const STANCE_REACH := 1.4
 var tool: Node3D
 var _body: Node3D
 var _head: Node3D

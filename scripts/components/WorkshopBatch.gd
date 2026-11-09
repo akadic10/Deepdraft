@@ -1,7 +1,8 @@
 extends RefCounted
 
 ## A batch left on its workshop to finish by itself (doc 292): two fish hung on the drying rack
-## dry there for their recipe's `dry_hours`. Once dry it is a COLLECT work source, as a fishing
+## dry there for their recipe's `batch_hours`, and copper ore melts in the basic smelter (doc 297).
+## Once done it is a COLLECT work source, as a fishing
 ## spot is a FISH one: a Ranger walks to the rack and takes the batch down by hand in the
 ## recipe's `collect_seconds`. CraftingManager owns the batches, keeps their workshop claimed
 ## while one hangs and saves them; what taking it down gives is its `complete_callback`.
@@ -22,15 +23,40 @@ var collected := false
 ## `designated`: dry and waiting to be taken down. `work_seconds`: the take-down's progress,
 ## kept across a release (Hard Rule 12).
 var state: Dictionary = {"designated": false, "work_seconds": 0.0}
+## A workshop with a `heat_source` and `batch_heat` (the basic smelter, doc 297) heats its room
+## only while its batch is unfinished: `heat_cells` are its cells, `heat_def` its definition.
+var heat_cells: Array[Vector3i] = []
+var heat_def: Dictionary = {}
+var heating := false
 var stands_callback: Callable      # () -> Array: the floor cells beside the workshop
 var contact_callback: Callable     # (from: Vector3) -> Vector3: where the hands reach
 var complete_callback: Callable    # (dwarf_id) -> bool: takes the batch down
 var _preferred := Vector3i(-1, -1, -1)
 
 
+## How a recipe words its batch: its `batch_words` over the drying rack's fish words.
+const FISH_WORDS := {"working": "Drying", "done": "Dry", "collecting": "Taking down dried fish",
+	"going": "Going to the drying rack", "collecting_why": "A day on the rack has dried them; they land beside it.",
+	"going_why": "Walking to the rack whose fish are dry."}
+
+
+static func words_of(batch_recipe: Dictionary) -> Dictionary:
+	return FISH_WORDS.merged(batch_recipe.get("batch_words", {}), true)
+
+
+func words() -> Dictionary:
+	return words_of(recipe)
+
+
+## Only the career whose page made it takes it down (doc 297): the Ranger the fish, the
+## Blacksmith the copper.
+func allows_worker(agent: DwarfAgent) -> bool:
+	return DwarfAssets.craft_section(agent.profession) == String(recipe.get("section", "rudimentary"))
+
+
 ## Game hours until it is dry; 0 once it is.
 func hours_left() -> float:
-	var hours := float(recipe.get("dry_hours", 0.0))
+	var hours := float(recipe.get("batch_hours", 0.0))
 	return maxf(0.0, hours - (WorldClock.elapsed_days() - started) * float(WorldClock.hours_per_day()))
 
 
@@ -40,9 +66,18 @@ func dry() -> bool:
 
 ## Once dry, it posts one take-down lease.
 func ensure_lease() -> void:
+	update_heat()
 	state.designated = dry() and not collected
 	if bool(state.designated) and lease_id < 0:
 		lease_id = TaskManager.add_task(task_type, origin, {}, source_id)
+
+
+## Heat on while the batch is unfinished on a heating workshop, off once done or gone.
+func update_heat() -> void:
+	var want: bool = not heat_def.get("heat_source", {}).is_empty() and not heat_cells.is_empty() and not collected and not dry()
+	if want == heating: return
+	heating = want
+	RoomManager.set_fire_lit(heat_cells, heat_def, want)
 
 
 func stand_cells(_from: Vector3i) -> Array[Vector3i]:

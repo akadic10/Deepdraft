@@ -4,7 +4,7 @@ extends SceneTree
 ## the Video defaults are what the game does unaided; the frame rates on offer are the even
 ## shares of the refresh rate, and the chosen one reaches Engine.max_fps once the camera
 ## paces frames; render scale, shadows and anti-aliasing reach the root viewport. The UI
-## scale starts at Auto, Windows' scale as the largest step not above it, offers
+## scale starts at Auto, the screen's scale as the largest step not above it, offers
 ## only the steps the window has room for, and reaches the window's content scale, while the
 ## world's resolution stays in the screen's pixels. The choices survive a reload, malformed
 ## ones fall back to the defaults, and Restore defaults puts back everything or one tab's.
@@ -113,7 +113,7 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 
-## The UI scale (doc 23): Auto takes Windows' scale as the largest step not above it; only
+## The UI scale (doc 23): Auto takes the screen's scale as the largest step not above it; only
 ## the steps that leave the interface 960 x 540 are offered, and a choice too large for the
 ## window waits at the largest that fits; the scale reaches the window's content scale, the
 ## room it leaves is what the interface lays out in, and the world's resolution stays in the

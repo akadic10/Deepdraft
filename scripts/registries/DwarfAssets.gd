@@ -337,14 +337,15 @@ func profession_tool(key: String) -> String:
 
 
 ## The task types a career takes before permissions: those its `work` names (the Ranger's
-## fishing, drying and hauling, doc 292), or the common work, with CRAFT for a craft section.
+## fishing, drying and hauling, doc 292), or the common work, with CRAFT for a craft section
+## and COLLECT for taking that section's batches off their workshops (the Blacksmith's, doc 297).
 func profession_task_types(key: String) -> Array[int]:
 	if _task_types.has(key): return _task_types[key]
 	var types: Array[int] = []
 	var named: Array = profession_definition(key).get("work", [])
 	if named.is_empty():
 		types.assign(Task.COMMON_WORK)
-		if not craft_section(key).is_empty(): types.append(Task.Type.CRAFT)
+		if not craft_section(key).is_empty(): types.append_array([Task.Type.CRAFT, Task.Type.COLLECT])
 	for type_name: String in named: types.append(int(Task.Type[type_name]))
 	_task_types[key] = types
 	return types
@@ -373,6 +374,11 @@ func craft_tool(key: String) -> PackedScene:
 	if path.is_empty(): return null
 	if not _craft_tools.has(path): _craft_tools[path] = load(path)
 	return _craft_tools[path]
+
+
+## How a career works its bench (doc 298), a name DwarfFellingPose knows; none is the Worker's swing.
+func craft_motion(key: String) -> String:
+	return String(profession_definition(key).get("craft_motion", ""))
 
 
 ## The kind of work a career's crafting counts as for the stats (doc 41 "Stats"): Wits'

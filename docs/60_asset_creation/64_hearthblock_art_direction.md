@@ -6,8 +6,9 @@ gameplay camera and lit like a hearth. The owner chose it on 2026-10-20. By 2026
 everything the game can show had been converted and the owner signed off the result.
 
 - [Lighting](#lighting) below holds the lighting pass (doc 255).
-- [256 — Hearthblock art](../00_dev_roadmap/256_hearthblock_art_pilot.md) records the models,
-  the terrain dressing and the menu pictures.
+- [What is Hearthblock today](#what-is-hearthblock-today) below lists every converted family
+  and where it is authored (doc 256); [62](62_furniture_catalog.md) gives each furniture
+  piece's Tier 1 design.
 - [61 — Voxel art authoring guide](61_voxel_art_guide.md) explains how to build a model.
 - [63 — Technical art standard](63_shared_art_standard.md) gives the renderer, pipeline
   and acceptance rules.
@@ -109,6 +110,11 @@ Who applies it:
   trimmed flush and drying checks instead of bark plates, and fresh-cut ends and notches.
   Furniture made from stumps and slabs keeps its bark, and so does the stockpile log, which
   is the log as felled.
+  Knots and checks never sit on a lying log's top, which the play camera sees most. Barked
+  walls were the tree trunks' brown, so a cabin sank into the forest at the default camera
+  distance, and their bark plates repeated as a grid; peeled walls read as built. Fences and
+  gates recolour from the built logs' source palette (`hand_hewn_timber`), so a pine fence
+  matches a pine cabin. The approved study is in `tmp/peeled_logs_20261028/`.
 - **Fires hold no drawn wood (owner, 2026-10-28, doc 279).** The campfire and the hearth
   are stone and ash; the night's log is the real stockpile log a worker sets in them, shown
   in its own wood (`nightly_fire` places and scales it). Soot darkens the stone that faces
@@ -116,13 +122,23 @@ Who applies it:
   pictures show them burning a pine log. The hearth is a fire-back (owner's pick of four
   rudimentary concepts, 2026-10-29): an open fire on four flagstones against three stacked
   slabs, with low wing stones at the back corners.
+  `tmp/hearth_concepts_20261029/` holds the four concepts and their renders.
 - **Tier 2 · Carpenter Era** is for later, when the game adds that progression step: a
   plank dining table and a blanket bed. Its designs are in
   `tools/art_data/studies/hearthblock_furniture_tiers.json`, next to the Tier 1 studies, and
   as `diningTable()` and `bed()` in `tools/hearthblock/art/proposal.mjs`.
   **Never delete either tier's designs.**
+- **Stone tools make rough work (owner, 2026-11-01).** "Dwarves have very basic tools and
+  they can't quite make the things you're presenting with a chisel." Until the Blacksmith's
+  iron tools, wood is hewn and split, never sawn, and stone is split or knocked square, never
+  dressed or tooled smooth: the mason's bench has a split slab, and the stone stool is a Rough
+  Stone knocked square. Tier 2's planks come with the Carpenter's iron saw (doc 44,
+  "Specialist workbenches").
 
 ## Art over rigs (owner rule, 2026-10-21)
+
+From the owner (2026-10-21), adopting the re-proportioned deer: "we should not be
+constraining the new art direction due to old joints".
 
 Old joints, pivots, envelopes and pinned shapes must not constrain the art. When the
 art needs new proportions:

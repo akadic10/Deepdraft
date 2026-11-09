@@ -40,10 +40,6 @@ func rescan() -> void:
 	_dirty = true
 
 
-func count() -> int:
-	return _cells.size()
-
-
 ## Redraws when a log came or went, or the slice moved.
 func refresh(slice_y: int) -> void:
 	if not _dirty and slice_y == _slice: return

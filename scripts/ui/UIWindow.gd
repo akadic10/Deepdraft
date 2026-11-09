@@ -148,10 +148,6 @@ func set_content(content: Control) -> void:
 	reset_size()
 
 
-func get_content() -> Control:
-	return _content
-
-
 ## Keeps the title bar reachable whatever the viewport does (drag, resize,
 ## restored layout from a larger monitor).
 func clamp_to_viewport() -> void:

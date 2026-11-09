@@ -65,7 +65,7 @@ func _arrangements() -> void:
 			worker._process(.05)
 			worker._process(.05)
 			_expect(not worker._body.position.is_zero_approx() and worker._body.position.length()<seated_body.length(),"rest ends with a gradual stand-up")
-			for i in 12:
+			for i in 24:
 				worker._process(.05)
 				if seat.idle_seat_owner<0: break
 			_expect(seat.idle_seat_owner<0 and worker._body.position.is_zero_approx(),"standing releases the meal's seat")

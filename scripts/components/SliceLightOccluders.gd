@@ -76,11 +76,6 @@ func invalidate_cells(cells: Array[Vector3i]) -> void:
 	_sort_queue()
 
 
-func invalidate_all() -> void:
-	for key: Vector3i in _chunks.keys(): _restale(key)
-	_sort_queue()
-
-
 func _process(_delta: float) -> void:
 	if _queue.is_empty(): return
 	var deadline := Time.get_ticks_usec() + BUILD_BUDGET_USEC

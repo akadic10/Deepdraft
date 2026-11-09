@@ -11,9 +11,9 @@ func _init() -> void:
 func _run() -> void:
 	var scree := "--scree" in OS.get_cmdline_user_args()
 	_output = "res://tmp/scree_review/" if scree else "res://tmp/boulder_review/"
-	var profile := OS.get_environment("APPDATA").replace("\\", "/")
+	var profile := OS.get_user_data_dir().replace("\\", "/")
 	if not profile.contains("/tmp/boulder_review/") and not profile.contains("/tmp/scree_review/"):
-		printerr("Use isolated APPDATA below tmp/boulder_review or tmp/scree_review.")
+		printerr("Use an isolated user:// profile below tmp/boulder_review or tmp/scree_review.")
 		quit(2)
 		return
 	root.get_node("SaveManager").configure_storage_for_testing("user://boulder_preview")

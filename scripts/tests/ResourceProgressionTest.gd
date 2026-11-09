@@ -8,7 +8,7 @@ var blocks: Node
 func _init() -> void: _run.call_deferred()
 
 func _run() -> void:
-	if not OS.get_environment("APPDATA").replace("\\","/").contains("/tmp/"): quit(2); return
+	if not OS.get_user_data_dir().replace("\\","/").contains("/tmp/"): quit(2); return
 	generator = root.get_node("WorldGenerator")
 	blocks = root.get_node("BlockRegistry")
 	root.get_node("SaveManager").set_process(false)

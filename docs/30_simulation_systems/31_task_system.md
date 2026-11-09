@@ -5,10 +5,15 @@ has a `priority` from 1 (filled first) to 5 (last). Ground zones start at 5, sto
 its JSON `storage.priority` (the tool rack 4), and a project's materials crate is 0.
 - A store's HAUL skips loose goods that a better store accepts and has room for
   (`StockpileManager.better_store_takes`). A better store doesn't count while every haul lease it
-  has posted is waiting out reach failures (`hauling_blocked`), so a walled-off store never holds
-  goods back. The answer is cached per hauling revision, for at most a second.
+  has posted is waiting out reach failures or is paused for attention until the player retries it
+  (`hauling_blocked`), so a walled-off store never holds goods back. A paused lease's retry time
+  has long passed, and it once counted as free: zones refused loose food that rotted outside
+  (2026-11-09; `StoragePriorityTest`). The answer is cached per hauling revision, for at most a second.
 - Relocation (`StockpileManager.moves_to`): goods leave a store that stops taking them, or move
   to a store of better priority; never between equal ones. Withdrawals stay nearest-first.
+- A zone cell whose floor block is removed leaves the zone (`StockpileManager.remove_zone_cells`): its
+  goods fall loose, all that zone's hauls are cancelled and its claims released, and the next
+  hauling pass posts what is still wanted (doc 43).
 - Storage furniture (`ContainerStorageComponent`) registers with StockpileManager beside the zones
   (`register_container`). `get_stores()` lists both; `get_zones()` lists only zones, for callers
   that need cells.
@@ -17,9 +22,43 @@ its JSON `storage.priority` (the tool rack 4), and a project's materials crate i
   relocations. A relocation's hidden handoff marker keeps that cell as its floor (`floor_cell`
   meta, read by both `item_floor_cell`s), while the hands reach for the hook.
 - A container's slot may hold several of one good (`storage.per_slot`: the raw materials crate's
-  quarters hold 3). Its goods still leave one at a time: a relocation takes one good, or one crate
-  of produce, per trip (`relocation_candidates`), and `withdraw_stack` refuses more.
-- `StoragePriorityTest`, `ToolRackTest` and `CrateTest` (storage area) cover them.
+  quarters hold 3). A relocation fills a trip like a ground haul (owner, 2026-11-02: "dwarves
+  carry only one unit per load to it when they can carry four stones"; "make quarters leaving
+  the crate carry full loads too"): `_reserve_relocation` takes the nearest stored good, then
+  others stored within `pouch_bundle_radius` of it, each paying its `carry_cost`, up to
+  `carry_capacity`. A slot of several goods gives several: each good, or each crate of produce,
+  is a portion of the slot's outgoing claim (`portions`, as meals and the construction crate
+  use them), with its own transfer and handoff marker (`pull.transfers`, keyed by marker). So
+  four stockpiled stones move up to a crate in one trip, and a quarter of three stones moves
+  out in one. `withdraw_stack` still hands over one good, or one crate, per portion. While a
+  slot has an outgoing claim, other hauls pass it by. A skipped good (its walk failed, or its
+  store refused it) gives its claim back at once (`skip_item`). Its marker stays hidden in
+  the trip, as a picked one does, until the trip ends; the end (`cancel_haul`, which a
+  delivery also runs) frees every marker. A marker freed mid-trip broke the trip's own loops.
+  A good tops up its own slot before it takes another, so a crate whose four quarters hold four
+  kinds has no room for a fifth.
+- A piece's `storage` block (`data/furniture/`) gives what it accepts (material tags), its
+  `capacity` in slots, `per_slot`, `slot_word` ("hooks", "quarters"), `priority`, the `anchors`
+  its goods show on (footprint-local blocks from the back-left floor corner) and `hang` (tools
+  hung upright from their top).
+- When the piece goes (uninstalled, packed for a Move, or its wall mined), its goods drop loose
+  in front of it, each slot's at the stand nearest it. Marked for uninstall, it takes nothing
+  more. Its stacks, filter and priority save with the installed piece (`FurnitureStorage`), and
+  a Move keeps the filter and the priority.
+- **Food on storage furniture** (2026-11-06, doc 299, the food shelf). A slot holds one crate of
+  produce. Its stack carries `spoil` as a zone's does: on deposit (`spoil_band`), on the way out, in
+  saves and when the piece's goods drop. `FoodSpoilage` walks every store, not just the zones (doc
+  42, "Spoilage"), and each store names itself for Events (`place_words`). `edible_only` keeps a
+  piece's filter to goods dwarves eat (hops, grapes, plump helmet and pig tail carry the same storage
+  tag but aren't eaten), and `straight` stands its goods all one way, for a deck too shallow for a turned
+  crate. A meal's reach goes up to 2 blocks, for the upper deck at 1.94 (`DwarfFoodBehavior`).
+- **Standing beside the place.** A hauler first tries the stands beside the places its load goes to
+  (`stands_beside_load`): across a row of places rather than at its ends, on any side of a block of
+  them. If none has a route it takes any stand, as the scheduler's proof allows, so it may reach from
+  a shelf's end, through its frame. The hands reach for a place with goods on their way, so on a shelf
+  they go to the right deck (`delivery_contact`). Without this a hauler stopped at the nearest side and
+  its hands flew up to two blocks to a far place.
+- `StoragePriorityTest`, `ToolRackTest`, `CrateTest` and `FoodShelfTest` (storage area) cover them.
 
 **Pickup searches by direction (2026-10-30, 286):** one HAUL pickup search now covers
 the quoted load and the nearest other eligible loads lying the same way, and ends at
@@ -179,9 +218,20 @@ out of a plan drop the goods it no longer needs beside the crate
     just now but soon can: its good is not all in, or a dwarf or a loose item is in it
     (`_keeps_access`). A block too high to reach holds nothing back, so working middle first
     never stalls the rest.
+  - **Way out** (`ConstructionWork._work_floors`): the plan floods inward from just beyond itself,
+    every unbuilt block counted as built, to find the floors it will seal off. A block is worked
+    from a floor that stays open whenever it has one, so a builder inside a doorless room walks
+    out through the gaps and finishes from outside. A sealed floor serves only a block with no
+    other floor, such as the inside of a roof, and those can still be left unreachable once the
+    last gap closes. Other dwarves inside aren't warned, and a wall across a dead-end tunnel has
+    open floors on both sides.
   - Not helped: a block walled in by finished blocks, a block boxed in by another plan's blocks
     (it can wait on the other plan's order), and blocks more than 5 above every floor a
     builder can reach.
+- **Reach:** a builder works a block from a floor at most 5 below it or 1 above it (`reach_up`,
+  `reach_down` in `data/construction/blocks.json`; `ConstructionController.stands_for`).
+  Nothing lifts it higher, and ladders give no work floors, so a tall plan's upper layers need
+  Shapes stairs to stand on, or DEV: Finish construction.
 - **Replace plans** (2026-10-29, doc 285): Build's Replace plans solid blocks, staged and leased
   as above. The same FETCH_BUILD work first digs the old block with the pick for its mining
   time (`MiningZoneWork.get_block_work`, at base speed), then hammers the new block in; the
@@ -194,6 +244,10 @@ out of a plan drop the goods it no longer needs beside the crate
   `cost`, `work_seconds` and the builder's reach). It needs four walkable sides and
   keeps clear of plans, storage, furniture (fences included) and access structures. It
   occupies one voxel, so nothing is built into it.
+  The search starts from the floor under the plan's lowest block, which for a placement is its
+  base (a Replace plan starts from a builder's floor), and looks at most 2 blocks up or down
+  (`ConstructionController.place_materials_crate`). So a Build or Shapes plan that starts high,
+  such as a slab off a ledge, may find no site.
 - With no site the project reports **No delivery access** and keeps looking. If the
   crate loses its floor or fills with water, its delivery leases are cancelled, the
   staged stone drops there and a new site is chosen.
@@ -524,14 +578,14 @@ enum number, so reordering `Task.Type` does not orphan saved journal entries.
 # scripts/systems/Task.gd — as shipped
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 # Task-type categories, listed only here (doc 258 step 6):
-const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work, and fishing spots: one executor, the surface matcher
+const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work, fishing spots and finished batches on a workshop: one executor, the surface matcher
 const GATHER_WORK  := [...]  # surface work done by hand (gather pose and contact)
 const SHRUB_WORK   := [...]  # HARVEST_SHRUB, CLEAR_SHRUB
-const COMMON_WORK  := [...]  # what any dwarf may take before permissions; Workers add CRAFT
+const COMMON_WORK  := [...]  # what every career takes before permissions unless it names its own `work` (the Ranger); careers with a `craft_section` add CRAFT
 
 var id:            int           # unique auto-incremented ID
 var type:          Task.Type
@@ -696,9 +750,10 @@ through a Labor window remain planned.
 | `HARVEST_TREE` | 50 | Pick seasonal fruit from a standing juniper or apple tree |
 | `CLEAR_BOULDER` | 50 | Clear a marked surface stone; modest rough-stone yield |
 | `GATHER_SCREE` | 50 | Gather a walkable loose-stone clump; one rough stone |
-| `COLLECT` | 47 | Take a finished batch down from its workshop: the drying rack's dried fish (doc 292). Rangers only; before new crafts, so the rack comes free |
+| `COLLECT` | 47 | Take a finished batch down from its workshop: the drying rack's dried fish (doc 292), the basic smelter's copper bar (doc 297). Only the career whose page made the batch takes it (`WorkshopBatch.allows_worker`): Rangers the fish, Blacksmiths the copper. Every crafting career takes COLLECT; before new crafts, so the workshop comes free |
 | `CRAFT` | 46 | Craft orders, each made by its page's career; after mining/felling, before placement/hauling. A Carpenter or Stonemason takes an order of their own page before any other work (doc 293) |
 | `FETCH_BUILD` | 45 | Install finished furniture; bring the night's log to a cold fire |
+| `FISH` | 42 | A catch at a Fishing zone's spot (doc 42, "Fishing"). Rangers only, after drying and before hauling |
 | `UNINSTALL` | 40 | Pack marked furniture for storage |
 | `HAUL` | 40 | Keeps workshops fed; slightly less urgent than mining |
 
@@ -911,7 +966,6 @@ doc 52) will call this same release path.
 ## Signals
 
 ```gdscript
-signal task_added(task: Task)
 signal task_assigned(task: Task, dwarf_id: int)
 signal task_released(task: Task, dwarf_id: int, reason: int)   # see Release Protocol
 signal task_completed(task: Task)

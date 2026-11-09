@@ -139,6 +139,21 @@ func _run() -> void:
 	explorer.select_object(director, worker)   # as a click on the dwarf in the world selects
 	await _settle()
 	_expect(careers._agent == worker and careers._selected == "base:profession:ranger", "and a dwarf picked in the world")
+	# Back to colony opens the roster on the map's dwarf, though opening the roster can move the
+	# map to the roster's own pick first (the project review, 2026-11-09). The map open on its own,
+	# as from a character sheet: closing the roster closes the map too.
+	manager.close("dwarves")
+	director.open_professions(worker)
+	await _settle()
+	var roster_pick := func(window_id: String, open: bool) -> void:
+		if window_id == "dwarves" and open: explorer.select_object(director, idle_worker)
+	manager.window_state_changed.connect(roster_pick)
+	var back: Array = careers.find_children("*", "Button", true, false).filter(func(button: Button) -> bool: return button.text == "Back to colony")
+	if not back.is_empty(): (back[0] as Button).pressed.emit()
+	await _settle()
+	manager.window_state_changed.disconnect(roster_pick)
+	_expect(back.size() == 1 and manager.is_open("dwarves") and not manager.is_open("professions") and explorer.selected_dwarf(director) == worker,
+		"Back to colony opens the roster on the map's dwarf: %s" % [explorer.selected_dwarf(director)])
 	manager.close("professions")
 	_click(roster._rows[worker].button.get_global_rect().position + Vector2(30,28))
 	await _settle()

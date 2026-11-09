@@ -1,5 +1,5 @@
 extends SceneTree
-## Run with isolated APPDATA below tmp/rabbit_review (or deer_review with --deer).
+## Run with an isolated user:// profile below tmp/rabbit_review (or deer_review with --deer).
 ## Native main scene,
 ## real seeded habitat, public DEV action and screen picking; saves no players.
 var failures: Array[String] = []
@@ -16,8 +16,8 @@ func _run() -> void:
 	if "--wolf" in OS.get_cmdline_user_args():
 		species = "wolf"
 		output_dir = "res://tmp/wolf_review/"
-	if not OS.get_environment("APPDATA").replace("\\","/").contains("/tmp/"+species+"_review/"):
-		printerr("Use isolated APPDATA below tmp/"+species+"_review.")
+	if not OS.get_user_data_dir().replace("\\","/").contains("/tmp/"+species+"_review/"):
+		printerr("Use an isolated user:// profile below tmp/"+species+"_review.")
 		quit(2)
 		return
 	root.get_node("SaveManager").configure_storage_for_testing("user://rabbit_preview")

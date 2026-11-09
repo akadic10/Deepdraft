@@ -127,15 +127,9 @@ var _move_index: int:
 var _walk_cycle: float:
 	get: return _movement.walk_cycle
 	set(value): _movement.walk_cycle = value
-var _shortcut_timer: float:
-	get: return _movement.shortcut_timer
-	set(value): _movement.shortcut_timer = value
 var _ladder_path_revision: int:
 	get: return _movement.ladder_path_revision
 	set(value): _movement.ladder_path_revision = value
-var _move_validation_index: int:
-	get: return _movement.move_validation_index
-	set(value): _movement.move_validation_index = value
 @warning_ignore_restore("unused_private_class_variable")
 
 # ── Part nodes (built by DwarfBodyRig; procedural pose targets) ───────────────
@@ -218,6 +212,12 @@ func setup(p_dwarf_id: int, data: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	if WorldClock.paused or WorldClock.speed <= 0.0: return
+	_rig.begin_frame()
+	_tick(delta)
+	_rig.finish_frame(delta * WorldClock.speed)
+
+
+func _tick(delta: float) -> void:
 	_mood.tick(delta * WorldClock.game_hours_per_real_second())
 	_food.clock_tick(delta * WorldClock.game_hours_per_real_second())
 	_health.clock_tick(delta * WorldClock.game_hours_per_real_second(), _sleeping)
@@ -227,13 +227,6 @@ func _process(delta: float) -> void:
 		return
 	if _sleeping:
 		_process_sleeping(delta)
-		return
-	if _task_phase in [TaskPhase.FELL_FINDING, TaskPhase.FELL_MOVING, TaskPhase.FELL_WORKING,
-			TaskPhase.ZONE_MOVING, TaskPhase.ZONE_SWINGING,
-			TaskPhase.HAUL_TO_ITEM, TaskPhase.HAUL_TO_ZONE, TaskPhase.HAUL_PICKUP, TaskPhase.HAUL_DEPOSIT,
-			TaskPhase.FETCH_TO_ITEM, TaskPhase.FETCH_TO_GHOST, TaskPhase.FETCH_WORKING,
-			TaskPhase.FETCH_PICKUP, TaskPhase.FETCH_DEPOSIT] \
-			and (WorldClock.paused or WorldClock.speed <= 0.0):
 		return
 	# Sleep drains in EVERY waking state — idle, walking, working, swinging —
 	# so the threshold can interrupt any of them (doc 16 Phase 5 acceptance).
@@ -422,8 +415,8 @@ func finish_walk(success: bool) -> void:
 ## stop_walking, the abort_task ordering) so the synchronous walk_finished(false)
 ## cannot re-enter the executors. The zone reservation is freed by the
 ## controller on task_released; zone-level progress (completed set) is never
-## touched; partial swing progress is discarded — the block keeps full
-## durability (swings only commit at zero).
+## touched; partial swing progress is discarded — the block starts again in
+## full (swings only commit at zero).
 func _begin_sleep() -> void:
 	if is_recreating(): _recreation.cancel(dwarf_id)
 	if is_eating(): _food.cancel("Meal interrupted for rest.", false)
@@ -784,6 +777,17 @@ func stop_walking() -> void:
 	_movement.stop_walking()
 
 
+## Starts a walk along a route a component has already searched: a meal, foraging, a game, a
+## promotion's tool. The body leaves its work spot first, as for walk_to. `private_walk`: the
+## route keeps to rooms the dwarf may use (a meal's seat, a game), and so do its replans.
+func start_route(path: Array, private_walk := false) -> void:
+	_movement.start_route(path, private_walk)
+
+
+func stop_short_of(contact: Vector3, reach: float) -> void:
+	_movement.stop_short_of(contact, reach)
+
+
 func is_walking() -> bool:
 	return _movement.is_walking()
 
@@ -792,6 +796,7 @@ func is_walking() -> bool:
 func _clear_path() -> void: _movement.clear_path()
 func _follow_path(delta: float) -> void: _movement.follow_path(delta)
 func _reset_part_offsets() -> void: _rig.reset_part_offsets()
+func blend_pose() -> void: _rig.blend_pose()
 func _idle_bob() -> void: _rig.idle_bob(_bob_phase)
 
 

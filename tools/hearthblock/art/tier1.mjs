@@ -283,6 +283,55 @@ export function masonBench() {
   return v;
 }
 
+// ── Basic smelter: 2 x 1, inside -16..16 x 0..18 x -8..8 (doc 297) ─────────────────────
+// The Blacksmith's own workbench. Left cell: a squat bowl furnace of three stone courses, each
+// stepping in, their joints daubed with soil, a fire mouth under a lintel stone at the front
+// (+Z) and a clay crucible sunk in the open top. Right cell: a flat casting stone, the Rough
+// Stone's own greys, with two bar moulds cut in its top at Y6. The charge (glowing copper,
+// coals, the cast bars) is a part of its own (basicSmelterCharge), shown while a batch is on.
+export function basicSmelter() {
+  const v = new Vox();
+  v.pillow(-16, 0, 0, 6, -7, 7, 2, 'stone');                            // the footing course
+  v.pillow(-15, -1, 6, 11, -6, 6, 2, 'stone_light');
+  v.pillow(-14, -2, 11, 15, -5, 5, 2, 'stone');
+  v.pillow(-13, -3, 15, 18, -4, 4, 1, 'stone_light');                  // the rim
+  v.paint(-16, 0, 5, 7, -7, 7, 'daub'); v.paint(-15, -1, 10, 12, -6, 6, 'daub_dark');   // soil in the joints
+  v.paint(-14, -2, 14, 16, -5, 5, 'daub');
+  v.box(-11, -5, 12, 18, -2, 2, null);                                 // the open top
+  v.box(-11, -5, 11, 16, -2, 2, 'clay');                               // the crucible, sunk in it
+  v.paint(-11, -5, 11, 13, -2, 2, 'clay_dark');
+  v.box(-10, -6, 13, 16, -1, 1, null);
+  v.box(-11, -5, 0, 7, 3, 8, null);                                    // the fire mouth
+  v.box(-11, -5, 0, 1, 3, 7, 'ash');
+  v.box(-12, -4, 7, 9, 5, 8, 'stone_dark');                            // its lintel
+  v.paint(-11, -5, 9, 12, 5, 6, 'soot');                               // soot above it
+  v.paint(-11, -5, 1, 7, 2, 3, 'soot');
+  v.cut(1, 15, 0, 5, -6, 6, 2, 'rough_stone');                         // the casting stone
+  v.paint(1, 15, 0, 1, -6, 6, 'rough_stone_shade');
+  v.cut(2, 14, 5, 6, -5, 5, 1, 'rough_stone_light');                   // knocked flat on top
+  for (const z0 of [-3, 1]) {                                           // two bar moulds
+    v.box(4, 12, 5, 6, z0, z0 + 2, null);
+    v.paint(4, 12, 4, 5, z0, z0 + 2, 'rough_stone_cleft');
+  }
+  for (const [x, z] of [[0, 6], [15, -5], [3, 7], [-2, -8]]) v.box(x, x + 1, 0, 1, z, z + 1, 'rough_stone_light');   // chips
+  return v;
+}
+
+// ── Basic smelter's charge (parts/basic_smelter_charge), in the smelter's own coordinates ──
+// Copper glowing in the crucible, coals in the fire mouth and two bars set in the moulds, each
+// in a cell the smelter left empty.
+export function basicSmelterCharge() {
+  const v = new Vox();
+  v.box(-10, -6, 13, 15, -1, 1, 'molten'); v.paint(-9, -7, 14, 15, -1, 1, 'molten_light');
+  v.box(-11, -5, 1, 3, 3, 7, 'char'); v.paint(-10, -6, 2, 3, 4, 6, 'ember');
+  for (const z0 of [-3, 1]) {
+    v.box(4, 12, 5, 6, z0, z0 + 2, 'copper');
+    v.paint(4, 12, 5, 6, z0, z0 + 1, 'copper_light');
+    v.paint(4, 5, 5, 6, z0, z0 + 2, 'copper_dark'); v.paint(11, 12, 5, 6, z0, z0 + 2, 'copper_dark');
+  }
+  return v;
+}
+
 // ── Stone stool: X -8..8 (1 x 1), seat at Y14 like the log stool (doc 293, B) ────
 // The Stonemason's first piece: one Rough Stone knocked square all the way down with the maul,
 // in the Rough Stone's own greys (never recoloured by a wood). Its top is a little uneven, one
@@ -341,6 +390,72 @@ export function rawMaterialsCrate() {
     v.paint(x, x + 4, 8, 9, -9, -3, 'bark'); v.paint(x, x + 4, 8, 9, 5, 11, 'bark');
   }
   for (const x of [-14, 10]) for (const z of [-14, 10]) v.paint(x, x + 4, 4, 5, z, z + 4, 'chop');   // the notches
+  return v;
+}
+
+// ── Finished goods pallet: X, Z -16..16 (2 x 2), its deck top at Y7 (doc 62, A, log skids) ──
+// The owner's pick of three concepts (2026-11-02): split poles laid across two log runners, split
+// face up, lashed to the runners at the corners. Goods stand on the deck in its four quarters, at
+// X and Z ±8 (the furniture's storage anchors). The concept's runners ran a cell past each side;
+// here they keep within the footprint, as the raw materials crate does.
+export function finishedGoodsPallet() {
+  const v = new Vox();
+  for (const z of [-12, 8]) {                                       // two log runners, along X
+    v.cutX(-16, 16, 0, 4, z, z + 4, 1, 'bark_dark');
+    v.paint(-16, -15, 0, 4, z, z + 4, 'wood_top'); v.paint(15, 16, 0, 4, z, z + 4, 'wood_top');
+  }
+  for (const x0 of [-16, -11, -6, -1, 4, 9, 14]) {                  // split poles across them, along Z
+    const x1 = Math.min(x0 + 4, 16);
+    v.cutZ(x0, x1, 4, 7, -16, 16, 1, 'bark');
+    v.paint(x0, x1, 6, 7, -16, 16, 'riven');                        // split face up
+    v.paint(x0, x1, 4, 7, -16, -15, 'wood_top'); v.paint(x0, x1, 4, 7, 15, 16, 'wood_top');
+  }
+  for (const [x, z] of [[-16, -12], [14, -12], [-16, 8], [14, 8]]) v.box(x, x + 2, 3, 5, z - 1, z + 5, 'rope');   // lashed at the ends
+  return v;
+}
+
+// ── Food shelf: X -24..24, Y 0..40, Z -8..8 (3 x 1), facing +Z (doc 299, A, the lean-to rack) ──
+// The owner's pick of three concepts (2026-11-06). At each end a bark post with a pole leaned against
+// it and lashed at the top; rails lashed across them at two heights; split poles laid along the rails,
+// split face up. The lean makes the upper deck shallower than the lower, so both rows of crates show
+// from above: crates stand at X 0 and ±15, the upper row on Y31 at Z-3, the lower on Y12 at Z3 (the
+// furniture's storage anchors).
+export function foodShelf() {
+  const v = new Vox();
+  for (const x0 of [-24, 21]) {
+    v.box(x0, x0 + 3, 0, 40, -8, -5, 'bark');                       // the back post
+    v.paint(x0, x0 + 3, 0, 2, -8, -5, 'bark_dark');
+    v.paint(x0, x0 + 3, 39, 40, -8, -5, 'wood_top');
+    v.paint(x0 + 1, x0 + 2, 14, 23, -6, -5, 'bark_light');
+    for (let y = 0; y < 37; y++) {                                  // the pole leaned against it
+      const z = 5 - Math.floor(y * 10 / 36);
+      v.box(x0, x0 + 3, y, y + 1, z, z + 3, y < 2 ? 'bark_dark' : 'bark');
+    }
+    v.paint(x0, x0 + 3, 32, 38, -8, -1, 'rope');                    // lashed where they meet
+    v.paint(x0, x0 + 3, 34, 35, -8, -1, 'rope_dark');
+    for (const rail of [6, 25]) {                                   // lashed where the rails cross
+      v.paint(x0, x0 + 3, rail, rail + 3, -8, 8, 'rope');
+      v.paint(x0, x0 + 3, rail + 1, rail + 2, -8, 8, 'rope_dark');
+    }
+  }
+  for (const [rail, front] of [[6, 8], [25, 2]]) {
+    for (const x0 of [-21, 18]) {                                   // a rail across each end
+      v.box(x0, x0 + 3, rail, rail + 3, -8, front, 'bark_dark');
+      v.paint(x0 + 1, x0 + 2, rail + 2, rail + 3, -6, front - 2, 'bark');
+      v.paint(x0, x0 + 3, rail, rail + 3, front - 1, front, 'riven_dark');
+    }
+  }
+  // Split poles along the rails, split face up, of uneven length.
+  for (const [y0, rows] of [[9, [[-8, 4, -21, 21], [-4, 4, -20, 21], [0, 4, -21, 20], [4, 4, -21, 21]]], [28, [[-8, 4, -21, 21], [-4, 3, -21, 20], [-1, 3, -20, 21]]]]) {
+    for (const [z0, w, x0, x1] of rows) {
+      v.cutX(x0, x1, y0, y0 + 3, z0, z0 + w, 1, 'bark');
+      v.paint(x0, x1, y0 + 2, y0 + 3, z0, z0 + w, 'riven');
+      v.paint(x0, x0 + 1, y0, y0 + 3, z0, z0 + w, 'wood_top');
+      v.paint(x1 - 1, x1, y0, y0 + 3, z0, z0 + w, 'wood_top');
+    }
+  }
+  v.paint(-12, -3, 30, 31, -7, -5, 'grain'); v.paint(5, 15, 30, 31, -3, -2, 'grain');
+  v.paint(-14, -2, 11, 12, 1, 3, 'grain'); v.paint(6, 16, 11, 12, 5, 7, 'grain'); v.paint(-5, 4, 11, 12, -7, -6, 'chop');
   return v;
 }
 

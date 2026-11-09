@@ -5,7 +5,7 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	var rooms = root.get_node("RoomManager")
 	var nav = root.get_node("NavGrid")
-	furniture._install(BENCH, furniture.get_defs()[BENCH], Vector3i(45,20,42), 0)
+	_carpenter_bench_at(Vector3i(45,20,42))   # doors and the log bench are the Carpenter's (doc 44)
 	drops.spawn_drop(PINE,4,Vector3i(42,21,42))
 	for name in ["door", "log_door_3", "log_door_4", "bench"]:
 		worker.stop_walking()
@@ -14,7 +14,7 @@ func _run() -> void:
 		var recipe: String = "base:recipe:worker:"+name
 		var item: String = "base:resources:furniture:"+name
 		_expect(dock._place_catalog.has_design(key), "Place exposes "+name)
-		_expect(await _completed(crafting.queue_order(recipe,1)), "Worker crafts "+name)
+		_expect(await _completed(crafting.queue_order(recipe,1)), "Carpenter crafts "+name)
 		_expect(_count(item)==1, "exactly one packed "+name)
 		var origin := Vector3i(52,20,42) if name=="bench" else Vector3i(58+(["door","log_door_3","log_door_4"].find(name))*12,20,46)
 		var def: Dictionary = furniture.get_defs()[key]

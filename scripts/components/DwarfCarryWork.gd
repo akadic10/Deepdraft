@@ -144,7 +144,7 @@ func _haul_walk_current() -> void:
 			_haul_count_failure()
 		else:
 			var delivery_source := haul_source()
-			if delivery_source == null or not _walk_to_handling_stand(delivery_source.call("delivery_stand_cells", _haul_deposit, agent.dwarf_id), DwarfAgent.TaskPhase.HAUL_TO_ZONE):
+			if delivery_source == null or not _walk_to_delivery(delivery_source):
 				drop_carried_at_feet()
 				_haul_cancel_pull()
 				_haul_count_failure()
@@ -331,6 +331,14 @@ func _begin_item_pickup(item: Node3D, phase: int) -> void:
 ## Choose a reachable side, never the cell under the goods. A blocked nearest
 ## side must not prevent a valid approach from another side. Test paths without
 ## emitting walk_finished(false) for every rejected candidate.
+## To a stand beside the place the load goes to, if it can (a long shelf, doc 299), else to any.
+func _walk_to_delivery(source: RefCounted) -> bool:
+	if source is StorageComponent:
+		var beside: Array[Vector3i] = source.stands_beside_load(agent.dwarf_id)
+		if not beside.is_empty() and _walk_to_handling_stand(beside, DwarfAgent.TaskPhase.HAUL_TO_ZONE): return true
+	return _walk_to_handling_stand(source.call("delivery_stand_cells", _haul_deposit, agent.dwarf_id), DwarfAgent.TaskPhase.HAUL_TO_ZONE)
+
+
 func _walk_to_handling_stand(candidates: Array[Vector3i], phase: int) -> bool:
 	var here := agent.current_cell()
 	candidates.sort_custom(func(a: Vector3i, b: Vector3i) -> bool:
@@ -563,8 +571,18 @@ func _fetch_travel_to_ghost() -> void:
 		_begin_fetch_work()
 	elif agent.walk_to(target):
 		task_phase = DwarfAgent.TaskPhase.FETCH_TO_GHOST
+		_stop_short_for_work(source,Vector3(target)+Vector3(.5,1,.5))
 	else:
 		_fetch_fail_release()
+
+
+## The walk ends where the work's swing will stand (doc 298): the builder's hammer, or a crafter's tool
+## at its bench. A bench's hand work has no swing to stand back for.
+func _stop_short_for_work(source: RefCounted, feet: Vector3) -> void:
+	if source.has_method("commit_staged_build"):
+		agent.stop_short_of(MiningPose.contact_point(source.target,feet,agent.global_basis.z),ConstructionPose.stand_reach())
+	elif source.has_method("advance_craft") and String(source.call("work_motion")) != "hands":
+		agent.stop_short_of(source.call("work_surface_from",feet),FellingPose.STANCE_REACH)
 
 
 ## FETCH step 4: the placement/work animation finished — the carried item BECOMES the
@@ -732,8 +750,8 @@ func _craft_pose(source: RefCounted) -> Vector3:
 		_fetch_item.rotation = Vector3.ZERO
 		contact += Vector3.UP*bounds.size.y
 	if rig.felling_pose != null:
-		# The career's own tool in the Worker's swing (doc 293): the Carpenter's adze, the Stonemason's maul.
-		rig.felling_pose.apply(float(source.get("progress"))/FellingPose.CYCLE_SECONDS,agent.to_local(contact),DwarfAssets.craft_tool(agent.profession))
+		# A crafting career's own tool and motion (docs 293, 298); a Worker hews with the axe.
+		rig.felling_pose.apply_bench(float(source.get("progress"))/FellingPose.CYCLE_SECONDS,agent.to_local(contact),DwarfAssets.craft_tool(agent.profession),DwarfAssets.craft_motion(agent.profession))
 	return contact
 
 

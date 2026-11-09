@@ -85,7 +85,7 @@ def main():
              'frozen_before_sha256': sha(OUT / 'UndergroundLighting.gd.before.txt'),
              'frozen_after_matches_production': sha(OUT / 'UndergroundLighting.gd.after.txt') == sha(ROOT / sources[0]),
              'copied_input_sha256': sha(TMP / 'input_quicksave.json')}
-    original = Path('C:/Users/akadi/AppData/Roaming/Godot/app_userdata/Deepdraft/saves/quicksave.json')
+    original = Path.home() / '.local/share/godot/app_userdata/Deepdraft/saves/quicksave.json'
     audit['original_save_sha256'] = sha(original)
     audit['original_save_matches_input'] = sha(original) == audit['copied_input_sha256']
     archive = ROOT / 'build/windows/Deepdraft-Windows-Playtest.zip'

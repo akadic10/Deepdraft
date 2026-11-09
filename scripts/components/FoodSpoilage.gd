@@ -8,9 +8,10 @@ extends RefCounted
 ## - frozen_speed instead under a roof at temperature.json's frozen_at_c or colder;
 ## - open_sky_speed more under the open sky, wet_speed in rain, storm or snow;
 ## - spoil += hours x speed / (24 x keeps_days), keeps_days being the food's (resources.json).
-## A stored stack spoils at its cell, a loose one where it lies, a carried one where its carrier
-## stands; fruit on the bush never spoils. At 1 the units nobody has claimed rot and go. Units
-## claimed for a meal or a haul, and those in hand, stay until used (Hard Rule 12).
+## A stored stack spoils at its cell (on storage furniture, the floor cell under its place), a loose
+## one where it lies, a carried one where its carrier stands; fruit on the bush never spoils. At 1
+## the units nobody has claimed rot and go. Units claimed for a meal or a haul, and those in hand,
+## stay until used (Hard Rule 12).
 ## Events gets one line for each food in each place that passes warn_at or rots.
 ## Only the spoil is saved; after a load the hours start afresh.
 ## A pass finished: the readouts show the new spoil (the storage window's Keeping list).
@@ -104,9 +105,10 @@ func _begin(hours: float) -> void:
 	var drops := ItemDropManager.find(owner.get_tree())
 	if drops == null: return
 	var entries: Array = []
-	for zone: StockpileZoneComponent in owner.get_zones():
-		for cell: Vector3i in zone.cell_stacks:
-			if _keeps(drops, String(zone.cell_stacks[cell].get("item", ""))) > 0.0: entries.append(["stored", zone, cell])
+	for store: StorageComponent in owner.get_stores():
+		var stacks: Dictionary = store.stored_entries()
+		for slot: Variant in stacks:
+			if _keeps(drops, String(stacks[slot].get("item", ""))) > 0.0: entries.append(["stored", store, slot])
 	for node: Node3D in drops.loose_items():
 		if _keeps(drops, drops.item_key_of(node)) > 0.0: entries.append(["loose", node])
 	for agent: DwarfAgent in TaskManager.get_agents():
@@ -129,21 +131,23 @@ func _step() -> bool:
 	return true
 
 
-func _stored(zone: StockpileZoneComponent, cell: Vector3i) -> void:
-	if not owner.is_registered(zone) or not zone.cell_stacks.has(cell): return
-	var stack: Dictionary = zone.cell_stacks[cell]
+func _stored(store: StorageComponent, slot: Variant) -> void:
+	if not owner.is_registered(store) or not store.stored_entries().has(slot): return
+	var stack: Dictionary = store.stored_entries()[slot]
 	var key := String(stack.item)
+	var cell := store.slot_cell(slot)
 	var before := float(stack.get("spoil", 0.0))
 	var after := minf(1.0, before + _gain(key, cell + Vector3i.UP))
 	stack["spoil"] = after
-	var crate: Node3D = _pass.crates.get(cell)
+	var crate: Variant = store.shown_goods(slot, _pass.crates)
 	if is_instance_valid(crate): ItemDropManager.set_spoil(crate, after)
-	var place := "in Stockpile %d" % zone.zone_id
-	if after >= 1.0: _note(_pass.rotted, key, place, cell, zone.discard_unclaimed(cell))
+	var place := store.place_words()
+	if after >= 1.0: _note(_pass.rotted, key, place, cell, store.discard_unclaimed(slot))
 	elif before < float(config.warn_at) and after >= float(config.warn_at): _warn(key, place, cell, after)
 
 
-func _loose(node: Node3D) -> void:
+## Untyped: a pass runs over several frames, and the node may be gone by its turn.
+func _loose(node: Variant) -> void:
 	var drops: ItemDropManager = _pass.drops
 	if not is_instance_valid(node) or node.is_queued_for_deletion() or not drops.is_loose(node): return
 	var key := drops.item_key_of(node)
@@ -160,7 +164,7 @@ func _loose(node: Node3D) -> void:
 
 
 ## In hand food is claimed; it never rots there, and rots where it is put down if due.
-func _carried(node: Node3D, agent: DwarfAgent) -> void:
+func _carried(node: Variant, agent: Variant) -> void:
 	if not is_instance_valid(node) or not is_instance_valid(agent) or bool(node.get_meta("stored", false)): return
 	if (_pass.drops as ItemDropManager).is_loose(node): return
 	var key := String(node.get_meta("item_key", ""))

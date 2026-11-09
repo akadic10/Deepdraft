@@ -66,10 +66,6 @@ func forget_generated_id(cell: Vector3i) -> void:
 	_shell_exact_ids.erase(cell)
 
 
-func clear_cut_index() -> void:
-	_cut_cells_by_column.clear()
-
-
 ## Whether any cut cell (hole, plan, found cave or built block) lies in this 16×16 column.
 func has_cut_cells(column: Vector2i) -> bool:
 	return _cut_cells_by_column.has(column)
@@ -123,7 +119,9 @@ func rebuild_columns(columns: Array) -> void:
 				continue   # cavity above the plane — hidden with everything else
 			if block.y > _cavity_column_top(block.x, block.z, col_tops):
 				continue   # open-from-above — the overview's job (defect 1)
-			var mined: bool = log_here or renderer.is_revealed_air(block) or debug_caves.has(block)
+			# A log shows the true faces round it only where the colony dug or found the space.
+			var mined: bool = (log_here and (WorldData.is_dug(block) or renderer.discovered_cave_blocks().has(block))) \
+				or renderer.is_revealed_air(block) or debug_caves.has(block)
 			for dir: Vector3i in SHELL_DIRS:
 				var n: Vector3i = block + dir
 				if WorldData.has_solid_override(n): continue # Current terrain mesh owns overrides.

@@ -103,7 +103,7 @@ func _row(drops: ItemDropManager, row: Dictionary) -> HBoxContainer:
 
 ## The store's middle cell's air: where its heading reads the temperature.
 static func _place(storage: StorageComponent) -> Vector3i:
-	var cells: Array = storage.get("tile_cells") if storage.get("tile_cells") != null else []
+	var cells: Array = storage.get("tile_cells") if storage.get("tile_cells") != null else storage.get("cells")
 	if cells.is_empty():
 		for slot in storage.stored_entries(): return storage.slot_cell(slot) + Vector3i.UP
 		return Vector3i.ZERO

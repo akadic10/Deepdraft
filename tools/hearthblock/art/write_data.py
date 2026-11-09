@@ -1,12 +1,12 @@
 """Rebuild tools/art_data/voxel_hearthblock.json from the Hearthblock authoring modules.
 
-    py -3 tools/hearthblock/art/write_data.py      (needs node on PATH)
+    python3 tools/hearthblock/art/write_data.py      (needs node on PATH)
 
 proposal.mjs holds the approved proposal models verbatim; tier1.mjs adds the
 Tier 1 · Axe-Hewn pieces. export.mjs records each model's operations, and this
 script adds the in-game palettes and pilot edits (dropped flame cells, offsets,
 clips between dwarf layers, extra operations). tools/voxel_assets/hearthblock.py
-replays the result. See docs/00_dev_roadmap/256_hearthblock_art_pilot.md.
+replays the result. See docs/60_asset_creation/61_voxel_art_guide.md and 64_hearthblock_art_direction.md.
 """
 import json
 import subprocess
@@ -89,6 +89,11 @@ DRYING = {'dry_skin': '8A4A2A', 'dry_back': '5A321F', 'dry_flesh': 'C27448', 'dr
 ROUGH_STONE = {'rough_stone': '88898B', 'rough_stone_shade': '70767D', 'rough_stone_light': 'ACAAA4',
                'rough_stone_accent': '97938A', 'rough_stone_cleft': '555D65'}
 TOOL_STONE = {'tool_stone': '7C8587', 'tool_stone_light': '9EA6A6', 'tool_stone_dark': '5E676B'}
+# The basic smelter (doc 297): soil daub in its joints (greyer than any wood swatch, so it never
+# recolours with a wood), the clay
+# crucible, and the copper: glowing in the crucible, and cast in the moulds.
+SMELTER = {'daub': '8E6E52', 'daub_dark': '6E5644', 'clay': 'A9663E', 'clay_dark': '7E4A2C',
+           'molten': 'F08A2E', 'molten_light': 'FFC861', 'copper': 'C0703A', 'copper_light': 'E09A5C', 'copper_dark': '8A4A26'}
 # Grilling (doc 290): the peeled green stick and the roasted fish on it, for the dwarf tools.
 GRILLING = {'stick_bark': '5E6238', 'stick_bark_light': '777A49', 'stick_wood': 'DDD3A3', 'stick_knot': 'A69E70',
             'stick_char': '3A2A20', 'grill_back': '5C3A22', 'grill_side': 'A9672F', 'grill_side_light': 'C6843F',
@@ -135,6 +140,13 @@ def models(dwarf_parts, wildlife_parts, icons, sky):
         ('tool_rack', 'furniture', 'hewn', dict(piece='tool_rack', occlusion={'wall': -8})),
         # The raw materials crate (doc 294, A): a log crib on the floor, open on top.
         ('raw_materials_crate', 'furniture', 'hewn', dict(piece='raw_materials_crate', occlusion=GROUND)),
+        # The finished goods pallet (doc 62, A): split poles across two log runners.
+        ('finished_goods_pallet', 'furniture', 'hewn', dict(piece='finished_goods_pallet', occlusion=GROUND)),
+        # The food shelf (doc 299, A): a lean-to rack of bark posts, lashed rails and split poles.
+        ('food_shelf', 'furniture', 'hewn', dict(piece='food_shelf', occlusion=GROUND)),
+        # The Blacksmith's basic smelter (doc 297), and its charge shown while a batch is on.
+        ('basic_smelter', 'furniture', 'hewn', dict(piece='basic_smelter', occlusion=GROUND)),
+        ('basic_smelter_charge', 'furniture', 'hewn', dict(piece='parts/basic_smelter_charge', part='charge')),
         ('door_2', 'furniture', 'oak', dict(piece='door', part='leaf_left', occlusion=GROUND)),
         ('door_3', 'furniture', 'oak', dict(piece='log_door_3', part='leaf_left', occlusion=GROUND)),
         ('door_4_left', 'furniture', 'oak', dict(piece='log_door_4', part='leaf_left', occlusion=GROUND)),
@@ -185,7 +197,7 @@ def main():
     # Work tools keep the existing tool materials (iron, steel, haft wood, leather wraps).
     dwarf_palette = json.loads((ROOT / 'tools/art_data/voxel_dwarves.json').read_text(encoding='utf-8-sig'))['palette']
     tools = {k: dwarf_palette[k].lstrip('#') for k in ('wood', 'grain', 'tool_leather', 'iron', 'iron_dark', 'steel')}
-    palettes |= {'hewn': HEWN | fixed | DRYING | ROUGH_STONE, 'oak': OAK | fixed,
+    palettes |= {'hewn': HEWN | fixed | DRYING | ROUGH_STONE | SMELTER, 'oak': OAK | fixed,
                 'dwarf': {k: proposal[k].lstrip('#') for k in DWARF_ROLES if k != 'scar'} | {'scar': dwarf_scar.lstrip('#')} | tools
                          | {'rope': fixed['rope'], 'rope_dark': fixed['rope_dark']} | FISHING | GRILLING | TOOL_STONE}
     skin, hair = ref['tints']['skin'][ICON_TINTS['skin']], ref['tints']['hair'][ICON_TINTS['hair']]

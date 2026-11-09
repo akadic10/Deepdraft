@@ -122,7 +122,8 @@ func _run() -> void:
 	# Saves: the kit and the experience ride with the dwarf.
 	var state: Dictionary = JSON.parse_string(JSON.stringify(worker.serialize_state()))
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
-	_expect(validator._validate(state, validator.SCENE.dwarves.roster[0], "save.scene.dwarves.roster[0]", {}).is_empty(), "a Stonemason's state matches the save's rules")
+	var catalogs: Dictionary = root.get_node("SaveManager")._capture_catalogs()
+	_expect(validator._validate(state, validator.SCENE.dwarves.roster[0], "save.scene.dwarves.roster[0]", catalogs).is_empty(), "a Stonemason's state matches the save's rules")
 	_expect(state.profession == STONEMASON and state.equipment.tool == KIT and int(state.profession_experience[STONEMASON]) == 12, "the save keeps the career, the kit and the experience")
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("STONEMASON_OK: the kit and its promotion, Stonemasons only, the mason's bench, the maul and its knock, Strength, one experience a batch, install, the roster, the sheet and saves")

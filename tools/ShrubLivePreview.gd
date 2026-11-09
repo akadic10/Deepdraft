@@ -3,8 +3,8 @@ extends "res://tools/BoulderLivePreview.gd"
 
 func _run() -> void:
 	_output = "res://tmp/shrub_review/"
-	if not OS.get_environment("APPDATA").replace("\\", "/").contains("/tmp/shrub_review/"):
-		printerr("Use isolated APPDATA below tmp/shrub_review.")
+	if not OS.get_user_data_dir().replace("\\", "/").contains("/tmp/shrub_review/"):
+		printerr("Use an isolated user:// profile below tmp/shrub_review.")
 		quit(2)
 		return
 	root.size = Vector2i(1600,1000)

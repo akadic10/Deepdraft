@@ -22,7 +22,7 @@ extends RefCounted
 ## source so DwarfAgents can reach it by zone_id (scene-decoupled).
 ##
 ## RELEASE RULE (doc 16 §2.8): releasing a worker only frees its reservation —
-## the completed set is untouched and the block keeps full durability (partial
+## the completed set is untouched and the block starts again in full (partial
 ## swing progress is discarded by the agent, never stored here).
 
 var zone_id: int = -1
@@ -263,14 +263,20 @@ func _stand_dy_range() -> Array[int]:
 	return dys
 
 
+## A floor a miner can work from: walkable, and not in a cave the colony has not found. No
+## dwarf reaches one, and counting it would show the cave in the zone's faces (Hard Rule 11).
+func _is_stand(cell: Vector3i) -> bool:
+	return NavGrid.is_walkable(cell) and not InteriorTracker.is_hidden_cave(cell + Vector3i.UP)
+
+
 func _has_walkable_stand_cell(block: Vector3i) -> bool:
 	# Stand on the block itself (dig under your feet)…
-	if NavGrid.is_walkable(block):
+	if _is_stand(block):
 		return true
 	# …or beside it, anywhere in the reach envelope.
 	for dir: Vector2i in _LATERAL:
 		for dy: int in _stand_dy_range():
-			if NavGrid.is_walkable(Vector3i(block.x + dir.x, block.y + dy, block.z + dir.y)):
+			if _is_stand(Vector3i(block.x + dir.x, block.y + dy, block.z + dir.y)):
 				return true
 	return false
 
@@ -292,12 +298,12 @@ func _workable_from(block: Vector3i, cell: Vector3i) -> bool:
 ## All walkable stand cells for a block, nearest to the dwarf first.
 func _walkable_stand_cells(block: Vector3i, from_cell: Vector3i) -> Array[Vector3i]:
 	var cells: Array[Vector3i] = []
-	if NavGrid.is_walkable(block):
+	if _is_stand(block):
 		cells.append(block)
 	for dir: Vector2i in _LATERAL:
 		for dy: int in _stand_dy_range():
 			var cell := Vector3i(block.x + dir.x, block.y + dy, block.z + dir.y)
-			if NavGrid.is_walkable(cell):
+			if _is_stand(cell):
 				cells.append(cell)
 	cells.sort_custom(func(a: Vector3i, b: Vector3i) -> bool:
 		var da := absi(a.x - from_cell.x) + absi(a.y - from_cell.y) + absi(a.z - from_cell.z)
@@ -328,7 +334,7 @@ func mining_stand_candidates(from_cell: Vector3i) -> Array[Dictionary]:
 func mining_candidate_available(candidate: Dictionary) -> bool:
 	var block: Vector3i = candidate.block
 	return region.has(block) and not completed.has(block) and not reserved.has(block) \
-		and _workable_from(block, candidate.cell) and NavGrid.is_walkable(candidate.cell)
+		and _workable_from(block, candidate.cell) and _is_stand(candidate.cell)
 
 
 func prefer_mining_stand(dwarf_id: int, candidate: Dictionary) -> void:
@@ -346,7 +352,7 @@ func nearest_stand_target(from_cell: Vector3i) -> Vector3i:
 	for block: Vector3i in _destination:
 		if completed.has(block) or reserved.has(block):
 			continue
-		if NavGrid.is_walkable(block):
+		if _is_stand(block):
 			var d0 := absi(block.x - from_cell.x) + absi(block.y - from_cell.y) \
 					+ absi(block.z - from_cell.z)
 			if d0 < best_d:
@@ -355,7 +361,7 @@ func nearest_stand_target(from_cell: Vector3i) -> Vector3i:
 		for dir: Vector2i in _LATERAL:
 			for dy: int in _stand_dy_range():
 				var cell := Vector3i(block.x + dir.x, block.y + dy, block.z + dir.y)
-				if not NavGrid.is_walkable(cell):
+				if not _is_stand(cell):
 					continue
 				var d := absi(cell.x - from_cell.x) + absi(cell.y - from_cell.y) \
 						+ absi(cell.z - from_cell.z)

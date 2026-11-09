@@ -1,7 +1,8 @@
 extends "res://scripts/tests/FurniturePlaceTest.gd"
 
 ## The game menu (doc 23): Esc's order and the Menu button; the world paused behind it
-## without touching the player's own pause or speed; Save staying in the menu; Save as…, its
+## without touching the player's own pause or speed; Save staying in the menu; an autosave
+## ending while it is open, and no autosave time passing under it; Save as…, its
 ## name typed with real keys, refused names, and Replace asking first, harder for another
 ## colony's save; the Load page's slots and named saves, Delete asking first, and Open folder;
 ## the Settings page's Audio, Interface, Video and Controls tabs, a choice block and the
@@ -139,6 +140,7 @@ func _run() -> void:
 	await _test_opening(clock)
 	await _test_esc_order()
 	await _test_save()
+	await _test_autosave()
 	await _test_save_as()
 	await _test_load()
 	await _test_settings()
@@ -221,6 +223,31 @@ func _test_save() -> void:
 	saves.calls.clear()
 
 
+## An autosave under way as the menu opens: the menu says Saving… and holds its buttons, then
+## gives them back when it ends. No autosave time passes while the menu holds the colony, so
+## none starts under it (the project review, 2026-11-09: the menu heard only the player's saves
+## and stayed on Saving…).
+func _test_autosave() -> void:
+	var real = root.get_node("SaveManager")
+	saves.saving = true
+	menu.open()
+	await _settle()
+	_expect(menu._saved_label.text == "Saving…" and menu._buttons.load.disabled, "an autosave under way shows as Saving…, the buttons held")
+	saves.saving = false
+	saves.saved_unix = int(Time.get_unix_time_from_system())
+	real.autosave_finished.emit(true)
+	_expect(menu._saved_label.text == "Last saved just now" and not menu._buttons.load.disabled and not menu._buttons.save.disabled,
+		"when the autosave ends the menu says so and gives its buttons back")
+	var elapsed: float = real._autosave_elapsed_seconds
+	real._tick_autosave(1.0)
+	_expect(is_equal_approx(real._autosave_elapsed_seconds, elapsed), "no autosave time passes while the menu is open")
+	menu.close()
+	real._tick_autosave(1.0)
+	_expect(is_equal_approx(real._autosave_elapsed_seconds, elapsed + 1.0), "it counts again once the menu closes")
+	real._autosave_elapsed_seconds = elapsed
+	saves.calls.clear()
+
+
 func _test_load() -> void:
 	menu.open()
 	await _settle()
@@ -273,7 +300,7 @@ func _test_load() -> void:
 	await _settle()
 	_click(menu._slots.find_child("Delete_named_kolgund", true, false).get_global_rect().get_center())
 	await _settle()
-	_expect(menu._ask_title.text == "Delete \"Kolgund\"?" and menu._ask_body.text.contains("Recycle Bin") and _choice("Cancel").has_focus()
+	_expect(menu._ask_title.text == "Delete \"Kolgund\"?" and menu._ask_body.text.contains("Trash") and _choice("Cancel").has_focus()
 		and _ask_names() == ["Delete", "Cancel"], "Delete asks first, with Cancel the default: " + str(_ask_names()))
 	_click(_choice("Cancel").get_global_rect().get_center())
 	await _settle()
@@ -294,7 +321,7 @@ func _test_load() -> void:
 		"the quick save has Delete, and the missing autosave has none")
 	_click(menu._slots.find_child("Delete_quick", true, false).get_global_rect().get_center())
 	await _settle()
-	_expect(menu._ask_title.text == "Delete the quick save?" and menu._ask_body.text.contains("Recycle Bin, and Save game writes the next one.")
+	_expect(menu._ask_title.text == "Delete the quick save?" and menu._ask_body.text.contains("Trash, and Save game writes the next one.")
 		and _choice("Cancel").has_focus(), "Delete on the quick save asks first: " + menu._ask_body.text)
 	_click(_choice("Cancel").get_global_rect().get_center())
 	await _settle()
@@ -364,6 +391,20 @@ func _test_save_as() -> void:
 	await _settle()
 	field.select_all()
 	_type("Before the flood")
+	# A Ctrl chord that isn't the field's own stays in the menu; Ctrl+[ and Ctrl+] moved the slice
+	# behind it (the project review, 2026-11-09). Ctrl+A still selects the name.
+	var probe := _key_probe()
+	for keycode: Key in [KEY_BRACKETRIGHT, KEY_BRACKETLEFT, KEY_A]:
+		var chord := InputEventKey.new()
+		chord.pressed = true
+		chord.ctrl_pressed = true
+		chord.keycode = keycode
+		chord.physical_keycode = keycode
+		root.push_input(chord, true)
+	await _settle()
+	_expect(probe.seen.is_empty() and field.text == "Before the flood" and field.has_selection(),
+		"Ctrl chords stay in the name field or the menu, and Ctrl+A selects the name: %s reached the world" % [probe.seen])
+	probe.queue_free()
 	_key(KEY_ENTER)
 	await _settle()
 	_expect(saves.calls == ["save_as:Before the flood"] and menu._menu.visible, "Enter saves a new name at once")
@@ -593,7 +634,7 @@ func _check_interface(page, frame_size: Vector2) -> void:
 		and page.tabs.interface.theme_type_variation == &"FamilyBlock" and page.restore_button.visible
 		and menu._frame.size.is_equal_approx(frame_size), "the Interface tab opens the UI scale, and the window keeps its size")
 	_expect(blocks.keys() == ["auto", 100, 125] and blocks.auto.theme_type_variation == &"FamilyBlock"
-		and page._scale_note.text.begins_with("Auto: 100%, as Windows sets this screen. The interface lays out at 1280 × 720."),
+		and page._scale_note.text.begins_with("Auto: 100%, from this screen's pixel density. The interface lays out at 1280 × 720."),
 		"at 1280 x 720 the blocks are Auto, 100%% and 125%%, with Auto chosen (got %s, \"%s\")" % [blocks.keys(), page._scale_note.text])
 	_click(blocks[125].get_global_rect().get_center())
 	await _settle()
@@ -674,7 +715,7 @@ func _test_save_slots() -> void:
 	_expect(slots.size() == 3 and slots[2].named and slots[2].id == "named_first_winter" and slots[2].name == "First winter"
 		and slots[2].colony == "Brunhald" and slots[2].season == "winter" and slots[2].seed == 4321 and slots[2].bytes > 0,
 		"a named save gives its name, colony, date, world and room: " + str(slots[2] if slots.size() == 3 else slots))
-	# Test storage deletes outright, so tests never fill the player's Recycle Bin.
+	# Test storage deletes outright, so tests never fill the player's Trash.
 	_expect(manager_node.request_delete_save("named_first_winter") and manager_node.save_slots().size() == 2
 		and not FileAccess.file_exists(TEST_SAVES.path_join("named/first_winter.json"))
 		and not FileAccess.file_exists(TEST_SAVES.path_join("named/first_winter.backup.json")), "Delete removes a named save and its backup")
@@ -715,6 +756,16 @@ func _test_title_board() -> void:
 
 func _ask_names() -> Array:
 	return menu._ask_buttons.get_children().map(func(button: Button) -> String: return button.text)
+
+
+## Records the key presses nothing before it took: what reaches the world behind the menu.
+func _key_probe() -> Node:
+	var script := GDScript.new()
+	script.source_code = "extends Node\nvar seen: Array = []\nfunc _unhandled_input(event: InputEvent) -> void:\n\tif event is InputEventKey and event.pressed: seen.append(event.as_text())\n"
+	script.reload()
+	var probe: Node = script.new()
+	scene.add_child(probe)
+	return probe
 
 
 ## Types `text` into whatever has focus, a key at a time, as the keyboard would.

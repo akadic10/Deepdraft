@@ -12,6 +12,7 @@ var zones: Dictionary          # the controller's zone_id -> zone record
 var zone_by_block: Dictionary  # the controller's block -> zone_id
 var max_workers: int           # data/terrain/mining_config.json zone.max_workers
 var swing_base_time: float     # execution.swing_base_time_s
+var visible_swing: float = .9  # execution.visible_swing_s: how long a swing is meant to look
 var _occupancy_dirty_zones: Dictionary = {}
 ## Cached ItemDropManager scene node (group lookup, lazy).
 var _drop_manager_node: ItemDropManager = null
@@ -169,7 +170,7 @@ func _has_assigned_worker(component: MiningZoneComponent) -> bool:
 
 
 ## Swing parameters for one block (doc 43: mine_time = base × hardness /
-## skill; doc 16 §2.7: durability swings per block). Skill speed is applied by
+## skill), split into calm swings. Skill speed is applied by
 ## the AGENT (its profession multiplier) — this is the block's base cost.
 ## Reached through the controller's get_zone_block_work.
 func get_block_work(block: Vector3i) -> Dictionary:
@@ -184,12 +185,12 @@ func get_block_work(block: Vector3i) -> Dictionary:
 	var key := BlockRegistry.get_key(block_id)
 	var def := BlockRegistry.get_def(key)
 	var hardness := maxi(int(def.get("hardness", 1)), 1)
-	var res := BlockRegistry.get_resource_def(key)
-	var durability := maxi(int(res.get("durability", 2)), 1)
 	var block_time := swing_base_time * float(hardness)
+	# Hardness sets the dig time. The swings only divide it, at a calm pace (doc 298).
+	var swings := maxi(roundi(block_time / visible_swing), 1)
 	return {
-		"swings": durability,
-		"swing_time": block_time / float(durability),
+		"swings": swings,
+		"swing_time": block_time / float(swings),
 	}
 
 

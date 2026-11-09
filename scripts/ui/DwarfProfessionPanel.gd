@@ -68,8 +68,10 @@ func _ready() -> void:
 	var back := UITheme.make_button("Back to colony", "Return to this dwarf in the colony roster", Vector2(132, 34))
 	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	back.pressed.connect(func():
+		# Opening the roster can move this page to the roster's own pick, so its dwarf goes first.
+		var dwarf: Variant = _agent
 		manager.open("dwarves")
-		if is_instance_valid(_agent): director.inspect_dwarf(_agent)
+		if is_instance_valid(dwarf): director.inspect_dwarf(dwarf)
 		manager.close("professions"))
 	header.add_child(back)
 	_body = HBoxContainer.new()
@@ -286,7 +288,8 @@ func refresh() -> void:
 	var current := _agent.profession == _selected
 	var pending := _agent.promotion_pending()
 	var selected_pending: bool = pending and _agent.get_equipment().pending_role == _selected
-	var blocked: String = _agent.get_equipment().blocked_reason(_selected) if enabled and not current and not selected_pending else ""
+	var wait: String = _agent.get_equipment().blocked_kind(_selected) if enabled and not current and not selected_pending else ""
+	var blocked: String = _agent.get_equipment().blocked_reason(_selected) if not wait.is_empty() else ""
 	var level := DwarfAssets.profession_level(_selected, _agent.profession_experience)
 	var count := maxi(0, int(_agent.profession_experience.get(_selected, 0)))
 	_current.text = "Currently %s · One active profession" % DwarfAssets.profession_definition(_agent.profession).get("display_name", "Worker")
@@ -295,7 +298,8 @@ func refresh() -> void:
 	_appointment.text = title if _compact else "%s\n%s" % [_agent.dwarf_name, title]
 	_status.text = "CURRENT PROFESSION" if current else "AVAILABLE" if enabled else "PLANNED PROFESSION"
 	if selected_pending: _status.text = "COLLECTING TOOL"
-	elif not blocked.is_empty(): _status.text = "TOOL REQUIRED" if not _agent.is_sleeping() else "RESTING"
+	# Each kind of wait in its own words: a dwarf on a ladder read "TOOL REQUIRED" with a tool to hand.
+	elif not wait.is_empty(): _status.text = {"sleeping": "RESTING", "ladder": "ON A LADDER"}.get(wait, "TOOL REQUIRED")
 	_requirements.text = entry.availability
 	var pair := DwarfAssets.profession_stats(_selected)
 	var fit := DwarfAssets.profession_fit(_selected, _agent.stats)
@@ -347,7 +351,7 @@ func refresh() -> void:
 	_promote.disabled = (current and not pending) or not enabled or not blocked.is_empty() or not _agent in director.get_roster()
 	_promote.text = "Current profession" if current else "Not yet available" if not enabled else "Return to Worker" if _selected == PREFIX + "worker" else ("Resume %s · Lv %d" % [title, level] if count > 0 else "Promote to " + title)
 	if selected_pending or (current and pending): _promote.text = "Cancel promotion"
-	elif not blocked.is_empty(): _promote.text = "Waiting for tool" if not _agent.is_sleeping() else "Dwarf is sleeping"
+	elif not wait.is_empty(): _promote.text = {"sleeping": "Dwarf is sleeping", "ladder": "Waiting for solid ground"}.get(wait, "Waiting for tool")
 	_feedback.text = _agent.get_equipment().message
 	_feedback.visible = not _feedback.text.is_empty()
 	for key: String in _nodes:

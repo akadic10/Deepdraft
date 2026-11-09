@@ -52,6 +52,7 @@ func _run() -> void:
 	worker._wake_up()
 	furniture.assign_bed(bed.installed_id,-1)
 	_expect(await _sleep_unassigned(),"unassigned bedroom remains available for real bed sleep")
+	_private_replan(Privacy)
 	for failure: String in failures: push_error(failure)
 	print("BEDROOM_PRIVACY_OK" if failures.is_empty() else "BEDROOM_PRIVACY_FAIL")
 	quit(0 if failures.is_empty() else 1)
@@ -59,3 +60,27 @@ func _run() -> void:
 func _sleep_unassigned() -> bool:
 	worker._begin_sleep()
 	return await _sleep_in_bed(worker)
+
+
+## A walk to a meal's seat or a game keeps out of rooms the dwarf may not use when it replans, as
+## its first route did (the project review, 2026-11-09: a replan crossed a private bedroom). A
+## second door makes the bedroom the short way through; it is for sleep, not a walk to a meal.
+func _private_replan(Privacy) -> void:
+	for x in [63, 64]:
+		for y in range(21, 25): world.set_block(x, y, 69, blocks.AIR_ID)
+	_put("door", Vector3i(63, 20, 69))
+	_room_data()
+	var nav := root.get_node("NavGrid")
+	var start := Vector3i(63, 20, 57)
+	var goal := Vector3i(63, 20, 72)
+	var through: Array[Vector3i] = nav.find_path(start, goal)
+	_expect(through.any(func(cell: Vector3i) -> bool: return not Privacy.allowed(cell, 142)), "the short way runs through the bedroom")
+	var detour: Array[Vector3i] = nav.find_path(start, goal, 4000, func(cell: Vector3i): return Privacy.allowed(cell, 142))
+	_expect(not detour.is_empty(), "a public way round exists")
+	extra_worker.position = Vector3(start) + Vector3(.5, 1, .5)
+	extra_worker.start_route(detour, true)
+	extra_worker._movement._repath_walk()
+	var replanned: Array = extra_worker.get_move_path()
+	_expect(not replanned.is_empty() and replanned.all(func(cell: Vector3i) -> bool: return Privacy.allowed(cell, 142)),
+		"a replanned walk to a meal keeps out of the bedroom: %d of %d cells inside" % [replanned.filter(func(cell: Vector3i) -> bool: return not Privacy.allowed(cell, 142)).size(), replanned.size()])
+	extra_worker.stop_walking()

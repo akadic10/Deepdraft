@@ -32,7 +32,11 @@ every 16 operations (`data/rooms/detection.json`). Every stage resumes on the ma
 thread; no worker thread reads world data. RoomManager installs the complete room and
 cell maps together, with temperatures from the clock at that moment, before any
 `room_updated`/`room_removed` signal; readers keep the previous complete result while
-work is pending. A change to a chunk the scan has already read, or a door, light, heat,
+work is pending. A rebuild keeps each room's id (2026-11-09): a room takes the id its first
+cell had (`RoomRebuild._begin_room`). Of a room split in two, the part found first keeps
+the id, and a new room or the other part takes the next free one. Ids are not saved, so a
+load numbers rooms from 1. Before this, every rebuild gave fresh ids, so a room's title
+counted up while dwarves mined and the room window lost its room. A change to a chunk the scan has already read, or a door, light, heat,
 bed or bed-owner change, cancels the scan, which restarts on the next frame without
 another coalescing delay; chunks not read yet are sampled live, so distant streaming
 cannot keep restarting it. World reload discards pending results. Door lighting
@@ -123,7 +127,7 @@ room adds its warmth to the air round it (see "Heat and cold spreading").
   2026-10-29 cover came from the natural heightmap.
 - **Weather:** each `data/weather/*.json` has a `temperature` block. Clear keeps the whole
   day's swing; overcast keeps half and foggy 0.4; rain (−1°C), storm and snow (−2°C) keep 0.4.
-  `wet` marks rain, storm and snow for spoilage (doc 282). Weather reaches a sealed room only
+  `wet` marks rain, storm and snow for spoilage (doc 42). Weather reaches a sealed room only
   through a door to the open air.
 - **The season** reads the calendar's day of year and solstice (`data/calendar/calendar.json`),
   so it turns smoothly across season boundaries. Until 2026-10-29 (doc 281) it hard-coded a
@@ -155,6 +159,12 @@ What it gives, each checked at the year's extremes by `ClimateTest` to 1°C:
 Dwarves sleeping outside a sealed room feel their spot: under open sky the whole swing, in a
 tunnel what reaches them, and beside a lit campfire up to 6°C more. Nothing freezes all
 year; only cellars just under the summit freeze, in the depth of winter.
+
+**Higher is colder, deeper is steadier (owner, 2026-10-29).** Real air cools about 6.5°C a
+kilometre, and a few metres down rock sits at the year's mean temperature: a cellar is cool in
+summer because it is shielded, not because depth is cold. The game exaggerates the height rule
+on purpose, as it fits a year into 84 days. The old "lower is colder" model fought the world:
+the valley floor is at Y19, the best ores lie deepest, and it read wrong beside snowy peaks.
 
 ## Heat and cold spreading
 
@@ -225,8 +235,8 @@ each fire's `heat_source`.
 The wall torch (100) and the brazier (3200) left the game with the other uncraftable
 furniture (doc 234).
 
-A stone hearth is available in Rudimentary → Rooms: two matching logs,
-four rough stones and 18 seconds at a crude workbench. **Tended fires (owner, 2026-10-30):**
+A stone hearth is available in Crafters → Stonemason → Rooms: two matching logs,
+four rough stones and 18 seconds at a mason's bench (Rudimentary until 2026-11-02). **Tended fires (owner, 2026-10-30):**
 a sealed room's fires together warm it to `tended_fire_c` (18°C) before its doors leak and
 no further: the dwarves feed them only so much. A room they can warm past 18°C is held there;
 one whose rock is already warmer gets nothing from them. The 9600-unit hearth adds 16°C to a
@@ -258,6 +268,20 @@ seasonal sunset and sunrise (`WorldClock.is_night()`). A fire heats only while i
 (`RoomManager.set_fire_lit`); a dwarf going to bed before dusk lights its own (see
 "Bedtime fires"). A cold fire still counts as its room's light, so a bedroom keeps its kind
 by day. Torches need no fuel. Exhaust is not implemented.
+The worker brings the nearest log of any wood, and the fire shows it in its own wood
+(`nightly_fire` in `campfire.json` and `hearth.json` names the fuel, where the log lies and,
+for the hearth, `light_from: "front"`). `FurnitureFires`, a helper of
+`FurniturePlacementController`, runs the fires; a burning one saves its log on the installed
+piece (`fire_log`, `fire_log_material`). The panel's status line reads "Cold · lit at dusk",
+"No log to light it", "Waiting for a worker to light it", "A worker is bringing a log" or
+"Burning until dawn", and the window's Burning row names the log. A burning hearth's line
+names the room it heats instead ("Heating the bedroom · 17.9°C").
+
+**Batch heat (doc 297).** A workshop with `batch_heat` and a `heat_source` (the basic smelter,
+2,400 units, radius 4) heats its room only while a batch melts in it: `WorkshopBatch.update_heat`
+switches it through `RoomManager.set_fire_lit` when the copper is charged and again when it has
+set, is taken off, or spills with the workshop. An idle smelter gives no heat, and a save keeps
+a melting batch's heat counted once.
 
 **Warm rooms keep their fires unlit (owner, 2026-10-29, doc 282).** A fire in a sealed room
 is lit only while the room is below Comfortable (16°C) without that fire's own heat (what

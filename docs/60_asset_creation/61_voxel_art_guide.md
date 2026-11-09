@@ -63,9 +63,12 @@ the starter tools' stone (doc 293).
 ## Workflow
 
 1. **Edit the source.** Edit a `.mjs` file under `tools/hearthblock/art/`, then run
-   `py -3 tools/hearthblock/art/write_data.py` (it needs Node). Or edit a Python
+   `python3 tools/hearthblock/art/write_data.py` (it needs Node). Or edit a Python
    builder in `tools/voxel_assets/`.
-2. **Stage.** Run `py -3 tools/voxel_assets/build.py FAMILY`. `--only <path substring>`
+   Each model's row in `write_data.py` names its palette and may `drop` roles or add
+   `extra` operations: the campfire stays verbatim in `proposal.mjs`, and its row drops the
+   logs, char and embers and paints the ash and soot.
+2. **Stage.** Run `python3 tools/voxel_assets/build.py FAMILY`. `--only <path substring>`
    stages a quick preview, but a partial family can't be installed.
 3. **Review the gallery.** Run `tools/voxel_assets/Gallery.gd` with `--family=FAMILY`
    and `--output=res://tmp/<label>/`, then look at the captures. It writes
@@ -73,10 +76,10 @@ the starter tools' stone (doc 293).
    (`FurnitureGallery`, `DwarfGallery`, `WildlifeGallery`, `TreeGallery`, `PlantGallery`,
    `ItemGallery`) show contact sheets.
 4. **Install.** Run `build.py FAMILY --install --review <gallery.json>`, then import with
-   `tools/voxel_assets/Import.ps1`.
+   `python3 tools/import_assets.py`.
 5. **Verify.** Run `build.py FAMILY --check` (byte-identical regeneration) and the
-   Python tests (`py -3 -m unittest` in `tools/voxel_assets`). Then run the family's
-   Godot art and gameplay tests: `tools/run_job_reliability.ps1 -Area art` runs the art
+   Python tests (`python3 -m unittest` in `tools/voxel_assets`). Then run the family's
+   Godot art and gameplay tests: `python3 tools/run_job_reliability.py --area art` runs the art
    tests (`DwarfArtTest`, `WildlifeArtTest`, `ItemArtTest`, `FurnitureArtTest`,
    `FireArtTest`, `GemDropArtTest`, `GroundStoneArtTest`, `SurfaceVegetationArtTest` and
    `VoxelPresentationTest`).
@@ -86,6 +89,8 @@ the starter tools' stone (doc 293).
    `tools/FurnitureCatalogThumbnails.gd` or `tools/InventoryCatalogThumbnails.gd`. UI icons
    that replay the model (the dwarf head, the log
    stool, the packed crate) also need `tools/GenerateUiIcons.gd`.
+   Zones' Animal pasture icon replays the fence post and rails. The dock's Build icon draws
+   its own peeled log (`logCube` in `icons.mjs`), so change it by hand when built logs change.
    `FurnitureCatalogThumbnails.gd` takes `--only=<names>` (the keys' last part, such as
    `log_bed`) and `--out=<folder>`, so a capture can be checked in `tmp/` before it
    replaces a picture in use (doc 172).
@@ -108,12 +113,12 @@ which is Uproot's picture.
 - **The tile:** none in the picture. `UITheme.icon_tile_style()` draws the notched tile
   in the command family's colour (`data/ui/icon_families.json`), with a lit top band, a
   dark lower band and a dark rim. The icon fills about 89% of the tile.
-1. Edit `icons.mjs`, then run `py -3 tools/hearthblock/art/write_data.py`.
-2. Stage with `py -3 tools/voxel_assets/build.py icons`. The family is staged-only: no
+1. Edit `icons.mjs`, then run `python3 tools/hearthblock/art/write_data.py`.
+2. Stage with `python3 tools/voxel_assets/build.py icons`. The family is staged-only: no
    icon GLB is installed or shipped.
 3. Render with `tools/GenerateUiIcons.gd` (`-- --only=name` for one icon) in an isolated
    profile. It writes 144 px PNGs, outlined and without a tile, to `assets/ui/icons/`.
-4. Import new PNGs with Godot's importer (`tools/voxel_assets/Import.ps1`).
+4. Import new PNGs with Godot's importer (`python3 tools/import_assets.py`).
 5. Name the PNG and a `family` in the entry's `data/ui` JSON. `UITheme` draws the tile
    in the family colour from `data/ui/icon_families.json`. The world order markers name
    theirs in `data/ui/order_markers.json`, the badges over dwarves' heads in
@@ -143,8 +148,8 @@ season's land. Each piece names its `framing`:
 
 `unshaded` pieces give light, and `outline` marks the dial's edge.
 1. Edit `sky.mjs` (its own roles are in its `PALETTE`), then run
-   `py -3 tools/hearthblock/art/write_data.py`.
-2. Stage with `py -3 tools/voxel_assets/build.py sky`. Like the icons, the family is
+   `python3 tools/hearthblock/art/write_data.py`.
+2. Stage with `python3 tools/voxel_assets/build.py sky`. Like the icons, the family is
    staged only.
 3. Render with `tools/GenerateUiIcons.gd -- --sky` in an isolated profile. A run without
    arguments renders the icons and then the sky. It writes each piece to
@@ -152,12 +157,13 @@ season's land. Each piece names its `framing`:
    - at twice the dial's width;
    - from the front, tilted down by the framing's pitch, with the icons' light;
    - in the framing `picture` in `data/ui/sky_dial.json`, so every layer stacks.
-4. Import new PNGs with `tools/voxel_assets/Import.ps1`.
+4. Import new PNGs with `python3 tools/import_assets.py`.
 5. **The framing's bounds:** if the frame grows past its framing, widen `picture.rect`
    and render every layer again. A new piece the dial moves (another cloud) also needs
    its place in `data/ui/sky_dial.json` and its name in `SkyDial.gd`.
 
-Run Godot with `APPDATA` and `LOCALAPPDATA` pointed at a scratch folder so the player's
+Run Godot with `XDG_DATA_HOME`, `XDG_CONFIG_HOME` and `XDG_CACHE_HOME` pointed at a scratch
+folder (`isolated_env()` in `tools/run_job_reliability.py` does this) so the player's
 profile and saves are never touched. The project starts borderless fullscreen, so a
 windowed capture must switch the window to `WINDOWED` first.
 

@@ -55,7 +55,6 @@ const NEIGHBOR_OFFSETS: Array[Vector3i] = [
 	Vector3i(0, 0, 1), Vector3i(0, 0, -1),
 ]
 
-const DOOR_KEY := "base:furniture:door"
 
 ## Emitted whenever a tracked room's computed state changes (new room, removed
 ## room, or temp_c recomputed). UI (world info / future inspect panel) listens.
@@ -232,7 +231,8 @@ func on_furniture_changed(_key: String, cells: Array[Vector3i], def: Dictionary,
 		if count > 0: _light_cells[anchor] = count
 		else: _light_cells.erase(anchor)
 		changed = true
-	if not def.has("nightly_fire") and _count_heat(cells, def, installed):
+	# A batch-heated workshop (the basic smelter, doc 297) heats only while a batch melts.
+	if not def.has("nightly_fire") and not def.has("batch_heat") and _count_heat(cells, def, installed):
 		changed = true
 	if changed:
 		_mark_dirty()
@@ -302,9 +302,9 @@ func get_room_at(cell: Vector3i) -> Dictionary:
 	return _rooms.get(room_id, {})
 
 
-## Room id containing `cell`, or -1. NOTE room ids are reassigned on every
-## completed rebuild — treat an id as valid
-## only until the next room_updated/room_removed burst; re-resolve by cell.
+## Room id containing `cell`, or -1. A rebuild keeps each room's id (RoomRebuild._begin_room),
+## but a room split in two, or joined to another, can take a new one: hold the cell, and find
+## the id again from it after a room_updated/room_removed burst.
 func get_room_id_at(cell: Vector3i) -> int:
 	return int(_cell_to_room.get(cell, -1))
 
@@ -357,9 +357,6 @@ func count_room_lights(cells: Dictionary) -> int:
 		if cells.has(anchor + Vector3i.UP): count += int(_light_cells[anchor])
 	return count
 
-
-func count_room_beds(cells: Dictionary) -> int:
-	return room_beds(cells).size()
 
 func room_beds(cells: Dictionary) -> Array[Vector3i]:
 	var result: Array[Vector3i] = []

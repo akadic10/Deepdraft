@@ -38,7 +38,7 @@
       "stockpile_stone"
     ]
   },
-  "__comment_starter_tools": "Worker-crafted physical goods. The Carpenter, the Stonemason and the Ranger collect and equip their kits; other specialist promotion gates remain planned.",
+  "__comment_starter_tools": "Worker-crafted physical goods. The Carpenter, the Stonemason and the Ranger collect and equip their kits, and the Blacksmith its stone hammer; the Farmer's hoe waits for farming.",
   "base:resources:tools:stone_hoe": {
     "display_name": "Stone Hoe",
     "description": "Wooden haft with a stone blade. A starter tool for the planned Farmer profession; equipping is not available yet.",
@@ -112,8 +112,13 @@
     "material_palette": "starter_tool"
   },
   "base:resources:tools:stone_hammer": {
+    "equipment": {
+      "tier": "Crude",
+      "materials": "Stone head · Wooden handle",
+      "benefit": "Enables the Blacksmith profession. They hammer copper bars into fittings with it. No work-speed bonus. The hammer stays equipped until this dwarf changes profession."
+    },
     "display_name": "Stone Hammer",
-    "description": "A stone head and wooden handle. A starter tool for the planned Blacksmith profession; forging and equipping are not available yet.",
+    "description": "A stone head and wooden handle. Collected and equipped when promoting a Blacksmith; returned to colony supplies when changing professions.",
     "model": "res://assets/models/items/tools/stone_hammer.glb",
     "carry_cost": 1,
     "weight_class": "light",
@@ -141,6 +146,7 @@
   "__comment_ore": "Metal ore chunks — heavy, moderate trade value",
   "base:resources:ore:copper": {
     "display_name": "Copper Ore",
+    "plural_name": "copper ore",
     "description": "A green-tinged ore chunk, the first metal dwarves learn to smelt.",
     "model": "res://assets/models/items/ore/copper_ore.glb",
     "carry_cost": 1,
@@ -148,6 +154,7 @@
     "material_tags": [
       "ore",
       "metal",
+      "copper_ore",
       "stockpile_ore"
     ]
   },
@@ -211,6 +218,33 @@
       "metal",
       "precious",
       "stockpile_ore"
+    ]
+  },
+  "__comment_metal": "Smelted metal and the Blacksmith's first goods (doc 297): copper bars from the basic smelter, and copper fittings hammered from them. Both are stored as Metal (stockpile_metal).",
+  "base:resources:metal:copper_bar": {
+    "display_name": "Copper Bar",
+    "plural_name": "copper bars",
+    "description": "A rough bar of copper cast in a stone mould at the basic smelter. Blacksmiths learn their trade on it before iron.",
+    "model": "res://assets/models/items/metal/copper_bar.glb",
+    "carry_cost": 1,
+    "weight_class": "heavy",
+    "material_tags": [
+      "metal",
+      "copper_bar",
+      "stockpile_metal"
+    ]
+  },
+  "base:resources:metal:copper_fitting": {
+    "display_name": "Copper Fitting",
+    "plural_name": "copper fittings",
+    "description": "A copper band and rivets hammered cold from a bar, for the brewery and the aging cellar when they come. Until then they are stored.",
+    "model": "res://assets/models/items/metal/copper_fitting.glb",
+    "carry_cost": 1,
+    "weight_class": "light",
+    "material_tags": [
+      "metal",
+      "metalwork",
+      "stockpile_metal"
     ]
   },
   "__comment_gem": "Finished gem drops — naturally brilliant, ready to trade; no jeweller or cutting step. Stable _raw keys are identifiers only.",
@@ -569,7 +603,7 @@
       "stockpile_food"
     ]
   },
-  "__comment_fish": "Fish — caught from Fishing zones, one kind for each water (doc 289). Eaten raw until there is cooking.",
+  "__comment_fish": "Fish — caught from Fishing zones, one kind for each water (doc 289). Eaten raw, or grilled at a burning campfire (doc 290).",
   "base:resources:fish:perch": {
     "food": {
       "edible": true,
@@ -633,7 +667,7 @@
       "edible": true,
       "grill": true,
       "nutrition": 0.6,
-      "keeps_days": 2,
+      "keeps_days": 3,
       "serving": {
         "shape": "fish",
         "color": "5f7a4c"
@@ -641,7 +675,7 @@
     },
     "display_name": "Char",
     "plural_name": "char",
-    "description": "A mountain tarn's char: a green back with pale spots and a red-orange belly. Good eating, but it keeps only a couple of days unless it is kept cool.",
+    "description": "A mountain tarn's char: a green back with pale spots and a red-orange belly. Good eating, and it keeps a day longer than other fresh fish, longer still if it is kept cool.",
     "model": "res://assets/models/items/crates/char_low.glb",
     "crate_capacity": 24,
     "crate_models": [
@@ -1440,6 +1474,18 @@
       "stockpile_furniture"
     ]
   },
+  "base:resources:furniture:basic_smelter": {
+    "display_name": "Basic Smelter (packed)",
+    "description": "The stones, daub and casting stone of a basic smelter, packed for installation: the Blacksmith's own workbench.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "stone",
+      "furniture",
+      "stockpile_furniture"
+    ]
+  },
   "base:resources:furniture:tool_rack": {
     "display_name": "Tool Rack (packed)",
     "description": "A split-log tool rack and its pegs, packed for installation against a wall.",
@@ -1456,6 +1502,32 @@
   "base:resources:furniture:raw_materials_crate": {
     "display_name": "Raw Materials Crate (packed)",
     "description": "The notched logs of a raw materials crate, packed for installation on the floor.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood"
+  },
+  "base:resources:furniture:finished_goods_pallet": {
+    "display_name": "Finished Goods Pallet (packed)",
+    "description": "The poles and runners of a finished goods pallet, packed for installation on the floor.",
+    "model": "res://assets/models/furniture/packed_furniture.glb",
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "wood",
+      "furniture",
+      "stockpile_furniture"
+    ],
+    "material_group": "wood"
+  },
+  "base:resources:furniture:food_shelf": {
+    "display_name": "Food Shelf (packed)",
+    "description": "The posts, poles and rope of a food shelf, packed for installation on the floor.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",

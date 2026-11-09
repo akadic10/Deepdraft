@@ -46,6 +46,8 @@ var _gap: Control
 var _slot_labels: Array[Label] = []
 var _hint: Label
 var _notice: Label
+var _notice_text := ""
+var _notice_error := true
 var _size: Dictionary = SIZES.medium
 
 
@@ -146,8 +148,8 @@ func _build_menu() -> void:
 	_hint = _text("Enter continues" if board != null else "Enter starts a new colony", false, UITheme.HEARTH_MUTED)
 	_column.add_child(_hint)
 	_notice = _text("", false, UITheme.TAG_TONES.blocked[1])
-	_notice.visible = false
 	_column.add_child(_notice)
+	_apply_notice()
 
 
 ## Back from Load game… or Settings…: a save deleted there may have been the newest, so the
@@ -218,9 +220,24 @@ func _exit() -> void:
 
 ## A world on its way: the buttons wait while it loads. A refusal says why, under them.
 func _start(started: bool, failure: String) -> void:
-	_notice.text = "" if started else failure
-	_notice.visible = not started
+	show_notice("" if started else failure)
 	for button: Button in buttons.values(): button.disabled = started
+
+
+## What the title says under its buttons: why Continue or New game could not start, or what
+## SaveManager reports here, where there is no dock (a load from Load game… that failed, a save
+## deleted there). It stays when the board and buttons are built again.
+func show_notice(message: String, is_error: bool = true) -> void:
+	_notice_text = message
+	_notice_error = is_error
+	_apply_notice()
+
+
+func _apply_notice() -> void:
+	if _notice == null: return
+	_notice.text = _notice_text
+	_notice.add_theme_color_override("font_color", UITheme.TAG_TONES.blocked[1] if _notice_error else UITheme.HEARTH_MUTED)
+	_notice.visible = not _notice_text.is_empty()
 
 
 ## Keyboard focus: Continue, or New game without a save; back here after Load or Settings.

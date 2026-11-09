@@ -11,16 +11,11 @@ const HEARTH_TEXT := Color("f2eadb")
 const HEARTH_MUTED := Color("bdb8a9")
 const HOVER_BG := Color("39433b")
 const PRESSED_BG := Color("544331")
-const DISABLED_BG := Color("232c29")
 const TEXT_DISABLED := Color("92998e")
 const TRACK_BG := Color("151c1b")
 const SUCCESS := Color("9cbe8c")
 const DEV_ORANGE := Color("e1ac70")
-const DEV_ORANGE_HOVER := Color("f3c58f")
 const DANGER_RED := Color("ee9a88")
-const WINDOW_BG := HEARTH_BG
-const WINDOW_BORDER := HEARTH_EDGE
-const TITLEBAR_BG := HEARTH_CARD
 const ACCENT_FILL := PRESSED_BG
 const ACCENT_BORDER := HEARTH_COPPER
 const TEXT_DIM := HEARTH_MUTED
@@ -47,7 +42,6 @@ const TYPE_SMALL := {"display": 28, "name": 24, "title": 20, "heading": 16, "lea
 const CATALOG_PAPER := Color("e9d8b5")
 const CATALOG_INK := Color("3b342a")
 const CATALOG_MUTED := Color("68583e")
-const CATALOG_WOOD := Color("504634")
 const CATALOG_GOLD := Color("d0af76")
 # Kept from the Stonehearth-style format (doc 260): the dark label outline, tan buttons
 # for actions without a picture, and the olive band and blue tabs, kept for when windows
@@ -424,18 +418,6 @@ static func make_button(text: String, tooltip: String = "",
 	button.custom_minimum_size = min_size
 	apply_button_variant(button, variant)
 	return button
-
-
-static func dock_button_normal_style() -> StyleBoxFlat:
-	return style(Color.TRANSPARENT, Color.TRANSPARENT, 0, RADIUS)
-
-
-static func dock_button_hover_style() -> StyleBoxFlat:
-	return style(HOVER_BG, HEARTH_EDGE, 1, RADIUS)
-
-
-static func dock_button_active_style() -> StyleBoxFlat:
-	return style(ACCENT_FILL, ACCENT_BORDER, 2, RADIUS)
 
 
 ## The Hearthblock icon tile (doc 259): stepped notched corners, a dark rim, a lit top

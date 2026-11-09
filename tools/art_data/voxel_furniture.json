@@ -131,6 +131,14 @@
         }
       ]
     },
+    "basic_smelter": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "basic_smelter"
+        }
+      ]
+    },
     "stone_stool": {
       "main": [
         {
@@ -152,6 +160,22 @@
         {
           "op": "hearthblock_vox",
           "model": "raw_materials_crate"
+        }
+      ]
+    },
+    "finished_goods_pallet": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "finished_goods_pallet"
+        }
+      ]
+    },
+    "food_shelf": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "food_shelf"
         }
       ]
     },
@@ -406,6 +430,14 @@
         {
           "op": "hearthblock_vox",
           "model": "drying_rack_fish"
+        }
+      ]
+    },
+    "parts/basic_smelter_charge": {
+      "charge": [
+        {
+          "op": "hearthblock_vox",
+          "model": "basic_smelter_charge"
         }
       ]
     }

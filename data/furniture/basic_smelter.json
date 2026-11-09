@@ -1,0 +1,45 @@
+{
+  "__comment": [
+    "The Blacksmith's own workbench (doc 297): a squat bowl furnace of three stone courses daubed with soil, a clay crucible sunk in its top and a fire mouth at the front, beside a flat casting stone with two bar moulds cut in it. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Blacksmiths make it at the crude workbench from a log, four Rough Stones and a Soil. Like the mason's bench it keeps no wood identity.",
+    "Copper bars are made here as a batch (batch_hours in the recipe): charged in 12 s, it melts by itself on the world clock, then a Blacksmith takes the cast bar off the stone (COLLECT). The charge part (batch_model) shows while a batch is on. Copper fittings are hammered cold here, with no wait.",
+    "batch_heat: its heat_source counts only while a batch melts (WorkshopBatch.update_heat), never when it stands idle or once the copper has set (doc 44, the Smelter's heat rule). The heat is a first figure, to tune in play.",
+    "The casting stone's top stands 0.375 blocks high; the furnace's rim 1.125, inside the collision regions."
+  ],
+  "furniture_key": "base:furniture:basic_smelter",
+  "furniture_category": "workshops",
+  "display_name": "Basic Smelter",
+  "description": "A bowl furnace of daubed stones with a clay crucible, beside a casting stone with bar moulds: the Blacksmith's own workbench. Copper ore and coal melt in it for a few hours, then a Blacksmith takes the cast bar off the stone. Warms its room while it melts. Occupies a 2 by 1 space.",
+  "model": "res://assets/models/furniture/basic_smelter.glb",
+  "item_key": "base:resources:furniture:basic_smelter",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "crafting_surface_height": 0.375,
+  "crafting_surface_radius": 0.5,
+  "crafting_recipe": "base:recipe:worker:copper_bar",
+  "crafting_action": "Smelt copper",
+  "batch_model": "res://assets/models/furniture/parts/basic_smelter_charge.glb",
+  "batch_heat": true,
+  "heat_source": {
+    "heat_units": 2400,
+    "radius": 4
+  },
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "collision_regions": [
+    {
+      "min": [0, 0, 0],
+      "max": [1, 1.125, 1]
+    },
+    {
+      "min": [1, 0, 0],
+      "max": [2, 0.375, 1]
+    }
+  ],
+  "appeal": {
+    "design": 0,
+    "material_factor": 0
+  }
+}

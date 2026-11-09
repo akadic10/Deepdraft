@@ -3,7 +3,7 @@
 ## Overview
 
 **Current art: Hearthblock** ([64](../60_asset_creation/64_hearthblock_art_direction.md),
-[256](../00_dev_roadmap/256_hearthblock_art_pilot.md)). Every part is authored in
+doc 256). Every part is authored in
 `tools/hearthblock/art/dwarves.mjs`, exported to `tools/art_data/voxel_hearthblock.json` and
 built by the `dwarves` family in `tools/voxel_assets/`. There are 41 appearance GLBs
 under `assets/models/characters/dwarves/` plus the two work tools. The parts are:

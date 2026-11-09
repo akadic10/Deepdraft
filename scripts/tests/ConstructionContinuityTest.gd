@@ -42,6 +42,7 @@ func _four_block_column() -> void:
 	var task_id: int = worker.current_task_id
 	var generation: int = worker._work_execution.generation
 	var position: Vector3 = worker.global_position
+	for frame in range(16): await _tick()   # past the crossfade into the work (doc 298)
 	var left: Vector3 = worker._foot_l.global_position
 	var right: Vector3 = worker._foot_r.global_position
 	var body_horizontal := Vector2(worker._body.global_position.x,worker._body.global_position.z)

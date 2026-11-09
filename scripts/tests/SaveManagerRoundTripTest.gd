@@ -111,7 +111,7 @@ func _run() -> void:
 	# Advancing the timer by one interval must write only the independent
 	# autosave slot and must not mutate authoritative scene state.
 	var scene_before_autosave := JSON.stringify(_collect_scene_state())
-	_save_manager.call("_tick_autosave", 300.0)
+	_autosave_interval()
 	if not await _wait_for_save(): _fail("autosave completion failed"); return
 	if not FileAccess.file_exists(TEST_AUTOSAVE):
 		_fail("five-minute timer did not create an autosave")
@@ -123,7 +123,7 @@ func _run() -> void:
 	if not bool(autosave_result.get("ok", false)):
 		_fail("autosave did not validate")
 		return
-	_save_manager.call("_tick_autosave", 300.0)
+	_autosave_interval()
 	if not await _wait_for_save(): _fail("autosave completion failed"); return
 	if not FileAccess.file_exists(TEST_AUTOSAVE_BACKUP):
 		_fail("second autosave did not rotate the previous autosave to backup")
@@ -1549,6 +1549,16 @@ func _cleanup_test_storage() -> void:
 	if DirAccess.dir_exists_absolute(absolute_directory):
 		# The fixed test directory is removed only when the exact files above left it empty.
 		DirAccess.remove_absolute(absolute_directory)
+
+
+## The autosave's five minutes, passed at once. Headless, the world's loading screen never shows
+## the world, so it still holds the clock, and no autosave time passes under a hold (as under the
+## game menu): the hold is lifted for the tick alone.
+func _autosave_interval() -> void:
+	var holds: Dictionary = _world_clock._loading_holds.duplicate()
+	_world_clock._loading_holds.clear()
+	_save_manager.call("_tick_autosave", 300.0)
+	_world_clock._loading_holds = holds
 
 
 func _wait_for_save() -> bool:

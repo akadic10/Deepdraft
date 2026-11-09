@@ -171,7 +171,10 @@ interruption, and the effect runs until the item exists. Disallowing a stone
 cancels its packing and Move orders. Packed, carried and stored stones are inactive.
 Relocated wet stones supply their new base up to their top; relocated dry stones
 retain the receiving surface at placement (at least their top). Removing support
-settles both a placed stone and its effect. Models add no water displacement or
+settles both a placed stone and its effect. The spring's natural wet stone feeds the river's
+mouth, a cell of its own, so mining its ledge drops the stone while the spring keeps its
+mouth and level (2026-11-09; before, the spring moved into the stream floor and stopped).
+A stone settles its effect only when its water comes in at the stone itself. Models add no water displacement or
 navigation occupancy. `WaterManager.grant_stone(kind, cell, disallowed=true)` makes
 one more inactive loose stone with a new `water_stone:N` identity for a future
 scenario, using the same work, permission and save paths; placed stones act each
@@ -329,11 +332,11 @@ agriculture and alcohol production.
 - Reconcile planned brewing recipes with water's agreed role before implementing
   production. Longbeard Ale currently lacks a water input; quantities and container
   handling are still to be designed. This agreement does not edit recipe data.
-- **Fishing (doc 289).** The lake, the tarn, the river and the spring cave's pool each hold a
-  fish stock that catches lower and that regrows; water the player makes holds none. Fishing
-  only reads `depth_at`, the live blocks between a bank and its water, and the generated
-  footprints (`lake_columns`, `tarn_columns`, `river_layout.columns`, `spring_cave.water`),
-  and never moves water.
+- **Fishing** (doc 289; the rules are in doc 42, "Fishing"). The lake, the tarn, the river and
+  the spring cave's pool each hold a fish stock that catches lower and that regrows; water the
+  player makes holds none. Fishing only reads `depth_at`, the live blocks between a bank and
+  its water, and the generated footprints (`lake_columns`, `tarn_columns`,
+  `river_layout.columns`, `spring_cave.water`), and never moves water.
 
 ## Voxel presentation
 

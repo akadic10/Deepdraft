@@ -5,8 +5,13 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## Worker gathered them all again. Now the six goods stay beside the bench, claimed by the
 ## order, through a save and a load; the bench goes to the order above in turn; then a Worker
 ## lifts the last log and finishes the hearth with exactly those goods while hauling runs.
+## The hearth is the Stonemason's (doc 44), so both dwarves are Stonemasons and a stone stool is
+## the order that takes the mason's bench in turn.
 const HEARTH_RECIPE := "base:recipe:worker:hearth"
 const HEARTH_ITEM := "base:resources:furniture:hearth"
+const STOOL_RECIPE := "base:recipe:worker:stone_stool"
+const STOOL_ITEM := "base:resources:furniture:stone_stool"
+const STONEMASON := "base:profession:stonemason"
 var hauling_live := false
 var kept: Array[int] = [] # instance ids of the six goods at the bench when the crafter fell asleep
 var hauled := false
@@ -15,16 +20,17 @@ var resumed: Array[int] = [] # what the Worker who resumed the hearth carried
 func _run() -> void:
 	create_timer(170).timeout.connect(func(): push_error("Craft interrupt timed out"); quit(1))
 	await _setup_crafting_fixture()
-	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(46,20,40),0)
+	_mason_bench_at(Vector3i(46,20,40))
 	drops.spawn_drop(STONE,4,Vector3i(42,21,39))
-	drops.spawn_drop(PINE,3,Vector3i(42,21,41))
+	drops.spawn_drop(PINE,2,Vector3i(42,21,41))
 	var hearth: int = crafting.queue_order(HEARTH_RECIPE,1)
 	_expect(await _working(),"the hearth's four stones and two logs reach the bench")
 	var order = crafting.get_order(hearth)
 	worker._process(.5)
 	var progress: float = order.progress
 	var bench_id: int = order.bench_id
-	var torch: int = crafting.queue_order(TORCH_RECIPE,1)
+	drops.spawn_drop(STONE,1,Vector3i(42,21,43))
+	var torch: int = crafting.queue_order(STOOL_RECIPE,1)
 	for node: Node3D in order.staged_items: kept.append(node.get_instance_id())
 	for cargo: Array in worker._carried_entries: kept.append((cargo[0] as Node3D).get_instance_id())
 	_spawn_extra_worker()
@@ -41,14 +47,14 @@ func _run() -> void:
 	order = crafting.get_order(hearth)
 	_expect(_holds_kept(order) and order.bench_id==bench_id and is_equal_approx(order.progress,progress),"a load claims the same goods beside the same bench")
 	crafting.move_order(torch,-1)
-	_expect(await _started()==torch,"the torch, now above the hearth, takes the free bench first")
+	_expect(await _started()==torch,"the stool, now above the hearth, takes the free bench first")
 	crafting._refresh()
 	var waiting: String = crafting.status(order,crafting.stock_snapshot())
 	_expect(waiting=="Next in line" and order.staged_items.size()==6,"the hearth waits its turn with its goods: %s" % waiting)
-	_expect(await _completed(torch) and await _completed(hearth),"the torch, then the hearth, are finished")
+	_expect(await _completed(torch) and await _completed(hearth),"the stool, then the hearth, are finished")
 	_expect(not hauled,"no hauler ever carried the hearth's goods away")
 	_expect(resumed.size()==1 and resumed[0] in kept,"the Worker who resumed the hearth only lifted one kept log: %s of %s" % [resumed,kept])
-	_expect(_count(HEARTH_ITEM)==1 and _count(TORCH_ITEM)==4 and _count(STONE)==0 and _count(PINE)==0,
+	_expect(_count(HEARTH_ITEM)==1 and _count(STOOL_ITEM)==1 and _count(STONE)==0 and _count(PINE)==0,
 		"the hearth is made from exactly the kept goods")
 	for failure in failures: push_error(failure)
 	print("CRAFT_INTERRUPT_OK" if failures.is_empty() else "CRAFT_INTERRUPT_FAIL")
@@ -107,4 +113,6 @@ func _spawn_extra_worker() -> void:
 	extra_worker.position = Vector3(40.5,21,42.5)
 	extra_worker.set_process(false)
 	extra_worker.sleep = 1.0
+	extra_worker.profession = STONEMASON
 	tasks.register_dwarf(extra_worker)
+	tasks.work_policy_changed()

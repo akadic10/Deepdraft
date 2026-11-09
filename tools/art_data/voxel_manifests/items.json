@@ -455,6 +455,70 @@
       "parts": [
         {
           "name": "main",
+          "cells": 256,
+          "visual_triangles": 126,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 1.0,
+            "triangles": 48
+          },
+          "min": [
+            -0.4375,
+            0.0,
+            -0.1875
+          ],
+          "max": [
+            0.4375,
+            0.25,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 20132,
+      "sha256": "15d2c8ca1ed1a42973c19ddb0dced2d148cab96d8c1d86d66c147f2101894e05",
+      "path": "assets/models/items/metal/copper_bar.glb",
+      "authoring": {
+        "item": "copper_bar",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 232,
+          "visual_triangles": 260,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 108
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.375
+          ],
+          "max": [
+            0.375,
+            0.25,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 40124,
+      "sha256": "39bd28e20dcd4bae33a52adae12b4faefb4342323f056eca2b162e60a4d3b81c",
+      "path": "assets/models/items/metal/copper_fitting.glb",
+      "authoring": {
+        "item": "copper_fitting",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 1972,
           "visual_triangles": 476,
           "occlusion": true,

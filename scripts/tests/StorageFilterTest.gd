@@ -8,7 +8,7 @@ var _completed_stages := 0
 
 func _run() -> void:
 	if not "/storage_filter_review/" in OS.get_user_data_dir().replace("\\", "/"):
-		push_error("StorageFilterTest requires isolated APPDATA under tmp/storage_filter_review.")
+		push_error("StorageFilterTest requires an isolated user:// profile under tmp/storage_filter_review.")
 		quit(1)
 		return
 	create_timer(90).timeout.connect(func(): push_error("Storage filter test timed out"); quit(1))
@@ -93,7 +93,7 @@ func _relocation_transactions() -> void:
 	_seed(target, ACORN, 24, [24, 23]) # Three crates: 24 + 24 + 23, room for one.
 	var pull: Dictionary = target.reserve_haul(201, Vector3i(40,20,40), {})
 	_expect(not pull.is_empty() and zone.stored_count() == 12, "destination reserves before source loses ownership")
-	_expect(target._pulls[201].transfer.token.count == 1, "relocation reserves only the remaining crate space")
+	_expect(target._pulls[201].transfers.size() == 1 and target._pulls[201].transfers.values()[0].token.count == 1, "relocation reserves only the remaining crate space")
 	_expect(target.reserve_haul(202, Vector3i.ZERO, {}).is_empty(), "concurrent hauler cannot overbook destination")
 	var spare = _other_zone(2, Vector3i(47,20,48))
 	_expect(spare.reserve_haul(203, Vector3i.ZERO, {}).is_empty(), "another destination cannot claim same outgoing stack")

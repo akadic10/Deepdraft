@@ -1,5 +1,5 @@
 {
-  "__comment": "Craft recipes by section: Rudimentary (Workers) unless a recipe names its `section`, which the career with that craft_section makes (professions.json, doc 292). `catch_log` names the Ranger's log count a batch adds to. A recipe with `dry_hours` leaves its batch on the workshop that long (the drying rack's fish, doc 292): the workshop holds it, then a Ranger takes it down in `collect_seconds` (Task COLLECT). CraftingManager is the single data owner. ingredient_count matching timber units per batch, plus one unit per additional_ingredients entry, physically collected before work. output_count is finished units. Finite quantities are batches; maintain quantities are spare units. The first bench needs no workshop. Tools can be crafted and stored. A career's own workbench is made by that career at the crude workbench from raw goods (doc 293). ingredient_tag names the material tag of the batch's goods (timber, fish, or stockpile_stone for the Rough Stone alone), and ingredient_words how the window and waiting reasons word them (timber's when absent).",
+  "__comment": "Craft recipes by section: Rudimentary (Workers) unless a recipe names its `section`, which the career with that craft_section makes (professions.json, doc 292). `catch_log` names the Ranger's log count a batch adds to. A recipe with `batch_hours` leaves its batch on the workshop that long (the drying rack's fish, doc 292; copper melting in the basic smelter, doc 297): the workshop holds it, then its career takes it down in `collect_seconds` (Task COLLECT); `batch_words` word it (`working`, `done`; the fish's Drying and Dry without them). CraftingManager is the single data owner. ingredient_count matching timber units per batch, plus one unit per additional_ingredients entry, physically collected before work. output_count is finished units. Finite quantities are batches; maintain quantities are spare units. The first bench needs no workshop. Tools can be crafted and stored. A career's own workbench is made by that career at the crude workbench from raw goods (doc 293). ingredient_tag names the material tag of the batch's goods (timber, fish, or stockpile_stone for the Rough Stone alone), and ingredient_words how the window and waiting reasons word them (timber's when absent).",
   "max_orders": 64,
   "recipes": [
     {
@@ -63,7 +63,7 @@
       "id": "base:recipe:worker:campfire",
       "name": "Campfire",
       "output_plural": "campfires",
-      "description": "A low outdoor stone-ring fire, centered in a 3 × 3 camp area. Place stools around its edges to gather by the light.",
+      "description": "A low outdoor stone-ring fire, centered in a 3 \u00d7 3 camp area. Place stools around its edges to gather by the light.",
       "flavour": "Stones in a ring, logs in the middle, stories all around.",
       "purpose": "Outdoor gathering and light. A worker lights it at dusk with a log; it burns until dawn.",
       "category": "Lighting",
@@ -83,31 +83,6 @@
       "material_group": "wood"
     },
     {
-      "id": "base:recipe:worker:hearth",
-      "name": "Rudimentary hearth",
-      "output_plural": "hearths",
-      "description": "A 2 × 2 hearthstone with a stacked stone fire-back: an open fire that throws its heat into the room. Two matching logs and four rough stones.",
-      "flavour": "A room with a hearth is a home; without one, a cellar.",
-      "purpose": "Warms a small enclosed bedroom at night. Face the opening into the room; larger rooms may need more heat. A worker lights it at dusk with a log; it burns until dawn.",
-      "category": "Rooms",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 2,
-      "additional_ingredients": [
-        "base:resources:stone:rough_stone",
-        "base:resources:stone:rough_stone",
-        "base:resources:stone:rough_stone",
-        "base:resources:stone:rough_stone"
-      ],
-      "work_seconds": 18.0,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:hearth",
-      "output_count": 1,
-      "furniture": "base:furniture:hearth"
-    },
-    {
       "id": "base:recipe:worker:log_chair",
       "name": "Log stool",
       "output_plural": "log stools",
@@ -125,26 +100,6 @@
       "output": "base:resources:furniture:log_chair",
       "output_count": 1,
       "furniture": "base:furniture:log_chair",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:log_table",
-      "name": "Log dining table",
-      "output_plural": "log dining tables",
-      "description": "A broad log slice joined to a narrow central pedestal. Made from two matching logs.",
-      "flavour": "A table turns a meal into a feast, and a feast into a story.",
-      "purpose": "Add separate stools at the four guides for seated dining.",
-      "category": "Dining",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 2,
-      "work_seconds": 16,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:log_table",
-      "output_count": 1,
-      "furniture": "base:furniture:log_table",
       "material_group": "wood"
     },
     {
@@ -245,8 +200,8 @@
       "output_plural": "stone hammers",
       "description": "A heavy stone head fitted to a wooden handle for the colony's first metalworking tools.",
       "flavour": "The first hammer is always the heaviest.",
-      "purpose": "Blacksmith starter tool. Smelting, forging and equipping tools are planned; this item can be crafted and stored.",
-      "purpose_short": "Blacksmith & equipping planned.",
+      "purpose": "The Blacksmith's starter tool. A Worker collects it when promoted to Blacksmith.",
+      "purpose_short": "Promotes a Blacksmith.",
       "category": "Starter tools",
       "ingredient_tag": "timber",
       "default_ingredients": [
@@ -261,162 +216,6 @@
       "output": "base:resources:tools:stone_hammer",
       "output_count": 1,
       "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:door",
-      "name": "Log door (2 wide)",
-      "output_plural": "log doors",
-      "description": "One rough log leaf swings open as dwarves approach. Fits a 2-block-wide opening and seals the room for warmth.",
-      "flavour": "A door is a wall that learned manners.",
-      "category": "Rooms",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 1,
-      "work_seconds": 12,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:door",
-      "output_count": 1,
-      "furniture": "base:furniture:door",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:log_door_3",
-      "name": "Log door (3 wide)",
-      "output_plural": "log doors",
-      "description": "One rough log leaf swings open as dwarves approach. Fits a 3-block-wide opening and seals the room for warmth.",
-      "flavour": "Wide enough for a barrel, snug enough to stop the draught.",
-      "category": "Rooms",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 1,
-      "work_seconds": 18,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:log_door_3",
-      "output_count": 1,
-      "furniture": "base:furniture:log_door_3",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:log_door_4",
-      "name": "Double log door (4 wide)",
-      "output_plural": "log doors",
-      "description": "Two rough log leaves swing open as dwarves approach. Fits a 4-block-wide opening and seals the room for warmth.",
-      "flavour": "Big doors for big halls, and bigger quarrels over who left them open.",
-      "category": "Rooms",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 1,
-      "work_seconds": 24,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:log_door_4",
-      "output_count": 1,
-      "furniture": "base:furniture:log_door_4",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:bench",
-      "name": "Log bench",
-      "output_plural": "log benches",
-      "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating.",
-      "flavour": "Room for three dwarves, or two after supper.",
-      "category": "Dining",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 1,
-      "work_seconds": 10,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:bench",
-      "output_count": 1,
-      "furniture": "base:furniture:bench",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:log_bed",
-      "name": "Log bed",
-      "output_plural": "log beds",
-      "description": "Fit rough logs into a low frame and heap it with hay and dried leaves. A simple place for one dwarf to sleep.",
-      "flavour": "Straw on logs beats stone on stone.",
-      "purpose": "Dwarves prefer a free bed over the ground. A bed, door, light and sealed enclosure make a bedroom.",
-      "category": "Rooms",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 4,
-      "work_seconds": 16.0,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:log_bed",
-      "output_count": 1,
-      "furniture": "base:furniture:log_bed",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:log_fence",
-      "name": "Log Fence Post",
-      "output_plural": "log fence posts",
-      "description": "Stands in the middle of a tile. Two level rails join posts on neighboring tiles, forming straight runs, corners and junctions.",
-      "flavour": "A row of posts tells beasts and neighbours where the colony begins.",
-      "category": "Access",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 1,
-      "work_seconds": 10,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:log_fence",
-      "output_count": 1,
-      "furniture": "base:furniture:log_fence",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:log_gate",
-      "name": "Log Gate",
-      "output_plural": "log gates",
-      "description": "Hangs across one tile between posts on the tiles either side, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
-      "flavour": "A fence that knows when to open.",
-      "category": "Access",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 1,
-      "work_seconds": 10,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:log_gate",
-      "output_count": 1,
-      "furniture": "base:furniture:log_gate",
-      "material_group": "wood"
-    },
-    {
-      "id": "base:recipe:worker:board_game_table",
-      "name": "Board-game Table",
-      "output_plural": "board-game tables",
-      "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one stool for solo play, or two opposite stools to play together for more happiness.",
-      "flavour": "Wars have been won, and friendships lost, across this board.",
-      "category": "Recreation",
-      "ingredient_tag": "timber",
-      "default_ingredients": [
-        "base:resources:wood:pine_log"
-      ],
-      "ingredient_count": 2,
-      "work_seconds": 18,
-      "workshop": "base:furniture:crude_workbench",
-      "output": "base:resources:furniture:board_game_table",
-      "output_count": 1,
-      "furniture": "base:furniture:board_game_table",
-      "material_group": "wood",
-      "additional_ingredients": [
-        "base:resources:stone:rough_stone"
-      ]
     },
     {
       "id": "base:recipe:worker:drying_rack",
@@ -505,6 +304,235 @@
       "material_group": "wood"
     },
     {
+      "id": "base:recipe:worker:finished_goods_pallet",
+      "name": "Finished goods pallet",
+      "output_plural": "finished goods pallets",
+      "description": "Split poles laid across two log runners and lashed at the ends. Made from two matching logs. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
+      "flavour": "Made is not placed. Until then, it waits on the poles.",
+      "purpose": "Holds four pieces of packed furniture, one to each quarter, until they are placed. It is filled before ground storage.",
+      "purpose_short": "Holds four packed pieces.",
+      "category": "Storage",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "work_seconds": 16.0,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:finished_goods_pallet",
+      "output_count": 1,
+      "furniture": "base:furniture:finished_goods_pallet",
+      "section": "carpenter",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:food_shelf",
+      "name": "Food shelf",
+      "output_plural": "food shelves",
+      "description": "A bark post and a leaning pole at each end, rails lashed across them and split poles laid on the rails. Made from two matching logs. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
+      "flavour": "Off the floor, out of the muck.",
+      "purpose": "Holds six crates of food, three to a deck. It is filled before ground storage, and food keeps there as it would on the floor beside it.",
+      "purpose_short": "Holds six crates of food.",
+      "category": "Storage",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "work_seconds": 16.0,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:food_shelf",
+      "output_count": 1,
+      "furniture": "base:furniture:food_shelf",
+      "section": "carpenter",
+      "material_group": "wood"
+    },
+    {
+      "id": "base:recipe:worker:log_table",
+      "name": "Log dining table",
+      "output_plural": "log dining tables",
+      "description": "A broad log slice joined to a narrow central pedestal. Made from two matching logs. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "A table turns a meal into a feast, and a feast into a story.",
+      "purpose": "Add separate stools at the four guides for seated dining.",
+      "category": "Dining",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "work_seconds": 16,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:log_table",
+      "output_count": 1,
+      "furniture": "base:furniture:log_table",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:bench",
+      "name": "Log bench",
+      "output_plural": "log benches",
+      "description": "An axe-hewn half log resting on two stout log supports. Simple camp seating. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "Room for three dwarves, or two after supper.",
+      "category": "Dining",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:bench",
+      "output_count": 1,
+      "furniture": "base:furniture:bench",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:log_bed",
+      "name": "Log bed",
+      "output_plural": "log beds",
+      "description": "Fit rough logs into a low frame and heap it with hay and dried leaves. A simple place for one dwarf to sleep. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "Straw on logs beats stone on stone.",
+      "purpose": "Dwarves prefer a free bed over the ground. A bed, door, light and sealed enclosure make a bedroom.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 4,
+      "work_seconds": 16.0,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:log_bed",
+      "output_count": 1,
+      "furniture": "base:furniture:log_bed",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:door",
+      "name": "Log door (2 wide)",
+      "output_plural": "log doors",
+      "description": "One rough log leaf swings open as dwarves approach. Fits a 2-block-wide opening and seals the room for warmth. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "A door is a wall that learned manners.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 12,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:door",
+      "output_count": 1,
+      "furniture": "base:furniture:door",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:log_door_3",
+      "name": "Log door (3 wide)",
+      "output_plural": "log doors",
+      "description": "One rough log leaf swings open as dwarves approach. Fits a 3-block-wide opening and seals the room for warmth. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "Wide enough for a barrel, snug enough to stop the draught.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 18,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:log_door_3",
+      "output_count": 1,
+      "furniture": "base:furniture:log_door_3",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:log_door_4",
+      "name": "Double log door (4 wide)",
+      "output_plural": "log doors",
+      "description": "Two rough log leaves swing open as dwarves approach. Fits a 4-block-wide opening and seals the room for warmth. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "Big doors for big halls, and bigger quarrels over who left them open.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 24,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:log_door_4",
+      "output_count": 1,
+      "furniture": "base:furniture:log_door_4",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:log_fence",
+      "name": "Log Fence Post",
+      "output_plural": "log fence posts",
+      "description": "Stands in the middle of a tile. Two level rails join posts on neighboring tiles, forming straight runs, corners and junctions. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "A row of posts tells beasts and neighbours where the colony begins.",
+      "category": "Access",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:log_fence",
+      "output_count": 1,
+      "furniture": "base:furniture:log_fence",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:log_gate",
+      "name": "Log Gate",
+      "output_plural": "log gates",
+      "description": "Hangs across one tile between posts on the tiles either side, sharing posts with connected fences. Opens as dwarves approach and does not seal a room. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "A fence that knows when to open.",
+      "category": "Access",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:log_gate",
+      "output_count": 1,
+      "furniture": "base:furniture:log_gate",
+      "material_group": "wood",
+      "section": "carpenter"
+    },
+    {
+      "id": "base:recipe:worker:board_game_table",
+      "name": "Board-game Table",
+      "output_plural": "board-game tables",
+      "description": "A game scratched into a rough-cut log, with loose stones for counters. Add one stool for solo play, or two opposite stools to play together for more happiness. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "flavour": "Wars have been won, and friendships lost, across this board.",
+      "category": "Recreation",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "work_seconds": 18,
+      "workshop": "base:furniture:carpenter_bench",
+      "output": "base:resources:furniture:board_game_table",
+      "output_count": 1,
+      "furniture": "base:furniture:board_game_table",
+      "material_group": "wood",
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone"
+      ],
+      "section": "carpenter"
+    },
+    {
       "id": "base:recipe:worker:mason_bench",
       "name": "Mason's bench",
       "output_plural": "mason's benches",
@@ -558,10 +586,36 @@
       "section": "stonemason"
     },
     {
+      "id": "base:recipe:worker:hearth",
+      "name": "Rudimentary hearth",
+      "output_plural": "hearths",
+      "description": "A 2 \u00d7 2 hearthstone with a stacked stone fire-back: an open fire that throws its heat into the room. Two matching logs and four rough stones. Stonemasons make it.",
+      "flavour": "A room with a hearth is a home; without one, a cellar.",
+      "purpose": "Warms a small enclosed bedroom at night. Face the opening into the room; larger rooms may need more heat. A worker lights it at dusk with a log; it burns until dawn.",
+      "category": "Rooms",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 2,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone"
+      ],
+      "work_seconds": 18.0,
+      "workshop": "base:furniture:mason_bench",
+      "output": "base:resources:furniture:hearth",
+      "output_count": 1,
+      "furniture": "base:furniture:hearth",
+      "section": "stonemason"
+    },
+    {
       "id": "base:recipe:worker:dried_fish",
       "name": "Dried fish",
       "output_plural": "dried fish",
-      "description": "Fresh fish split and hung on the drying rack until the air has taken the water out of them: a day on the rack, then a Ranger takes them down. Dried fish keep about thirty days, longer kept cool, where fresh ones keep two.",
+      "description": "Fresh fish split and hung on the drying rack until the air has taken the water out of them: a day on the rack, then a Ranger takes them down. Dried fish keep about thirty days, longer kept cool, where fresh ones keep two or three.",
       "flavour": "Tough as a boot, and twice as welcome in midwinter.",
       "purpose": "Keeps the summer's catch for winter. Two fish of one kind hang on the rack together for a day.",
       "category": "Food",
@@ -582,12 +636,105 @@
       "ingredient_count": 2,
       "work_seconds": 12,
       "workshop": "base:furniture:drying_rack",
-      "dry_hours": 24,
+      "batch_hours": 24,
       "collect_seconds": 4,
       "output": "base:resources:fish:dried_fish",
       "output_count": 2,
       "section": "ranger",
       "catch_log": "dried"
+    },
+    {
+      "id": "base:recipe:worker:basic_smelter",
+      "name": "Basic smelter",
+      "output_plural": "basic smelters",
+      "description": "A daubed stone bowl furnace with a clay crucible, beside a casting stone with bar moulds: the Blacksmith's own workbench, made at the crude workbench.",
+      "flavour": "Every forge in the deep began as a pit of coals and a patient dwarf.",
+      "purpose": "Blacksmiths melt copper ore with coal in it into copper bars.",
+      "category": "Workshops",
+      "ingredient_tag": "timber",
+      "default_ingredients": [
+        "base:resources:wood:pine_log"
+      ],
+      "ingredient_count": 1,
+      "additional_ingredients": [
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:stone:rough_stone",
+        "base:resources:soil:soil"
+      ],
+      "work_seconds": 20.0,
+      "workshop": "base:furniture:crude_workbench",
+      "output": "base:resources:furniture:basic_smelter",
+      "output_count": 1,
+      "furniture": "base:furniture:basic_smelter",
+      "section": "blacksmith"
+    },
+    {
+      "id": "base:recipe:worker:copper_bar",
+      "name": "Copper bar",
+      "output_plural": "copper bars",
+      "description": "Two copper ore and a coal charged into the smelter's crucible. The charge melts by itself for a few hours, then a Blacksmith takes the cast bar off the casting stone.",
+      "flavour": "Green stone in, red metal out, and a dwarf who smells of smoke for a week.",
+      "purpose": "The Blacksmith's practice: every batch counts toward the level iron will need. Copper bars are hammered into fittings.",
+      "category": "Metal",
+      "ingredient_tag": "copper_ore",
+      "ingredient_words": {
+        "noun": "ore",
+        "units": "ore",
+        "same": "A batch is two copper ore and a coal.",
+        "pick": "Click an ore to allow it.",
+        "carrying": "Carrying ore to the smelter"
+      },
+      "default_ingredients": [
+        "base:resources:ore:copper"
+      ],
+      "ingredient_count": 2,
+      "additional_ingredients": [
+        "base:resources:ore:coal"
+      ],
+      "work_seconds": 12.0,
+      "workshop": "base:furniture:basic_smelter",
+      "batch_hours": 4,
+      "batch_words": {
+        "working": "Melting",
+        "done": "Cast",
+        "collecting": "Taking a copper bar off the casting stone",
+        "going": "Going to the basic smelter",
+        "collecting_why": "The charge has melted and set in its mould; the bar lands beside the smelter.",
+        "going_why": "Walking to the smelter whose copper has set."
+      },
+      "collect_seconds": 4,
+      "output": "base:resources:metal:copper_bar",
+      "output_count": 1,
+      "section": "blacksmith"
+    },
+    {
+      "id": "base:recipe:worker:copper_fitting",
+      "name": "Copper fittings",
+      "output_plural": "copper fittings",
+      "description": "A copper bar hammered cold on the casting stone into four bands and their rivets.",
+      "flavour": "Soft enough to bend, hard enough to hold a barrel together.",
+      "purpose": "Fittings for the brewery and the aging cellar when they come; until then they are stored. Every batch is practice too.",
+      "purpose_short": "For brewing, later. Practice now.",
+      "category": "Metal",
+      "ingredient_tag": "copper_bar",
+      "ingredient_words": {
+        "noun": "copper",
+        "units": "copper bars",
+        "same": "Each batch is one copper bar.",
+        "pick": "Click a bar to allow it.",
+        "carrying": "Carrying a bar to the smelter"
+      },
+      "default_ingredients": [
+        "base:resources:metal:copper_bar"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 10.0,
+      "workshop": "base:furniture:basic_smelter",
+      "output": "base:resources:metal:copper_fitting",
+      "output_count": 4,
+      "section": "blacksmith"
     }
   ],
   "sections": [
@@ -602,27 +749,25 @@
       "name": "Carpenter",
       "planned": false,
       "description": "Timber worked with basic tools, at the Carpenter's own bench.",
-      "hint": "Carpenters make these: their bench at the crude workbench first, then a tool rack at it. Promote a Carpenter with a carpentry kit."
+      "hint": "Carpenters make these: their bench at the crude workbench first, then everything else at it. Promote a Carpenter with a carpentry kit."
     },
     {
       "id": "stonemason",
       "name": "Stonemason",
       "planned": false,
       "description": "Rough stone knocked square, at the Stonemason's own bench.",
-      "hint": "Stonemasons make these: their bench at the crude workbench first, then stone stools on it. Promote a Stonemason with a masonry kit."
+      "hint": "Stonemasons make these: their bench at the crude workbench first, then everything else at it. Promote a Stonemason with a masonry kit."
     },
     {
       "id": "blacksmith",
       "name": "Blacksmith",
-      "planned": true,
-      "description": "Refine metal and forge better tools, fittings, weapons and armor.",
-      "preview": [
-        "Metal refining",
-        "Tool upgrades and fittings",
-        "Weapons and armor"
+      "planned": false,
+      "description": "Copper melted and cast at the Blacksmith's own basic smelter, practice before iron.",
+      "later": [
+        "WITH IRON",
+        "The Smelter and the Forge join this page with iron: iron bars, then tools, hardware, weapons and armor. Iron needs a level-2 Blacksmith."
       ],
-      "requirements": "Entry tool: stone hammer. Iron pickaxes and carpenter saws are future upgrades.",
-      "hint": "The stone hammer is available under Rudimentary › Starter tools."
+      "hint": "Blacksmiths make these: their basic smelter at the crude workbench first, then copper at it. Promote a Blacksmith with a stone hammer."
     },
     {
       "id": "farmer",
@@ -634,14 +779,17 @@
         "Harvest supplies"
       ],
       "requirements": "Entry tool: stone hoe. Farming will use field work; its production controls are still planned.",
-      "hint": "The stone hoe is available under Rudimentary › Starter tools."
+      "hint": "The stone hoe is available under Rudimentary \u203a Starter tools."
     },
     {
       "id": "ranger",
       "name": "Ranger",
       "planned": false,
       "description": "Food from the wild, and the Ranger's own workbench: the drying rack now, more with hunting.",
-      "later": ["WITH HUNTING", "Hunting supplies, animal goods and more workbenches, such as a rack for drying hides into leather, join this page when hunting comes."],
+      "later": [
+        "WITH HUNTING",
+        "Hunting supplies, animal goods and more workbenches, such as a rack for drying hides into leather, join this page when hunting comes."
+      ],
       "hint": "Rangers make these: their drying rack at the crude workbench, then dried fish on it. Promote a Ranger with a Ranger's kit."
     },
     {

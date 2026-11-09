@@ -96,10 +96,26 @@ func _run() -> void:
 	water.restore_state(saved)
 	water_stones._process(0)
 	_expect(water.stones.size()==4 and water.next_stone_id==3 and water.stones.wet.cell==Vector3i(54,21,40), "stone identities and locations survive JSON restore")
+	_settling()
 	if "--capture" in OS.get_cmdline_user_args(): await _review_ui()
 	if failures.is_empty(): print("WATER_STONE_LIFECYCLE_OK: real pack/move work, cancellation, relocated effects, inactive cargo, multiple pairs and JSON state")
 	for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
+
+## Mining out a stone's support settles the stone. A placed stone takes its water with it; the
+## spring's natural stone keeps its mouth and level, so the spring flows on (the project review,
+## 2026-11-09: mining its ledge moved the spring into the stream floor, and it stopped).
+func _settling() -> void:
+	water.stones["spring"] = {"kind":"wet","cell":Vector3i(70,21,40),"intake":Vector3i(70,21,42),"level":22.0,"placed":true,"disallowed":true,"packing":false,"work":0.0}
+	water_stones._process(0)
+	for ledge: Vector3i in [Vector3i(70,20,40), Vector3i(54,20,40)]: world.set_block(ledge.x, ledge.y, ledge.z, blocks.AIR_ID)
+	var spring: Dictionary = water.stones["spring"]
+	var placed: Dictionary = water.stones.wet
+	_expect(spring.cell == Vector3i(70,20,40) and spring.intake == Vector3i(70,21,42) and is_equal_approx(float(spring.level), 22.0),
+		"the spring's stone drops with its ledge, and the spring keeps its mouth and level: %s" % [spring])
+	_expect(placed.cell == Vector3i(54,20,40) and placed.intake == placed.cell and is_equal_approx(float(placed.level), 21.0),
+		"a placed stone's water drops with it: %s" % [placed])
+
 
 func _review_ui() -> void:
 	explorer = load("res://scripts/ui/ObjectExplorerController.gd").new()

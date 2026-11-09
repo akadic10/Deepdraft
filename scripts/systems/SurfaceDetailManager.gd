@@ -419,10 +419,6 @@ func get_clearing_order_token(id: String) -> RefCounted:
 	return work.get_source(id)
 
 
-func stones_in_clearing_rect(rect: Rect2i) -> Array[String]:
-	return details_in_rect(rect, "clear_stones")
-
-
 ## Standing details whose footprint centre is in `rect` and that `tool` takes; "" takes all.
 func details_in_rect(rect: Rect2i, tool: String) -> Array[String]:
 	var result: Array[String] = []

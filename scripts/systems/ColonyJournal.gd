@@ -50,7 +50,7 @@ func check_thoughts() -> void:
 			now[thought.id] = float(thought.age)
 			if before == null: continue
 			if not (before as Dictionary).has(thought.id) \
-					or float(thought.age) < float(before[thought.id]) - float(config.get("renewed_hours", 0.5)):
+					or (not thought.get("steady", false) and float(thought.age) < float(before[thought.id]) - float(config.get("renewed_hours", 0.5))):
 				note(agent, thought)
 		_known[agent.dwarf_id] = now
 	for id: int in _known.keys():

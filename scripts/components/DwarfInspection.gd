@@ -36,7 +36,7 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting " + _tree_fruit_label(live_task)
 	if live_task != null and live_task.type == Task.Type.UPROOT_SHRUB: data.summary = "Uprooting shrub"
 	if live_task != null and live_task.type == Task.Type.FISH: data.summary = "Fishing"
-	if live_task != null and live_task.type == Task.Type.COLLECT: data.summary = "Taking down dried fish"
+	if live_task != null and live_task.type == Task.Type.COLLECT: data.summary = String(_batch_words(live_task).collecting)
 	var fetch := agent.fetch_source()
 	if fetch != null and fetch.has_method("advance_plant"):
 		data.summary = "Planting " + String(fetch.def.display_name).to_lower() if fetch.def.has("tree_species") \
@@ -146,8 +146,9 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			activity = "Fishing" if phase == Phase.FELL_WORKING else ("Going to fish" if phase == Phase.FELL_MOVING else "Finding a fishing spot")
 			explanation = "Casting from the shore; a catch lands at the dwarf's feet." if phase == Phase.FELL_WORKING else "Walking to a spot of the Fishing zone."
 		if task.type == Task.Type.COLLECT:
-			activity = "Taking down dried fish" if phase == Phase.FELL_WORKING else "Going to the drying rack"
-			explanation = "A day on the rack has dried them; they land beside it." if phase == Phase.FELL_WORKING else "Walking to the rack whose fish are dry."
+			var words := _batch_words(task)
+			activity = String(words.collecting if phase == Phase.FELL_WORKING else words.going)
+			explanation = String(words.collecting_why if phase == Phase.FELL_WORKING else words.going_why)
 		if task.type == Task.Type.UPROOT_SHRUB:
 			var plant_source := TaskManager.get_work_source(task.source_id)
 			var label := "flowers" if plant_source != null and plant_source.get("state").get("plant_kind") == "flower" else "a shrub"
@@ -464,3 +465,9 @@ static func task_is_shrub(agent: DwarfAgent) -> bool:
 static func _tree_fruit_label(task: Task) -> String:
 	var source := TaskManager.get_work_source(task.source_id)
 	return String(source.fruit_label) if source != null else "fruit"
+
+
+## How the batch a COLLECT task takes down words it (doc 297): dried fish or a cast copper bar.
+static func _batch_words(task: Task) -> Dictionary:
+	var source: Object = TaskManager.get_work_source(task.source_id)
+	return source.words() if is_instance_valid(source) and source.has_method("words") else preload("WorkshopBatch.gd").FISH_WORDS

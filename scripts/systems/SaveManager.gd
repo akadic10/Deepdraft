@@ -498,7 +498,7 @@ func request_load_save(id: String) -> bool:
 
 
 ## Deletes a save the Load page lists, the quick save and the autosave too, its backup with
-## it. The player's own saves go to the Recycle Bin; test storage deletes outright, so tests
+## it. The player's own saves go to the Trash; test storage deletes outright, so tests
 ## never fill the player's bin. A deleted save no longer counts as this colony's last save.
 ## False, with a notice, when nothing was deleted.
 func request_delete_save(id: String) -> bool:
@@ -519,7 +519,7 @@ func request_delete_save(id: String) -> bool:
 			_notify("%s could not be deleted (%s)." % [subject, error_string(error)], true)
 			return false
 	_colony_saves.erase(id)
-	_notify("%s is in the Recycle Bin." % subject if to_bin else "%s was deleted." % subject)
+	_notify("%s is in the Trash." % subject if to_bin else "%s was deleted." % subject)
 	return true
 
 
@@ -674,7 +674,10 @@ func _process(delta: float) -> void:
 
 
 func _tick_autosave(delta: float) -> void:
-	if is_saving() or not _world_ready_for_autosave():
+	# No autosave time passes while the game menu (or a load) holds the clock: nothing happens
+	# in the colony, and an autosave starting under the menu left its buttons out of step. The
+	# player's own pause still counts, since orders given while paused are worth saving.
+	if is_saving() or WorldClock.is_loading_held() or not _world_ready_for_autosave():
 		return
 	_autosave_elapsed_seconds += delta
 	if _autosave_elapsed_seconds < AUTOSAVE_INTERVAL_SECONDS:
@@ -850,9 +853,14 @@ func _capture_catalogs() -> Dictionary:
 	for key in CraftMaterials.definitions: materials[key]=true
 	var stats := {}
 	for id in DwarfAssets.stat_ids(): stats[id]=true
+	var professions := {}
+	for id in DwarfAssets.profession_ids(): professions[String(id)]=true
+	var traits := {}
+	for id: String in DwarfAssets.get_trait_data().get("traits", {}):
+		if not id.begins_with("__"): traits[id]=true
 	var catalogs := ContentRegistry.save_catalogs()
 	catalogs.merge({"blocks":blocks,"construction":construction,"woods":woods,"materials":materials,"appeal_words":RoomManager.appeal_word_ids(),
-		"stats":stats,"stat_steps":DwarfAssets.stat_steps()})
+		"stats":stats,"stat_steps":DwarfAssets.stat_steps(),"professions":professions,"traits":traits})
 	return catalogs
 
 
@@ -890,12 +898,19 @@ func _fail_load(message: String) -> bool:
 
 
 func _notify(message: String, is_error: bool = false) -> void:
+	# A failure's reason also goes to the log: the toast fades, and a bug report needs it.
+	if is_error:
+		push_warning("SaveManager: %s" % message)
 	if _dock_ui != null and is_instance_valid(_dock_ui) \
 			and _dock_ui.has_method("show_persistence_status"):
 		_dock_ui.call("show_persistence_status", message, is_error)
-	elif is_error:
-		push_warning("SaveManager: %s" % message)
-	else:
+		return
+	# The title screen has no dock: it shows the notice under its buttons (a load from Load
+	# game… that failed, a save deleted there).
+	var title := get_tree().get_first_node_in_group(TITLE_GROUP)
+	if title != null and title.has_method("show_notice"):
+		title.call("show_notice", message, is_error)
+	elif not is_error:
 		print("SaveManager: %s" % message)
 
 

@@ -14,6 +14,7 @@ func _run() -> void:
 	drops.spawn_drop(PINE,5,Vector3i(42,21,40))
 	await _busy_bench_keeps_turns()
 	await _late_wood_keeps_its_place()
+	_moves_within_its_section()
 	for failure in failures: push_error(failure)
 	print("CRAFTING_QUEUE_OK" if failures.is_empty() else "CRAFTING_QUEUE_FAIL")
 	quit(0 if failures.is_empty() else 1)
@@ -44,6 +45,19 @@ func _busy_bench_keeps_turns() -> void:
 	_expect(await _completed(ids[0]),"the top order finishes")
 	_expect(await _next_started()==ids[1],"then the next order down")
 	for id: int in ids: crafting.remove_order(id)
+
+## ▴ and ▾ move an order among its own section's orders, the list its page shows, never past
+## another career's order where nothing would change on screen (the project review, 2026-11-09).
+func _moves_within_its_section() -> void:
+	var first: int = crafting.queue_order(TORCH_RECIPE,1)
+	var other: int = crafting.queue_order("base:recipe:worker:tool_rack",1)
+	var last: int = crafting.queue_order(TORCH_RECIPE,1)
+	_expect(first > 0 and other > 0 and last > 0,"three orders, the middle one the Carpenter's")
+	crafting.move_order(last,-1)
+	var ids: Array = crafting.orders.map(func(order) -> int: return order.id)
+	_expect(ids.find(last) < ids.find(first) and ids.find(other) == 1,
+		"▴ moves the Worker's order above the Worker's order before it; the Carpenter's keeps its place: %s" % [ids])
+	for id: int in [first,other,last]: crafting.remove_order(id)
 
 func _late_wood_keeps_its_place() -> void:
 	var oak: Array[String] = [OAK]

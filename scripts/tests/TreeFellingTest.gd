@@ -473,6 +473,7 @@ func _check_axe_grips() -> void:
 
 
 func _check_stowed_axe(reason: String) -> void:
+	worker._rig.begin_frame()   # the true pose under any crossfade (doc 298)
 	_expect(not worker._felling_pose.axe.visible, "%s stows axe" % reason)
 	_expect(worker._hand_r.scale.is_equal_approx(Vector3(-1,1,1)) and worker._foot_r.scale.is_equal_approx(Vector3(-1,1,1)), "%s preserves mirrored hands and boots" % reason)
 	var offsets := {worker._hand_l:worker._rig.relaxed_hand(-1),worker._hand_r:worker._rig.relaxed_hand(1),worker._foot_l:Vector3(-.06,0,0),worker._foot_r:Vector3(.06,0,0)}

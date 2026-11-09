@@ -91,7 +91,7 @@ func tick(seconds: float) -> bool:
 		choice.seat.idle_seat_yaw_steps = choice.yaw
 	if choice.get("table") != null: choice.table.dining_claims[goal] = agent.dwarf_id
 	state = "walking"
-	travel_left = agent._food.start_walk(route.path)
+	travel_left = agent._food.start_walk(route.path, true)   # its route was checked for privacy
 	if agent.current_cell() == goal: walk_finished(true)
 	return state == "ready"
 
@@ -179,13 +179,18 @@ func pose(seconds: float) -> Vector3:
 	if not valid(): fallback()
 	var seat = choice.get("seat")
 	if seat == null: return Vector3.ZERO
-	var blend := smoothstep(0.0,.5,seconds)
+	var blend := smoothstep(.12,.6,seconds)
 	var base := agent.to_local(seat.node.global_position)
 	var settings: Dictionary = furniture.get_seating().chair_settings(seat)
 	var pose_data: Dictionary = settings.rest_pose
+	# The feet step to the seat, then the body lowers.
+	var feet := smoothstep(0.0,.28,seconds)
 	for pair in [[agent._body,"body"],[agent._head,"head"],[agent._foot_l,"left_foot"],[agent._foot_r,"right_foot"]]:
 		var values: Array = pose_data.get(pair[1],pose_data.body)
-		if is_instance_valid(pair[0]): pair[0].position = (base+Vector3(values[0],values[1],values[2]))*blend
+		if not is_instance_valid(pair[0]): continue
+		var foot: bool = String(pair[1]).ends_with("foot")
+		pair[0].position = (base+Vector3(values[0],values[1],values[2]))*(feet if foot else blend)
+		if foot: pair[0].position.y += sin(feet*PI)*.12
 	var body: Array = pose_data.body
 	# The meal's detached hands follow the surface without lifting the seated torso.
 	return (base+Vector3(body[0],body[1]+float(settings.get("meal_hand_lift",0)),body[2]))*blend

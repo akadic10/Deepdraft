@@ -103,10 +103,8 @@ func _rotate_primary_to_backup_if_valid(files: Dictionary) -> String:
 		_remove_if_exists(backup_stage_path)
 		return "staged backup validation failed: %s" % String(staged_result.get("error", "invalid file"))
 
-	var remove_error := _remove_if_exists(backup_path)
-	if not remove_error.is_empty():
-		_remove_if_exists(backup_stage_path)
-		return remove_error
+	# Renamed over the old backup in one step, never deleting it first: the filesystem's safe
+	# replace, so a power cut leaves the old backup or the new one, never neither.
 	var rename_error := DirAccess.rename_absolute(
 		backup_stage_path,
 		backup_path)
@@ -119,9 +117,7 @@ func _rotate_primary_to_backup_if_valid(files: Dictionary) -> String:
 func _replace_primary_with_temp(files: Dictionary) -> String:
 	var primary_path := String(files.get("primary", ""))
 	var temp_path := String(files.get("temp", ""))
-	var remove_error := _remove_if_exists(primary_path)
-	if not remove_error.is_empty():
-		return remove_error
+	# Renamed over the old primary in one step, as the backup is.
 	var rename_error := DirAccess.rename_absolute(
 		temp_path,
 		primary_path)

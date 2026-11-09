@@ -21,6 +21,9 @@ worker jobs, livestock ownership or crop cultivation are enabled by this UI pass
 **Spoilage (2026-10-29, doc 282 phase 2):** stored, loose and carried fruit spoils by
 temperature and open sky, and rots at the end; cool cellars keep it longest. See "Spoilage".
 
+**Food shelf (2026-11-06, doc 299):** the Carpenter's food shelf keeps six crates of food off the
+floor, and food keeps there as on the floor beside it. See "Spoilage".
+
 **Tree planting (2026-10-29, doc 284):** tree seeds plant through Place → Plants and grow to
 ancient. See Surface Trees, "Planting Seeds".
 
@@ -32,8 +35,8 @@ portion is carried for eating, surplus berries remain haulable, and interrupted 
 saves on the plant. The picker never clears or uproots the bush or skips its regrowth.
 Dining and hunger penalties are live; the eating and dining rules are in doc 41.
 Edibility/nutrition are explicit item data, so later cooked food and edible meats can
-share the same behavior. Fish are food the same way: perch, trout, char and cave fish keep 2
-days at 20°C, and a drying rack turns two of a kind into two dried fish that keep 30 (doc 289).
+share the same behavior. Fish are food the same way: perch, trout and cave fish keep 2
+days at 20°C, char 3, and a drying rack turns two of a kind into two dried fish that keep 30 (doc 289).
 At night a hungry dwarf grills a fresh fish on a burning campfire and eats it there, a meal by
 the fire (doc 290, `food.grill` marks the fish that grill); dried fish and fruit are eaten as
 they are.
@@ -129,13 +132,92 @@ cleared, which returns one cutting; construction or support loss removes it
 without a drop. Inspector **DEV: Grow to maturity** adds growth credit to that
 plant only, leaving the calendar and other crops unchanged.
 
+### Required future connection: bushes in a farming zone
+
+**From the owner, 2026-11-06:** "when we start with the farmer, bushes in a farming zone should
+get picked by the farmer." Planned, not live: the Farmer has no work yet, and Zones only reserves
+the Farming entry.
+
+- A bush inside a farming zone needs no order. The Farmer picks it as it ripens, with the same
+  crop work, yield and regrowth as any other pick.
+- Outside a zone nothing changes: **Harvest plants** and the inspector mark one crop, and the
+  pick clears the mark.
+- The owner declined a standing harvest order, where a marked bush stays marked while it regrows
+  until cancelled. Repeat picking comes from the Farmer instead.
+- To settle when the Farmer is built: whether fruit trees in a zone count too (the owner named
+  bushes, so trees stay on orders until then), and what happens when a zone ripens more than the
+  colony eats, since surplus fruit rots (see Spoilage).
+
+## Fishing
+
+Live 2026-10-31 (doc 289; Rangers since doc 292). Fish are the colony's second food after
+fruit: fresh fish spoil fast, and dried fish keep a month, a way to stock up for winter.
+`FishingSystem`, a scene node, owns the zones and each water's stock. The tuning is `fishing`
+in `task_config.json`, whose comment explains each value; its numbers are still to be settled
+in Play. The zone's tool and window are in doc 23, "Fishing Zones".
+- **Rangers fish,** one to a spot, and no other career does (doc 41, Profession System). A
+  water gives about the same food however many dwarves fish it, so every catch goes to a dwarf
+  who learns from it. From the owner (2026-11-01): "Fishing should feel fun and rewarding for
+  the player and it feels like a skill the dwarves should gain experience on." With no Ranger
+  in the colony a zone waits.
+- **A spot** is a shore cell a dwarf can stand on (Hard Rule 4) with water straight out from it
+  within `reach` blocks, at least `min_depth` deep, from the fisher's feet down to `bank_drop`
+  blocks below them (rivers run in channels), and never through ground. A cell over the lake or
+  a tarn, or with water on it, is refused, as are storage zones and furniture.
+- **The waters** (`fishing.waters`): the lowland lake gives perch, the river trout, a mountain
+  tarn char and the spring cave's pool pale cave fish. A cast cell belongs to the lake, then the
+  tarn, the pool, then the river, so where two meet the first wins, and a zone keeps to one
+  water. Water outside them, such as a pond the colony digs or floods, holds no fish. The cave
+  pool can be fished only once the cave is found (Hard Rule 11). A spot whose water drains
+  waits until it fills again, and a load keeps it: a zone whose water had drained at the save
+  comes back whole, with its Keep (2026-11-09).
+- **Stocks.** A water holds `stock_per_cell` fish for each of its cells and regrows
+  `regrowth_per_day` of its maximum a day. Below `fished_out_share` of that maximum the water
+  is Fished out and its zones post no work; from a tenth, it is full again in about 30 days.
+- **Keep.** While the colony keeps fewer of a zone's fish than its Keep (`keep_default`),
+  stored or loose, and its water isn't Fished out, each free spot posts one FISH lease (doc 31).
+  A Ranger already casting when the Keep is met, or the water is Fished out, lands that catch
+  and then stops (2026-11-09: the cast went on, sounds and all, with nothing to land).
+- **A catch** takes about a game hour (`catch_hours`) on a full water, give or take a seeded
+  `catch_spread`. Bites come at full speed in spring and autumn, slower in summer and at half
+  speed in winter (`season_speed`; water doesn't freeze), and up to `low_stock_factor` times
+  slower as the stock nears Fished out. Wisdom speeds the work (doc 41, "Stats"). The fish
+  lands at the fisher's feet, and haulers store it as they do fruit. A release mid-cast loses
+  nothing (Hard Rule 12), and a dwarf casting at a save casts again after loading.
+- **Each water's fish differ** (`fishing.waters`, shown in the zone's window as `trait`): the lake
+  holds the most fish, trout add 10 points to a Ranger's big-fish chance (`big_bonus`), char keep 3
+  days instead of 2, and the spring cave's fish bite at full speed all year (`seasonless`), so a
+  Ranger's winter patience adds nothing there.
+- **A calm job.** Each catch leaves a Ranger "A quiet hour by the water" (`mood.quiet_hour`, +3 for
+  8 game hours, renewed by the next catch), the first work that lifts a dwarf's mood. The journal
+  speaks only when it begins, not at each renewal.
+- **What limits it.** One fisher lands 12–15 fish a day at a full lake and about 5 near Fished
+  out, where a lake regrows about 5 a day. So one fisher takes all a water gives, more fishers
+  only empty it sooner, and only what each fish is worth can grow: a Ranger's levels make
+  catches bigger, not faster (doc 41).
+- **As food,** a fish is one portion and keeps 2 days at 20°C, or 3 for char (Spoilage). Dwarves eat it raw,
+  served whole, or grill it at a burning campfire (doc 41, "Grilling"). Rangers hang two of a
+  kind on a drying rack, where they dry for a day and don't spoil, then take them down as two
+  dried fish that keep 30 days (doc 44).
+- **The look.** Fish are look A, Chunky, to match the chibi wildlife: a big head, a bead eye, a
+  short deep body and a fan tail (`tmp/fishing_concepts_20261031/art/fish_sheet.png`). The rod
+  is a peeled sapling with rope lashings and a red-tipped float, Tier 1 with no iron, and a
+  catch shows four frames: cast, wait, bite and land (`DwarfFishingPose`). A big fish is a
+  heavier model of its own (concept B, `tmp/ranger_concepts_20261101/fish/big_fish_sheet.png`),
+  never a scaled fish, which would break the 1:16 grid (doc 63).
+- **Saves:** the `fishing` section keeps each zone's spots and Keep, and each water's stock
+  with the day it was counted (doc 13). Fish are ordinary items. Only a catch and a load
+  write a stock; reading one (`FishingSystem.stock`) never does. A load reads stocks before
+  the clock is restored, so a read that wrote would have moved the count's day, and the
+  water would have refilled once the clock caught up.
+
 ## Spoilage
 
 Live 2026-10-29 (doc 282 phase 2; `scripts/components/FoodSpoilage.gd`, owned by
 StockpileManager). Fruit spoils once harvested; fruit on the bush never does.
 - **Spoil.** Each food stack carries `spoil`, 0 fresh to 1 rotten: a stored stack in its
-  storage entry (`cell_stacks`, shown on its crate's node), a loose crate or a portion in hand
-  on its node (`ItemDropManager.spoil_of`). Splitting a stack copies it; putting goods
+  storage entry (a zone's `cell_stacks` or a food shelf's slot, shown on its crate's node), a loose
+  crate or a portion in hand on its node (`ItemDropManager.spoil_of`). Splitting a stack copies it; putting goods
   together (a deposit topping up a stack, fresh fruit landing on a loose crate, a basket
   collecting another) averages it by count.
 - **Crates of different freshness stay apart** (owner, 2026-10-29): goods further apart in
@@ -143,7 +225,9 @@ StockpileManager). Fruit spoils once harvested; fruit on the bush never does.
   allows, so fresh fruit never takes on a rotting crate's clock.
   - A stockpile deposit tops up a crate of like freshness, else takes an empty cell. Only
     when the stockpile has no empty cell does it top up the crate closest in freshness,
-    rather than leave the fruit outside (`StorageStackSlots.reserve`).
+    rather than leave the fruit outside (`StorageStackSlots.reserve`). Food already stored,
+    moving up to a better store or out of one that no longer takes it, never uses that
+    last step: it waits where it is for room (2026-11-09; `StoragePriorityTest`).
   - Fresh harvest landing on a loose crate spoilt past the band starts a crate of its own.
   - A hauler's basket collects only crates within the band of its first.
   - Hauling still asks only "is there room for apples?"; that answer never depends on
@@ -158,6 +242,18 @@ speed += 1.0 under the open sky          1.5 in rain, storm or snow, frozen or n
 spoil += speed / (24 × keeps_days) each game hour
 ```
 
+- **A food shelf changes nothing** (doc 299, accepted by the owner 2026-11-06): food on it keeps as on
+  the floor beside it, by the same temperature, roof and rain, read over the floor cell under its place.
+  An open rack has no reason to keep food better, the keeping times stay (owner, 2026-10-29), and
+  slower spoiling is for barrels and chests (`00_todo.md`, "Food keeping left for later"). A number could
+  be added later without other changes.
+  - **What it holds:** six crates of 24, 144 portions, twice what its three cells hold on the ground.
+    Five dwarves eat 15 portions a day, so a full shelf is about 10 days of food, and three hold a 21-day
+    winter.
+  - **A shelf in a warm place pulls food out of a cool one.** A shelf is at priority 4 and ground storage
+    at 5 (doc 31), and a store's priority never looks at temperature, so a shelf in the yard takes food
+    from a cellar floor and it spoils sooner. That is the player's to fix: put the shelf in the cellar,
+    or lower its priority. Its window's Keeping line says how long food keeps there.
 - **Keeping time** is item data: `food.keeps_days` in `resources.json`, the days a food
   lasts at 20°C under a roof. Wild strawberry 2, elderberry 2, blueberry 4, apple 15,
   juniper berry 40; each fresh fish 2 and dried fish 30 (doc 289). The rest is
@@ -166,6 +262,10 @@ spoil += speed / (24 × keeps_days) each game hour
   and food in hand, stay until used; food put down rots at the next hour if due (Hard Rule
   12 holds). Events says so, one line for each food in each place: "24 blueberries rotted in
   Stockpile 1.", "5 apples rotted on the ground."
+  On a food shelf: "24 apples rotted on the food shelf."
+  Rotten food is simply gone: there is no rotten item (owner, 2026-10-29). A rotted crate
+  leaves through `ItemDropManager.discard`, which takes it out of the tree at once, so no
+  storage search finds it before it is freed.
 - **Warning.** As a stack passes 75%, Events warns with the days it has left there:
   "Blueberries in Stockpile 1 are going bad: less than a day left."
 - **Eating order** prefers older food (doc 41 "Eating").
@@ -192,7 +292,11 @@ What it gives, with blueberries keeping 4 days and apples 15 days at 20°C:
 Elderberries keep about 5 days in a valley larder and 10 in the cellar under the summit:
 not a whole winter, which leaves room for brewing them into wine later. Kept cool, apples and
 juniper berries (about 110 days in a valley larder) last the winter. Today too few grow near
-a start to feed one (doc 282, "Open").
+a start to feed one: 10–25 apples and juniper berries an autumn within 48–64 blocks, against
+the 315 portions five dwarves eat in a 21-day winter. From the owner (2026-10-29): dwarves
+stock up for winter, and hunting comes later; the keeping times stay, and meat will carry its
+own `keeps_days`. Fishing and the drying rack (doc 289) give a way to stock up; the winter
+check is in `00_todo.md` (Food, "Winter food").
 
 ## Agricultural Cycles
 
@@ -227,7 +331,7 @@ These crops require no light and cannot survive on surface dirt. Dwarves expose 
 
 | Crop Key | Grow Time | Yield | Notes |
 |---|---|---|---|
-| `base:flora:plump_helmet` | 6 in-game days  | 4 food units    | Bulbous mushroom; primary underground food staple. Auto-reseeds from mycelium — no seed item needed. See `data/entities/flora/plump_helmet.json` |
+| `base:flora:plump_helmet` | 4.5 in-game days | 4 food units    | Bulbous mushroom; primary underground food staple. Auto-reseeds from mycelium — no seed item needed. See `data/entities/flora/plump_helmet.json` |
 
 ### Surface Crops (surface dirt — `base:terrain:surface:dirt`)
 
@@ -235,9 +339,9 @@ These crops require open sky above the farm block (no ceiling within 10 blocks) 
 
 | Crop Key | Grow Time | Harvest Season | Yield | Notes |
 |---|---|---|---|---|
-| `base:flora:pig_tail`    | 8 in-game days  | Any (annual — re-seed each spring) | 4× pig tail fiber + seed (40%) | Annual fibrous plant; source of cloth. See `data/entities/flora/pig_tail_plant.json` |
-| `base:flora:hops_plant`  | 11 in-game days | Any (dies in winter) | 5 hops + 2× cutting (60%) | Annual bine; re-seed each spring. See `data/entities/flora/hops_plant.json` |
-| `base:flora:grape_vine`  | 6 in-game days  | Summer / Autumn | 5 grapes + 1× cutting (25%) | Perennial vine; survives winter dormant. See `data/entities/flora/grape_vine.json` |
+| `base:flora:pig_tail`    | 6 in-game days  | Any (annual — re-seed each spring) | 4× pig tail fiber + seed (40%) | Annual fibrous plant; source of cloth. See `data/entities/flora/pig_tail_plant.json` |
+| `base:flora:hops_plant`  | 8.25 in-game days | Any (dies in winter) | 5 hops + 2× cutting (60%) | Annual bine; re-seed each spring. See `data/entities/flora/hops_plant.json` |
+| `base:flora:grape_vine`  | 4.5 in-game days | Summer / Autumn | 5 grapes + 1× cutting (25%) | Perennial vine; survives winter dormant. See `data/entities/flora/grape_vine.json` |
 
 #### Hops — Annual Crop
 
@@ -472,7 +576,7 @@ wine "Temperature out of range for wine — adjust heat sources or height.", gin
 
 A sealed room whose computed temperature is ≤ 0°C becomes a **Frozen Vault**. In today's
 climate only cellars just under the summit freeze, for about two weeks around winter's first
-day; nothing freezes all year (ice to keep a cellar frozen is a later idea, doc 282). Food
+day; nothing freezes all year (ice to keep a cellar frozen is a later idea, in `00_todo.md`). Food
 there spoils at a twentieth of its 20°C speed while it stays frozen ("Spoilage"). The Frozen Vault is too
 cold for any aging recipe (minimum 1°C required), so planned aging progress pauses until the
 room is warmed into range.
@@ -615,8 +719,9 @@ seed is kept if the plan is cancelled. `TreePlanting` holds the rules below;
   cuttings do: saved `growth_credit` plus `WorldClock.seasonal_days_between()` since
   `planted_at`, checked on the hour. A clock jump can take two stages at once.
 - **Growth waits for room.** A new stage needs its footprint × `clearance_height` to be level
-  ground and open air with no blocks, furniture, stockpile, loose items, dwarves or animals
-  in it; the tree's own trunk doesn't count. The panel says what is in the way. Growth also
+  ground and open air with no blocks, furniture or furniture plan, stockpile, ladder or other
+  placed thing, loose items, dwarves or animals in it (`TreePlanting.room_reason`); the tree's
+  own trunk doesn't count. The panel says what is in the way. Growth also
   waits while a felling or picking order is on the tree.
 - **Planted trees are trees.** They fell, drop logs and seeds, pick fruit and block dwarves
   like wild ones. A planted tree's id is its seed's column; its saved change carries

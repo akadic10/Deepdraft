@@ -44,6 +44,7 @@ func _run() -> void:
 	_gains()
 	_merging()
 	_kept_apart()
+	_gone_mid_pass()
 	_rotting()
 	_saves()
 	_eating_order()
@@ -317,6 +318,26 @@ func _store(cell: Vector3i, key: String, count: int, spoil := 0.0) -> void:
 
 
 ## Empties the zone and the ground.
+## A pass runs over several frames, so a crate can go before its turn (eaten, carried off): the
+## pass passes it by and spoils the rest (the project review, 2026-11-09: the freed crate stopped
+## that hour's pass with a script error).
+func _gone_mid_pass() -> void:
+	_clear()
+	drops.spawn_drop(APPLE, 3, YARD)
+	drops.spawn_drop(APPLE, 3, YARD + Vector3i(4, 0, 0))
+	var crates: Array = drops.loose_items()
+	_expect(crates.size() == 2, "two loose crates of apples")
+	if crates.size() != 2: return
+	spoilage._begin(24.0)
+	var gone: Node3D = crates[0]
+	drops.take(gone)
+	gone.free()
+	while spoilage._step(): pass
+	spoilage._finish()
+	_expect(drops.spoil_of(crates[1]) > 0.0, "a crate gone before its turn is passed by, and the next still spoils: %.2f" % drops.spoil_of(crates[1]))
+	_clear()
+
+
 func _clear() -> void:
 	for cell: Vector3i in zone.cell_stacks.keys():
 		var node: Node3D = drops.stored_node_at(cell)

@@ -172,6 +172,14 @@ Dwarves can step up a **maximum of 1 block** (0.5 m) without a jump animation:
 
 Dwarves step down up to 1 block without special animation, symmetrical to step-up.
 
+### Steps finish on their waypoint
+
+`current_cell()` rounds height, so from halfway through a step or rung the actor already counts as
+on the new floor. String pulling waits until the actor is level, so a step ends on its own waypoint
+before the walk shortcuts ahead. Otherwise the last of the height spreads over the whole line and the
+step pose runs for all of it. The pose also caps a step's ground at `LONGEST_STEP`, so no line can draw
+a foot far from the dwarf (`DwarfStepFeetTest`).
+
 ### Ladders (live 2026-10-09); stairs and ramps deferred
 
 Player-built wooden ladders register explicit rung supports and vertical edges
@@ -212,7 +220,8 @@ installed sections; cancelling a route
 with nothing built releases its claim. Dismantling works down from the top at 1.5
 seconds per section, waits for climbers to leave, drops each section as a loose item
 and can be cancelled. Terrain damage closes a route, waits for its occupants, then
-drops only the installed sections. If a lower support is mined away, an occupant
+drops only the installed sections. The route is rechecked after any chunk change near it, and
+any failure of that check (`describe()`), not only damage to its own blocks, closes it. If a lower support is mined away, an occupant
 settles down the clear column to the surviving ground; this never registers unpaid
 rungs. The `ladders` save section keeps each route's height, installed height,
 mode, section materials and partial work (roadmap 86).
@@ -260,6 +269,17 @@ uses the nearest goal height.
   cleanup. Failure clears the old walk before callbacks run, preserving any
   replacement route assigned by a callback. Unrelated changes do not start a
   fresh A* search when the current segment remains clear.
+- A ladder change clears the path cache, but a walk replans only if its remaining route
+  crosses a rung that changed (`NavGrid.ladder_change_touches`). Adding or removing a section
+  changes only those rungs, so a new ladder reroutes only a walk through them. The ladder's
+  foot cell is logged as changed too, so a walk through the foot also replans, needlessly
+  (known limit, the project review 2026-11-09). A
+  replan keeps the meal, game or promotion that owns the walk (`DwarfMovement._repath_walk`),
+  which hears only if no route is left. It keeps a walk's stop-short spot (doc 41) only when
+  the new route's last stretch is level.
+- A component that searched its own route (meals, foraging, games, a promotion's tool) starts
+  the walk with `DwarfAgent.start_route`, never by writing the path fields: that resets the
+  walk as `walk_to` does.
 - Task reachability uses **resumable A\* searches**. The configured
   `scheduler.probe_node_cap` (**1200**) limits one slice; the scheduler's time
   budget can yield earlier. An unfinished search resumes next wake without
@@ -293,9 +313,9 @@ unreachable destinations, replacement routes from failure callbacks, unrelated
 edits, and diagonal corner dependencies across chunk boundaries.
 It also compares A* costs against zero-heuristic searches on seeded terraces in
 both directions and on ordinary/faster ladders. This coverage did not establish
-the cause of the original mining-face visual-overlap report in
-[issue 002](../00_dev_roadmap/00_open_issues.md). Alen provisionally closed that
-report on 2026-10-12; reopen only if the player reports it again.
+the cause of the original mining-face visual-overlap report (issue 002, its write-up now in
+git history). Alen provisionally closed that report on 2026-10-12; reopen only if the player
+reports it again.
 
 ---
 

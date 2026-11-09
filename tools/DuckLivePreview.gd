@@ -6,7 +6,7 @@ func check(ok: bool,message: String) -> void:
 		errors.append(message)
 		push_error(message)
 func _run() -> void:
-	if not OS.get_environment("APPDATA").replace("\\","/").contains("/tmp/duck_review/"):
+	if not OS.get_user_data_dir().replace("\\","/").contains("/tmp/duck_review/"):
 		quit(2)
 		return
 	root.get_node("SaveManager").configure_storage_for_testing("user://duck_preview")

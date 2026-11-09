@@ -56,13 +56,9 @@
    "agent._follow_path": 1,
    "agent._idle_behavior": 2,
    "agent._ladder_exiting": 1,
-   "agent._ladder_path_revision": 2,
-   "agent._move_index": 2,
-   "agent._move_path": 3,
+   "agent._move_path": 1,
    "agent._release_for_assignment_change": 1,
-   "agent._reset_part_offsets": 3,
-   "agent._shortcut_timer": 1,
-   "agent._walk_cycle": 1
+   "agent._reset_part_offsets": 3
   },
   "scripts/components/DwarfFoodBehavior.gd": {
    "agent._carried_entries": 2,
@@ -71,34 +67,26 @@
    "agent._follow_path": 1,
    "agent._hand_l": 1,
    "agent._hand_r": 1,
-   "agent._ladder_path_revision": 1,
    "agent._mood": 1,
-   "agent._move_index": 1,
-   "agent._move_path": 3,
-   "agent._move_validation_index": 1,
+   "agent._move_path": 1,
    "agent._reset_part_offsets": 2,
-   "agent._shortcut_timer": 1,
-   "agent._walk_cycle": 1,
    "agent._work_execution": 1
   },
   "scripts/components/DwarfForaging.gd": {
    "agent._carry_pose": 1,
    "agent._follow_path": 1,
-   "agent._food": 7,
    "agent._move_path": 1,
    "agent._reset_part_offsets": 1,
    "owner._gather_contact": 1
   },
   "scripts/components/DwarfIdleBehavior.gd": {
    "agent._bob_phase": 2,
-   "agent._body": 1,
    "agent._carried_entries": 1,
    "agent._follow_path": 2,
    "agent._foot_l": 1,
    "agent._foot_r": 1,
    "agent._hand_l": 4,
    "agent._hand_r": 4,
-   "agent._head": 5,
    "agent._idle_bob": 1,
    "agent._reset_part_offsets": 3
   },
@@ -150,9 +138,6 @@
    "owner._heat_cells": 2,
    "owner._light_cells": 2,
    "owner._next_room_id": 1
-  },
-  "scripts/components/StorageComponent.gd": {
-   "origin._outgoing": 1
   },
   "scripts/components/WaterMeshBuilder.gd": {
    "flow._spans": 1

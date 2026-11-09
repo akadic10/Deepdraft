@@ -148,6 +148,7 @@ def assets(only=None):
     for category in ('stone','soil','ore'):
         for name in PROFILE[category]: hearthblock_add(category,name,lambda n=name:goods.mined(n))
     for name,colors in PROFILE['gems'].items(): hearthblock_add('gem',name,lambda c=colors:goods.gem(c))
+    for name in PROFILE['metal']: hearthblock_add('metal',name,lambda n=name:goods.metal(n))
     for name,material in PROFILE['timber'].items(): hearthblock_add('wood',name,lambda m=material:goods.log(m))
     def stave():
         v=Voxels(); block(v,(-2,0,-7),(2,2,7),'crate_board'); return v

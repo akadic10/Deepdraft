@@ -9,8 +9,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## builds again only the tiles within reach; moving the slice builds every tile again at the
 ## new cut. A cave the colony has not found stays rock until found (Hard Rule 11). The hover
 ## card names the spot, its temperature and word, what sets it and its year; a click on a
-## room's floor opens the room window. The Appeal view and this one take turns, and turning it
-## off takes everything away.
+## room's floor opens the room window, which stays on that room when rooms are found again.
+## The Appeal view and this one take turns, and turning it off takes everything away.
 ## The places: a hut with a hearth on the plain, and a stone hill east of it with a tunnel into
 ## its west face, a room behind a door and a cave nobody has found.
 const HUT_FLOOR := Vector3i(62, 21, 62)
@@ -285,6 +285,18 @@ func _hover_and_click() -> void:
 	_expect(view.try_select_zone_at_screen(floor_point), "a click on a room's floor is the view's")
 	await _frames(3)
 	_expect(room_tool._window_panel.visible, "it opens the room window")
+	# Rooms are found again whenever a dwarf mines or a chunk streams in. The hut keeps its id
+	# and its name, and the window stays on it; a window holding an id no room has any more
+	# finds its room again from the floor clicked (the project review, 2026-11-09).
+	var title: String = room_tool._window_panel._title_label.text
+	rooms._rebuild_all_rooms()
+	room_tool._refresh_window()
+	_expect(rooms.get_room_id_at(HUT_FLOOR) == id and room_tool._window_panel.visible and room_tool._window_panel._title_label.text == title,
+		"a room found again keeps its id and its name, and its window stays open: %s" % room_tool._window_panel._title_label.text)
+	room_tool._selected_room_id = id + 1000
+	room_tool._refresh_window()
+	_expect(room_tool._window_panel.visible and room_tool._selected_room_id == id,
+		"a window holding an id no room has finds its room again from the floor clicked")
 	room_tool._close_window()
 	_expect(not view.try_select_zone_at_screen(cut_point), "a click on the cut rock is not the view's")
 

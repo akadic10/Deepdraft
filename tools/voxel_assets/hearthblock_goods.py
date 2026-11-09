@@ -124,6 +124,26 @@ def gem(colors):
     return v
 
 
+# ── Metal: the Blacksmith's copper (doc 297) ────────────────────────────────────
+def metal(name):
+    """A copper bar is a rough casting from the smelter's stone mould, wider at the foot,
+    its top lit and its ends dark. A copper fitting is a square band with four rivets."""
+    c = {k: linear(h) for k, h in ITEMS['metal'][name].items()}
+    v = Voxels()
+    if name == 'copper_bar':
+        notched(v, (-7, 0, -3), (7, 2, 3), c['body'], 1)
+        notched(v, (-6, 2, -2), (6, 4, 2), c['body'], 0)
+        paint(v, (-6, 3, -2), (6, 4, 2), c['light']); paint(v, (-7, 0, -3), (7, 1, 3), c['shade'])
+        paint(v, (-7, 0, -3), (-6, 4, 3), c['shade']); paint(v, (6, 0, -3), (7, 4, 3), c['shade'])
+        v.cells[-3, 3, -1] = c['body']; v.cells[2, 3, 0] = c['body']    # the casting's pocks
+        return v
+    notched(v, (-6, 0, -6), (6, 3, 6), c['body'], 1)                # the band
+    carve(v, (-4, 0, -4), (4, 3, 4))
+    paint(v, (-6, 2, -6), (6, 3, 6), c['light']); paint(v, (-6, 0, -6), (6, 1, 6), c['shade'])
+    for x, z in ((-5, 0), (4, 0), (0, -5), (0, 4)): v.cells[x, 3, z] = c['rivet']   # four rivets standing proud
+    return v
+
+
 # ── Logs: the Tier 1 stool on its side ──────────────────────────────────────────
 def log(material_id):
     """The axe-hewn stool on its side, cut end toward the front, in this wood's own

@@ -1,0 +1,48 @@
+{
+  "__comment": [
+    "The food shelf (doc 299, concept A, the lean-to rack; owner's pick 2026-11-06): at each end a bark post with a pole leaned against it and lashed at the top, rails lashed across them at two heights, split poles laid on the rails, within its 3 x 1 footprint. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Carpenters make it at the carpenter's bench from two matching logs; it keeps their wood. It stands on the floor, its front to the room, and dwarves reach in from any side.",
+    "storage (ContainerStorageComponent): it holds food (stockpile_food, edible_only: only what dwarves eat, so hops, grapes and pig tail stay off its list), one crate to each of its six places, three to a deck, starting at priority 4, ahead of ground storage. Food keeps there as it would on the floor beside it (doc 42, Spoilage). The anchors are the places on its decks, in footprint-local blocks from the back-left floor corner, the upper deck first: it fills first, because the camera sees it from every side. straight: crates all stand the same way, since a turned crate would hang off the shallow upper deck."
+  ],
+  "furniture_key": "base:furniture:food_shelf",
+  "furniture_category": "storage",
+  "display_name": "Food Shelf",
+  "description": "Bark posts, leaning poles and lashed rails with split poles laid on them. It keeps six crates of food off the floor, three to a deck.",
+  "model": "res://assets/models/furniture/food_shelf.glb",
+  "item_key": "base:resources:furniture:food_shelf",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 3,
+    "depth": 1
+  },
+  "collision_regions": [
+    {
+      "min": [0, 0, 0],
+      "max": [3, 2.5, 1]
+    }
+  ],
+  "storage": {
+    "accepts": ["stockpile_food"],
+    "edible_only": true,
+    "capacity": 6,
+    "slot_word": "places",
+    "slot_good": "One crate of food",
+    "priority": 4,
+    "straight": true,
+    "anchors": [
+      [0.5625, 1.9375, 0.3125],
+      [1.5, 1.9375, 0.3125],
+      [2.4375, 1.9375, 0.3125],
+      [0.5625, 0.75, 0.6875],
+      [1.5, 0.75, 0.6875],
+      [2.4375, 0.75, 0.6875]
+    ]
+  },
+  "material_group": "wood",
+  "material_palette": "hand_hewn_timber",
+  "appeal": {
+    "design": 1,
+    "material_factor": 0.5
+  }
+}

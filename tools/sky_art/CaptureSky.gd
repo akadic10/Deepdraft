@@ -3,7 +3,7 @@ extends "res://tools/terrain_art/CaptureTerrain.gd"
 ## Native production-scene sky review. Never uses the player's save directory.
 func _run() -> void:
 	if not "/sky_art_20261013/" in OS.get_user_data_dir().replace("\\", "/"):
-		push_error("Sky review requires isolated APPDATA"); quit(2); return
+		push_error("Sky review requires an isolated user:// profile"); quit(2); return
 	create_timer(300).timeout.connect(func(): push_error("Sky review timed out"); quit(1))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	root.size = Vector2i(1600, 1000)

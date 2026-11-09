@@ -1,6 +1,6 @@
 extends "res://scripts/tests/SaveManagerRoundTripTest.gd"
 
-## Review a copied player save in isolated APPDATA. Never writes to the source.
+## Review a copied player save in an isolated user:// profile. Never writes to the source.
 const OUT := "res://tmp/room_audio_20261013/"
 class Listener extends Node3D:
 	var context := {}

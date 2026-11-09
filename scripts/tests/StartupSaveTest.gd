@@ -1,7 +1,7 @@
 extends "res://scripts/tests/SaveManagerRoundTripTest.gd"
 
 ## Run --prepare, then --resume in a separate process with the same isolated
-## APPDATA. The second run exercises actual first-boot autoload ordering.
+## user:// profile. The second run exercises actual first-boot autoload ordering.
 var failures: Array[String] = []
 var renderer_count := 0
 var initial_clock: Dictionary

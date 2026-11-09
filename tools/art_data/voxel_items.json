@@ -15,6 +15,20 @@
     "gold_ore",
     "coal"
   ],
+  "metal": {
+    "copper_bar": {
+      "body": "C0703A",
+      "light": "E09A5C",
+      "shade": "8A4A26",
+      "rivet": "6E3A1F"
+    },
+    "copper_fitting": {
+      "body": "C0703A",
+      "light": "E09A5C",
+      "shade": "8A4A26",
+      "rivet": "6E3A1F"
+    }
+  },
   "gems": {
     "jade_raw": [
       "245C45",

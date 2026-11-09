@@ -1,12 +1,12 @@
 extends "res://scripts/tests/SaveManagerRoundTripTest.gd"
 
-## Supply a copied save in this review's isolated APPDATA/save_copy directory.
+## Supply a copied save in this review's isolated user://save_copy directory.
 const OUT := "res://tmp/ledge_door_20261013/"
 const COPPER := "base:resources:ore:copper"
 
 func _run() -> void:
 	if not "/ledge_door_20261013/" in OS.get_user_data_dir().replace("\\", "/"):
-		_fail("Ledge review requires isolated APPDATA"); return
+		_fail("Ledge review requires an isolated user:// profile"); return
 	create_timer(240).timeout.connect(func(): _fail("Ledge review timeout"))
 	root.size = Vector2i(1600,900)
 	_save_manager = root.get_node("SaveManager")

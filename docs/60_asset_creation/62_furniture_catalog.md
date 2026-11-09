@@ -27,10 +27,13 @@ Footprints are width × depth in blocks. Heat values come from each definition's
 | Board-game Table | `board_game_table` | 3×3 | The same table with a board scratched into the top and six counters | Solo or two-player games for happiness |
 | Crude Workbench | `crude_workbench` | 3×3 | One great squared stump with root flare, bark, growth rings, a crack and a chopping notch | Worker crafting from any open side |
 | Drying Rack | `drying_rack` | 2×1 | Two forked bark posts on root flares with a peeled pole lashed into the forks, bare when idle; while a batch dries, three dried fish (look A, split along the belly) hang head down from cords (`parts/drying_rack_fish`) | The Ranger's workbench: Rangers make it and hang two fresh fish of one kind on it, by hand, from either long side; they dry for a day, then a Ranger takes them down as two dried fish (docs 289, 292) |
-| Carpenter's Bench | `carpenter_bench` | 3×1 | The owner's picture, peeled (doc 293, A): a thick slab, half a great log hewn flat on top, on four peeled log legs braced low with round log rails across both ends and a little higher along both sides; knots trimmed flush, end grain at every cut | The Carpenter's workbench, work top at 1.125: Carpenters make it from three matching logs at the crude workbench (doc 293) |
+| Carpenter's Bench | `carpenter_bench` | 3×1 | The owner's picture of a log workbench (`tmp/mason_carpenter_concepts_20261101/reference_workbench.webp`), peeled (doc 293, A): a thick slab, half a great log hewn flat on top, on four peeled log legs braced low with round log rails across both ends and a little higher along both sides; knots trimmed flush, end grain at every cut | The Carpenter's workbench, work top at 1.125: Carpenters make it from three matching logs at the crude workbench (doc 293) |
 | Tool Rack | `tool_rack` | 3×1, on a wall | Half a split log, its round back to the wall and its split face out, lashed with rope to two wall pegs, with three stout pegs driven in and angled up (doc 294, B); it hangs 2 blocks up over its three floor cells | Holds three tools, one hung upright on each peg, at storage priority 4 (ahead of ground storage). Carpenters make it at the carpenter's bench from one log; it needs a wall behind it as high as it is (3 blocks), and falls with its tools when that wall is mined |
 | Raw Materials Crate | `raw_materials_crate` | 2×2 | A log crib (doc 294, A): two courses of notched bark logs crossing at the corners, open on top, inside its footprint | Holds twelve raw goods (Rough Stone, the ores and coal, soil), three to each quarter, at storage priority 4; each filled quarter shows one of its goods over the rim. Carpenters make it at the carpenter's bench from two matching logs |
+| Finished Goods Pallet | `finished_goods_pallet` | 2×2 | Log skids (A, the owner's pick, 2026-11-02): split poles laid across two log runners, split face up, lashed at the ends, inside its footprint | Holds four pieces of packed furniture, one to each quarter, at storage priority 4; each filled quarter's piece stands on the deck. Carpenters make it at the carpenter's bench from two matching logs (doc 296) |
+| Food Shelf | `food_shelf` | 3×1 | A lean-to rack (A, the owner's pick, 2026-11-06): at each end a bark post with a pole leaned against it and lashed at the top, rails lashed across them at two heights, split poles laid on the rails, split face up. The lean sets the upper deck back, so both rows of crates show from above; it faces +Z, and from behind the upper row hides the lower | Holds six crates of food, three to a deck, at storage priority 4; food keeps there as on the floor beside it. Carpenters make it at the carpenter's bench from two matching logs (doc 299) |
 | Mason's Bench | `mason_bench` | 3×1 | A split stone slab in the Rough Stone's own greys across two bark log stumps set in from the ends, with stone chips at their feet | The Stonemason's workbench, work top at 0.9375: Stonemasons make it from a log and three Rough Stones at the crude workbench; no wood recolours it (doc 293) |
+| Basic Smelter | `basic_smelter` | 2×1 | A squat bowl furnace of three stone courses stepping in, their joints daubed with soil, a fire mouth under a lintel stone at the front and a clay crucible sunk in the open top; beside it a flat casting stone in the Rough Stone's greys with two bar moulds cut in its top. While a batch is on, glowing copper, coals and two cast bars show (`parts/basic_smelter_charge`) | The Blacksmith's workbench, casting top at 0.375: Blacksmiths make it from a log, four Rough Stones and a Soil at the crude workbench; two copper ore and a coal melt in it into one copper bar, and it heats its room only while it melts (doc 297) |
 | Log bed | `log_bed` | 4×3 | Notched log frame with flat hay under the sleeper | One sleeper; counts toward bedrooms |
 | Log door (2, 3 wide) | `door`, `log_door_3` | 2×1, 3×1 | Vertical split slabs with stepped chopped tops, pegged battens, rope lashing and a rope pull | Opens on approach; seals rooms |
 | Double log door | `log_door_4` | 4×1 | Two such leaves | Leaves swing apart; seals rooms |
@@ -98,6 +101,9 @@ are kept for better doors in later tiers (owner, 2026-10-12).
 
 **Fences and gates** (doc 277; `placement: grid_fence`, `GridFence.gd`, a helper of
 `FurniturePlacementController`):
+- **Tiles, not corners.** Fences first stood on grid corners, between voxels (doc 201). On
+  2026-10-27 the owner called that a mistake and chose posts centred on tiles, with a gate of
+  one open tile between two posts.
 - A Log Fence Post stands in the middle of the tile under the pointer and blocks that
   tile, like a stool; the tiles beside it stay walkable. Its tile takes the
   floor-furniture tile rule (solid floor, three blocks of headroom, no zone, furniture or
@@ -148,6 +154,18 @@ step calls for. Planned pieces without a design yet include:
 
 Rugs, pelts and fitted carpets are a separate future category.
 
+**The finished goods pallet** is built (doc 296, in the table above). The owner chose to build
+it with today's finished goods, packed furniture, one to each quarter (2026-11-02). Metal bars,
+dressed stone and planks join it when they exist; its first plan held twelve of those, three to
+each quarter (`00_todo.md`, "The finished goods pallet's later goods").
+
+**The food shelf** is built (doc 299, in the table above), from three concepts of 2026-11-06: A the lean-to
+rack, B two half logs on wall pegs, C log rounds with half logs across. **A piece with decks sets the upper
+one back.** From the owner's camera (64° down in their save, zoom 30) a deck straight above another hid
+every crate on it in the first round. The lean makes the upper deck 10 cells deep against the lower's 16,
+so both rows show from the front. It fills the upper deck first, the one the camera sees from every side.
+From behind, the upper row hides the lower, so the player turns it to face the room with R when placing it.
+
 ## 2. Stonehearth's catalogue (enumerated from source, 2026-07-11)
 
 SH reaches its volume by multiplying a small archetype set by **material**
@@ -185,9 +203,9 @@ will return with player crafting.
 ### Where Deepdraft matches the SH shape
 
 - **The storage ladder:** barrel 8 → chest 24 → a future vault class. Doc 19 tracks
-  SH's crate 8 → 32 → vault 256 deliberately. The container code was deleted on
-  2026-10-22 because no furniture used it (doc 258); build it fresh with the barrel
-  and chest milestone.
+  SH's crate 8 → 32 → vault 256 deliberately. The container code, deleted on
+  2026-10-22 (doc 258), came back with the tool rack and the raw materials crate
+  (`ContainerStorageComponent`, doc 294); barrels and chests build on it.
 - **Room-anchor furniture:** the trade counter matches SH's market and stall function.
   The tavern bar, armor stand and wall display follow the same "furniture defines the
   room" pattern.

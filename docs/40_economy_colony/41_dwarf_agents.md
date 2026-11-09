@@ -21,7 +21,7 @@ and contribute only the stronger bonus. An occupied table searches up to 48 rout
 blocks for a companion under the existing bounded probe budget. The six-hour cooldown
 and needs/work/privacy rules still apply. Separate optional solo memory persists
 without changing old social memories.
-- **The board.** The Board-game Table (Rudimentary → Recreation, Place → Recreation)
+- **The board.** The Board-game Table (Crafters → Carpenter → Recreation, Place → Recreation)
   keeps a 3 × 3 game area with two opposite stool guides just outside it, for log or
   stone stools (3 × 5 with both stools). Stools on those guides are game seats: dining and idle sitting skip them,
   and they become ordinary seats when the table goes.
@@ -119,6 +119,8 @@ equal spoil the nearest wins, as before. Stored food still comes before loose fo
 Rotten food a dwarf has claimed or holds is eaten as usual; there is no sickness yet.
 - **Search and claims** (`DwarfFoodBehavior`): storage first, then allowed loose food, at
   each source's real withdrawal stands, moving on when a closer source is unreachable. A
+  dwarf on a job searches while it keeps working, and leaves the job, dropping any cargo, only
+  once the search has found food with a route to it, or ripe berries if it is famished. A
   failed search gives its reason and retries after `retry_hours` while the dwarf works.
   Several dwarves can claim different portions of one crate. Hunger, the last meal and
   its arrangement save; a portion in hand uses the carried-item save, and claims are
@@ -133,6 +135,9 @@ Rotten food a dwarf has claimed or holds is eaten as usual; there is no sickness
   on a stick (`food.grilling.grill_seconds`, `DwarfGrillPose`) and eats it off the stick; the
   meal fills as the raw fish would and adds Rest and a memory (below). No fish, no room at the
   fire or a fire beyond reach make an ordinary meal; a release drops the raw fish.
+  It is a meal, not a craft: no order, no profession and no stored grilled fish. No one lights
+  a fire to cook, so by day or at a cold fire the meal is ordinary, and dawn doesn't stop a
+  grill already under way. Only the campfire grills so far (`00_todo.md`, Food).
 - **Dining** (`DwarfDining`): the diner considers seats and tables within
   `food.dining_distance` (32) walking blocks of where it took the food. It checks seats
   one per frame, nearest first, and routes the first seat at a table it finds; a seat
@@ -162,7 +167,9 @@ one actual game hour asleep; strongest thermal penalty only, lasting 24 hours (d
   are shared. A room that is unsealed, or has lost its bed or light, follows ordinary
   rules.
 - **What it covers.** Wandering, chair choice, dining and game seats, ground sleep and bed
-  routes, including their string-pulled shortcuts; a bed search may take a public detour.
+  routes, including their string-pulled shortcuts; a bed search may take a public detour. A
+  walk to a meal's seat or a game keeps out when it replans or takes a shortcut too
+  (`DwarfMovement.leisure`, set by `start_route(path, true)`; 2026-11-09, `BedroomPrivacyTest`).
   Ordinary work routes and doors stay unrestricted (doc 32).
 - **Leaving.** A dwarf idling or about to sleep in a room it may not use walks out first;
   it is never teleported or put to sleep there. Rest and work can interrupt the walk, and
@@ -245,7 +252,7 @@ simulation agents. Developer controls moved to Development.
 swings and visible implicit axe/pick models. Both use shared grip and mirrored-part
 reset handling; mining aims across its full existing vertical reach and underfoot.
 Work poses stow on task transitions. Mining honors WorldClock pause/speed while
-preserving authored hardness/durability work totals. Axe/pick contact crossings
+preserving authored hardness work totals. Axe/pick contact crossings
 trigger procedural positional sounds through `WorkFeedback`; mining also emits
 small contact chips. Successful tree/block removal triggers completion dust from
 the owning world system. Sounds follow camera focus/zoom; particles follow
@@ -261,6 +268,9 @@ Walking now covers 3.4 blocks/second at normal speed (previously 2.2), with
 gentle torso/head counter-motion. Movement honors clock speed; heavy carrying
 and ladders retain their multipliers. The existing floating-part silhouette and
 logical 1×1×3 navigation clearance are unchanged.
+
+The body climbs behind the rails, because the head is wider than the ladder, and the hands reach over
+the head onto the rails, never above the ladder's top.
 
 On a ladder a dwarf faces the wall and alternates hands and feet at the ladder's
 `climb_speed_multiplier` (0.45 for the rough ladder), with the heavy-carry slowdown on
@@ -459,6 +469,9 @@ rate, equal drain at every speed, pause/zero speed and the accelerated sleep int
 - **Rest by the fire (2026-10-31, doc 290):** a meal grilled at a burning campfire adds 0.05
   to the meter (`food.grilling.rest`), the only rest a dwarf gets awake. The sheet's Rest row
   says "Rested by the fire" for two game hours after.
+  From the owner (2026-10-31): "dwarves may take a fresh fish and grill it on the campfire,
+  which should replenish their hunger, give them some rest and make them happy". The Rest stays
+  small, about 1.2 waking hours a meal, so grilled meals never stand in for sleep.
 - **Alcohol levels**: Drinking one unit of ale raises `alcohol` by `+0.15`. Alcohol drains at `−0.02 / s`. Dwarves **will not** voluntarily drink above `0.80`.
 
 ### Need Resolution Priority
@@ -530,6 +543,33 @@ DwarfAgent (CharacterBody3D)
 ```
 
 Equipment meshes (helmets, chest armour, boots, weapons) are **child nodes** of the relevant part — a helmet is a child of `MeshHead`, chest armour a child of `MeshBody`, and so on. Equipping or unequipping gear is simply adding or removing those child nodes.
+
+**Clip changes crossfade (doc 298).** `DwarfBodyRig` eases from what was last on screen over 0.18 s
+of game time whenever a clip changes: `reset_part_offsets` starts it, and `blend_pose` starts it
+for a change without a reset. Clips still write their true pose each frame; `begin_frame` puts it
+back before the next clip runs, so tests that read a pose straight after `_process` call
+`begin_frame` first. Hands work outside the head and body: the head is about ±1 wide, the body
+about ±0.875, and targets for hand work belong at arm's length (`DwarfWorkExecution.HAND_WORK`).
+An idle dwarf with a block at head height ahead and room behind is drawn 0.3 back
+(`DwarfBodyRig.STAND_BACK`), so its head stays out of the wall; the actor keeps its cell centre.
+After tool work (mining, felling, boulders, building, bench work) a dwarf stays drawn where it worked
+until it next walks. The walk starts from that spot: `leave_work_spot` moves the actor there unseen,
+into the cell behind only if it is walkable. The crossfade grows with the body's distance, up to 0.6 s,
+and a move of 0.2 block or more with no walk steps there, one foot at a time (`_stepped`).
+A walk to felling, boulder, mining, building or bench work ends on that drawn spot too (`stop_short_of`,
+`arrive_at`), and the actor then moves unseen to the cell centre, where the job's stand checks expect
+it. Only a level last stretch does this: a spot behind a step hangs over the lower floor, and the
+support check would drop the dwarf. The spot belongs to that walk alone:
+- abandoning the walk drops it (`clear_path`);
+- a route a component searched itself (a meal, foraging, a game, a promotion's tool) starts with
+  `DwarfAgent.start_route`, which leaves the work spot and drops any old stop-short spot, as
+  `walk_to` does;
+- a replanned walk keeps the spot only if its new last stretch is level too.
+
+Otherwise a hungry dwarf pulled off a walk to its stand heads for the old spot at the end of the
+meal's walk, and is then moved unseen to the route's end with its body drawn blocks away.
+`leave_work_spot` moves the actor only if a clear line leads back to its cell centre, as an actor
+pressed against a block cannot start a walk.
 
 > **Agent note:** Never merge dwarf part meshes into a single combined mesh. The four-part separation is required for equipment attachment and procedural animation. Keep each part as an independently addressable `MeshInstance3D`.
 
@@ -773,6 +813,8 @@ plants, or two broad leanings known from the start (2026-10-25).
 - **Given at birth, kept for life:** one love, two likes and one dislike (`counts`). They
   are dealt by DwarfFactory from the dwarf's own seed, after every other roll, so the
   same world gives each dwarf the same tastes.
+  Adding a thing to `tastes.json` changes the hand a seed deals new dwarves (the stone stool
+  did, 2026-11-01); dwarves in saves keep theirs.
 - **Found by using:** a taste is "?" until the dwarf meets the thing:
   - the bed, after a full night in it (DwarfAgent, before the room's thought);
   - the seat and table of a meal (`DwarfDining.used_pieces()`);
@@ -849,8 +891,8 @@ word; fixed at birth; the ledger on the Traits tab, chosen from three concepts (
   slower below, so Excellent works at ×1.12 and Poor at ×0.88. A stat names the kinds of
   work it speeds (`work` in stats.json; `DwarfAssets.work_rate`, `DwarfAgent.work_rate`):
   - **Strength:** mining blocks (each swing is shorter, for Miners and Workers alike),
-    felling trees, clearing stones, and a Stonemason's crafting (`stonework`, the career's
-    `craft_work`, doc 293);
+    felling trees, clearing stones, and a Stonemason's or a Blacksmith's crafting
+    (`stonework`, the career's `craft_work`, docs 293 and 297);
   - **Wits:** every other career's crafting at a bench, and building blocks and ladders;
   - **Wisdom:** fishing (doc 289): each catch comes that much sooner.
   It multiplies with hunger's slowdown and the levels (the Miner's digging, the Carpenter's
@@ -912,7 +954,7 @@ health to show from the start, full until something can hurt a dwarf.
 
 ## Profession System
 
-Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. Change profession (on the character sheet's Profession tab or Colony Dwarves' Details card) opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit, Stonemason of a crude masonry kit (doc 293) and Ranger of a Ranger's kit (a spear bound to a fishing rod). Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases; Ranger experience counts catches; Carpenter and Stonemason experience counts batches made on their own page. Per-dwarf work permissions are independent of the active profession.
+Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. Change profession (on the character sheet's Profession tab or Colony Dwarves' Details card) opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit, Stonemason of a crude masonry kit (doc 293), Blacksmith of a stone hammer (doc 297) and Ranger of a Ranger's kit (a spear bound to a fishing rod). Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases; Ranger experience counts catches; Carpenter, Stonemason and Blacksmith experience counts batches made on their own page. The Blacksmith practises on copper: iron will need Blacksmith level 2 (owner, 2026-11-02). Per-dwarf work permissions are independent of the active profession.
 
 The live rules (doc 96):
 - **Who can be assigned.** Only professions with `promotion_enabled`, from the career map
@@ -937,6 +979,9 @@ The live rules (doc 96):
   before anything else, then the common work keeps its usual priorities
   (`TaskScheduler.takes`). Only orders the dwarf could make hold them: a Worker's order never
   keeps a Carpenter from hauling.
+  They keep the common work, unlike the Ranger: nothing ties them to one place, and a small
+  colony can't spare idle hands, so a Carpenter with nothing to make fells the trees that feed
+  the bench.
 - **Work permissions** (`work_permissions` in professions.json: Haul, Gather, Mine, Build,
   Craft and Fish, each listing its task types) are saved per dwarf and kept across careers;
   a category with no entry is allowed. Unticking one releases a current job of that kind.
@@ -996,15 +1041,15 @@ profession's primary tasks (5% unless noted), so level 5 is 20% faster and level
 |---|---|---|---|
 | Worker | `HAUL`, `CLEAR_RUBBLE`, `COLLECT_FLOOR_ITEMS`, `CRAFT` | — | Base profession; cannot be removed. Planned: haul speed improves with level |
 | Miner (live) | `MINE`, `CLEAR_RUBBLE`, `HAUL_ORE` | — | Live: digging speed. Planned: level 3 spots ore before it is fully exposed; level 6 small chance of bonus ore or gem fragments |
-| Farmer | `PLANT_SEED`, `TEND_FARM`, `HARVEST_CROP`, `TEND_BEEHIVE`, `COLLECT_HONEY` | — | Yields improve at levels 2 and 4; level 6 occasional double harvests |
+| Farmer | `PLANT_SEED`, `TEND_FARM`, `HARVEST_CROP`, `TEND_BEEHIVE`, `COLLECT_HONEY` | — | Picks the bushes inside a farming zone without an order (owner, 2026-11-06; doc 42, "Required future connection: bushes in a farming zone"). Yields improve at levels 2 and 4; level 6 occasional double harvests |
 | Brewer | `BREW`, `LOAD_AGING_CELLAR`, `COLLECT_AGING_CELLAR`, `WEAVE_CLOTH` | — | Not on the career map. Level gates recipes (see Recipe Gates); level 6 gives a 10% chance of a bonus output unit |
 | Builder | `BUILD_BLOCK`, `DEMOLISH_BLOCK`, `PLACE_FURNITURE`, `REMOVE_FURNITURE` | — | Not on the career map. Level 6 gives buildings a small structural-integrity bonus |
 | Merchant | `STAFF_TRADE_COUNTER`, `COLLECT_SHOP_COINS`, `RESTOCK_SHOP_STORAGE` | Shop | Not on the career map. +2% sale price per level instead of speed; see `51_visitors.md` |
 | Innkeeper | `SERVE_DRINK`, `SEAT_GUEST`, `COLLECT_NIGHT_STAND_COINS`, `RESTOCK_TAVERN_STORAGE` | Tavern | Not on the career map. +1 coin lodging fee per level; see `51_visitors.md` |
-| Carpenter (live) | `CRAFT` (the Carpenter's page) first, then the common work | — | Live (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md)): promotes with a carpentry kit and makes its own carpenter's bench, a peeled log workbench, at the crude workbench, a stone adze in hand. Levels: 5% less crafting time. Planned: its first goods (to choose); planks and Tier 2 pieces wait for the iron saw and a joiner's bench |
-| Blacksmith | Smelting and forging: tools, hardware, weapons and armour (doc 44) | — | Needs a Smelter and Forge. The one metalworking profession: no Weaponsmith or Armorsmith (owner, 2026-10-31) |
-| Ranger (live) | `COLLECT` (dried fish off the rack), `CRAFT` (the Ranger's page: the drying rack and hanging fish), then `FISH`, then `HAUL`; hunting later | — | Live (doc [292](../00_dev_roadmap/292_ranger.md)): promotes with the Ranger's kit, a spear bound to the rod it fishes with, and its levels make catches bigger instead of faster. The owner renamed the Hunter on 2026-11-01 when it took fishing; Hunter had been their pick over Trapper (2026-10-09). Planned: fish that differ, rare fish, then hunting |
-| Stonemason (live) | `CRAFT` (the Stonemason's page) first, then the common work | — | The owner's name, not Stonesmith (2026-10-09). Live (doc [293](../00_dev_roadmap/293_stonemason_and_carpenter.md)): promotes with a crude masonry kit and makes its own mason's bench, a split slab on two stumps, at the crude workbench, a maul in hand; its crafting is stonework, by Strength. Levels: 5% less crafting time. Makes the stone stool at the mason's bench from a Rough Stone (doc 293 step 3). Planned: dressed stone waits for iron chisels |
+| Carpenter (live) | `CRAFT` (the Carpenter's page) first, then the common work | — | Live (doc 293): promotes with a carpentry kit and makes its own carpenter's bench, a peeled log workbench, at the crude workbench, a stone adze in hand. Levels: 5% less crafting time. At the bench it makes storage furniture, the tool rack and the raw materials crate (doc 294). Planned: planks and Tier 2 pieces wait for the iron saw and a joiner's bench (doc 44, "Specialist workbenches") |
+| Blacksmith (live) | `COLLECT`, then `CRAFT` (the Blacksmith's page), then the common work | — | The one metalworking profession: no Weaponsmith or Armorsmith (owner, 2026-10-31). Live (doc 297): promotes with a stone hammer and makes its own basic smelter at the crude workbench, melts copper ore with coal into copper bars and hammers them into fittings; its crafting is stonework, by Strength. Levels: 5% less crafting time. Planned: the Smelter and the Forge, iron, then tools, weapons and armour (doc 44) |
+| Ranger (live) | `COLLECT` (dried fish off the rack), `CRAFT` (the Ranger's page: the drying rack and hanging fish), then `FISH`, then `HAUL`; hunting later | — | Live (doc 292): promotes with the Ranger's kit, a spear bound to the rod it fishes with, and its levels make catches bigger instead of faster. The owner renamed the Hunter on 2026-11-01 when it took fishing; Hunter had been their pick over Trapper (2026-10-09). Planned: fish that differ and rare fish (`00_todo.md`, Food), then hunting (doc 45) |
+| Stonemason (live) | `CRAFT` (the Stonemason's page) first, then the common work | — | The owner's name, not Stonesmith (2026-10-09). Live (doc 293): promotes with a crude masonry kit and makes its own mason's bench, a split slab on two stumps, at the crude workbench, a maul in hand; its crafting is stonework, by Strength. Levels: 5% less crafting time. Makes the stone stool at the mason's bench from a Rough Stone. Planned: dressed stone waits for iron chisels and a carver's bench (doc 44, "Specialist workbenches") |
 
 Level 6 needs both 10,000 tasks and the profession's calling trait (see Planned
 trait effects).
@@ -1046,7 +1091,9 @@ rules:
   returning to Worker and loading are silent.
 
 The Equipment view (doc 102; the character sheet's Equipment tab, doc 23) shows the
-owned tool's picture, tier, materials and actual benefit. Iron saw/pickaxe are explicit
+owned tool's picture, tier, materials and actual benefit, from the tool's `equipment` block in
+`resources.json`. Each tool a career equips needs one: without it the stone hammer read
+"A stone hammer is required" while equipped (fixed 2026-11-09). Iron saw/pickaxe are explicit
 planned previews; no upgrade goods or bonuses exist yet.
 
 The player approved three connected forms of progression:
@@ -1145,3 +1192,14 @@ The planned recipes' Min Skill (`42_farming_brewing.md`) is a Brewer experience 
 ---
 
 *Prev: [33_water_simulation.md](../30_simulation_systems/33_water_simulation.md) | Next: [42_farming_brewing.md](./42_farming_brewing.md)*
+
+## Idle and step motion
+
+An idle dwarf breathes, blinks and, from time to time, shifts its weight, looks around, scratches its head
+or beard, or stretches (`DwarfIdleGesture`). The choice comes from the time and the dwarf, so nothing is
+saved. A step up or down draws the feet planted on the real floors while the actor keeps its straight
+line between waypoints (`DwarfStepPose`). Both are presentation only.
+
+A carried load rocks against the stride, heavier loads lean the dwarf back, and a laden dwarf turns more
+slowly so its goods do not swing (`DwarfMovement.LADEN_TURN`). Sitting and lying down are staged: feet
+first and then the body when sitting, lowering before tipping over when lying down.

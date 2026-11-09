@@ -1,7 +1,6 @@
 extends CanvasLayer
 
 ## Scene presentation gate. Never uses a timer or log text as proof of readiness.
-signal revealed
 @export var renderer_path: NodePath
 @export var flora_path: NodePath
 @export var details_path: NodePath
@@ -87,7 +86,6 @@ func _reveal() -> void:
 	hide()
 	set_process(false)
 	set_process_input(false)
-	revealed.emit()
 
 func _restore_layers() -> void:
 	for entry in _hidden_layers:

@@ -3,8 +3,10 @@ extends "res://scripts/tests/TreeFellingTest.gd"
 ## Fishing (doc 289), in the flat test world: a pond marked as the lake, a channel marked as the
 ## river with its water two blocks below the bank, and a pool the colony dug. Step 1: the spot
 ## rules, a zone and its leases, a real dwarf's catch landing at its feet and coming off the
-## stock, the fishing pose and its sounds, Keep pausing the work, a fished-out water, regrowth
-## by the day, a release mid-cast losing nothing, the zone's window, saves and a real drag.
+## stock, the fishing pose and its sounds, Keep pausing the work (a Ranger mid-cast lands that
+## catch, then stops), a fished-out water, regrowth by the day, a release mid-cast losing nothing,
+## the zone's window, saves (a load never refills a water, and a zone loaded while its water has
+## drained comes back whole) and a real drag.
 ## Step 2: each water's fish, the bank's reach, honest refusals, seasons and Wisdom.
 const PERCH := "base:resources:fish:perch"
 const TROUT := "base:resources:fish:trout"
@@ -87,6 +89,17 @@ func _run() -> void:
 	fishing.step_keep(zone_id, 2)
 	fishing.refresh_work()
 	_expect(fishing.wants_fish(zone_id) and _pending_fish() > 0, "a higher Keep starts the work again")
+	# A Ranger mid-cast when Keep is met lands that one catch, then stops (the project review,
+	# 2026-11-09: the cast went on, sounds and all, with nothing to land).
+	_expect(await _until_fishing(), "the Ranger casts once more")
+	worker._process(.5)
+	fishing.step_keep(zone_id, -2)   # 15 -> 5: the six perch kept meet it
+	_expect(await _until_perch(7), "a Ranger mid-cast when Keep is met lands that catch")
+	for i in range(5):
+		tasks._run_scheduler()
+		worker._process(.1)
+	_expect(worker._task_phase != worker.TaskPhase.FELL_WORKING and _pending_fish() == 0, "then stops: no cast goes on with nothing to land")
+	fishing.step_keep(zone_id, 2)    # back to 15
 	# A fished-out water posts nothing; it regrows by the day.
 	fishing._stocks.lake.fish = 10.0
 	_expect(fishing.fished_out("lake") and fishing.stock_word("lake") == "Fished out" and not fishing.wants_fish(zone_id), "below a tenth the water is fished out")
@@ -101,6 +114,11 @@ func _run() -> void:
 	scene.add_child(panel)
 	panel.show_zone(data)
 	_expect(panel._water.text == "Lowland lake" and panel._word.text == "Plenty · 150 of 192" and panel._keep.text == "15 fish", "the window reads the zone")
+	# A small water regrows less than a fish a day (the project review, 2026-11-09: "about 0 a day").
+	var small: Dictionary = data.duplicate()
+	small.regrowth = 0.3
+	panel.show_zone(small)
+	_expect(panel._regrowth.text.begins_with("Regrows about one every 3 days"), "a small water regrows one fish every few days: %s" % panel._regrowth.text)
 	# Saves.
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(fishing.serialize_state()))
 	var Validator = load("res://scripts/components/SaveSnapshotValidator.gd")
@@ -108,6 +126,18 @@ func _run() -> void:
 	fishing.restore_state(saved)
 	_expect(fishing.zone_ids() == [zone_id] and int(fishing.zone_data(zone_id).keep) == 15 and absf(fishing.stock("lake") - 150.0) < 0.01, "zones, Keep and stock survive a save")
 	_expect(_pending_fish() > 0, "a restored zone posts its work again")
+	# A load while the water has drained keeps the whole zone and its Keep; its spots wait for the
+	# water (doc 42; the project review, 2026-11-09: the zone was dropped).
+	var wet = water.flow
+	water.flow = load("res://scripts/components/WaterFlow.gd").new()
+	water.flow.spans_at = wet.spans_at
+	fishing.restore_state(saved)
+	_expect(fishing.zone_ids() == [zone_id] and int(fishing.zone_data(zone_id).spots) == 4 and int(fishing.zone_data(zone_id).keep) == 15
+		and _pending_fish() == 0, "a zone loaded while its water has drained comes back whole, with its Keep, and waits: %s" % [fishing.zone_ids()])
+	water.flow = wet
+	fishing.refresh_work()
+	_expect(_pending_fish() > 0, "once the water is back its spots post work again")
+	_load_keeps_stock(saved)
 	_expect(fishing.order_is_pending({"zone_id": zone_id}) and fishing.undo_order({"zone_id": zone_id}) == 4, "the tool bar's Undo takes the zone back")
 	_expect(fishing.zone_ids().is_empty() and _pending_fish() == 0 and not fishing.is_zone_cell(cells[0]), "removing a zone takes its spots and leases")
 	_expect(bool(drops.get_item_def(PERCH).food.edible), "perch are food")
@@ -189,6 +219,25 @@ func _explorer_lists(state: SceneState, path: NodePath) -> bool:
 		for p in range(state.get_node_property_count(i)):
 			if state.get_node_property_name(i, p) == "click_tool_paths": return path in (state.get_node_property_value(i, p) as Array)
 	return false
+
+
+## A load reads stocks before the clock is restored (SaveManager restores the clock last). A load
+## from the title begins on the new game's earlier clock; one in play, at the hour it was made.
+## Neither may refill a water once the clock catches up (project review 2026-11-09). Leaves the
+## clock and the fishing section as it found them (`kept`).
+func _load_keeps_stock(kept: Dictionary) -> void:
+	var test_clock: Dictionary = clock_node.serialize_state()
+	var at_save := {"day": 5, "season": "summer", "year": 1, "hour": 6.0, "speed": test_clock.speed, "paused": test_clock.paused}
+	clock_node.restore_state(at_save)
+	fishing._stocks.lake = {"fish": 12.0, "day": clock_node.elapsed_days()}
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(fishing.serialize_state()))
+	for load_clock: Dictionary in [at_save.merged({"day": 3}, true), at_save.merged({"day": 7}, true)]:
+		clock_node.restore_state(load_clock)
+		fishing.restore_state(saved)
+		clock_node.restore_state(at_save)
+		_expect(absf(fishing.stock("lake") - 12.0) < 0.01, "a load begun on summer day %d leaves the lake at 12 fish: %.1f" % [load_clock.day, fishing.stock("lake")])
+	clock_node.restore_state(test_clock)
+	fishing.restore_state(kept)
 
 
 ## A Ranger: fishing is the Ranger's work (doc 292).

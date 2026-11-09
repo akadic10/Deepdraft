@@ -17,6 +17,9 @@ extends RefCounted
 
 const Privacy = preload("res://scripts/components/DwarfPrivacy.gd")
 const BodyRig = preload("res://scripts/components/DwarfBodyRig.gd")
+const StepPose = preload("res://scripts/components/DwarfStepPose.gd")
+const LADEN_TURN := 6.0   # radians a second
+const LONGEST_STEP := 1.5   # blocks of ground a step's feet may cover, whatever line the actor is on
 const SHORTCUT_INTERVAL := 0.3   # s between string-pulling rescans (cost bound)
 ## String-pulling cells scanned ahead per check (bounds cost).
 const SHORTCUT_LOOKAHEAD := 24
@@ -34,6 +37,16 @@ var move_validation_index := -1
 var ladder_fall_target := Vector3i(-1, -1, -1)
 ## Heavy carried items slow the walk (doc 18 §2.3 / resources.json contract).
 var carry_speed_mult: float = 1.0
+## The walk's last stretch heads for where the work will draw the body (stop_short_of).
+var arriving := false
+var arrive_spot := Vector3.ZERO
+var arrive_yaw := 0.0
+## A walk to a meal's seat or a game (doc 41 "Privacy"): its replans and its shortcuts keep to the
+## rooms the dwarf may use, as its first route did. Work walks stay unrestricted.
+var leisure := false
+## The step up or down being taken: +1, -1 or 0, and how far through it the feet have got.
+var step_rise := 0
+var step_progress := 0.0
 
 
 func _init(p_agent: DwarfAgent = null, p_rig: BodyRig = null) -> void:
@@ -43,11 +56,15 @@ func _init(p_agent: DwarfAgent = null, p_rig: BodyRig = null) -> void:
 
 ## Path part of DwarfAgent.walk_to. Returns true if a path was found and the
 ## walk began; emits walk_finished(false) when there is none.
-func walk_to(goal_cell: Vector3i) -> bool:
+func walk_to(goal_cell: Vector3i, private_walk := false) -> bool:
 	rig.reset_part_offsets()
+	rig.leave_work_spot()
+	arriving = false
+	leisure = private_walk
 	var floor_filter := Callable()
 	var dwarf_id := agent.dwarf_id
 	if agent.is_sleeping(): floor_filter = func(cell: Vector3i): return Privacy.allowed(cell,dwarf_id,true)
+	elif leisure: floor_filter = func(cell: Vector3i): return Privacy.allowed(cell,dwarf_id)
 	var path := NavGrid.find_path(agent.current_cell(), goal_cell,NavGrid.DEFAULT_MAX_NODES,floor_filter)
 	if path.is_empty():
 		clear_path() # Failure callbacks may synchronously install a new route.
@@ -65,6 +82,8 @@ func walk_to(goal_cell: Vector3i) -> bool:
 ## Path part of DwarfAgent.walk_nearby: a short, fully checked flat segment.
 func walk_nearby(goal_cell: Vector3i) -> void:
 	rig.reset_part_offsets()
+	rig.leave_work_spot()
+	arriving = false
 	if not NavGrid.line_walkable_flat_from(agent.global_position,goal_cell):
 		clear_path()
 		agent.walk_finished.emit(false)
@@ -77,6 +96,52 @@ func walk_nearby(goal_cell: Vector3i) -> void:
 	ladder_path_revision = NavGrid.ladder_revision
 
 
+## Starts a walk along a route already searched (a meal's, a game's, a promotion's) as walk_to
+## starts one: the body leaves its work spot, and no earlier walk's stop-short spot carries over.
+func start_route(path: Array, private_walk := false) -> void:
+	rig.reset_part_offsets()
+	rig.leave_work_spot()
+	arriving = false
+	leisure = private_walk
+	var route: Array[Vector3i] = []
+	route.assign(path)
+	move_path = route
+	move_index = 0
+	move_validation_index = -1
+	ladder_path_revision = NavGrid.ladder_revision
+	walk_cycle = 0.0
+	shortcut_timer = 0.0
+
+
+## Work that stands closer than its swing's `reach` draws the body back from the cell centre. Walk to
+## that spot instead of past it and sliding back (doc 298). The job still starts on the cell centre:
+## arrive_at moves the actor there unseen, and goods in hand stay where they are drawn.
+func stop_short_of(contact: Vector3, reach: float) -> void:
+	if not _may_stop_short(): return
+	var goal: Vector3i = move_path.back()
+	var center := Vector3(goal.x+.5,goal.y+1,goal.z+.5)
+	var flat := Vector3(contact.x-center.x,0,contact.z-center.z)
+	var back := reach-flat.length()
+	if flat.length() < .3 or back <= .02: return
+	var toward := flat.normalized()
+	var spot := center-toward*back
+	var cell := Vector3i(floori(spot.x),goal.y,floori(spot.z))
+	if cell != goal and not NavGrid.is_walkable(cell): spot = center-toward*minf(back,rig.CELL_EDGE)
+	arriving = true
+	arrive_spot = spot
+	arrive_yaw = atan2(toward.x,toward.z)
+
+
+## Whether this walk may end short of its goal cell. Not on a ladder; and a last step up or down is
+## taken as ever, since a spot behind it would hang over the lower floor and the support check would
+## drop the dwarf off the step.
+func _may_stop_short() -> bool:
+	if move_path.is_empty(): return false
+	var goal: Vector3i = move_path.back()
+	if not NavGrid.ladder_at(goal).is_empty(): return false
+	return move_path.size() < 2 or move_path[move_path.size()-2].y == goal.y
+
+
 func stop_walking() -> void:
 	if move_path.is_empty():
 		return
@@ -87,10 +152,13 @@ func stop_walking() -> void:
 
 ## NOTE: never .clear() move_path — NavGrid hands out its CACHED array, so
 ## clearing in place would corrupt the cache. Always swap in a fresh one.
+## An abandoned walk's stop-short spot goes with it.
 func clear_path() -> void:
 	var fresh: Array[Vector3i] = []
 	move_path = fresh
 	move_index = 0
+	arriving = false
+	leisure = false
 
 
 ## String-pulling (the zigzag fix): advance the target waypoint to the FURTHEST
@@ -100,12 +168,15 @@ func clear_path() -> void:
 ## stay waypoint-exact (no shortcutting across terrace steps).
 func _advance_shortcut() -> void:
 	var here := agent.current_cell()
+	# Halfway through a step or rung the actor already counts as on the new floor. It finishes on the
+	# waypoint first: a shortcut from here would spread the last of the height over the whole line.
+	if absf(agent.global_position.y-float(here.y+1)) > .001: return
 	var best := move_index
 	var limit := mini(move_path.size() - 1, move_index + SHORTCUT_LOOKAHEAD)
 	for j in range(move_index + 1, limit + 1):
 		if move_path[j].y != here.y:
 			break   # elevation change ahead — take those steps exactly
-		if agent.is_sleeping() and not Privacy.segment(here,move_path[j],agent.dwarf_id,true): break
+		if (agent.is_sleeping() or leisure) and not Privacy.segment(here,move_path[j],agent.dwarf_id,agent.is_sleeping()): break
 		if NavGrid.line_walkable_flat_from(agent.global_position, move_path[j]):
 			best = j
 		else:
@@ -119,8 +190,11 @@ func is_walking() -> bool:
 
 func follow_path(delta: float) -> void:
 	if ladder_path_revision != NavGrid.ladder_revision:
-		_repath_walk()
-		return
+		# A ladder elsewhere changes nothing for this walk; only one on its way replans it.
+		if NavGrid.ladder_change_touches(move_path, move_index, ladder_path_revision):
+			_repath_walk()
+			return
+		ladder_path_revision = NavGrid.ladder_revision
 	shortcut_timer -= delta
 	if shortcut_timer <= 0.0:
 		_advance_shortcut()
@@ -135,7 +209,9 @@ func follow_path(delta: float) -> void:
 			return
 		move_validation_index = move_index
 		move_validation_revision = NavGrid.navigation_revision
-	var target := Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
+	var center := Vector3(float(cell.x) + 0.5, float(cell.y + 1), float(cell.z) + 0.5)
+	var last := move_index == move_path.size()-1
+	var target := Vector3(arrive_spot.x,center.y,arrive_spot.z) if arriving and last else center
 	var to_target := target - agent.global_position
 	var distance := to_target.length()
 	# Heavy carried items slow the walk (doc 18 §2.3 / resources.json contract).
@@ -156,24 +232,58 @@ func follow_path(delta: float) -> void:
 	var flat := Vector2(to_target.x, to_target.z)
 	if not rig.climbing and flat.length_squared() > 0.0001:
 		var target_yaw := atan2(flat.x, flat.y)
-		agent.rotation.y = lerp_angle(agent.rotation.y, target_yaw, minf(1.0, delta * 10.0))
+		var turn := delta * 10.0
+		# Turning to the work over the last block, so nothing in hand swings as the walk ends.
+		if arriving and last and distance < 1.0:
+			target_yaw = arrive_yaw
+			turn /= maxf(distance, .1)
+		var yaw := lerp_angle(agent.rotation.y, target_yaw, minf(1.0, turn))
+		# A load rides ahead of the dwarf, so a sharp turn would swing it through the air.
+		if not rig.carried_entries.is_empty() and not (arriving and last and distance < 1.0):
+			yaw = rotate_toward(agent.rotation.y, yaw, LADEN_TURN * delta)
+		agent.rotation.y = yaw
 
+	_track_step(0 if rig.climbing or absf(to_target.y) < .001 else int(signf(to_target.y)))
 	if distance <= step:
 		agent.global_position = target
-		if not rig.climbing and distance > 0.0: walk_bob(distance)
+		if step_rise != 0: _pose_step(Vector3.ZERO)
+		elif not rig.climbing and distance > 0.0: walk_bob(distance)
+		_track_step(0)
 		move_index += 1
 		if move_index >= move_path.size():
+			var arrived := arriving
+			arriving = false
 			clear_path()
 			rig.reset_part_offsets()
+			if arrived: rig.arrive_at(center,arrive_yaw)
 			agent.walk_finished.emit(true)
 		return
 	agent.global_position += to_target / distance * step
 	if rig.climbing:
 		walk_cycle = fposmod(walk_cycle + step / 1.0, 1.0)
-		rig.carry_pose.climb(rig.carried_entries, walk_cycle)
-		if rig.foot_l != null: rig.foot_l.position = Vector3(0, .12 + .12 * sin(walk_cycle * TAU), .18)
-		if rig.foot_r != null: rig.foot_r.position = Vector3(0, .12 - .12 * sin(walk_cycle * TAU), .18)
+		var top := float(route.base.y + 1 + route.height) - agent.global_position.y
+		rig.carry_pose.climb(rig.carried_entries, walk_cycle, top, rig.climb_back())
+	elif step_rise != 0: _pose_step(to_target)
 	else: walk_bob(step)
+
+
+## A step up or down starts and ends with an ease, and each one leads with the other foot.
+func _track_step(rise: int) -> void:
+	if rise == step_rise: return
+	rig.blend_pose()
+	step_rise = rise
+	step_progress = 0.0
+	if rise != 0: walk_cycle = fposmod(walk_cycle+.5,1.0)
+
+
+## Height sets the progress: an actor rises evenly along a step, and the pose does the rest.
+func _pose_step(to_target: Vector3) -> void:
+	var t := clampf(1.0-absf(to_target.y),0.0,1.0)
+	var flat := minf(Vector2(to_target.x,to_target.z).length()/maxf(1.0-t,.05),LONGEST_STEP) if t < .95 else 1.0
+	for plant in [StepPose.LEAD_PLANTS,StepPose.TRAIL_PLANTS]:
+		if step_progress < plant and t >= plant: WorkFeedback.play_footstep(agent)
+	step_progress = t
+	StepPose.apply(rig,t,step_rise,flat,walk_cycle < .5)
 
 
 func move_segment_clear(cell: Vector3i) -> bool:
@@ -188,13 +298,20 @@ func move_segment_clear(cell: Vector3i) -> bool:
 
 func _repath_walk() -> void:
 	var goal: Vector3i = move_path.back()
-	if agent.is_recreating():
-		agent.get_recreation().cancel()
-		return
-	if agent.get_idle_behavior() != null and agent.get_idle_behavior().owns_walk():
+	var keep := [arriving,arrive_spot,arrive_yaw]
+	var idle := agent.get_idle_behavior()
+	if idle != null and idle.owns_walk():
 		agent.walk_nearby(goal)
 	else:
-		agent.walk_to(goal)
+		if idle != null and idle.active(): idle.cancel()
+		# Not agent.walk_to: a meal, game or promotion keeps its walk, and hears only if no route is left.
+		# A walk to a meal's seat or a game keeps out of rooms the dwarf may not use (doc 41).
+		walk_to(goal, leisure)
+		# The new route keeps the spot only if it could stop short too (no last step up or down).
+		if keep[0] and not move_path.is_empty() and move_path.back() == goal and _may_stop_short():
+			arriving = true
+			arrive_spot = keep[1]
+			arrive_yaw = keep[2]
 	# walk_to/nearby clear failure state BEFORE emitting walk_finished; never
 	# clear here, since a task's failure handler may already have a new route.
 
@@ -216,6 +333,13 @@ func walk_bob(moved: float) -> void:
 	var wave := sin(walk_cycle*TAU)
 	var bounce := (1.0-cos(walk_cycle*TAU*2.0))*.025
 	var lean := deg_to_rad(agent.walk_lean_deg)
+	if not rig.carried_entries.is_empty():
+		# The load rocks against the stride, and a heavy one leans the dwarf back and works its knees.
+		var heft: float = rig.carry_pose.heft_of(rig.carried_entries,carry_speed_mult)
+		lean -= heft*.11
+		bounce *= 1.0+heft*.6
+		rig.carry_pose.sway_target = -wave*(.03+.05*heft)
+		rig.carry_pose.roll_target = wave*(.015+.03*heft)
 	var body := rig.body
 	var head := rig.head
 	if body != null:
@@ -264,7 +388,6 @@ func lift_from_raised_floor() -> bool:
 	if not BlockRegistry.is_solid(WorldData.get_live_block(feet.x,feet.y,feet.z)) or not NavGrid.is_walkable(feet): return false
 	# A valid interpolated step can briefly enter its higher supporting block.
 	# Let that route finish naturally; invalidated routes cannot suppress repair.
-	# String pulling may already have advanced the target along the upper floor.
 	if is_walking() and not is_equal_approx(position.y,roundf(position.y)) \
 			and move_segment_clear(move_path[move_index]): return false
 	agent.global_position.y = float(feet.y+1)

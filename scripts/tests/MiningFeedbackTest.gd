@@ -35,6 +35,7 @@ func _run() -> void:
 	var block := Vector3i(42,22,40)
 	# This wall faces a mined-open tunnel, so its actual material is visible.
 	world.set_block(41,22,40,blocks.AIR_ID) # records removed terrain: a mined-open tunnel
+	mining._work.visible_swing = .5   # this script counts on three strikes to a rock block
 	var id: int = await _begin_block(block)
 	var swing: float = worker._work_execution._swing_time
 	var elapsed: float = swing-worker._work_execution._swing_timer

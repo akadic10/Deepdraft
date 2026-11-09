@@ -156,6 +156,9 @@ func _run() -> void:
 
 func _season(season: String, year := 1) -> void:
 	clock_node.restore_state({"year": year, "season": season, "day": 1, "hour": 12, "speed": 1, "paused": false})
+	# A jump of the clock is not time passing: a real load clears spoilage's count before the
+	# clock restores, so the berries here never rot across the jump (the project review).
+	root.get_node("StockpileManager").spoilage.clear()
 
 
 func _berry_count(species: String) -> int:

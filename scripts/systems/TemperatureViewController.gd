@@ -125,7 +125,8 @@ func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
 
 
 ## The spot a screen point shows: {cell, rock}. The air on the side the ray came from (above a
-## floor, beside a wall), or on the cut plane the rock itself; {} over nothing.
+## floor, beside a wall), or on the cut plane the rock itself; {} over nothing. A cave not yet
+## found is rock to the ray, so the card over it is the cut rock's (Hard Rule 11).
 func spot_under(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null: return {}
@@ -134,7 +135,7 @@ func spot_under(screen_pos: Vector2) -> Dictionary:
 	var visible_face := Callable()
 	var underground := get_tree().get_first_node_in_group("underground_view")
 	if underground != null and underground.is_inspecting(): visible_face = underground.is_terrain_face_visible
-	var hit := Picking.terrain_hit(origin, direction, _cut(), RAY_MAX, Callable(), visible_face)
+	var hit := Picking.terrain_hit(origin, direction, _cut(), RAY_MAX, Picking.concealed_block, visible_face)
 	if hit.is_empty(): return {}
 	var block := Vector3i(int(hit.x), int(hit.y), int(hit.z))
 	var air := block + Vector3i(hit.normal)

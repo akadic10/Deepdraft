@@ -97,8 +97,9 @@ func _run() -> void:
 	panel._select(FLOWERS)
 	_expect(not stamper.is_active() and panel.stamp_button.disabled and panel._refusal.visible and stamper.stamp_at(floor) == 0,
 		"wildflowers are refused, with the reason")
-	for key: String in ["base:resources:water:wet_stone", "base:resources:special:settlement_flag"]:
-		_expect(not load(STAMPER).refusal(key).is_empty(), key + " is refused")
+	_expect(not load(STAMPER).refusal("base:resources:water:wet_stone").is_empty(), "a wet stone is refused")
+	# By the flag's real key (the project review, 2026-11-09: a wrong key refused nothing).
+	_expect(load(STAMPER).refusal("base:items:special:settlement_flag") == "The colony has one flag.", "the settlement flag is refused: the colony has one")
 	# Ending: Esc, closing the window, another tool.
 	panel._select(BED)
 	panel.stamp_button.pressed.emit()

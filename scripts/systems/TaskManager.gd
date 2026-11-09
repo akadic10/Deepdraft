@@ -31,7 +31,6 @@ extends Node
 ## JSON = what things are (budgets, priorities — data/tasks/task_config.json);
 ## GDScript = what things do (this loop).
 
-signal task_added(task: Task)
 @warning_ignore("unused_signal") # emitted by TaskScheduler
 signal task_assigned(task: Task, dwarf_id: int)
 signal task_released(task: Task, dwarf_id: int, reason: int)
@@ -139,7 +138,6 @@ func add_task(type: int, target_pos: Vector3i, payload: Dictionary = {},
 	task.order_key = journal.ensure(task.order_locator,SourceAdapter.label(get_work_source(source_id)))
 	journal.transition(task.order_locator,"ready","Waiting for eligible worker")
 	_insert_pending(task)
-	task_added.emit(task)
 	_wake_dirty = true
 	return task.id
 

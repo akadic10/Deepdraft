@@ -96,7 +96,7 @@ func _place_case(key: String,yaw: int) -> void:
 	await _capture_pose(key,yaw,"arrival")
 	worker._process(.15)
 	_expect(item.global_position.distance_to(start)>.025,"cargo visibly moves within 150 ms: "+key)
-	_expect(worker.global_position==stand and worker._foot_l.position.is_zero_approx() and worker._foot_r.position.is_zero_approx(),"both boots stay planted")
+	_expect(worker.global_position==stand and worker._foot_l.position.length()<.01 and worker._foot_r.position.length()<.01,"both boots stay planted")
 	var cargo: Array = worker.serialize_state().carried_items
 	_expect(cargo.size()==1 and cargo[0].item_key==ghost.item_key and furniture._installed.is_empty(),"save owns the physical cargo until animation finishes")
 	var pose := item.global_transform

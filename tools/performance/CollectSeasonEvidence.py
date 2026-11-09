@@ -18,7 +18,6 @@ SOURCES = [
     "scripts/tests/ObjectExplorerTest.gd",
     "scripts/tests/JuniperHarvestTest.gd",
     "tools/performance/SeasonBenchmark.gd",
-    "tools/performance/RunSeason.ps1",
     "tools/performance/SmokeSeasonExport.gd",
     "tools/performance/CollectSeasonEvidence.py",
 ]

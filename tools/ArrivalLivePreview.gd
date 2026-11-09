@@ -12,8 +12,8 @@ func _run() -> void:
 	if "--deer" in OS.get_cmdline_user_args(): species = "deer"
 	if "--wolf" in OS.get_cmdline_user_args(): species = "wolf"
 	if species != "rabbit": output = "res://tmp/herd_arrival_review/"
-	if not OS.get_environment("APPDATA").replace("\\", "/").contains(output.trim_prefix("res:/")):
-		printerr("Use isolated APPDATA below "+output)
+	if not OS.get_user_data_dir().replace("\\", "/").contains(output.trim_prefix("res:/")):
+		printerr("Use an isolated user:// profile below "+output)
 		quit(2)
 		return
 	root.get_node("SaveManager").configure_storage_for_testing("user://arrival_preview")

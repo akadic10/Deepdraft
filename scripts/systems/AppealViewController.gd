@@ -106,7 +106,8 @@ func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
 	return not hit.is_empty() and bool(rooms_tool.open_room_at(hit.cell, "appeal"))
 
 
-## The sealed room whose floor (or wall) the screen point shows: {id, cell}, or {}.
+## The sealed room whose floor (or wall) the screen point shows: {id, cell}, or {}. A cave not
+## yet found is rock to the ray (Hard Rule 11).
 func room_under(screen_pos: Vector2) -> Dictionary:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null: return {}
@@ -115,7 +116,7 @@ func room_under(screen_pos: Vector2) -> Dictionary:
 	var visible_face := Callable()
 	var underground := get_tree().get_first_node_in_group("underground_view")
 	if underground != null and underground.is_inspecting(): visible_face = underground.is_terrain_face_visible
-	var hit := Picking.terrain_hit(origin, direction, _cut(), RAY_MAX, Callable(), visible_face)
+	var hit := Picking.terrain_hit(origin, direction, _cut(), RAY_MAX, Picking.concealed_block, visible_face)
 	if hit.is_empty(): return {}
 	# The air on the side the ray came from: above a floor, inside a wall.
 	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z)) + Vector3i(hit.normal)
@@ -176,7 +177,8 @@ func _build() -> void:
 
 
 func _teardown() -> void:
-	for mesh: MeshInstance3D in _glows:
+	# A glowing piece can go while the view is on (moved, eaten): untyped, as _draw_glows's loop.
+	for mesh: Variant in _glows:
 		if is_instance_valid(mesh): mesh.material_overlay = _glows[mesh]
 	_glows.clear()
 	for node: Node in [_dim, _tints, _card_layer]:

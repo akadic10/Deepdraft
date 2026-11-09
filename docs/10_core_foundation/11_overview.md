@@ -93,6 +93,10 @@ Owner decision 2026-10-29 (doc 281): the old 24-minute days and 28-day seasons f
 Comparable colony sims use 10–17-minute days and 3½–5-hour seasons; this pace matches
 RimWorld's season and year almost exactly. Timings counted in days (growth, regrowth,
 wildlife arrivals) were scaled to ¾ with the season so they keep their place in it.
+Needs and moods count game hours, so they kept their numbers and follow any pace; the sleep
+drain counted real seconds until then (doc 41). Day counts not tied to the season kept theirs
+too: the colony page's 10-day food goal, the 10 days the event log and journal keep, and the
+planned invader frequencies. Work, walking and eating take real seconds.
 
 ```gdscript
 # WorldClock Autoload — public interface

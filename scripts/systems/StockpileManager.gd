@@ -18,6 +18,8 @@ extends Node
 ## the clean fix when a third work-source system appears (doc 18 build log).
 
 signal stockpile_changed(item_key: String, delta: int)
+## A container left with its furniture (uninstalled, packed up): a window on it closes.
+signal container_removed(container: StorageComponent)
 
 const SOURCE_ID_BASE := 1_000_000
 const LEASE_REFRESH_S := 0.25
@@ -97,6 +99,7 @@ func register_container(container: StorageComponent) -> void:
 	container.carry_speed_mult_heavy = _carry_mult_heavy
 	container.carry_capacity = _carry_capacity
 	container.pouch_bundle_radius = _pouch_radius
+	container.spoil_band = float(spoilage.config.merge_band)
 	container.drop_manager = _drop_manager
 	container.changed_callback = _on_zone_deposit
 	_containers[container.source_id] = container
@@ -112,6 +115,7 @@ func deregister_container(container: StorageComponent) -> void:
 	_containers.erase(container.source_id)
 	TaskManager.unregister_work_source(container.source_id)
 	_mark_dirty()
+	container_removed.emit(container)
 
 
 # ── Zone registry (called by StockpileDesignationController) ──────────────────
@@ -150,6 +154,23 @@ func deregister_zone(zone: StockpileZoneComponent) -> void:
 		_apply_total(String(stack.get("item", "")), -int(stack.get("count", 0)))
 	if _drop_manager != null and is_instance_valid(_drop_manager):
 		_drop_manager.release_stored_cells(zone.cell_stacks)
+	_mark_dirty()
+
+
+## The floor went from under these cells: their goods drop as loose items and the zone keeps the
+## rest. Its hauls and claims are released (Hard Rule 12), so nobody delivers to a lost cell.
+func remove_zone_cells(zone: StockpileZoneComponent, cells: Array[Vector3i]) -> void:
+	if not _zones.has(zone.source_id): return
+	TaskManager.cancel_source_tasks(zone.source_id)
+	zone.release_storage_claims()
+	var stacks := {}
+	for cell: Vector3i in cells:
+		if not zone.cell_stacks.has(cell): continue
+		stacks[cell] = zone.cell_stacks[cell]
+		_apply_total(String(stacks[cell].get("item", "")), -int(stacks[cell].get("count", 0)))
+	zone.forget_cells(cells)
+	if _drop_manager != null and is_instance_valid(_drop_manager):
+		_drop_manager.release_stored_cells(stacks)
 	_mark_dirty()
 
 
@@ -388,11 +409,15 @@ func permissions_changed() -> void:
 		for dwarf_id in storage._pulls:
 			var pull: Dictionary = storage._pulls[dwarf_id]
 			for item in pull.items:
-				if pull.picked.has(item): continue
+				if not is_instance_valid(item) or pull.picked.has(item): continue
 				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[dwarf_id]=true
 			for item in pull.cargo:
 				if not preload("res://scripts/components/ItemPermission.gd").allowed(item): owners[dwarf_id]=true
-			if pull.has("transfer") and pull.picked.is_empty() and not pull.transfer.source.slot_allowed(pull.transfer.token.slot): owners[dwarf_id]=true
+			for marker in pull.get("transfers", {}):
+				var transfer: Dictionary = pull.transfers[marker]
+				# A picked or skipped good's claim is already back with its store.
+				if pull.picked.has(marker) or not bool(transfer.token.get("active", false)): continue
+				if not transfer.source.slot_allowed(transfer.token.slot): owners[dwarf_id]=true
 	for dwarf_id in owners: TaskManager.invalidate_dwarf_task(dwarf_id)
 	storage_rules_changed()
 
@@ -441,7 +466,8 @@ func relocation_candidates(destination: StorageComponent, near: Vector3i, exclud
 			if not moves_to(origin, destination, key): continue
 			var cell := origin.withdrawal_item_cell(slot)
 			var distance := absi(cell.x - near.x) + absi(cell.y - near.y) + absi(cell.z - near.z)
-			# One good, or one crate of produce, per trip: a crate's quarter holds 3 stones (doc 294).
+			# One good, or one crate of produce, from each stored slot; a trip may gather several
+			# slots up to the carrying limit (StorageComponent._reserve_relocation).
 			result.append({"source": origin, "distance": distance,
 				"token": {"slot": slot, "item": key, "count": mini(int(stack.count), _drop_manager.item_capacity(key)), "active": false}})
 			if limit > 0 and result.size() >= limit: return result

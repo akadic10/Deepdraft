@@ -22,7 +22,6 @@ extends CanvasLayer
 ## - Esc steps back: a question, then a page, then the menu itself.
 ## - The title screen opens the Load and Settings pages on their own (open_page): Back, ✕ or
 ##   Esc close them, and a slot loads without asking, as no colony runs yet.
-signal opened
 signal closed
 
 # Text sizes come from the type scale (doc 23, "Type").
@@ -100,6 +99,7 @@ func _ready() -> void:
 	if not quit_game.is_valid(): quit_game = func(): get_tree().quit()
 	get_tree().set_auto_accept_quit(false)   # closing the window asks first
 	saves.save_finished.connect(_on_save_finished)
+	saves.autosave_finished.connect(func(_success: bool) -> void: _save_ended())
 	get_viewport().size_changed.connect(func(): if _open: _apply_size())
 	_build()
 
@@ -118,7 +118,6 @@ func open() -> void:
 	_after_save = ""
 	_apply_size()
 	_show_page("menu")
-	opened.emit()
 
 
 ## The title screen's Load game… and Settings… (doc 23): the menu opens on that page alone,
@@ -132,7 +131,6 @@ func open_page(page: String) -> void:
 	_after_save = ""
 	_apply_size()
 	_show_page(page)
-	opened.emit()
 
 
 ## Closes the menu and lets the clock run as it did before.
@@ -186,9 +184,23 @@ func _navigates(event: InputEvent) -> bool:
 	return false
 
 
-## A key the name field takes while it has focus: text, and the keys that edit it.
+## A key the name field takes while it has focus: text, and the keys that edit it. A Ctrl chord
+## goes to it only when it edits text (copy, paste, undo, select all, a word left...): the field
+## passes the others on, and Ctrl+[ and Ctrl+] once reached the world behind the menu and moved
+## the slice.
 func _types(event: InputEventKey) -> bool:
-	return _name_field.has_focus() and (event.unicode >= 32 or event.keycode in EDIT_KEYS or event.is_command_or_control_pressed())
+	if not _name_field.has_focus(): return false
+	if event.is_command_or_control_pressed(): return _edits_text(event)
+	return event.unicode >= 32 or event.keycode in EDIT_KEYS
+
+
+## Whether a key is one of the text field's own editing actions.
+static func _edits_text(event: InputEventKey) -> bool:
+	for action: StringName in [&"ui_cut", &"ui_copy", &"ui_paste", &"ui_undo", &"ui_redo"]:
+		if event.is_action(action, true): return true
+	for action: StringName in InputMap.get_actions():
+		if String(action).begins_with("ui_text_") and event.is_action(action, true): return true
+	return false
 
 
 func _back() -> void:
@@ -707,7 +719,7 @@ func _ask(kind: String, slot: Dictionary = {}, save_name := "") -> void:
 		_ask_title.text = "Delete \"%s\"?" % String(slot.name) if named else "Delete the %s?" % String(slot.name).to_lower()
 		var after: String = "and it leaves this list." if named else {"quick": "and Save game writes the next one.",
 			"auto": "and the next comes after five minutes of play."}.get(String(slot.id), "")
-		_ask_body.text = "%s on %s, saved %s. Its files go to the Recycle Bin, %s" % [
+		_ask_body.text = "%s on %s, saved %s. Its files go to the Trash, %s" % [
 			held if not held.is_empty() else "A colony not yet named", _when(slot), ago(int(slot.saved_unix)), after]
 		choices = [["Delete", "danger", _confirm_delete.bind(String(slot.id))], ["Cancel", "main", _close_question]]
 	match kind:
@@ -836,7 +848,16 @@ func _on_save_finished(success: bool) -> void:
 		_ask_body.text = "The save failed, so the game is still open. %s without saving, or try again later." % (
 			"Exit" if leaving == "exit" else "Quit")
 		for button: Button in _ask_buttons.get_children(): button.disabled = false
-	if _open: _refresh()
+	_save_ended()
+
+
+## A save has ended, the player's or the autosave: the open page shows it done and gives its
+## buttons back. An autosave can be under way as the menu opens; the menu once heard only the
+## player's saves, and stayed on "Saving…" with its buttons held.
+func _save_ended() -> void:
+	if not _open: return
+	if _page == "load": _show_slots()
+	_refresh()
 
 
 # ── Words and sizes ───────────────────────────────────────────────────────────

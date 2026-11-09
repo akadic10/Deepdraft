@@ -43,6 +43,17 @@ func setup(id: int, cells: Array[Vector3i]) -> void:
 		_cell_set[cell] = true
 
 
+## The cells leave the zone, with their stacks; StockpileManager hands the goods back first.
+func forget_cells(cells: Array[Vector3i]) -> void:
+	for cell: Vector3i in cells:
+		tile_cells.erase(cell)
+		_slots.slots.erase(cell)
+		_slots.reservations.erase(cell)
+		cell_stacks.erase(cell)
+		_cell_set.erase(cell)
+	changed.emit()
+
+
 # ── Queries ───────────────────────────────────────────────────────────────────
 
 func has_cell(cell: Vector3i) -> bool:
@@ -76,9 +87,10 @@ func has_any_room() -> bool:
 	return _slots.has_any_room()
 
 
-func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "", spoil: float = -1.0) -> Variant:
+func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "", spoil: float = -1.0,
+		outside: bool = true) -> Variant:
 	if not accepts_key(item_key): return null
-	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id, spoil, spoil_band)
+	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id, spoil, spoil_band, outside)
 
 
 func _release_deposit(token: Variant) -> void:
@@ -200,7 +212,8 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 
 ## Rot (doc 42 "Spoilage"): a rotten stack loses the units nobody has claimed; units claimed
 ## for a meal or a haul stay until used. Returns how many went.
-func discard_unclaimed(cell: Vector3i) -> int:
+func discard_unclaimed(slot: Variant) -> int:
+	var cell: Vector3i = slot
 	var stack: Dictionary = cell_stacks.get(cell, {})
 	if stack.is_empty() or drop_manager == null or not is_instance_valid(drop_manager): return 0
 	var claimed := int(_outgoing.get(cell, {}).get("count", 0))
@@ -218,3 +231,7 @@ func discard_unclaimed(cell: Vector3i) -> int:
 		changed_callback.call(key, -gone)
 	changed.emit()
 	return gone
+
+
+func place_words() -> String:
+	return "in Stockpile %d" % zone_id

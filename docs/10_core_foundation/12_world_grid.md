@@ -174,9 +174,11 @@ Runtime integer IDs must never cross the save boundary. Saves are not migrated d
 development: a save whose `schema_version` differs from the game's is rejected, and so
 is one whose shape doesn't match the current validator. A save that names content the
 game no longer defines (an unknown block, material, furniture piece, item, worker recipe,
-tree species or stage, or planted bush) is rejected too, before the scene exists: the
-validator checks those keys against `BlockRegistry`, `CraftMaterials`,
-`SurfaceDetailRegistry` and `ContentRegistry`, and restore code never skips unknown ids.
+tree species or stage, planted bush, a dwarf's profession, trait or tool, a crafting order's
+ingredient or a batch's material) is rejected too, before the scene exists: the validator
+checks those keys against `BlockRegistry`, `CraftMaterials`, `SurfaceDetailRegistry`,
+`ContentRegistry` and `DwarfAssets`, and restore code never skips unknown ids. The dwarf and
+crafting checks came 2026-11-09: an unknown hammer had loaded a Blacksmith with no tool.
 See `13_architecture.md` §SaveManager for the persistence contract.
 
 ---
@@ -256,7 +258,8 @@ separate primary/backup/temp files so autosave never replaces the player's manua
 A named save adds `save_name` beside the clock (the schema's one optional top-level field),
 so the Load page reads it from the top of the file.
 Each top level separates deterministic world identity, autoload state, and scene-owned
-state:
+state. An abridged example: a real save carries every owner's section, and the validator
+(`SaveSnapshotValidator`) requires each one.
 
 ```json
 {
@@ -266,7 +269,7 @@ state:
   "world_seed": 123456789,
   "colony_name": "Brunhald",
   "clock": { "year": 1, "season": "summer", "day": 1, "hour": 8.0 },
-  "weather": { "current_id": "base:weather:clear", "rng_state": 1234 },
+  "weather": { "current_id": "base:weather:clear", "rng_state": "1234" },
   "scene": {
     "terrain": { "edits": [{ "cell": [512, 27, 520], "block": "base:terrain:void" }] },
     "exploration": { "cells": [[512, 27, 520]], "caves": [] },
@@ -276,8 +279,8 @@ state:
     "furniture": { "ghosts": [], "installed": [] },
     "items": { "loose": [] },
     "dwarves": { "birth_index": 5, "roster": [] },
-    "camera": {},
-    "slice": {}
+    "camera": { "target_position": [512.5, 30.0, 512.5], "zoom": 30.0, "pitch": -45.0, "orbit_y": 0.0 },
+    "slice": { "active": true, "seeded": true, "slice_y": 47, "last_slice_y": 47 }
   }
 }
 ```

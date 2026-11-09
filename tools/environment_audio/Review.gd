@@ -1,10 +1,10 @@
 extends "res://tools/terrain_art/CaptureTerrain.gd"
 
-## Run with an isolated APPDATA containing /ambience_20261013/.
+## Run with an isolated user:// profile whose path contains /ambience_20261013/.
 ## Captures native game mixer output only, never a microphone.
 func _run() -> void:
 	if not "/ambience_20261013/" in OS.get_user_data_dir().replace("\\", "/"):
-		push_error("Ambience review requires an isolated APPDATA"); quit(2); return
+		push_error("Ambience review requires an isolated user:// profile"); quit(2); return
 	output = "res://tmp/ambience_20261013/world/"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	create_timer(240).timeout.connect(func(): push_error("World ambience review timed out"); quit(1))

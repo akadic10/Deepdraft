@@ -12,7 +12,7 @@ const SettlementName = preload("res://scripts/components/SettlementName.gd")
 
 const FILTER := {"tags": [TYPE_STRING], "items": [TYPE_STRING], "excluded_items": [TYPE_STRING]}
 ## A furniture container's goods (doc 294), saved with its piece.
-const CONTAINER := {"stacks": [{"slot": TYPE_INT, "item": "item", "count": "positive_int", "material_id": "material", "?instance_id": TYPE_STRING}],
+const CONTAINER := {"stacks": [{"slot": TYPE_INT, "item": "item", "count": "positive_int", "material_id": "material", "?instance_id": TYPE_STRING, "?spoil": TYPE_FLOAT}],
 	"storage_filter": FILTER, "priority": TYPE_INT}
 const CARGO := {"item_key": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material", "?spoil": TYPE_FLOAT}
 const ANIMAL := {
@@ -89,7 +89,7 @@ const SCENE := {
 		"count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material", "?spoil": TYPE_FLOAT}]},
 	"dwarves": {"birth_index": TYPE_INT, "settlement_anchor": "cell", "roster": [{
 		"id": TYPE_INT, "name": TYPE_STRING, "gender": TYPE_STRING, "appearance": {"*": TYPE_STRING},
-		"traits": [TYPE_STRING], "tastes": {"*": "key"}, "found_tastes": ["key"], "stats": {"*": TYPE_INT}, "?health": TYPE_FLOAT, "profession": "key", "profession_experience": {"*": TYPE_INT},
+		"traits": ["trait"], "tastes": {"*": "key"}, "found_tastes": ["key"], "stats": {"*": TYPE_INT}, "?health": TYPE_FLOAT, "profession": "profession", "profession_experience": {"*": TYPE_INT},
 		"?catch_log": {"?caught": {"*": TYPE_INT}, "?big": TYPE_INT, "?dried": TYPE_INT, "?day": TYPE_INT, "?today": TYPE_INT, "?best": TYPE_INT, "?best_day": TYPE_INT},
 		"work_permissions": {"*": TYPE_BOOL}, "position": "vector", "rotation_y": TYPE_FLOAT,
 		"sleep": TYPE_FLOAT, "sleeping": TYPE_BOOL, "sleep_hours_left": TYPE_FLOAT,
@@ -114,10 +114,10 @@ const SCENE := {
 		"pressure": {"*": {"x": TYPE_FLOAT, "z": TYPE_FLOAT, "level": TYPE_FLOAT, "day": TYPE_FLOAT}},
 		"history": [{"id": "key", "result": TYPE_STRING, "count": TYPE_INT, "day": TYPE_FLOAT}]},
 	"worker_crafting": {"orders": [{"id":"positive_int","recipe": "recipe", "quantity": "positive_int", "maintain": TYPE_BOOL,
-		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": [TYPE_STRING],
+		"paused": TYPE_BOOL, "progress": TYPE_FLOAT, "allowed_ingredients": ["item"],
 		"?bench": TYPE_INT, "?staged": [{"item": "item", "cell": "cell"}]}],
 		"?batches": [{"bench": TYPE_INT, "origin": "cell", "recipe": "recipe", "input": "item", "inputs": "positive_int",
-			"started": TYPE_FLOAT, "?material": TYPE_STRING}]},
+			"started": TYPE_FLOAT, "?material": "material"}]},
 	"camera": {"target_position": "vector", "zoom": TYPE_FLOAT, "pitch": TYPE_FLOAT, "orbit_y": TYPE_FLOAT},
 	"slice": {"active": TYPE_BOOL, "seeded": TYPE_BOOL, "slice_y": TYPE_INT, "last_slice_y": TYPE_INT},
 	"events": {"next_id": "positive_int", "seen_id": TYPE_INT, "entries": [{"id": "positive_int", "kind": "key",
@@ -128,7 +128,8 @@ const SCENE := {
 }
 const EVENT_KINDS := ["arrival", "discovery", "colony", "warning"]
 ## Validation rule -> ContentRegistry.save_catalogs() key set.
-const CONTENT_CATALOGS := {"furniture": "furniture", "item": "items", "recipe": "recipes", "tree": "trees", "plant": "plants"}
+const CONTENT_CATALOGS := {"furniture": "furniture", "item": "items", "recipe": "recipes", "tree": "trees", "plant": "plants",
+	"profession": "professions", "trait": "traits"}
 const SNAPSHOT := {
 	"schema_version": TYPE_INT, "project": TYPE_STRING, "saved_at_utc": "key", "world_seed": TYPE_INT, "colony_name": TYPE_STRING,
 	"?save_name": TYPE_STRING,
@@ -268,6 +269,10 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	var residents := {}
 	for dwarf: Dictionary in snapshot.scene.dwarves.roster:
 		residents[int(dwarf.id)] = true
+		# Restore never skips an unknown id (docs 12 and 13): a hammer the game no longer knows
+		# would load a Blacksmith with no tool.
+		var tool := String(dwarf.equipment.get("tool", ""))
+		if not tool.is_empty() and not catalogs.items.has(tool): return "save.scene.dwarves names unknown item '%s'; start a new world." % tool
 		if float(dwarf.food.value)<0.0 or float(dwarf.food.value)>1.0 or float(dwarf.food.hours_since_meal)<0.0 or float(dwarf.food.retry_hours)<0.0:
 			return "save.scene.dwarves has invalid food need or meal timing."
 		for outcome in [dwarf.food.last_dining,dwarf.mood.dining_outcome]:
@@ -348,10 +353,8 @@ static func _validate_stones(scene: Dictionary, catalogs: Dictionary) -> String:
 				return "save.scene.water has an invalid stone location."
 		if stone.packing and (not stone.placed or stone.disallowed): return "save.scene.water has an invalid packing order."
 		owners[id] = 1 if stone.placed else 0
-	var goods: Array = scene.items.loose.duplicate()
-	for zone: Dictionary in scene.stockpiles.zones: goods.append_array(zone.stacks)
+	var goods := saved_goods(scene)
 	for dwarf: Dictionary in scene.dwarves.roster:
-		goods.append_array(dwarf.carried_items)
 		if not catalogs.materials.has(String(dwarf.equipment.get("material_id", ""))): return "save.scene has an unknown equipped material."
 	for item: Dictionary in goods:
 		var key := String(item.get("item_key", item.get("item", "")))
@@ -369,6 +372,17 @@ static func _validate_stones(scene: Dictionary, catalogs: Dictionary) -> String:
 		if not owners.has(id) or moves.has(id) or ghost.key!="base:water:"+scene.water.stones[id].kind+"_stone": return "save.scene has an invalid water stone move."
 		moves[id] = true
 	return _validate_furniture_moves(scene, goods)
+
+
+## Every good a save holds: loose, in stockpile zones, in storage furniture (doc 294) and carried.
+## Stacks name their item "item_key" or "item"; the checks read either.
+static func saved_goods(scene: Dictionary) -> Array:
+	var goods: Array = scene.items.loose.duplicate()
+	for zone: Dictionary in scene.stockpiles.zones: goods.append_array(zone.stacks)
+	for piece: Dictionary in scene.furniture.installed:
+		if piece.has("storage"): goods.append_array(piece.storage.stacks)
+	for dwarf: Dictionary in scene.dwarves.roster: goods.append_array(dwarf.carried_items)
+	return goods
 
 
 static func _validate_furniture_moves(scene: Dictionary, goods: Array) -> String:
@@ -449,7 +463,7 @@ static func _validate(value: Variant, rule: Variant, path: String, catalogs: Dic
 			return ""
 		"material":
 			return "" if value is String and catalogs.materials.has(value) else "%s has an unknown material." % path
-		"furniture", "item", "recipe", "tree", "plant":
+		"furniture", "item", "recipe", "tree", "plant", "profession", "trait":
 			# Content the game no longer defines cannot be restored.
 			var catalog: Dictionary = catalogs[CONTENT_CATALOGS[rule]]
 			if value is String and catalog.has(value): return ""

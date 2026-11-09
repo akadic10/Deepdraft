@@ -144,13 +144,6 @@ func table_yaw(seat: InstalledFurnitureComponent, table: InstalledFurnitureCompo
 	return yaw if front.dot(offset.normalized()) > .98 else -1
 
 
-static func clearance(def: Dictionary, origin: Vector3i, yaw: int) -> AABB:
-	var result := AABB()
-	for region: Dictionary in clearance_regions(def, origin, yaw):
-		result = region.bounds if result.size == Vector3.ZERO else result.merge(region.bounds)
-	return result
-
-
 static func _world_box(def: Dictionary, region: Dictionary, origin: Vector3i, yaw: int) -> AABB:
 	var box := rotate_box(def, Vector3(region.min[0], region.min[1], region.min[2]),
 		Vector3(region.max[0], region.max[1], region.max[2]), yaw)

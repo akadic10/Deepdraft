@@ -41,8 +41,6 @@ const COLOR_ZONE_EDGE := Color(0.45, 0.92, 0.86, 0.60)
 
 signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
-signal zone_created(zone_id: int)
-signal zone_removed(zone_id: int)
 
 var config: Dictionary = {}
 var _dock_ui: Node
@@ -359,6 +357,18 @@ func water_of_spot(cell: Vector3i) -> String:
 	return "" if wet == NOWHERE else water_of_cell(wet)
 
 
+## The generated water straight out from a spot, within reach and the bank's drop, whether or
+## not water stands there now: the water of a zone whose spots have all drained.
+func _water_beside(cell: Vector3i) -> String:
+	for step: Vector2i in DIRECTIONS:
+		for distance in range(1, int(config.get("reach", 2)) + 1):
+			var column := Vector2i(cell.x, cell.z) + step * distance
+			for y in range(cell.y + 1, cell.y - int(config.get("bank_drop", 4)) - 1, -1):
+				var water := water_of_cell(Vector3i(column.x, y, column.y))
+				if not water.is_empty(): return water
+	return ""
+
+
 ## Where the float rests: on the water's surface above the cast cell.
 func _float_point(spot: RefCounted) -> Vector3:
 	var top: Vector3i = spot.water
@@ -387,13 +397,14 @@ func _size_of(water: String) -> int:
 
 
 ## Fish in a water now: the last count plus what has regrown since, never above its maximum.
+## Only reads: a catch and a load write stocks. A load reads stocks before the clock is restored
+## (SaveManager restores it last), and a write then would move the count's day.
 func stock(water: String) -> float:
 	var full := float(maximum(water))
-	var today := WorldClock.elapsed_days()
-	var entry: Dictionary = _stocks.get(water, {"fish": full, "day": today})
-	var fish := minf(full, float(entry.fish) + full * float(config.get("regrowth_per_day", 0.03)) * maxf(0.0, today - float(entry.day)))
-	_stocks[water] = {"fish": fish, "day": today}
-	return fish
+	if not _stocks.has(water): return full
+	var entry: Dictionary = _stocks[water]
+	var days := maxf(0.0, WorldClock.elapsed_days() - float(entry.day))
+	return minf(full, float(entry.fish) + full * float(config.get("regrowth_per_day", 0.03)) * days)
 
 
 func fished_out(water: String) -> bool:
@@ -422,16 +433,26 @@ func kept_fish(water: String) -> int:
 
 # ── Zones and their work ──────────────────────────────────────────────────────
 
-## Paints a zone over `cells` (every one a spot, all on one water). Returns its id, or -1.
-func create_zone(cells: Array[Vector3i], requested_id := -1, keep := -1) -> int:
+## Paints a zone over `cells` (every one a spot, all on one water). Returns its id, or -1. A load
+## (`restoring`) keeps every saved spot, though its water has drained: the spot waits until the
+## water comes back (doc 42), and refresh_work posts no work there meanwhile.
+func create_zone(cells: Array[Vector3i], requested_id := -1, keep := -1, restoring := false) -> int:
 	var kept: Array[Vector3i] = []
 	var water := ""
 	for cell: Vector3i in cells:
-		if _cell_to_zone.has(cell) or water_in_front(cell) == NOWHERE: continue
+		if _cell_to_zone.has(cell): continue
 		var cell_water := water_of_spot(cell)
-		if water.is_empty(): water = cell_water
-		if cell_water == water: kept.append(cell)
-	if kept.is_empty(): return -1
+		if restoring:
+			kept.append(cell)
+			if water.is_empty(): water = cell_water
+			continue
+		if cell_water.is_empty() or (not water.is_empty() and cell_water != water): continue
+		water = cell_water
+		kept.append(cell)
+	for cell: Vector3i in kept:
+		if not water.is_empty(): break
+		water = _water_beside(cell)
+	if kept.is_empty() or water.is_empty(): return -1
 	var zone_id := requested_id if requested_id > 0 else _next_id
 	_next_id = maxi(_next_id, zone_id + 1)
 	_zones[zone_id] = {"id": zone_id, "cells": kept, "water": water,
@@ -445,7 +466,6 @@ func create_zone(cells: Array[Vector3i], requested_id := -1, keep := -1) -> int:
 	_draw_cells(overlay, kept, COLOR_ZONE, COLOR_ZONE_EDGE, kept[0].y)
 	overlay.visible = kept[0].y <= _slice_y
 	_overlays[zone_id] = overlay
-	zone_created.emit(zone_id)
 	refresh_work()
 	return zone_id
 
@@ -460,7 +480,6 @@ func remove_zone(zone_id: int) -> void:
 		(_overlays[zone_id] as Node).queue_free()
 		_overlays.erase(zone_id)
 	if _window_zone == zone_id: _close_window()
-	zone_removed.emit(zone_id)
 
 
 ## Changes how many fish a zone keeps, by whole steps, within 0 and keep_max.
@@ -484,7 +503,7 @@ func _add_spot(zone_id: int, cell: Vector3i) -> void:
 	spot.float_callback = _float_point.bind(spot)
 	spot.feedback_visible_callback = func() -> bool: return spot.origin.y <= _slice_y
 	spot.big_callback = func(dwarf_id: int) -> bool: return big_catch(spot, TaskManager.get_agent(dwarf_id))
-	spot.rate_callback = patience
+	spot.rate_callback = func(dwarf_id: int) -> float: return patience(dwarf_id, String(_zones.get(spot.zone_id, {}).get("water", "")))
 	_spots.add(cell, spot)
 
 
@@ -522,13 +541,14 @@ func _land(dwarf_id: int, spot: RefCounted) -> bool:
 	if fish >= 1.0:
 		var agent := TaskManager.get_agent(dwarf_id)
 		big = big_catch(spot, agent)   # at the level the catch was made, before its award
-		_stocks[water].fish = fish - 1.0
+		_stocks[water] = {"fish": fish - 1.0, "day": WorldClock.elapsed_days()}
 		var drops := ItemDropManager.find(get_tree())
 		if drops != null: drops.spawn_drop(water_item(water), 2 if big else 1, spot.origin + Vector3i.UP)
 		# Awarded before the lease can end, as a Miner's last block counts.
 		if is_instance_valid(agent) and DwarfAssets.earns_by(agent.profession, "FISH"):
 			agent.profession_experience[agent.profession] = maxi(0, int(agent.profession_experience.get(agent.profession, 0))) + 1
 			CatchLog.record_catch(agent.catch_log, water_item(water), big, floori(WorldClock.elapsed_days()))
+			agent.get_mood().record_quiet_hour()
 	spot.state.work_seconds = 0.0
 	spot.duration = _catch_seconds(spot)
 	spot.roll = _big_roll(spot)
@@ -540,8 +560,10 @@ func _land(dwarf_id: int, spot: RefCounted) -> bool:
 ## Whether a spot's catch is this fisher's big fish: its seeded roll under the chance their
 ## level gives (doc 292). Never for a dwarf whose career has none.
 func big_catch(spot: RefCounted, agent: DwarfAgent) -> bool:
-	if not is_instance_valid(agent): return false
-	return spot.roll < float(DwarfAssets.level_reward(agent.profession, agent.profession_experience, "big_chance", 0.0))
+	if not is_instance_valid(agent) or not DwarfAssets.earns_by(agent.profession, "FISH"): return false
+	var water: String = _zones.get(spot.zone_id, {}).get("water", "")
+	var bonus := float(config.get("waters", {}).get(water, {}).get("big_bonus", 0.0))   # trout are often big
+	return spot.roll < float(DwarfAssets.level_reward(agent.profession, agent.profession_experience, "big_chance", 0.0)) + bonus
 
 
 ## A catch's roll for a big fish, seeded as its time is.
@@ -553,13 +575,18 @@ func _big_roll(spot: RefCounted) -> float:
 
 ## How much faster a Ranger's patience makes this season's catches: the season's speed their
 ## level gives (winter 0.75 from level 3) over the water's own, never slower; 1 without.
-func patience(dwarf_id: int) -> float:
+func patience(dwarf_id: int, water := "") -> float:
 	var agent := TaskManager.get_agent(dwarf_id)
-	if not is_instance_valid(agent): return 1.0
+	if not is_instance_valid(agent) or _seasonless(water): return 1.0
 	var season := String(WorldClock.season)
 	var own := maxf(0.05, float(config.get("season_speed", {}).get(season, 1.0)))
 	var patient: Dictionary = DwarfAssets.level_reward(agent.profession, agent.profession_experience, "season_speed", {})
 	return maxf(1.0, float(patient.get(season, own)) / own)
+
+
+## A water whose fish bite at full speed all year (the spring cave).
+func _seasonless(water: String) -> bool:
+	return bool(config.get("waters", {}).get(water, {}).get("seasonless", false))
 
 
 ## Whether the colony has a dwarf whose career fishes (a Ranger), busy or not.
@@ -577,7 +604,7 @@ func _catch_seconds(spot: RefCounted) -> float:
 	var water: String = zone.get("water", "lake")
 	var low := float(config.get("fished_out_share", 0.1))
 	var plenty := clampf((stock(water) / float(maximum(water)) - low) / maxf(0.001, 1.0 - low), 0.0, 1.0)
-	var season := maxf(0.05, float(config.get("season_speed", {}).get(String(WorldClock.season), 1.0)))
+	var season := 1.0 if _seasonless(water) else maxf(0.05, float(config.get("season_speed", {}).get(String(WorldClock.season), 1.0)))
 	var hours := float(config.get("catch_hours", 1.0)) * lerpf(float(config.get("low_stock_factor", 3.0)), 1.0, plenty) / season
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([WorldGenerator.world_seed, spot.origin, int(stock(water) * 10.0)])
@@ -617,6 +644,7 @@ func zone_data(zone_id: int) -> Dictionary:
 		fishers.append({"name": agent.dwarf_name, "doing": "casting" if casting else "walking to the shore"})
 	return {"id": zone_id, "title": "Fishing Zone %d" % zone_id, "water": water_name(water),
 		"item": item, "fish_name": String(definition.get("display_name", "Fish")),
+		"trait": String(config.get("waters", {}).get(water, {}).get("trait", "")),
 		"keeps_days": float(definition.get("food", {}).get("keeps_days", 0.0)),
 		"picture": Inventory.thumbnail_path(item), "stock": int(stock(water)), "maximum": maximum(water),
 		"word": stock_word(water), "regrowth": float(config.get("regrowth_per_day", 0.03)) * maximum(water),
@@ -643,7 +671,7 @@ func serialize_state() -> Dictionary:
 		zones.append({"id": zone_id, "cells": cells, "keep": int(_zones[zone_id].keep)})
 	var stocks := {}
 	for water: String in _stocks:
-		stocks[water] = {"fish": stock(water), "day": float(_stocks[water].day)}
+		stocks[water] = {"fish": stock(water), "day": WorldClock.elapsed_days()}
 	return {"next_id": _next_id, "zones": zones, "stocks": stocks}
 
 
@@ -657,7 +685,7 @@ func restore_state(state: Dictionary) -> void:
 	for entry: Dictionary in state.get("zones", []):
 		var cells: Array[Vector3i] = []
 		for packed: Variant in entry.cells: cells.append(SaveManager.unpack_v3i(packed))
-		create_zone(cells, int(entry.id), int(entry.keep))
+		create_zone(cells, int(entry.id), int(entry.keep), true)
 
 
 # ── The zone's window ─────────────────────────────────────────────────────────

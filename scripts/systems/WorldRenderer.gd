@@ -60,8 +60,8 @@ var underground_view: Node
 @export var overview_threaded: bool = true
 ## Debug (slice plan doc 11, Phase 0). When true, every slice_y change logs how
 ## many tiles were re-enqueued and how long the rebuild queue took to drain
-## (frames, wall ms, worst single frame).
-@export var slice_debug_timing: bool = true
+## (frames, wall ms, worst single frame). Off by default: two log lines a slice step.
+@export var slice_debug_timing: bool = false
 
 # ── Internal state ────────────────────────────────────────────────────────────
 
@@ -223,18 +223,6 @@ func camera_rig() -> Camera:
 	return _camera_rig
 
 
-func set_visual_cut_blocks(blocks: Dictionary) -> void:
-	_planned_cut_blocks = blocks.duplicate()
-	_visual_cut_blocks = blocks.duplicate()
-	_visual_cut_blocks.merge(_discovered_cave_blocks)
-	_visual_cut_blocks.merge(_debug_cave_blocks)
-	_visual_cut_blocks.merge(WorldData.terrain_overrides())
-	cavity_shell.clear_cut_index()
-	for block: Vector3i in _visual_cut_blocks.keys():
-		cavity_shell.track_cut(block, 1)
-	_invalidate_visual_cut_meshes_global()
-
-
 func add_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	for block: Vector3i in blocks: _planned_cut_blocks[block] = true
 	_add_cut_blocks(blocks)
@@ -338,12 +326,6 @@ func _invalidate_visual_cut_blocks(blocks: Array[Vector3i]) -> void:
 	if light_occluders != null: light_occluders.invalidate_cells(blocks)
 
 
-func _invalidate_visual_cut_meshes_global() -> void:
-	cavity_shell.dirty = true
-	tiles.invalidate_global()
-	if light_occluders != null: light_occluders.invalidate_all()
-
-
 ## Shared by natural overview plates and constructed stone cut by the slice.
 ## Only artificial cut faces dim; exposed tops and vertical faces keep their color.
 static func slice_cut_color(color: Color) -> Color:
@@ -401,30 +383,6 @@ var _visible_volume_dirty: bool = false
 ## Slice plane first, then the discovered shell while inspecting underground.
 func is_block_visible(pos: Vector3i) -> bool:
 	return pos.y <= slice_y and (not is_instance_valid(underground_view) or underground_view.is_terrain_visible(pos))
-
-
-## Returns the subset of blocks inside the visible volume (order preserved).
-func filter_blocks(blocks: Array[Vector3i]) -> Array[Vector3i]:
-	if slice_y >= WORLD_SIZE_Y - 1 and (not is_instance_valid(underground_view) or not underground_view.is_inspecting()):
-		return blocks   # slice off — everything visible, skip the scan
-	var out: Array[Vector3i] = []
-	for block: Vector3i in blocks:
-		if is_block_visible(block):
-			out.append(block)
-	return out
-
-
-## Clips an AABB against the visible volume (cheap path for box overlays).
-## Returns a zero-size AABB when the box lies entirely above the plane.
-func clip_aabb(aabb: AABB) -> AABB:
-	var top := float(slice_y + 1)   # plane cuts ABOVE the slice_y layer
-	if aabb.position.y >= top:
-		return AABB(aabb.position, Vector3.ZERO)
-	if aabb.end.y <= top:
-		return aabb
-	var size := aabb.size
-	size.y = top - aabb.position.y
-	return AABB(aabb.position, size)
 
 
 # ── Camera rig auto-setup ────────────────────────────────────────────────────

@@ -4,9 +4,9 @@ Scans game GDScript (scripts/, without scripts/tests) and data JSON for the
 problems the 2026-10-22 review found by hand. Today's violations are recorded in
 tools/lint_baseline.json; the run fails only when something is new or grows.
 
-    py tools/lint_project.py                   check; exit 1 on new violations
-    py tools/lint_project.py --update-baseline record fixes (counts only go down)
-    py tools/lint_project.py --reset-baseline  rewrite from scratch (owner's call only)
+    python3 tools/lint_project.py                   check; exit 1 on new violations
+    python3 tools/lint_project.py --update-baseline record fixes (counts only go down)
+    python3 tools/lint_project.py --reset-baseline  rewrite from scratch (owner's call only)
 
 Rules
   private-access  one script using another object's _private member

@@ -57,7 +57,7 @@ def main():
                'tools/performance/LongSessionBenchmark.gd', 'tools/performance/CameraBenchmark.gd']
     audit = {'source_sha256': {name: sha(ROOT / name) for name in sources},
              'input_save_sha256': sha(TMP / 'input_quicksave.json'),
-             'original_save_sha256': sha(Path('C:/Users/akadi/AppData/Roaming/Godot/app_userdata/Deepdraft/saves/quicksave.json'))}
+             'original_save_sha256': sha(Path.home() / '.local/share/godot/app_userdata/Deepdraft/saves/quicksave.json')}
     if (TMP / 'packed/release_startup.json').exists():
         audit['package'] = read(TMP / 'packed/release_startup.json')['package']
         archive = ROOT / 'build/windows/Deepdraft-Windows-Playtest.zip'

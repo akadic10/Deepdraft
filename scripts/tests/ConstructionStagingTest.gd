@@ -109,11 +109,20 @@ func _staged_resume() -> void:
 	_expect(is_equal_approx(order.work_progress[target],progress),"pause freezes hammering")
 	clock_node.set_paused(false)
 	worker._food.value = .2
-	_expect(worker._food.begin_if_needed(),"hunger interrupts the active construction job")
+	var meal_found := false
+	drops.spawn_drop("base:resources:flora:apple",1,worker.current_cell()+Vector3i.UP)
+	var apple: Node3D = drops._loose.keys().back()
+	for i in 100:
+		meal_found = worker._food.begin_if_needed()
+		if meal_found: break
+		await process_frame
+	_expect(meal_found,"with food in reach, hunger interrupts the active construction job")
 	_expect(order.materials.count()==3 and is_equal_approx(order.work_progress[target],progress),"need interruption preserves staged stock and partial work")
 	_expect(not worker._construction_pose.tool.visible,"interruption stows the hammer")
 	worker._food.cancel()
 	worker._food.value = 1.0
+	drops.take(apple)
+	apple.free()
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(construction.serialize_state()))
 	var serialized_loose: Dictionary = drops.serialize_state()
 	construction.restore_state(saved)

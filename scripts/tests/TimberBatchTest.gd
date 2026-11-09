@@ -7,7 +7,7 @@ const OAK := "base:resources:wood:oak_log"
 func _run() -> void:
 	create_timer(140).timeout.connect(func(): push_error("Timber batch timeout"); quit(1))
 	await _setup_crafting_fixture()
-	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(45,20,42),0)
+	_carpenter_bench_at(Vector3i(45,20,42))   # the log bed is the Carpenter's (doc 44)
 	drops.spawn_drop(PINE,3,Vector3i(42,21,42))
 	drops.spawn_drop(OAK,2,Vector3i(49,21,42))
 	var id: int = crafting.queue_order(BED_RECIPE,1,false,[PINE,OAK])

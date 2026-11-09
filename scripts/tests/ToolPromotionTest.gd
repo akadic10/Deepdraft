@@ -190,6 +190,13 @@ func _review_equipment() -> void:
 	promotion.select_profession(CARPENTER)
 	await _frames(4)
 	_expect(not promotion._promote.disabled, "available kit enables appointment button")
+	# On a ladder the page says so, not that a tool is missing (the project review, 2026-11-09).
+	worker._ladder_exiting = true
+	promotion.refresh()
+	_expect(promotion._promote.disabled and promotion._status.text == "ON A LADDER" and promotion._promote.text == "Waiting for solid ground",
+		"a dwarf on a ladder waits for solid ground, with its kit to hand: %s / %s" % [promotion._status.text, promotion._promote.text])
+	worker._ladder_exiting = false
+	promotion.refresh()
 	promotion._promote.pressed.emit()
 	await _equipment_stage("walking")
 	promotion.refresh()

@@ -1,7 +1,7 @@
 """Install reversible diagnostic wrappers, restoring exact bytes after the run.
 
 Never instrument worker methods. Snapshot + SHA guards preserve pre-existing work
-and refuse to overwrite concurrent edits. RunSteadyRendering.ps1 owns the lifetime.
+and refuse to overwrite concurrent edits. The benchmark's launcher owns the lifetime.
 """
 import argparse
 import hashlib

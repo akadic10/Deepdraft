@@ -68,14 +68,6 @@ func mesh(data: Array) -> ArrayMesh:
 	result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,surface)
 	return result
 
-## Dashed perimeter/step boundaries, projected vertically to the work slice.
-## Adjacent same-height floor cells share no line, avoiding a per-voxel grid.
-func reference_mesh(columns: Dictionary, level: int, width: float) -> ArrayMesh:
-	var data := arrays()
-	for column: Vector2i in columns:
-		append_reference(column,columns,level,width,data)
-	return mesh(data)
-
 func append_reference(column: Vector2i, columns: Dictionary, level: int, width: float, data: Array) -> void:
 	var x := float(column.x)
 	var z := float(column.y)

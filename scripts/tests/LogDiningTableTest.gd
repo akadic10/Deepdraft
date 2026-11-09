@@ -16,10 +16,10 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _craft_place_move() -> void:
-	_piece(BENCH,Vector3i(45,20,42))
+	_carpenter_bench_at(Vector3i(44,20,42))
 	drops.spawn_drop(PINE,2,Vector3i(42,21,40))
 	var order: int=crafting.queue_order(LOG_TABLE_RECIPE,1)
-	_expect(order>=0 and await _completed(order),"Worker crafts a log table from two actual logs")
+	_expect(order>=0 and await _completed(order),"a Carpenter crafts a log table from two actual logs at the carpenter's bench")
 	_expect(_count(PINE)==0 and _count(LOG_TABLE_ITEM)==1,"two logs become one packed table")
 	furniture.activate_for(LOG_TABLE,true)
 	furniture._hover_cell=Vector3i(46,20,38)

@@ -9,6 +9,447 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**"Trash" instead of "Recycle Bin" (2026-11-09):** From the owner: "make the recycle bin to trash
+change". Deleting a save from the Load page now says its files go to the Trash, as KDE calls it, and
+the notice reads "The quick save is in the Trash." Docs 13 and 23; `GameMenuTest`.
+
+Restart Play.
+
+---
+
+**Five window fixes from the project review (2026-11-09):** From the owner: "proceed with batch 8", the
+review's low-priority glitches you would see:
+- **A container's storage window closes when the piece goes.** It stayed open on a packed-up crate,
+  and changes made there were lost. `CrateTest`.
+- **The career map says why a promotion waits.** A dwarf on a ladder read "TOOL REQUIRED" and
+  "Waiting for tool" with the tool to hand; it now reads ON A LADDER and "Waiting for solid ground".
+  `ToolPromotionTest`.
+- **The settlement page's food row has no "Short" tag when nobody lives there.** `SettlementPanelTest`.
+- **A small fishing water reads "Regrows about one every 3 days"**, not "about 0 a day". `FishingTest`.
+- **▴ and ▾ in the crafting queue move an order within its own page.** Past another career's order
+  they changed nothing you could see. `CraftingQueueTest`.
+
+Doc 23. Restart Play.
+
+---
+
+**Three small fixes from the project review (2026-11-09):** From the owner: "proceed", batch 7:
+- **Ctrl+[ and Ctrl+] no longer move the slice while you type a save's name.** The name field passed
+  them on to the world behind the menu; it now takes only the Ctrl keys that edit text. Doc 23;
+  `GameMenuTest`.
+- **A dwarf walking to a meal or a game keeps out of other dwarves' bedrooms when its route
+  changes.** Its first route kept out, but a replan or a shortcut could cross one. Doc 41;
+  `BedroomPrivacyTest`.
+- **A log built against a cliff no longer shows the cliff's ores** (Hard Rule 11). True colours now
+  show only beside space the colony dug or found. Doc 24; `OverviewSnapshotTest`.
+
+Restart Play.
+
+---
+
+**Five more fixes from the project review (2026-11-09):** From the owner: "proceed with batch 6", the
+review's remaining medium bugs (§2):
+- **Food no longer rots outside while a shelf's hauls need attention.** A store whose hauls were
+  paused for "Needs attention" still counted as first in line, so storage zones refused loose food
+  until you retried the order. Doc 31; `StoragePriorityTest`.
+- **Back to colony opens the roster on the right dwarf.** From a career map opened on its own, the
+  roster could open on whichever dwarf it picked itself. `DwarfRosterTest`.
+- **Turning the Appeal view off always clears it,** even when a glowing piece went while it was on;
+  the dim stayed on screen. **An hour's spoilage carries on** when a crate goes before its turn; it
+  stopped there. `AppealViewTest`, `FoodSpoilageTest`.
+- **A save naming a profession, trait, tool, ingredient or material the game doesn't know is
+  refused,** as it already was for blocks, items and furniture. An unknown hammer loaded a
+  Blacksmith with no tool. Your current saves all pass the new checks. Doc 12;
+  `SaveManagerRoundTripTest`.
+- **The DEV item stamper refuses the settlement flag**, by its real key. `ItemStamperTest`.
+
+Restart Play.
+
+---
+
+**Housekeeping from the project review (2026-11-09):** From the owner: "proceed with batch 5", with the
+lists approved first. Nothing changes in play:
+- **`tmp/` pruned** of 106 entries nothing referred to (935 MB: 51 failed test runs and 55 old review and
+  probe folders); it is now 3.1 GB. The doc 298 animation evidence stays until you have looked at it.
+- **Dead code removed:**
+  - 8 signals no one connected;
+  - 26 functions nothing called, among them the mining overlay's unreachable visual-cut fallback and
+    the full-replacement `set_visual_cut_blocks` behind it;
+  - 7 constants never read, a pause guard that could never run and a field never read.
+  Docs 13, 24 and 31 no longer name them. Hooks that tests use, and the documented hooks for future
+  features (water extraction, extra stones, the player's hunts, honey), stay.
+
+Restart Play.
+
+---
+
+**Cleanups from the project review (2026-11-09):** From the owner: "proceed with batch 4". Nothing
+changes in play but the log:
+- **`ShrubPilotTest` passes,** so the whole suite is green. It was a test bug: its clock jumps
+  counted as time passing and the berries rotted.
+- **`durability` is gone from the block data,** answering doc 298's open question: nothing read it
+  since hardness sets the dig time. Comments that still spoke of it now say what happens.
+- **Quieter log:** no more two lines per slice step (a debug switch left on) or a wildlife line every
+  frame while the ducks wait for the water.
+- **Docs agree with the code again:** CLAUDE.md's map gains doc 41b, names the title screen as the
+  main scene and lists every lint rule; the stale open issues log is cleared (none were open); and
+  docs 12, 23, 24, 31, 32, 41, 42 and 44 lose the mismatches the review found. Wildlife restore
+  reads every flag directly, as doc 45 says.
+
+Restart Play.
+
+---
+
+**Safer saves and a steadier menu (2026-11-09):** From the owner: "start", batch 3 of the project
+review's list (§2):
+- **A power cut during a save can no longer empty both the save and its backup.** Each save deleted the
+  old file before moving the new one in; it now moves the new one over the old in one step. Doc 13;
+  `SaveManagerRoundTripTest`.
+- **The game menu no longer sticks on "Saving…".** An autosave under way as the menu opened left Save,
+  Load, New game and Quit disabled until the menu was reopened; the menu now hears the autosave end. No
+  autosave starts under the menu either: its five minutes don't count while the menu is open. Doc 23;
+  `GameMenuTest`.
+- **The title screen says what went wrong.** A load from Load game… that fails, and a save deleted there,
+  now say so under the title's buttons instead of nothing. Doc 23; `TitleScreenTest`.
+- **Water and damp ground no longer blink while dwarves mine with X-ray on behind a tool.** Doc 24;
+  `XrayToolVolumeTest` (new). Worth a look in play: tests can't see a flicker.
+
+Restart Play.
+
+---
+
+**Six gameplay fixes from the project review (2026-11-09):** From the owner: "proceed with next step",
+batch 2 of the review's list (§2):
+- **A Ranger no longer fishes forever once Keep is met.** A Ranger mid-cast when the colony reached the
+  zone's Keep kept casting, sounds and all, landing nothing until a need pulled them away. They now land
+  that catch and stop. Doc 42; `FishingTest`.
+- **A fishing zone survives a load while its water has drained.** It was dropped, with its Keep; now it
+  comes back whole and waits for the water. Doc 42; `FishingTest`.
+- **Mining the spring's ledge no longer stops the river.** The wet stone drops, and the spring keeps
+  flowing from its mouth. Doc 33; `WaterStoneLifecycleTest`.
+- **A fence post can't be put up on a dwarf.** The dwarf was walled in and showed "Trapped" with nothing
+  to free it; the post now waits until the tile is clear. Doc 43; `FurniturePlanRecheckTest`.
+- **Moving food to a better store never mixes fresh food into a rotting crate.** Fresh apples could be
+  moved onto a crate nine-tenths rotten; stored food now waits for room instead. Doc 42;
+  `StoragePriorityTest`.
+- **A Blacksmith's card shows the stone hammer.** It said "A stone hammer is required" while the hammer
+  was equipped. Doc 41; `BasicSmelterTest`.
+
+Restart Play.
+
+---
+
+**The room window stays open, and hidden caves stay hidden (2026-11-09):** From the owner: "proceed
+with batch 1", the rest of the review's fix-first list (§1.5 and §1.6):
+- **The room window no longer closes on its own.** Opened from the Appeal or Temperature view, it closed
+  within half a second of any dwarf mining, because rooms got new ids each time they were found again.
+  Rooms now keep their ids, so a title stays "Barracks 3" instead of counting up. The window also finds
+  the clicked floor's room again each refresh. Docs 34 and 23; `TemperatureViewTest`.
+- **Nothing the player reads or hears gives a hidden cave away** (Hard Rule 11):
+  - the Temperature view's card over one reads the cut rock, not the cave floor's depth;
+  - the sound focus no longer drops into one and plays open-air ambience over cut rock;
+  - a mining zone's "Faces" no longer counts a stand inside one, and miners no longer try to walk there;
+  - the DEV item stamper no longer drops goods in one, or inside the rock over the cut.
+  The Appeal view's pointer, the explorer's clicks and the felling box take a hidden cave for rock too.
+  Docs 24 (the rule), 21 and 43; `HiddenCavePlacementTest`.
+
+Restart Play.
+
+---
+
+**Four fixes from the project review (2026-11-09):** From the owner: "proceed with all four then", the
+fix-first list of the whole-project review (`tmp/project_review_20261109/report.md`, §1.1 to §1.4):
+- **Saves no longer fail with a packed piece on the pallet.** Once a Move's packed piece sat on the finished
+  goods pallet (its destination cancelled after packing), every save failed; the colony check found it in
+  your colony. The save check now counts goods in storage furniture, and a failed save also writes its
+  reason to the log. Doc 13; `FinishedGoodsPalletTest`.
+- **A fished-out water stays fished out across a load.** Loading used to refill it by the days between the
+  game's clock and the save's. Doc 42; `FishingTest`.
+- **A trip that skips one stored good no longer breaks.** When a trip moving goods to a better store
+  skipped one, the rest of the trip raised script errors and kept its claims until a reload. Doc 31;
+  `StoragePriorityTest`.
+- **A hungry dwarf walks straight to its meal.** Pulled off a walk to its work, a dwarf could head for the
+  old work spot at the end of its meal's walk, through walls if need be, and its body was then drawn blocks
+  away from where it stood. A replanned walk that ends on a step no longer aims short of it either. Docs
+  41 and 32; `DwarfWorkArrivalTest`.
+
+Restart Play.
+
+---
+
+**A food shelf (2026-11-06):** From the owner: "plan a wooden shelf for the dwarves to keep their food off the
+ground. The carpenter still has only basic tools so keep it rudimentary", then picked the lean-to rack from
+three concepts. Carpenters now make a food shelf from two matching logs: bark posts, leaning poles, lashed
+rails and split poles. It stands on any floor and holds six crates of food on two decks, twice what its
+three cells hold on the ground, and both rows show from your camera when it faces you. Food moves up to it
+from ground storage on its own. It keeps as on the floor beside it, so put shelves in the cool room: one in
+a warm yard would pull food out of a cellar. A sealed room counts the shelf's appeal and no stocked storage
+for the food on it. Doc 299 (accepted and retired the same day; rules in docs 42, 31, 23, 44 and 62);
+`FoodShelfTest`. Restart Play.
+
+---
+
+**Dwarves keep their feet after a step (2026-11-06):** From the owner: "the dwarf seems to have lost his
+legs and his selection box is huge". For a moment after coming off a ladder or over a step, a dwarf's feet
+were drawn up to 44 blocks away and its selection frame stretched across the yard to hold them. A dwarf
+now finishes the step or last rung before cutting ahead on a straight line. The fault came with the
+2026-11-05 step pose. Doc 32, "Steps finish on their waypoint"; `DwarfStepFeetTest`. Restart Play.
+
+---
+
+**Builders no longer wall themselves in (2026-11-05):** From the owner: "proceed with all four". A builder
+that starts inside a doorless room now walks out through the gaps and builds the walls from outside, so
+the room is finished and the builder can walk away. Doc 31, "Way out"; `ConstructionWayOutTest`. Restart
+Play.
+
+---
+
+**Fish that differ, a calm job, and plans that recheck their spot (2026-11-05):** From the owner: "proceed
+with all four". Each water's fish now has a trait, shown in the zone's window: the lake holds the most
+fish, trout are often big, char keep three days and cave fish bite at full speed all year. Each catch
+leaves a Ranger "A quiet hour by the water", +3 for 8 game hours. A planned floor piece rechecks its spot
+just before installing: with its floor gone, its head room gone or a dwarf in the way it waits, and the
+packed item stays whole. `RangerTest`, `FurniturePlanRecheckTest`. Restart Play.
+
+---
+
+**Ladder changes leave other dwarves alone (2026-11-05):** From the owner: "proceed with the ladder bug".
+Building, extending or removing a ladder no longer interrupts dwarves whose route doesn't use it: they
+keep walking to their meal, game or tool, or to their work. A dwarf whose route does use the changed
+part finds a new way and carries on; its meal, game or promotion ends only if no route is left.
+`LadderRouteChangeTest`. Restart Play.
+
+---
+
+**Hungry dwarves keep working until there is food, and nothing floats over a mined floor (2026-11-05):**
+From the owner: "proceed with the two bugs". A hungry dwarf on a job now looks for food while it works,
+and drops its job and cargo only once food is found, so a shortage no longer makes haulers drop their
+loads every quarter hour. Mining the floor under a floor piece packs it and drops it, with any goods it
+holds. Mining under a storage cell takes that cell out of its zone and its goods fall; haulers heading
+to that zone are released and pick up again. `DwarfFoodTest`, `MiningSupportTest`. Restart Play.
+
+---
+
+**Dwarves carry, get up and craft like people (2026-11-05):** From the owner: "let's keep going". Loads
+rock against the stride, heavy ones lean the dwarf back, and a laden dwarf turns more slowly so goods no
+longer swing through the air. Sitting and getting up are staged, feet first and then the body, with a
+lean into it, and lying down lowers before tipping over. Seated hands rest on the knees. Gatherers pick
+with one hand at a time. A dwarf waiting on a catch keeps breathing and glancing around. The mining raise
+goes around the head. At the bench, the Carpenter takes short adze strokes, the Stonemason small taps
+with a hand on the stone, and the Blacksmith high hammer blows. Doc
+[298](298_dwarf_animation_pass.md) steps 4 and 5; `DwarfPoseBlendTest`. Restart Play.
+
+---
+
+**Dwarves idle, eat, climb and step like people (2026-11-05):** From the owner: "1 - yes / 2 - the hands
+do have the climbing animation, but farther out than the ladder itself / 3 - do your recommendation".
+Idle dwarves breathe visibly, blink, shift their weight, look around, scratch their head or beard and
+stretch. Eating dips the head to the food, then chews, and the free hand moves too. A step up or down
+puts one foot on the new level before the body follows. On a ladder the hands grip the rails and the
+body climbs behind the ladder rather than through it. Mining swings are calmer, 0.75 s on rock instead of 0.5,
+with fewer strikes per block and the same dig time. Doc [298](298_dwarf_animation_pass.md) step 4;
+`DwarfPoseBlendTest`. Restart Play.
+
+---
+
+**Dwarves step instead of gliding (2026-11-03):** From the owner: "start the step back". When a dwarf
+has to reposition without walking, such as starting on a tree from where it already stands, its feet
+now take a step each instead of sliding along the ground. Doc
+[298](298_dwarf_animation_pass.md) "Step back"; `DwarfWorkArrivalTest`. Restart Play.
+
+---
+
+**Builders and crafters walk straight to their work (2026-11-03):** From the owner: "yes, fix building
+and bench work next". Builders and bench workers now walk to the spot they work from, turning to face
+it over the last block, with no slide back. A crafter carries its goods there and sets them down from
+that spot. A dwarf arriving by a step up or a ladder, or already standing on its spot, still glides.
+Doc [298](298_dwarf_animation_pass.md) "Arrival"; `DwarfBuildArrivalTest`, `DwarfBenchArrivalTest`.
+Restart Play.
+
+---
+
+**Dwarves walk straight to their swing (2026-11-03):** From the owner: "the dwarf approaches the tree,
+then slides back before he starts chopping it". A dwarf felling a tree, clearing a boulder or mining
+now walks to the spot it swings from, then turns to its work, with no slide back. Doc
+[298](298_dwarf_animation_pass.md) "Arrival"; `DwarfWorkArrivalTest`. Restart Play.
+
+---
+
+**Dwarves stay put when they finish a job (2026-11-03):** From the owner: "please observe the movement
+when a dwarf finishes a task, I don't want these movements that look bad". Measured over every job in
+the test suite: dwarves slid up to 0.9 of a block forward when mining, felling, clearing a boulder or
+working at a bench ended. They now stay where they worked until they walk off, and the walk starts
+from there. Long moves take longer, so a dwarf called out of a chair rises instead of snapping. Doc
+[298](298_dwarf_animation_pass.md) "Finish pass"; `DwarfPoseBlendTest`. Restart Play.
+
+---
+
+**Builders stay put when they finish (2026-11-03):** From the owner: "after construction the dwarf
+moved forward into the stone structure", then "no, it is still wrong", then "completed 2/3 blocks and
+then moved half a block in before walking off". A builder now stays where it was hammering until it
+next walks, and the walk starts from that spot, with no slide toward what it built. Any idle dwarf with a wall at
+its face also stands back so its head and beard stay out of the stone, when there is room behind it.
+Doc [298](298_dwarf_animation_pass.md) step 3; `DwarfPoseBlendTest`, and
+`tools/DwarfPillarBuildPreview.gd` shows a real pillar being built. Restart Play.
+
+---
+
+**The build hammer reworked (2026-11-03):** From the owner: "start step 3, the build hammer rework".
+Builders no longer hold the hammer against their chest and chin. They raise it one-handed beside
+the head, pause, strike on their right with the blow's weight in their body, and steady the block
+with the free hand. Build speed and the hammer sound's timing are unchanged. Doc
+[298](298_dwarf_animation_pass.md) step 3; `DwarfPoseBlendTest`. Restart Play.
+
+---
+
+**Dwarf animation pass, steps 1 and 2 (2026-11-03):** From the owner: "Can we perform an animation
+review on all the animations Dwarves have and give them a score", then "create this in a markdown
+file and start the updates". All 34 dwarf motions are scored in doc
+[298](298_dwarf_animation_pass.md), with the plan. Dwarves now ease between animations instead of
+snapping: hands used to jump up to 2.5 blocks in one frame when work started or stopped, and a
+block's first mining swing no longer opens on the strike. Bugs fixed: hands inside the head on
+ladders, the grill stick inside the body, hands inside the chest when taking food, working on a
+ladder or packing a water stone, and the free hand teleporting in a fishing cast. Job timing is
+unchanged. `DwarfPoseBlendTest`. Restart Play.
+
+---
+
+**A Deepdraft project icon (2026-11-02):** From the owner: "the godot icon is the default one,
+can you make one that fits deepdraft". The project, window and taskbar icon is now the colony
+dwarf in Hearthblock, outlined like the UI icons, on a rounded tile of stepped earth strata
+with ore flecks and a warm lantern glow (`res://icon.png`, 256 px; `config/icon` points to it).
+Rebuild it with `GenerateUiIcons.gd -- --app`. Reload the project to see it in the editor.
+
+---
+
+**The Blacksmith and the basic smelter (2026-11-02):** From the owner: "let's plan the blacksmith
+profession, some of the first metals we can find is copper", then "call it basic smelter, the
+blacksmith might have to practice first on copper bars". The Blacksmith is a live career:
+promote one with a stone hammer. Crafters → Blacksmith makes the basic smelter at the crude
+workbench (a log, four Rough Stones and a Soil), installed through Place → Workshops. At it, two
+copper ore and a coal melt for four hours into one copper bar, which the Blacksmith takes off
+the casting stone; the smelter warms its room only while it melts. A bar hammers into four
+copper fittings, stored as Metal. Each batch is practice: iron will need Blacksmith level 2.
+Only the career that made a batch takes it down: a Ranger never takes copper, a Blacksmith
+never takes fish. Doc 297 (accepted and retired the same day; rules in docs 44, 41, 31 and 34);
+`BasicSmelterTest`. Restart
+Play.
+
+---
+
+**The finished goods pallet (2026-11-02):** From the owner: "There was supposed to be a finished
+goods pallet as well". It had waited for metal bars, planks and dressed stone; the owner chose to
+build it now with today's finished goods, packed furniture, one piece to each quarter.
+Crafters → Carpenter → Storage makes it from two matching logs at the carpenter's bench, and
+Place → Storage sets it down: the owner's pick, log skids, split poles across two log runners.
+Packed furniture goes to it ahead of ground storage and stands on its deck, and placing a piece
+takes it from there. Doc [296](296_finished_goods_pallet.md); `FinishedGoodsPalletTest`. Restart
+Play.
+
+---
+
+**Full loads between stores (2026-11-02):** From the owner: "dwarves carry only one unit per
+load to it when they can carry four stones". Goods moving from one store to another, such as
+stockpiled stones going up to a raw materials crate, or tools to a tool rack, or goods leaving a
+store that no longer takes them, now fill a trip up to the carrying limit, as loose goods always
+did: the nearest stored good, then others stored within the bundle radius. Before, each trip
+moved one. Then, from the owner: "make quarters leaving the crate carry full loads too": a
+quarter of stones leaving a crate goes in one trip too, each stone a portion of the quarter's
+claim. Doc 31 has the rule; `CrateTest` checks that two stockpiled stones come up in one trip,
+and that a quarter of two stones, a coal and a soil leave in one. Restart Play.
+
+---
+
+**The raw materials crate's picture and title (2026-11-02):** From the owner: "the raw materials
+crate looks wrong". Its menu picture was never rendered, so Place and the Carpenter's page had no
+picture for it; it is now rendered from the model (`FurnitureCatalogThumbnails.gd`). A storage
+piece's window named its wood twice ("Pine pine raw materials crate · Iron Ore"):
+`FurnitureStorage.title` added the wood to a name that already had it. The tool rack's title had
+the same fault. `CrateTest` now pins the title, and its stone hoe is made by a Worker, as
+Rudimentary requires. Restart Play.
+
+---
+
+**Rudimentary is for surviving; log furniture moves to the Carpenter, the hearth to the
+Stonemason (2026-11-02):** From the owner: "Rudimentary was supposed to be initial surviving",
+then "the hearth should move to the mason and the remaining door, bed and bench should move to
+the carpenter". Crafters → Carpenter now makes the log dining table, log bench, log bed, all
+three log doors, the fence post, the gate and the board-game table, at the carpenter's bench.
+Crafters → Stonemason makes the hearth at the mason's bench. Without the career, an order reads
+"Needs a Carpenter" or "Needs a Stonemason". Workers keep the crude workbench, log torch,
+campfire, ladder, log stool and every starter tool and kit, so Rudimentary loses its Rooms and
+Recreation categories. A bedroom now needs a Carpenter, and a warm one a Stonemason. The rule is
+in doc 44, "Specialist workbenches". Existing orders for the moved recipes now wait for their
+career. Restart Play.
+
+---
+
+**Eighteen milestones retired (2026-11-02):** No change in play. From the owner: "All those
+were already confirmed as working, move their rules". Docs 256, 275 to 282, 284 to 286 and 289
+to 294 are retired. What is still true is in the design docs: mostly the owner's reasons and
+gotchas that only the milestones held, plus new sections for fishing (doc 42, "Fishing"; doc 23,
+"Fishing Zones") and tree seeds (doc 23). Their unfinished work is in `00_todo.md`: construction
+and built-log leftovers, nightly fires, a third game speed, winter food and food keeping (a new
+Food section), fishing, grilling and the Ranger's steps 3 and 4, the Stonemason's and
+Carpenter's iron-tool steps, far-haul searches, weather looks, tree planting's open picks, and
+the finished goods pallet. Code comments and the furniture art manifest still cite doc 256, as
+they cite other retired milestones. No restart or reload needed.
+
+---
+
+**The UI scale's Auto on Linux, and the sound tools (2026-11-02):** Settings, Interface tab:
+the note no longer mentions Windows. It reads "Auto: 125% (this screen's density gives
+144%)" and "Auto follows this screen's pixel density." A probe on the owner's screen showed
+what Auto reads on Linux: the physical DPI, 138, so 144%, close to Plasma's 145%, and the 125%
+step, where Windows gave 150%. Auto itself is unchanged, and the owner keeps 150% set; doc 23,
+"The UI scale", has the details. The audio generators' numpy and soundfile are installed
+system-wide, so they run with plain `python3`; the hammer sounds regenerate byte for byte.
+Restart Play to see the new note.
+
+---
+
+**The move to CachyOS finished; doc 295 retired (2026-11-02):** No change in play. From the
+owner: "vulkan looks fine, retire doc 295". What is still true is in doc 13, "Platform" (Vulkan,
+case-sensitive paths, the player's profile, the cursor on Wayland, tools in Python) and
+"Measuring performance" (figures from Windows don't compare with Vulkan). Left for later, in
+`00_todo.md` ("Tools and builds"): the art capture launchers, a benchmark launcher and a Linux
+build. No restart or reload needed.
+
+---
+
+**Cleaning up after the move to CachyOS (2026-11-02):** No change in play; the owner reports the
+game runs on Linux. Doc [295](295_moving_to_cachyos.md), steps 8 and 9.
+- CLAUDE.md, the docs and memory give Linux commands: `python3`, the Python runner,
+  `tools/import_assets.py`, `XDG_*` isolation and the Linux save path.
+- Deleted the replaced PowerShell runner and import script, and the nine performance launchers
+  (the owner's pick). The benchmarks stay; doc 13 says how to start one. The six art capture
+  launchers stay until art work needs them.
+- The weekly colony-check reminder is a "Last asked" date in CLAUDE.md, at the owner's request
+  instead of a desktop timer: when it is a week old, Claude asks once at the start of a session.
+- Housekeeping: `core.ignorecase` off; the working tree's Windows line endings gone; the Linux
+  save path in four performance collectors; the bundled font in the world-layout gallery.
+
+No restart or reload needed.
+
+---
+
+**First Linux session: the test runner in Python (2026-11-02):** No change in play. Doc
+[295](295_moving_to_cachyos.md), steps 4 to 7.
+- Godot 4.7.2 from Steam on CachyOS; the first headless import was clean (no asset re-imports).
+- `tools/run_job_reliability.py` replaces the PowerShell runner, with the same options in Python
+  style (`--area`, `--tests`, `--all`, `--list`, `--keep-output`). Each test gets its own
+  `XDG_DATA_HOME`, `XDG_CONFIG_HOME` and `XDG_CACHE_HOME`. `tools/import_assets.py` replaces
+  `Import.ps1`.
+- Isolation checked before the gate: the player profile was byte-identical after a save test, and
+  each test's `user://` lay inside `tmp/`. Gate 55/55 in 67 s on Linux, lint OK.
+- The 15 scripts that read `APPDATA` (six world tests, nine previews in `tools/`) check
+  `OS.get_user_data_dir()` instead. The `world` area passes 16/16 on Linux, including all six.
+- The old `.ps1` files stay until step 8.
+
+No restart or reload needed.
+
+---
+
 **Moving to CachyOS, the plan (2026-11-02):** No change in play. From the owner: "I want to move
 this project to CachyOS, we will use claude code there in the terminal" and "I won't be dual
 booting, we will only run CachyOS". Doc [295](295_moving_to_cachyos.md) is the plan:

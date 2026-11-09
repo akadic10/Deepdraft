@@ -246,7 +246,7 @@ func _refresh_interiors() -> void:
 	_reference_dirty = true
 	_reference_job.clear()
 	_visual_cursor = 0
-	if renderer!=null: renderer.mark_visible_volume_dirty()
+	_mark_volume()
 
 func _commit_chunk() -> void:
 	var key: Vector3i = _job.key
@@ -280,7 +280,15 @@ func _commit_chunk() -> void:
 	_reference_dirty = _reference_dirty or not _job.water_only
 	if not _job.water_only: _reference_job.clear()
 	_job.clear()
-	renderer.mark_visible_volume_dirty()
+	_mark_volume()
+
+
+## X-ray's shells changed (a dwarf mined, a chunk's shell was built). Only while X-ray inspects
+## does that change what the view shows. Behind a click tool the normal view shows, and telling
+## it the volume changed hid and re-meshed all its water and damp ground, so both blinked while
+## dwarves mined. Leaving the tool marks the volume once (_sync_working).
+func _mark_volume() -> void:
+	if renderer!=null and is_inspecting(): renderer.mark_visible_volume_dirty()
 
 func _shell_node(mesh: ArrayMesh) -> MeshInstance3D:
 	var node := MeshInstance3D.new()

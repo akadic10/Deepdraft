@@ -51,7 +51,7 @@ func holding(component: InstalledFurnitureComponent) -> String:
 ## Its window's title: its name, and the one good it keeps when narrowed to one (the owner's
 ## rule: "Raw materials crate · Iron ore").
 func title(component: InstalledFurnitureComponent) -> String:
-	var name := CraftMaterials.product_name(component.display_name(), component.material_id)
+	var name := component.display_name()   # already names its wood: "Pine raw materials crate"
 	var chosen: String = component.storage.chosen_key()
 	if chosen.is_empty(): return name
 	return "%s · %s" % [name, String(component.storage.drop_manager.get_item_def(chosen).get("display_name", chosen))]

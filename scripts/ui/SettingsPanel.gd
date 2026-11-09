@@ -190,7 +190,7 @@ func show_values() -> void:
 	(controls.render_scale.detail as Label).text = "%d × %d" % [world.x, world.y]
 	var width: float = _size.page - INSET_SIDES - 2.0 * _size.pad - SCROLLBAR
 	_scale_note.text = _wrap(_scale_text(), UITheme.body_font(), _size.note, width) + "\n" \
-		+ _wrap("Auto follows the display scale Windows sets for this screen.", UITheme.body_font(), _size.note, width)
+		+ _wrap("Auto follows this screen's pixel density.", UITheme.body_font(), _size.note, width)
 
 
 ## Where keyboard focus lands: the open section's first control (the chosen UI scale on
@@ -407,8 +407,8 @@ func _scale_text() -> String:
 	var text := "The interface lays out at %d × %d." % [room.x, room.y]
 	if chosen is String:
 		var system := VideoSettings.system_scale()
-		var auto := "Auto: %d%%, as Windows sets this screen." % percent if percent == system \
-			else "Auto: %d%% (Windows uses %d%%)." % [percent, system]
+		var auto := "Auto: %d%%, from this screen's pixel density." % percent if percent == system \
+			else "Auto: %d%% (this screen's density gives %d%%)." % [percent, system]
 		text = auto + " " + text
 	elif int(chosen) != percent:
 		text = "%d%% needs a larger window: %d%% for now. %s" % [chosen, percent, text]

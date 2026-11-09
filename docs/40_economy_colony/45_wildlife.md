@@ -57,7 +57,7 @@ wildlife P95 falls from 29.4 to 5.9 ms. Ten fixtures, 392 navigation comparisons
 and native packaged-save checks pass.
 
 **Wolf size:** the chibi Hearthblock wolf is about 2.4 blocks to the ear tips
-([256](../00_dev_roadmap/256_hearthblock_art_pilot.md)). Its definition owns the visual
+(doc 256). Its definition owns the visual
 scale and the four-wide, three-high navigation clearance. Flat strides remain two
 cells; terrace transitions span four cells with twice the duration. Capture reach,
 needs and population rules are unchanged.
@@ -68,7 +68,7 @@ arrays and initialization flags. Older development saves are not migrated; the
 historical milestone notes describe earlier formats, not compatibility promises.
 
 **Art — Hearthblock (2026-10-21):** all four species are chibi Hearthblock animals
-([256](../00_dev_roadmap/256_hearthblock_art_pilot.md)), authored in
+(doc 256), authored in
 `tools/hearthblock/art/wildlife.mjs` and built by `tools/voxel_assets/wildlife.py`:
 23 parts (rabbit 3, deer 6, wolf 5 and duck 9). The duck has two folded-wing meshes
 that show whenever it isn't flying. Each animal's joints are in its definition's
@@ -337,6 +337,9 @@ Planned with the Ranger's hunting:
 - at 0 the animal dies (corpse resources are a separate decision);
 - a wounded animal heals to full over about a game day and saves its hit points while hurt;
 - wolf captures stay as they are: instant and atomic, with the prey floors kept.
+- each animal brought down gives the Ranger experience, worth more than a catch since animals
+  are fewer;
+- Agility, the Ranger's second stat, counts in the aim.
 
 ## Deer and wolf arrivals — live 2026-10-09
 

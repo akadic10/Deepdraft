@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Run the editor executable --main-pack <release.pck> with this external script
-## and an isolated APPDATA. Release executables ignore the --script switch.
+## and an isolated user:// profile. Release executables ignore the --script switch.
 var output := ""
 var failures: Array[String] = []
 var checks := 0

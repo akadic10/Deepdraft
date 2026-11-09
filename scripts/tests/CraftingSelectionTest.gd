@@ -73,6 +73,8 @@ func _recipes_and_storage() -> void:
 	furniture._install(RACK,furniture.get_defs()[RACK],Vector3i(46,20,36),0)
 	furniture._install("base:furniture:mason_bench",furniture.get_defs()["base:furniture:mason_bench"],Vector3i(46,20,44),0)
 	furniture._install("base:furniture:carpenter_bench",furniture.get_defs()["base:furniture:carpenter_bench"],Vector3i(46,20,48),0)
+	# Copper bars and fittings at the Blacksmith's basic smelter (doc 297).
+	furniture._install("base:furniture:basic_smelter",furniture.get_defs()["base:furniture:basic_smelter"],Vector3i(46,20,40),0)
 	for recipe in crafting.recipes.values():
 		_fresh_workers()
 		# Each recipe goes to its own career: Dried fish to Rangers (doc 292).

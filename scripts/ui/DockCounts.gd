@@ -8,7 +8,7 @@ extends Node
 const Inspection = preload("res://scripts/components/DwarfInspection.gd")
 const REFRESH_SECONDS := 1.0
 const PLACE_EVERY := 5   # Place's stock is costlier to add up and rarely changes: every 5 s
-const IDLE_WAIT_DAYS := 5.0 / (24.0 * 60.0)   # five game minutes: five seconds at 1×
+const IDLE_WAIT_DAYS := 5.0 / (24.0 * 60.0)   # five game minutes: 2.5 seconds at 1× (30 s a game hour)
 
 var buttons: Dictionary = {}   # the dock's buttons by target
 var furniture: Node = null   # the placement controller, once it registers

@@ -5,7 +5,7 @@ const BED := "base:furniture:log_bed"
 
 func _run() -> void:
 	if not "/mining_bed_20261013/" in OS.get_user_data_dir().replace("\\", "/"):
-		_fail("Mining review requires isolated APPDATA"); return
+		_fail("Mining review requires an isolated user:// profile"); return
 	create_timer(240).timeout.connect(func(): _fail("Mining bed review timeout"))
 	root.size = Vector2i(1600,900)
 	_save_manager = root.get_node("SaveManager")

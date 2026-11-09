@@ -16,7 +16,7 @@
     "  low); high is the engine's own.",
     "anti_aliasing: MSAA samples (0, 2 or 4) and SMAA.",
     "ui_scale (doc 23): the size of the whole interface, shown on Settings' Interface tab",
-    "  (its section). auto follows the display scale Windows sets for the screen, as the",
+    "  (its section). auto follows the screen's pixel density (its DPI over 96), as the",
     "  largest of the steps not above it. A step is offered only while it leaves the",
     "  interface at least 960 x 540 to lay out in; a choice too large for the window waits",
     "  at the largest step that fits."

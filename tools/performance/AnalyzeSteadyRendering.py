@@ -63,11 +63,11 @@ def collect():
     before = json.loads((SCRATCH / "production_before.json").read_text(encoding="utf-8"))
     differences = {path:{"before":value, "now":sha(ROOT/path)} for path,value in before.items() if value != sha(ROOT/path)}
     assert not differences, differences
-    source_save = Path("C:/Users/akadi/AppData/Roaming/Godot/app_userdata/Deepdraft/saves/quicksave.json")
+    source_save = Path.home() / ".local/share/godot/app_userdata/Deepdraft/saves/quicksave.json"
     audit = {"production_gd_files_checked":len(before), "production_sources_unchanged":not differences,
              "player_save_sha256":sha(source_save), "input_save_sha256":sha(SCRATCH/"input_quicksave.json"), "tools":{}}
     assert audit["player_save_sha256"] == audit["input_save_sha256"]
-    for name in ["SteadyRenderingBenchmark.gd", "RenderProfile.gd", "InstrumentRendering.py", "RunSteadyRendering.ps1", "AnalyzeSteadyRendering.py", "FogBroadcastSwitch.gd", "FogBroadcastBenchmark.gd", "RunFogBroadcast.ps1"]:
+    for name in ["SteadyRenderingBenchmark.gd", "RenderProfile.gd", "InstrumentRendering.py", "AnalyzeSteadyRendering.py", "FogBroadcastSwitch.gd", "FogBroadcastBenchmark.gd"]:
         source = ROOT / "tools/performance" / name
         target = DEST / "sources" / (name + ".txt")
         target.parent.mkdir(parents=True, exist_ok=True)

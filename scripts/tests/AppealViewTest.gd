@@ -54,6 +54,10 @@ func _run() -> void:
 	await _button_and_scale()
 	await _drawing(id, bare)
 	await _hover_and_click(id)
+	# A glowing piece can go while the view is on (moved, eaten): turning the view off still takes
+	# everything away (the project review, 2026-11-09: a freed glow stopped it, leaving the dim).
+	_expect(not view._glows.is_empty(), "pieces glow before the view turns off")
+	if not view._glows.is_empty(): (view._glows.keys()[0] as Node).free()
 	view.set_active(false)
 	await _frames(2)
 	_expect(not is_instance_valid(view._dim) and view._glows.is_empty() and _overlays(id).all(func(overlay) -> bool: return overlay == null),

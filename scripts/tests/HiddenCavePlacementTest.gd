@@ -9,6 +9,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## Once the cave is found, the same cells take the pointer and are allowed. Copy takes what the
 ## colony has not seen as the slice shows it: a buried deposit of cave soil and a pocket of
 ## water copy as stone until a dug cell beside them shows them (owner's playtest, 2026-10-26).
+## What the player reads or hears takes the cave for rock too (the project review, 2026-11-09):
+## the Temperature view's card, the sound focus, a mining zone's faces and the item stamper.
 const CAVE := 4242
 var stock
 var builder
@@ -43,6 +45,7 @@ func _run() -> void:
 	await _frames(2)
 	_pointer_test()
 	_rules_test()
+	await _reads_test()
 	_copy_test()
 	for failure: String in failures: push_error(failure)
 	print("HIDDEN_CAVE_PLACEMENT_OK" if failures.is_empty() else "HIDDEN_CAVE_PLACEMENT_FAIL")
@@ -93,6 +96,56 @@ func _rules_test() -> void:
 	_expect(furniture._rules.is_valid_cell(floor),"a found cave's floor takes furniture")
 	_expect(stock._is_valid_cell(floor,floor.y),"a found cave's floor takes storage")
 	tracker._discovered_caves.erase(CAVE)
+
+
+## With the slice at y 16, through the cave: the Temperature view's card over it is the cut
+## rock's; the ear's ray stops on the cut; a buried block beside the cave has no face to be
+## worked from; and the item stamper finds no floor, there or on the cut over plain rock.
+## Once the cave is found, each of them reaches its floor.
+func _reads_test() -> void:
+	var point := camera.unproject_position(Vector3(45.5,17,41.5))
+	var slice := _slice_at(16)
+	scene.add_child(slice)
+	var view = load("res://scripts/systems/TemperatureViewController.gd").new()
+	view.slice_path = NodePath("../Slice")
+	scene.add_child(view)
+	var spot: Dictionary = view.spot_under(point)
+	_expect(spot.get("cell") == Vector3i(45,16,41) and bool(spot.get("rock", false)),
+		"the Temperature view's card over the cave is the cut rock's: %s" % [spot])
+	var ear = load("res://scripts/systems/Camera.gd").new()
+	var cave_air := Vector3i(44,16,40)
+	_expect(blocks.is_solid(ear._audio_surface_block(cave_air)), "the ear takes the cave for rock, so it never hears the cave's sky")
+	var buried: Array[Vector3i] = [Vector3i(47,14,41)]
+	var zone = load("res://scripts/components/MiningZoneComponent.gd").new(null, 9001, buried)
+	_expect(zone.destination_count() == 0 and zone.mining_stand_candidates(Vector3i(45,20,41)).is_empty(),
+		"a buried block beside the cave has no face to be worked from: %d" % zone.destination_count())
+	var stamper = load("res://scripts/systems/ItemStamperController.gd").new()
+	scene.add_child(stamper)
+	stamper._slice = slice
+	var rock_point := camera.unproject_position(Vector3(49.5,17,41.5))
+	_expect(stamper.floor_under(point) == stamper.NO_FLOOR and stamper.floor_under(rock_point) == stamper.NO_FLOOR,
+		"the item stamper finds no floor over the cave, nor inside the rock over the cut: %s, %s" % [stamper.floor_under(point), stamper.floor_under(rock_point)])
+	tracker._discovered_caves[CAVE] = true
+	zone.mark_destination_dirty()
+	spot = view.spot_under(point)
+	var found: Vector3i = spot.get("cell", cave_air)
+	_expect(found.y < 16 and ear._audio_surface_block(cave_air) == blocks.AIR_ID
+		and zone.destination_count() == 1 and stamper.floor_under(point).y == 13,
+		"once found, each reaches the cave: %s, %d, %s" % [spot, zone.destination_count(), stamper.floor_under(point)])
+	tracker._discovered_caves.erase(CAVE)
+	await _frames(1)
+	ear.free()
+	for node: Node in [view, stamper, slice]: node.free()
+
+
+## A stand-in for the SliceController, on at `height`.
+func _slice_at(height: int) -> Node:
+	var script := GDScript.new()
+	script.source_code = "extends Node\nsignal slice_changed(height: int)\nsignal slice_active_changed(active: bool)\nvar y := %d\nfunc get_slice_y() -> int: return y\nfunc is_active() -> bool: return true\n" % height
+	script.reload()
+	var node: Node = script.new()
+	node.name = "Slice"
+	return node
 
 
 ## A box of unexplored rock copies whole, as stone, though a deposit of cave soil and a pocket of

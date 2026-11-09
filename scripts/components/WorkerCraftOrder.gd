@@ -455,6 +455,11 @@ func work_motion() -> String:
 	var bench = manager.furniture.get_installed(bench_id) if bench_id >= 0 else null
 	return String(bench.def.get("crafting_motion", "hew")) if bench != null else "hew"
 
+## Where a worker standing at `feet` will work, before it gets there.
+func work_surface_from(feet: Vector3) -> Vector3:
+	var bench = manager.furniture.get_installed(bench_id) if bench_id >= 0 else null
+	return manager.bench_surface(bench,feet) if bench != null else feet
+
 func work_surface() -> Vector3:
 	var agent: Node3D = TaskManager.get_agent(worker_id)
 	if bench_id >= 0:
@@ -478,9 +483,9 @@ func complete_build(dwarf_id: int) -> void:
 		staged.queue_free()
 	staged_items.clear()
 	staged_cells.clear()
-	# Fish hung on the rack dry there (doc 292): the batch stays on its workshop, which gives
-	# the dried fish, and the Ranger's log counts them, when a Ranger takes them down.
-	if recipe.has("dry_hours"): manager.hang_batch(self)
+	# Fish hung on the rack dry there (doc 292), copper ore melts in the smelter (doc 297): the
+	# batch stays on its workshop, which gives the output when its career takes it down.
+	if recipe.has("batch_hours"): manager.hang_batch(self)
 	else: manager.items.spawn_drop(String(recipe.output), int(recipe.output_count), work_cell+Vector3i.UP, output_material_id)
 	# A crafting career earns one experience a batch (doc 293: the Carpenter and the Stonemason).
 	var agent = TaskManager.get_agent(dwarf_id)

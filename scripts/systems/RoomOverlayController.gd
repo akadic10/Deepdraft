@@ -201,18 +201,14 @@ func _clear_overlays() -> void:
 	_overlays.clear()
 
 
-## Full rebuild from RoomManager (room ids are reassigned on every manager
-## rebuild, so per-room diffing would buy nothing — room counts are small).
+## Full rebuild from RoomManager (a manager rebuild updates every room, so
+## per-room diffing would buy little — room counts are small).
 func _rebuild_overlays() -> void:
 	_clear_overlays()
 	_overlay_root = Node3D.new()
 	_overlay_root.name = "RoomOverlays"
 	add_child(_overlay_root)
-	# Re-resolve the selection across the id churn (see _selected_cell).
-	if _selected_cell.x >= 0:
-		_selected_room_id = int(RoomManager.get_room_id_at(_selected_cell))
-		if _selected_room_id < 0:
-			_close_window()   # the clicked room no longer exists (seal broke)
+	_resolve_selection()
 	var rooms: Dictionary = RoomManager.get_rooms()
 	for room_id: int in rooms.keys():
 		var room: Dictionary = rooms[room_id]
@@ -447,6 +443,19 @@ func _select_room(room_id: int, cell: Vector3i) -> void:
 	_refresh_window()
 
 
+## Finds the selected room again from the floor clicked: a room split in two or joined to
+## another takes a new id when rooms are found again (a dwarf mining, a chunk streaming in).
+## Closes the window once no room holds that floor (its seal broke).
+func _resolve_selection() -> void:
+	if _selected_cell.x < 0: return
+	var previous := _selected_room_id
+	_selected_room_id = int(RoomManager.get_room_id_at(_selected_cell))
+	if _selected_room_id == previous: return
+	_apply_room_selection(previous)
+	_apply_room_selection(_selected_room_id)
+	if _selected_room_id < 0: _close_window()
+
+
 # ── Info window (doc 34 "UI — Room Temperature Display") ─────────────────────
 
 func _build_window() -> void:
@@ -487,6 +496,7 @@ func _close_window() -> void:
 func _refresh_window() -> void:
 	if _window_panel == null or not _window_panel.visible:
 		return
+	_resolve_selection()
 	if _selected_room_id < 0:
 		_close_window()
 		return

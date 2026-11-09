@@ -206,10 +206,25 @@ func _job_interrupt() -> void:
 	drops.spawn_drop(PINE,1,Vector3i(42,21,39))
 	var id: int=crafting.queue_order(BENCH_RECIPE,1)
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"real crafting job starts before hunger interrupt")
+	var task_id: int=worker.current_task_id
+	var cargo: int=worker._carried_entries.size()
+	for hunger: float in [.3,.1]:
+		_hungry(worker)
+		worker._food.value=hunger
+		for i in 200:
+			worker._process(.001)
+			await process_frame
+			if worker._food.retry_hours>0: break
+		_expect(worker._food.retry_hours>0 and worker._food.shortage and worker._food.message.contains("No reachable food"),"a search on the job reports no food at hunger %s" % hunger)
+		_expect(worker.current_task_id==task_id and worker._carried_entries.size()==cargo and not worker._food.active(),"no food in reach leaves the job and its cargo alone at hunger %s" % hunger)
+	_expect(tasks.lifecycle_errors().is_empty(),"searching on the job keeps valid work ownership")
 	_store(BLUEBERRY,3)
 	_hungry(worker)
-	worker._process(.05)
-	_expect(worker.current_task_id<0 and worker._carried_entries.is_empty() and _count(PINE)==1,"hunger releases the job and drops its ingredient intact")
+	for i in 200:
+		worker._process(.001)
+		await process_frame
+		if worker.current_task_id<0: break
+	_expect(worker.current_task_id<0 and worker._carried_entries.is_empty() and _count(PINE)==1,"with food in reach, hunger releases the job and drops its ingredient intact")
 	_expect(await _food_phase("eating"),"interrupted worker collects a meal")
 	await _finish_food()
 	_expect(await _completed(id),"worker returns and completes the interrupted craft")

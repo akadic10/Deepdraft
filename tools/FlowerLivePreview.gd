@@ -5,8 +5,8 @@ const REPORT := "res://tmp/flower_review/live_report.json"
 
 func _run() -> void:
 	_output = "res://tmp/flower_review/"
-	if not OS.get_environment("APPDATA").replace("\\", "/").contains("/tmp/flower_review/"):
-		printerr("Use isolated APPDATA below tmp/flower_review."); quit(2); return
+	if not OS.get_user_data_dir().replace("\\", "/").contains("/tmp/flower_review/"):
+		printerr("Use an isolated user:// profile below tmp/flower_review."); quit(2); return
 	var baseline := "--baseline" in OS.get_cmdline_user_args()
 	var previous: Dictionary = {}
 	if baseline:

@@ -48,7 +48,9 @@ through `get_work_audio_context()`. A shared slice-aware voxel ray follows live
 mined terrain and standing water and is cached once per process frame for work,
 fire, water and ambience. Water uses its fractional surface level; listening
 must not sink to the hidden lake bed (doc 170), where a terrain-only ray once made a
-shore view sound enclosed.
+shore view sound enclosed. A cave not yet found is rock to this ray (Hard Rule 11; doc 24
+§Slice concealment rule): otherwise the focus dropped into it, and its unlit sky played
+open-air ambience over cut rock.
 Missing terrain uses the orbit pivot; detached cameras return no context. This keeps
 room sounds near the viewed floor when cursor zoom or the terrain-floor guard lifts
 the orbit pivot above it: listening at the pivot once left a sliced bedroom's
@@ -73,7 +75,7 @@ Both work families share the same attenuation and voice budget. Tuning lives in
 | Mouse wheel | Zoom toward the point under the cursor |
 | Screen edge | Optional edge-scroll (off by default) |
 
-While dragging, a glyph cursor shows the mode (✋ grab-pan, 🗘 orbit) and the OS cursor hides. The glyphs come from the symbol font shipped with the game, in light ink with a dark outline (doc 23, "Type").
+While dragging, a glyph cursor shows the mode (✋ grab-pan, 🗘 orbit) and the OS cursor hides. It is only hidden, never warped or captured: Wayland refuses both. The glyphs come from the symbol font shipped with the game, in light ink with a dark outline (doc 23, "Type").
 
 ### Dwarf inspection: Locate and Follow (2026-10-05)
 
@@ -126,8 +128,8 @@ display's refresh rate, so every frame is held equally long.
 
 Measured on the owner's 7680×2160 120 Hz display: uncapped, 94% of running frames
 missed a 120 Hz refresh; capped at 60, most frames land on the 16.7 ms beat. The
-camera benchmark (`tools/performance/Run.ps1`) stays uncapped unless run with
-`-Paced`.
+camera benchmark (`tools/performance/CameraBenchmark.gd`) stays uncapped unless run
+with `--paced`.
 
 Stutter while panning is frame time, not camera cost: the controller measured about
 0.02 ms a frame (doc 178), and panning only makes uneven frames visible. Look for the

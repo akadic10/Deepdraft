@@ -4,7 +4,7 @@ const OUT := "res://tmp/dwarf_limb_lighting_20261013/"
 
 func _run() -> void:
 	if not "/dwarf_limb_lighting_20261013/" in OS.get_user_data_dir().replace("\\","/"):
-		_fail("Limb review requires isolated APPDATA"); return
+		_fail("Limb review requires an isolated user:// profile"); return
 	create_timer(180).timeout.connect(func(): _fail("Limb review timeout"))
 	root.size=Vector2i(1600,900)
 	_save_manager=root.get_node("SaveManager")

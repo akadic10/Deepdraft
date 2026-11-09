@@ -5,7 +5,7 @@ extends Node
 ## anti-aliasing, and the UI scale the Interface tab shows (doc 23). The settings, their
 ## choices and their defaults come from video_settings.json. Each Video default is what the
 ## game does unaided, so nothing changes until the player chooses; the UI scale starts at
-## Auto, the scale Windows sets for the screen. The choices are kept in user://video.cfg,
+## Auto, from the screen's pixel density. The choices are kept in user://video.cfg,
 ## for every colony, and apply the moment they change. Headless, the display calls and the
 ## frame cap are skipped; the values still change.
 ## The UI scale is the window's content scale, so this is its one owner: it applies while
@@ -22,7 +22,7 @@ const SMALLEST_WINDOW := Vector2i(960, 540)   # the menu's small size still fits
 var config: Dictionary = {}
 ## Tests: a refresh rate in place of the screen's.
 var refresh_override := 0.0
-## Tests: a screen DPI in place of the screen's (96 is Windows' 100%).
+## Tests: a screen DPI in place of the screen's (96 DPI is 100%).
 var dpi_override := 0.0
 var _preferences_path := "user://video.cfg"
 var _windowless := DisplayServer.get_name() == "headless"
@@ -165,9 +165,10 @@ func render_size() -> Vector2i:
 
 # ── UI scale (doc 23) ─────────────────────────────────────────────────────────
 
-## The display scale Windows sets for the screen the game is on, in percent: the screen's DPI
-## over 96 (Godot's screen scale says 1.0 on Windows). Headless, or where the screen says
-## less, 100.
+## The scale of the screen the game is on, in percent: its DPI over 96. On Windows the DPI
+## carries the display scale; on Linux it is the physical density, which tracks Plasma's
+## scale (Godot's screen scale is 1.0 on X11 and rounded up to a whole number on Wayland,
+## so it is not used). Headless, or where the screen says less, 100.
 func system_scale() -> int:
 	var dpi := dpi_override
 	if dpi <= 0.0: dpi = 96.0 if _windowless else float(DisplayServer.screen_get_dpi(DisplayServer.window_get_current_screen()))
@@ -186,7 +187,7 @@ func ui_scales() -> Array[int]:
 
 
 ## The UI scale in effect, in percent: the chosen step, or for Auto the largest step not above
-## Windows' scale, lowered to the largest step the window has room for.
+## the screen's scale, lowered to the largest step the window has room for.
 func ui_percent() -> int:
 	var wanted: int = system_scale() if _values.ui_scale is String else int(_values.ui_scale)
 	var percent := 100

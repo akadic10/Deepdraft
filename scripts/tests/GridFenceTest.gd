@@ -104,10 +104,10 @@ func _patterns_and_routes() -> void:
 	_clear()
 
 func _actual_build() -> void:
-	_put(BENCH,Vector3i(45,20,39))
+	_carpenter_bench_at(Vector3i(44,20,39))
 	drops.spawn_drop(PINE,2,Vector3i(42,21,40))
 	var id: int = crafting.queue_order("base:recipe:worker:log_fence",2)
-	_expect(await _completed(id),"Worker crafts two real fence posts")
+	_expect(await _completed(id),"a Carpenter crafts two real fence posts at the carpenter's bench")
 	furniture.activate_for(POST,true)
 	for tile in [Vector3i(47,20,44),Vector3i(48,20,44)]:
 		furniture._hover_cell = tile

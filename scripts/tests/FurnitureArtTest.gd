@@ -46,7 +46,7 @@ func _run() -> void:
 		if file.begins_with("crude_ladder_"):
 			expect(absf(bounds.end.y-float(file.get_basename().get_slice("_",2)))<.001,file+" section height")
 		model.free()
-	expect(count==29,"all 29 retained furniture forms")
+	expect(count==32,"all 32 retained furniture forms (%d)" % count)
 	var definitions := 0
 	for key: String in controller.get_defs():
 		if not String(controller.get_defs()[key].model).begins_with(DIRECTORY): continue
@@ -86,7 +86,7 @@ func _run() -> void:
 			expect(absf(expected-snappedf(expected,1.0/16))<=1.0/32,id+" bounded contact quantization")
 			expect(absf(height-snappedf(expected,1.0/16))<(.075 if id=="log_bed" else .001),id+" central contact %.4f"%height)
 		model.free()
-	expect(definitions==24,"all 24 retained furniture definitions")
+	expect(definitions==27,"all 27 retained furniture definitions (%d)" % definitions)
 	controller.free()
 	for failure in failures: push_error(failure)
 	print("FURNITURE_VOXEL_ART_OK: %d import, palette, footprint, contact, hinge and flame checks"%checks if failures.is_empty() else "FURNITURE_VOXEL_ART_FAIL")

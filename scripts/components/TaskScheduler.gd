@@ -709,7 +709,7 @@ func _try_assign_surface(type: int, probes_left: int, t_start: int) -> int:
 			var dwarf_id: int = _surface_match.idle[_surface_match.index]
 			_surface_match.index += 1
 			var agent: DwarfAgent = _agents.get(dwarf_id)
-			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not takes(agent, type): continue
+			if not is_instance_valid(agent) or not dwarf_id in _idle_dwarves or not takes(agent, type) or not _source_allows(source, agent): continue
 			_surface_match.eligible += 1
 			TaskManager.hold_for_planning(agent)
 			var from := agent.current_cell()
@@ -731,7 +731,7 @@ func _try_assign_surface(type: int, probes_left: int, t_start: int) -> int:
 			var candidate: Dictionary = _surface_match.candidates[_surface_match.probe_index]
 			_surface_match.probe_index += 1
 			var agent: DwarfAgent = _agents.get(int(candidate.dwarf_id))
-			if not is_instance_valid(agent) or not int(candidate.dwarf_id) in _idle_dwarves or not takes(agent, type): continue
+			if not is_instance_valid(agent) or not int(candidate.dwarf_id) in _idle_dwarves or not takes(agent, type) or not _source_allows(source, agent): continue
 			if agent.current_cell() != candidate.from:
 				_surface_match.clear()
 				TaskManager.request_wake()
@@ -1160,8 +1160,14 @@ func takes(agent: DwarfAgent, type: int) -> bool:
 		if not earlier in types: continue
 		for id: int in _pending.get(earlier, []):
 			var task: Task = _tasks.get(id)
-			if task != null and task.is_available(now) and (earlier != Task.Type.CRAFT or crafts(agent, task)): return false
+			if task != null and task.is_available(now) and (earlier != Task.Type.CRAFT or crafts(agent, task)) \
+					and _source_allows(_work_sources.get(task.source_id), agent): return false
 	return true
+
+
+## Whether a work source takes this dwarf: a batch on a workshop only its own career (doc 297).
+func _source_allows(source: Object, agent: DwarfAgent) -> bool:
+	return not is_instance_valid(source) or not source.has_method("allows_worker") or source.allows_worker(agent)
 
 
 ## Whether an idle dwarf could take this craft order, so one waiting for a busy Ranger never

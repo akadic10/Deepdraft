@@ -50,7 +50,7 @@ Ores carry two-cell stepped seams and raised nuggets, soils are stepped mounds a
 glints. The six gems are clusters of three square crystals with stepped points. They
 are built by `tools/voxel_assets/hearthblock_goods.py` with the palettes in
 `tools/art_data/voxel_items.json`
-([256](../00_dev_roadmap/256_hearthblock_art_pilot.md)). Generation, loot,
+(doc 256). Generation, loot,
 quantities, carry size, material selection, worker contacts and saves keep their
 existing rules.
 
@@ -119,7 +119,7 @@ Dwarves show an implicit pickaxe held by both floating hands, with recovery,
 wind-up, strike and contact hold. The point reaches the target voxel face across
 the existing vertical reach, including underfoot mining. No tool inventory,
 crafting or durability requirement is introduced. Work honors WorldClock
-pause/speed and retains the authored hardness/durability totals.
+pause/speed and retains the block's dig time from its hardness.
 
 Contact triggers a procedural stone strike or softer soil impact and six small
 outward chips. Grass/dirt use the soil sound family; rock, ores and gems use stone.
@@ -355,6 +355,9 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
 > `scripts/components/MiningZoneComponent.gd` (the zone's work source). Destination is derived
 > lazily (in region, not completed, not reserved, ≥1 walkable stand cell); full reachability
 > is proven by the dwarf at pull time (3 path failures release the lease with backoff).
+> A stand inside a cave not yet found does not count (`MiningZoneComponent._is_stand`): no
+> dwarf reaches one, and the zone window's "Faces" count would show the cave (doc 24
+> §Slice concealment rule).
 
 > **Adjacency decision (Alen, 2026-06-05): adjacent zones are NOT merged — a deliberate
 > departure from Stonehearth.** Performance reasoning, against the per-zone overlay
@@ -379,7 +382,8 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
    - reach-aware pull: blocks workable from the dwarf's CURRENT cell rank first (2026-06-26)
    - vertical reach envelope: a dwarf beside a face works blocks up to reach_up_blocks (5)
      above / reach_down_blocks (1) below their stand floor (mining_config.json execution.*)
-   - swing = base × hardness ÷ durability per swing; partial swings discarded on interrupt
+   - dig time = base × hardness; swings divide it near `execution.visible_swing_s` (0.9 s), which sets the
+     pace, not the time; partial swings discarded on interrupt
 4. On each block mined: bedrock re-guard (y > 3), chunk materialised from the generator before
    the first write, WorldData.set_block → void, renderer add_mined_blocks (exact-colour
    exposure), drops spawn via ItemDropManager per block_resources.json, InteriorTracker X0
@@ -392,6 +396,8 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
 ```
 
 Interruption at any step releases the lease cleanly (`31_task_system.md`, Release Protocol) — the reserved block returns to the destination set, zone progress is never lost.
+
+Removing a floor block never leaves anything floating (`MiningSupportTest`). A floor piece stands on all its footprint's blocks: lose one and it falls, packed, with any goods it holds, as wall pieces fall with their wall. A storage zone's cells are its floor blocks: a lost cell leaves the zone and its goods fall as loose items, and the whole zone goes with its last cell. A floor *plan* stays planned: it rechecks its spot just before the packed item is used, refusing a lost floor, lost head room or a dwarf standing there, and builds once the spot is good again (`FurniturePlanRecheckTest`). A fence post or a gate's end rechecks for a dwarf on its tile too, since one put up there walls the dwarf in; a gate's opening stays walkable (2026-11-09).
 
 Before step 5 listened to occupancy (doc 174), moving a bed away from a wall left
 its zone at zero faces: the cached work list only refreshed on terrain changes.

@@ -116,7 +116,7 @@ func _show_batches() -> void:
 		furniture.show_batch(id, true)
 		_batches[id] = true
 
-## A recipe with `dry_hours` leaves its batch on the workshop (doc 292): the order that hung the
+## A recipe with `batch_hours` leaves its batch on the workshop (doc 292): the order that hung the
 ## fish is done with them, and the rack takes no other batch until a Ranger takes this one down.
 func hang_batch(order) -> void:
 	var bench = furniture.get_installed(order.bench_id)
@@ -137,6 +137,9 @@ func _add_hanging(batch) -> void:
 	batch.stands_callback = _bench_stands.bind(batch.installed_id)
 	batch.contact_callback = _bench_contact.bind(batch.installed_id)
 	batch.complete_callback = _take_down.bind(batch)
+	if bench != null and bench.def.has("batch_heat"):   # the basic smelter heats while it melts (doc 297)
+		batch.heat_cells = furniture.room_cells(bench)
+		batch.heat_def = bench.def
 	hanging[batch.installed_id] = batch
 	bench_claims[batch.installed_id] = HANGING
 	_hanging_sources.add(batch, batch)
@@ -173,6 +176,7 @@ func _spill(batch) -> void:
 
 func _drop_hanging(batch, cancel_lease: bool) -> void:
 	batch.collected = true
+	batch.update_heat()
 	if hanging.get(batch.installed_id) == batch: hanging.erase(batch.installed_id)
 	if int(bench_claims.get(batch.installed_id, 0)) == HANGING: bench_claims.erase(batch.installed_id)
 	if cancel_lease: _hanging_sources.retire(batch, true)
@@ -229,16 +233,30 @@ static func hours_text(hours: float) -> String:
 	if hours < 1.0: return "under an hour"
 	return "about an hour" if ceili(hours) == 1 else "about %d hours" % ceili(hours)
 
+## How a recipe's batch words what happens on its workshop: `working` ("Drying", "Melting") and
+## `done` ("Dry", "Cast"), from its `batch_words`, the fish's words without one.
+static func batch_words(recipe: Dictionary) -> Dictionary:
+	return Batch.words_of(recipe)
+
 ## A batch on its workshop in words (doc 292), {} with none: `text` for the compact line,
-## `row` for the window's Drying row and `tone`.
+## `label` and `row` for the window's row ("Drying", "Melting") and `tone`.
 func hanging_status(installed_id: int) -> Dictionary:
 	var batch = hanging.get(installed_id)
 	if batch == null: return {}
+	var words := batch_words(batch.recipe)
 	if batch.dry():
-		var output := "%d %s" % [int(batch.recipe.output_count), _plural(String(batch.recipe.output))]
-		return {"text": "%s · waiting for a %s" % [output, crafter_name(batch.recipe)], "row": "Dry · %s to take down" % output, "tone": "waiting"}
-	var fish := "%d %s" % [batch.input_count, _plural(batch.input_key)]
-	return {"text": "Drying %s · %s left" % [fish, hours_text(batch.hours_left())], "row": "%s · %s left" % [fish, hours_text(batch.hours_left())], "tone": "fine"}
+		var output := _goods(String(batch.recipe.output), int(batch.recipe.output_count))
+		return {"text": "%s · waiting for a %s" % [output, crafter_name(batch.recipe)], "label": String(words.working),
+			"row": "%s · %s to take down" % [words.done, output], "tone": "waiting"}
+	var goods := _goods(batch.input_key, batch.input_count)
+	return {"text": "%s %s · %s left" % [words.working, goods, hours_text(batch.hours_left())], "label": String(words.working),
+		"row": "%s · %s left" % [goods, hours_text(batch.hours_left())], "tone": "fine"}
+
+## The heading over a section's batches on their workshops: "DRYING", "MELTING".
+func section_batch_heading(section_id: String) -> String:
+	for batch in hanging.values():
+		if String(batch.recipe.get("section", "rudimentary")) == section_id: return String(batch_words(batch.recipe).working).to_upper()
+	return String(Batch.FISH_WORDS.working).to_upper()
 
 ## Each batch hanging on a workshop of this section's recipes, in words: the crafting window's
 ## list under the queue.
@@ -250,6 +268,10 @@ func section_hanging(section_id: String) -> Array[String]:
 		var batch = hanging[id]
 		if String(batch.recipe.get("section", "rudimentary")) == section_id: lines.append("%s · %s" % [batch.workshop_name, hanging_status(id).row])
 	return lines
+
+## "2 perch", "1 copper bar": a count of goods, singular for one.
+func _goods(key: String, count: int) -> String:
+	return "%d %s" % [count, _plural(key) if count != 1 else String(items.get_item_def(key).get("display_name", key)).to_lower()]
 
 func _plural(key: String) -> String:
 	var definition: Dictionary = items.get_item_def(key)
@@ -330,13 +352,20 @@ func set_allowed_ingredients(id: int, selected: Array) -> void:
 	if not order.timber_key.is_empty() and order.timber_key not in keys: order.release_goods()
 	wake()
 
+## Moves an order one place earlier (-1) or later (+1) among its own section's orders, the list its
+## page shows: it trades places with the next of them, and other careers' orders keep theirs.
+## (It once moved through the whole list, so ▴ or ▾ past another page's order changed nothing.)
 func move_order(id: int, direction: int) -> void:
 	var order = get_order(id)
 	if order == null or order.worker_id >= 0: return
 	var index := orders.find(order)
-	var next := clampi(index+direction,0,orders.size()-1)
-	orders.remove_at(index)
-	orders.insert(next,order)
+	var section := String(order.recipe.get("section", "rudimentary"))
+	var other := index + direction
+	while other >= 0 and other < orders.size() and String(orders[other].recipe.get("section", "rudimentary")) != section:
+		other += direction
+	if other < 0 or other >= orders.size(): return
+	orders[index] = orders[other]
+	orders[other] = order
 	wake() # the refresh re-posts any lease that now jumps an earlier order
 
 func _task_gone(task: Task) -> void:

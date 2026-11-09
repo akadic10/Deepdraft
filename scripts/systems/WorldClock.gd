@@ -122,10 +122,6 @@ func set_speed(new_speed: float) -> void:
 	speed = maxf(0.0, new_speed)
 
 
-func get_speed() -> float:
-	return speed
-
-
 func set_paused(value: bool) -> void:
 	paused = value
 
@@ -149,10 +145,6 @@ func game_hours_per_real_second() -> float:
 	if paused or speed <= 0.0:
 		return 0.0
 	return speed / _real_seconds_per_game_hour
-
-
-func toggle_pause() -> void:
-	paused = not _player_paused
 
 
 func serialize_state() -> Dictionary:
@@ -260,17 +252,6 @@ func date_at(elapsed: float) -> Dictionary:
 func time_string_at(elapsed: float) -> String:
 	var minutes := mini(floori(float(date_at(elapsed).hour) * 60.0 + 0.001), _hours_per_day * 60 - 1)
 	return "%02d:%02d" % [floori(minutes / 60.0), minutes % 60]
-
-
-## Returns the current season's growth rate multiplier for flora.
-## Used by the farming system when processing growth ticks.
-func growth_rate_multiplier() -> float:
-	match season:
-		"spring": return 1.2
-		"summer": return 1.0
-		"autumn": return 0.8
-		"winter": return 0.0
-	return 1.0
 
 
 ## Returns the day-of-year (0–83) for the current calendar position.

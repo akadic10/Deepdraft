@@ -8,7 +8,7 @@ extends "res://scripts/components/DwarfWorkToolPose.gd"
 ## The frames are the concept's (tmp/grill_concepts_20261031): grip, pitch, yaw, the left
 ## hand's share up the stick (0 leaves it be), and the head's look down.
 const POSES := {
-	"carry": {"grip": Vector3(-0.42, 1.0, 0.3), "pitch": -6.0, "yaw": 0.0, "support": 0.0, "look": 0.0},
+	"carry": {"grip": Vector3(-1.2, 1.0, 0.3), "pitch": -6.0, "yaw": 0.0, "support": 0.0, "look": 0.0},
 	"hold": {"grip": Vector3(-0.3, 1.2, 0.55), "pitch": 74.0, "yaw": -6.0, "support": 0.8, "look": 0.16},
 	"bite": {"grip": Vector3(-0.45, 1.0, 0.9), "pitch": 20.0, "yaw": 25.0, "support": 0.45, "look": 0.06},
 }

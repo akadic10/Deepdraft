@@ -1,7 +1,7 @@
 extends SceneTree
 
 ## Offline geography contract and seed gallery. Never loads the game scene.
-## Run with APPDATA/LOCALAPPDATA beneath tmp/world_layout_review (see doc 66).
+## Run through tools/run_job_reliability.py, which puts user:// beneath tmp/world_layout_review.
 const Layout = preload("res://scripts/components/WorldLayout.gd")
 const Validator = preload("res://scripts/components/WorldLayoutValidator.gd")
 const OUTPUT := "res://tmp/world_layout_review/"
@@ -14,8 +14,8 @@ func _init() -> void:
 
 
 func _run() -> void:
-	if not OS.get_environment("APPDATA").replace("\\", "/").contains("/tmp/world_layout_review/"):
-		printerr("Use the isolated test APPDATA path documented in doc 66.")
+	if not OS.get_user_data_dir().replace("\\", "/").contains("/tmp/world_layout_review/"):
+		printerr("Use an isolated user:// profile below tmp/world_layout_review (tools/run_job_reliability.py does this).")
 		quit(2)
 		return
 	root.get_node("SaveManager").set_process(false)

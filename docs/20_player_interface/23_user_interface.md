@@ -32,7 +32,7 @@ every window. The Sky Dial's clock no longer wobbles as its minutes change. See 
 
 **The UI scale (2026-10-25):** Settings has an Interface tab with the UI scale: Auto, 100,
 125, 150 or 200%. Everything drawn over the world grows together, and the world keeps its
-full resolution. Auto follows the scale Windows sets for the screen. See "The UI scale".
+full resolution. Auto follows the screen's pixel density. See "The UI scale".
 
 **The tool bar (2026-10-25):** every tool shows one bar above the dock: its picture, name
 and keys, its settings as steppers, the last order with View, then Undo and Done · Esc. A
@@ -511,8 +511,8 @@ Crafting keeps the browser open and updates the order count. Materials and
 descriptions scroll independently of the fixed wood, quantity, Queue and Place
 controls. Live stock changes preserve focused icons, order rows and scrolling.
 Planned professions retain their preview without recipe/order tabs or actions.
-Rudimentary uses Workshops, Lighting, Access, Rooms, Dining, Starter tools and
-Recreation. The Ranger's page lists their workbench, the drying rack, under Workshops and
+Rudimentary uses Workshops, Lighting, Access, Dining and Starter tools (owner,
+2026-11-02: log furniture is the Carpenter's and the hearth the Stonemason's, doc 44). The Ranger's page lists their workbench, the drying rack, under Workshops and
 dried fish under Food (owner, 2026-11-01). The Carpenter's and the Stonemason's pages
 (doc 293) are laid out as Rudimentary, each with its career's own bench under Workshops. Under the queue, DRYING lists each batch drying on
 the page's workshops ("Drying Rack · 2 trout · about 14 hours left"), since an order is done
@@ -595,7 +595,8 @@ small end: 1366×768 and 1280×800.
 
 **Storage inspection (updated 2026-10-22):** clicking a ground zone opens the
 Hearth & iron storage panel. Storage furniture (barrels, chests, shelves) was
-removed on 2026-10-22 and returns with the barrel/chest milestone. Filters and
+removed on 2026-10-22; the tool rack and the raw materials crate brought it back on
+2026-11-02 (doc 294; see "The storage window"). Filters and
 Contents share a persistent capacity readout: occupied cells and total goods.
 Players can select whole categories, individual items, or mixtures; partial
 categories show a dash. Accept all goods and Clear all filters act immediately.
@@ -1003,6 +1004,16 @@ area explains one-cutting cost, growth days and winter dormancy. Young shrub
 inspectors show growth percentage/remaining days and **DEV: Grow to maturity**;
 Move/Uproot and berries are enabled only at maturity.
 
+**Tree seeds in Place (2026-10-29, 284):** Plants also lists Oak acorn, Apple seed, Pine cone
+and Juniper seed, each planted with its own action (**Plant oak acorn**); the rules are in
+doc 42, "Planting Seeds". The board's chips give the grown tree's area and trunk ("13 × 13 tree
+area · 5 × 5 trunk · Open sky"), and its note the growth days to mature and to ancient. The
+ghost is the sapling with two outlines, the tree's area and the grown trunk inside it, and a
+blocked spot says why: the seed's soil, level ground or open sky for the trunk, something on
+the trunk's ground, or another tree in the area. A planted tree's panel gives its growth
+("Mature in 1.2 growth days"; "Sapling · growing 40%", "dormant" in winter, or "waiting for
+room" with what is in the way) and **DEV: Grow to next stage**.
+
 **Zone window movement (2026-10-05 follow-up):** Mining Zone and Storage Zone now
 register context windows with `UIWindowManager`. Drag their title bars to move them;
 positions are remembered in `user://ui_layout.json` across reopening and game
@@ -1322,7 +1333,7 @@ dock buttons count what waits on the player. The count is a tag on the tile's to
 corner (`DockIconButton.show_count()`), and its hover card names it on its tag.
 - **Colony** counts, in hay, the dwarves Colony Dwarves files under Idle
   (`scripts/ui/DockCounts.gd`).
-  - A dwarf counts once it has been idle for five game minutes (five seconds at 1×), so a
+  - A dwarf counts once it has been idle for five game minutes (2.5 seconds at 1×), so a
     dwarf between two jobs never changes the count.
   - A paused game holds it.
   - Its card says "4 dwarves are idle".
@@ -1402,8 +1413,8 @@ button, or from Colony Dwarves' Details card. `DwarfInspectorPanel.gd` reads
 - **Header.**
   - The live portrait on the people tile, and the name.
   - The profession on its tile with its level, the experience bar and the way to the next
-    level. Only the Miner earns experience today; the other professions say their levels
-    are planned.
+    level. The Miner, the Ranger, the Carpenter, the Stonemason and the Blacksmith earn
+    experience; the other professions say their levels are planned.
   - Health (2026-10-31, doc 41 "Health"): the heart and "Healthy · 115 of 115 hit points", moss
     while Healthy, hay while Hurt and rust while Badly hurt, on every tab.
   - The traits as tags: moss for good ones, rust for bad ones, the description on hover.
@@ -1509,13 +1520,15 @@ journal, over one column with the journal under the rows (2026-10-25).
     resting, idle), with the names on hover.
   - Food: days of food at today's appetite, the edible goods' nutrition (Inventory's
     totals) against what the dwarves eat in a day. Goal 10 days: Short (rust) under 3, Low
-    (hay) under 10, then Plenty.
+    (hay) under 10, then Plenty. With no dwarves it reads "No dwarves to feed", with no tag.
   - Beds: dwarves who sleep in their own bedroom (a room with an owner). Goal: one each.
   - Storage: cells used of all storage, and the items stored. Room to spare under 80%,
     then Filling up, then Full. Without storage it reads "No storage yet".
   - Happiness: the step and points, the meter marked where the steps change, and the main
-    complaint (the bad thought most dwarves share), with how many and what helps: "Main
-    complaint: chilly sleep, 4 dwarves. Warm the sleeping room with a hearth."
+    complaint, with how many and what helps: "Main complaint: chilly sleep, 4 dwarves. Warm
+    the sleeping room with a hearth." Each dwarf counts once, for their worst bad thought, and
+    the thought most dwarves have as their worst is the main one. With none it reads "No
+    complaints: nothing is wearing on them."
   - The goals, where the tones turn and each row's picture live in
     `data/ui/settlement_page.json` (UIRegistry).
 - **The journal** stands beside the rows, as tall as they are, and only it scrolls:
@@ -1689,6 +1702,9 @@ the main scene since 2026-10-25), not in a colony.
 - **Continue** loads the newest valid save of any kind, named saves too
   (`SaveManager.request_continue()`), ranked as launch ranked them before the title. A save
   that cannot be read says so under the buttons.
+- **What SaveManager says here** shows under the buttons too, as the dock's toasts show it in
+  play (`TitleScreen.show_notice`): a load from Load game… that failed, and a save deleted
+  there, which stays said when Back builds the board again (2026-11-09: both were silent).
 - **The clock is held** while the title shows, which also keeps Esc from opening the game
   menu. The world is made only after a choice, behind the loading screen.
 - **Development builds open on the title too** (the owner's pick, 2026-10-25, over DEV
@@ -1715,7 +1731,9 @@ colony is saved, loaded, started anew and left.
   (`UIWindowManager.close_front()`), and with none left it opens. Inside the menu, Esc
   steps back: a question, then a page (Load or Settings), then the menu itself.
 - **While open.** The world dims, the menu takes every click and every key but its own
-  navigation, and the game pauses with a clock hold, as loading does. The player's own
+  navigation, and the game pauses with a clock hold, as loading does. In the Save as… name
+  field a Ctrl chord reaches the field only when it edits text (copy, paste, undo, select all);
+  Ctrl+[ and Ctrl+] once went past it and moved the slice behind the menu (2026-11-09). The player's own
   pause and speed are never touched, and the camera does not pan behind it.
 - **The menu page,** titled with the settlement's name once it is founded (else
   "Deepdraft"). The colony's date and time, a tag saying when this colony was last
@@ -1725,7 +1743,9 @@ colony is saved, loaded, started anew and left.
   the menu still fits 1280×720), Load game…, New game…, Settings…, Quit to main menu… and
   Exit game….
   - **Save game** saves and the menu stays; the tag reads "Saving…", then "Last saved
-    just now".
+    just now". An autosave under way as the menu opens reads the same, and when it ends the
+    menu gives its buttons back (2026-11-09: it heard only the player's saves and stayed on
+    "Saving…", its buttons held).
 - **Save as…** (2026-10-26, doc 274) keeps the colony under a name, beside the quick save
   and the autosave.
   - **Chosen by the owner** over six numbered slots, and over one book of saves per colony
@@ -1779,9 +1799,9 @@ colony is saved, loaded, started anew and left.
   - **Interface** ("The size of the interface. Changes show at once and apply to every
     colony.") is the UI scale (2026-10-25; "The UI scale" below).
     - Its blocks are Auto and the steps the window has room for.
-    - Under a rule, a note gives the scale in effect and the room it leaves ("Auto: 150%,
-      as Windows sets this screen. The interface lays out at 5120 × 1440."), then "Auto
-      follows the display scale Windows sets for this screen."
+    - Under a rule, a note gives the scale in effect and the room it leaves ("Auto: 125%
+      (this screen's density gives 144%). The interface lays out at 6144 × 1728."), then
+      "Auto follows this screen's pixel density."
     - `VideoSettings` keeps it with the video choices, in `user://video.cfg`.
   - **Video** ("Changes show at once and apply to every colony."). `VideoSettings` keeps
     the choices in `user://video.cfg`, and each Video default is what the game does unaided:
@@ -1835,10 +1855,10 @@ colony is saved, loaded, started anew and left.
     Brunhald takes its place, and Kolgund is lost." Replace Kolgund (rust ink) · Cancel (the
     family block).
   - Delete "Kolgund"?: "Kolgund on spring, day 4, year 1, saved 5 days ago. Its files go to
-    the Recycle Bin, and it leaves this list." Delete (rust ink) · Cancel. From the title,
+    the Trash, and it leaves this list." Delete (rust ink) · Cancel. From the title,
     where a Load needs no question, Delete still asks.
   - Delete the quick save?: "Brunhald on autumn, day 8, year 1, saved 1 day ago. Its files go
-    to the Recycle Bin, and Save game writes the next one." The autosave's ends "and the
+    to the Trash, and Save game writes the next one." The autosave's ends "and the
     next comes after five minutes of play."
   - New game: "A new world grows from a fresh seed. Your saves stay as they are, but once
     the new colony saves, its quick save and autosave replace the ones you have. Save as…
@@ -1864,7 +1884,9 @@ serialization.
 
 The manual quick save lives at `user://saves/quicksave.json`; a separate automatic save is
 written every five minutes of ready, non-generating world time to
-`user://saves/autosave.json`. Named saves live one file each in `user://saves/named/`,
+`user://saves/autosave.json`. No autosave time passes while the game menu or a loading screen
+holds the clock, so no autosave starts under the menu; the player's own pause still counts,
+since orders given while paused are worth saving (2026-11-09). Named saves live one file each in `user://saves/named/`,
 named after the save (`before_the_flood.json`). All use schema version 2, validate a
 temporary snapshot before replacement, and retain one matching backup. If a selected
 primary is corrupt, Load recovers that slot's backup and repairs its primary automatically.
@@ -1920,9 +1942,15 @@ Interface tab sets it.
   - **No 175%.** It lands just under a size boundary on 1920×1080 (the dock's 1200 px
     wide, the windows' 650 px tall) and on 7680×2160 (the windows' 1300 px), so things
     come out smaller than at 150%.
-- **Auto, the default,** is the display scale Windows sets for the screen the game is on,
-  as the largest step not above it. Windows at 150% gives 150%, and at 175% it gives 150%.
-  - It is read from the screen's DPI over 96; Godot's screen scale says 1.0 on Windows.
+- **Auto, the default,** is the screen's DPI over 96, as the largest step not above it.
+  - On Windows the DPI carries the display scale: Windows at 150% gives 150%, and at 175%
+    it gives 150%. Godot's screen scale says 1.0 there.
+  - On Linux the DPI is the screen's physical density, which tracks Plasma's scale: the
+    owner's 7680 × 2160 screen is 138 DPI, so 144%, with Plasma at 145%, and Auto gives
+    125% (probe, 2026-11-02; the owner keeps 150% set). Godot's screen scale doesn't help:
+    1.0 on X11, and on Wayland Plasma's 1.45 rounded up to 2.0.
+  - The game runs on X11, through XWayland, by default: `project.godot` names no display
+    driver. `--display-driver wayland` gives the same DPI and the same Auto.
   - It is read again on every resize of the window, so it follows the game to another
     screen in full screen.
   - Headless it is 100%.
@@ -1964,7 +1992,7 @@ HUD's titles in the same face, and today's sizes made even).
     whose `wght` axis gives each role its weight;
   - Noto Sans Symbols 2 (`noto_sans_symbols_2.ttf`), the symbol font.
 
-  They are imported with `tools/voxel_assets/Import.ps1`. The licences must travel with the
+  They are imported with `python3 tools/import_assets.py`. The licences must travel with the
   game: the Windows export takes `assets/ui/fonts/*.txt` as non-resource files (an export
   setting the owner adds).
 - **Faces by role** (`UITheme.FACES`; `UITheme.font(role)` builds each once):
@@ -1985,7 +2013,8 @@ HUD's titles in the same face, and today's sizes made even).
     tall. `tools/fit_font_metrics.py` lowered its ascent and descent to 0.95 and 0.23 em,
     inside Fredoka's, so it never makes a line taller. Its glyphs still draw in full.
   - Menu paths in the UI's words use › ("Place › Plants"); the crafting queue moves an
-    order with ▴ and ▾.
+    order with ▴ and ▾, among its own page's orders: it trades places with the next of them,
+    and other careers' orders keep theirs (2026-11-09: it moved past them, unseen).
 - **The type scale** (`UITheme.TYPE_LARGE`, `TYPE_MEDIUM`, `TYPE_SMALL`): every text size is
   one of seven steps, sized by tier.
 
@@ -2127,7 +2156,8 @@ its window, "Stamp an item", in the DEV family's colour.
 - **Stamping:**
   - each click on a floor puts the amount down as one pile, as crafting drops goods. The
     floor is found under the slice as the other tools find it, and a DEV-coloured square
-    marks the floor under the pointer;
+    marks the floor under the pointer. The cut plane over rock is no floor, since rock
+    stands above the cut, and neither is a cave not yet found (2026-11-09);
   - uprooted bushes come through the flora owner, one to a floor around the click, so each
     keeps its record;
   - Esc, Done, closing the window or another tool ends stamping.
@@ -2263,7 +2293,12 @@ interior air it crosses — clicks are as x-ray as the overlays, so a room visib
 rock is clickable through rock. Selection opens the **room window**
 (`RoomInspectorPanel`, settlement family), after Stonehearth's Town Overview:
 - **Band:** the room's name, the owner's bedroom ("Birna's bedroom") or the kind and
-  number ("Bedroom 6").
+  number ("Bedroom 6"). The number is the room's id, which stays while the room does
+  (doc 34 "Room scheduling").
+- **Staying open:** the window holds the floor that was clicked, wherever it was opened
+  (the Rooms tool, the Appeal view, the Temperature view), and finds that floor's room
+  again each refresh, so rooms being found again as dwarves mine never close it. It closes
+  only when no sealed room holds that floor any more.
 - **Header:** the kind with tags (Sealed, Frozen vault, Owner's bonus +10); who sleeps
   there, with the owner's live portrait or the bed's picture ("No one owns the bed",
   "2 beds, shared"); and the appeal banner with its word and number ("Plain", "4.5").
@@ -2310,7 +2345,9 @@ only: the open ground counts for nothing, so a hall needs a door to count.
   applewood +2). The hearth and the settlement flag add 2. A piece is the room's as "In
   this room" counts it; a door counts in each room it seals.
 - **What takes away:** each pile of loose goods lying in the room, 1, and each storage
-  cell holding goods, ½. Plans and bare rock take nothing.
+  cell holding goods, ½. Plans and bare rock take nothing. Goods on storage furniture take nothing,
+  and the piece adds its own appeal: six crates moved from the floor to a pine food shelf take a room
+  from −3 to +1.
 - **Size:** up to 64 floor tiles (8 by 8) a room counts all it holds; a bigger room counts
   its share (64 ÷ its tiles), so twice the floor halves it. (A finished floor added 5 until
   the permanent floors were removed on 2026-10-26.)
@@ -2403,6 +2440,8 @@ Appeal and X-ray: the thermometer on the system tile, lit while on. It shows how
 place is now, as the climate works it out (doc 34). Turning it on turns the Appeal view off.
 Its key is T (see "Keys"). The owner chose this format, the wash, over isotherm lines and a
 probe round the cursor (2026-10-29), with the probe's details on the hover card.
+The concepts (`sheet_*.png`) and the built view (`*_built_*.png`) are in
+`tmp/temperature_view_20261029/`.
 - **The world dims and greys** as in the Appeal view (`temperature` in
   `data/ui/time_slice.json`).
 - **Every floor in view takes its word's colour** at 60%: Frozen ice white, Cold blue,
@@ -2460,7 +2499,7 @@ probe round the cursor (2026-10-29), with the probe's details on the hover card.
 | Rooms | Direct room inspection toggle; active highlight, second click or Escape to exit |
 | Construction | Build (stone, dirt, grass or logs: one rough stone, soil or log a block), Shapes (rectangles, circles and stairs in those materials), Copy and Blueprints (blueprint files to place and share) |
 | Place | Finished furniture catalog: thumbnails, categories, live availability, repeated placement and Undo |
-| Craft | Eight profession entries with Hearthblock icons; working Rudimentary recipes and explicitly marked specialist catalog previews |
+| Craft | Eight profession entries with Hearthblock icons; live Rudimentary, Ranger, Carpenter and Stonemason pages, and explicitly marked previews for the other four |
 | Colony | Its page: the settlement at a glance, with Dwarves, Labor, Settlement flag and planned Trade as entries |
 | Inventory | Colony supplies with real thumbnails, live physical counts, Locate and Inspect storage |
 | Menu | The game menu (also Esc): Resume, Save game, Load game…, New game…, Settings… and Exit game… |
@@ -2571,7 +2610,7 @@ matched by the key's place on the keyboard, so they sit in the same place on eve
 
 | Panel | Contents |
 |---|---|
-| Place | **37 entries** from `data/ui/place_catalog.json`. Storage: Tool rack, Raw materials crate. Dining: Log Dining Table, Log stool, Stone stool, Log bench. Food: Drying rack. Recreation: Board-game Table. Lighting: Log torch, Campfire. Room furnishings: Settlement flag, Log door (2 wide), Log door (3 wide), Double log door (4 wide), Rudimentary hearth, Log bed. Workshops: Crude workbench, Carpenter's bench, Mason's bench. Access: Rough wooden ladder, Log Fence Post, Log Gate. Water: Wet stone, Dry stone. Plants: blueberry, elderberry and wild-strawberry bushes, their three cuttings, four tree seeds and three wildflower shapes. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
+| Place | **39 entries** from `data/ui/place_catalog.json`. Storage: Tool rack, Raw materials crate, Finished goods pallet, Food shelf. Dining: Log Dining Table, Log stool, Stone stool, Log bench. Food: Drying rack. Recreation: Board-game Table. Lighting: Log torch, Campfire. Room furnishings: Settlement flag, Log door (2 wide), Log door (3 wide), Double log door (4 wide), Rudimentary hearth, Log bed. Workshops: Crude workbench, Carpenter's bench, Mason's bench. Access: Rough wooden ladder, Log Fence Post, Log Gate. Water: Wet stone, Dry stone. Plants: blueberry, elderberry and wild-strawberry bushes, their three cuttings, four tree seeds and three wildflower shapes. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
 
 Action menus open 8 px above their dock button and keep clear of the compact panel and
 the time and view controls (see "Sizes, states and menus" under "Floating Dock"). Place
@@ -2599,6 +2638,12 @@ above it, so the saved position never depends on the work floor (doc 129).
 The hint is text the tool bar shows (`FurnitureGhostVisuals.hint_text`).
 Installed torches are selected by visible model bounds, with terrain occlusion and
 slices respected (`FurnitureWindow.try_select_at_screen`).
+
+**Pieces hung against a wall over the floor** (`placement: "floor_wall"`, the tool rack;
+doc 294) stand on their floor cells, so dwarves walk round them, and need solid blocks behind
+every cell as high as the piece (`FurniturePlacementRules.has_wall_behind`). A plan is checked
+again when a dwarf comes to build it. When the wall is mined, the installed piece falls: its
+packed item and its goods drop in front of it (`_revalidate_wall_mounts`).
 
 ### Symbols and emoji
 
@@ -2696,19 +2741,28 @@ Stonehearth's stockpile filter. Its band names the zone ("Storage Zone 2").
 - **Priority** (2026-11-02, doc 294): a row of five buttons, 1 to 5, with the store's own pressed
   and "1 is filled first". Each says on hover what it means. Ground storage starts at 5 and
   storage furniture at 4 (doc 31, "Storage priority and storage furniture").
-- **Storage furniture** (doc 294, the tool rack and the raw materials crate) opens the same
+- **Storage furniture** (doc 294, the tool rack and the raw materials crate; doc 296, the finished goods pallet; doc 299, the food shelf) opens the same
   window from the Storage button in its own window, or from Inventory's Locate in storage. The
   band names the piece, and the good it keeps when narrowed to one. The filter is one grid of its
-  own goods' pictures (the tools; the crate's raw goods), ✓ while kept; a click keeps one or
-  stops ("Click a good to keep it here or not."). It counts its goods: "Used 2 / 3 hooks" on the
-  rack, one tool to a hook, and "Used 9 / 12 goods" on the crate, whose bar says on hover "3
-  goods to each of its quarters." It has no Remove zone: the piece's own window uninstalls it.
+  own goods' pictures (the tools; the crate's raw goods; the ten foods dwarves eat), ✓ while kept;
+  a click keeps one or stops ("Click a good to keep it here or not."). It counts its goods: "Used
+  2 / 3 hooks" on the rack, one tool to a hook, and "Used 9 / 12 goods" on the crate, whose bar says
+  on hover "3 goods to each of its quarters." The food shelf counts places and goods, "Used 4 / 6
+  places · 96 goods", since a crate holds up to 24, and its bar says "One crate of food to each of
+  its places." It has no Remove zone: the piece's own window uninstalls it, and the storage window
+  closes once the piece is gone (2026-11-09: it stayed open, and its edits were lost).
+  - **The owner's rule for every container** (2026-10-23, after Stonehearth's supply shelf,
+    `tmp/ui_review_20261023/stonehearth/15_supply_shelf*`): each type accepts only certain
+    goods, and its filter lists only those; it may keep one chosen good, named in its title;
+    and it shows its capacity ("Used 9 / 12").
 - **Contents:** the same grouped pictures, one per good and material, with their counts
   and a "!" on goods awaiting relocation; the name on hover. A click on a good opens its
   category in the filter.
 - **Keeping** (2026-10-29, doc 282; the owner picked it from three concepts: words, bars and
   chips): above the pictures on Contents, for a store that takes food
   (`StorageKeeping.gd`).
+  The concepts (`sheet_*.png`) and the built window (`built_*.png`) are in
+  `tmp/freshness_20261029/`.
   - Its heading says how the store keeps food: "Keeping · 7°C in a sealed room" ("under a
     roof", or "under the open sky, in the rain"). The temperature is read at the store's
     middle cell.
@@ -2741,6 +2795,34 @@ signal stockpile_changed(zone: StockpileZone, item_uri: String, delta: int)
 ```
 
 > **Agent note:** Item counts in `StockpileZone.inventory` are the authoritative source. The top status bar counters (Stone, Ale, Food, etc.) are aggregated from all zones by `StockpileManager` on every `stockpile_changed` signal — not tracked separately.
+
+## Fishing Zones
+
+Live 2026-10-31 (doc 289). **Zones → Fishing** marks spots along a shore for Rangers to fish
+from (`FishingSystem`; the rules are in doc 42, "Fishing"). The owner chose (2026-10-31) a zone
+painted on the shore, beside Storage, over a placed jetty piece or an Orders tool with a count.
+- **The tool** works as Storage's: Esc exits, and a drag paints a flat rectangle on the anchor's
+  plane, at most 16 × 16 (`max_zone_extent`), in teal, apart from storage's blue and mining's
+  yellow. It keeps only the cells that can be spots on the anchor's water. While dragging, the
+  tool bar's tag counts them ("5 spots · Each spot takes one fisher"); over a cell it refuses it
+  says "Can't fish here" and why: "No water in front", "This water has no fish", "Fishers stand
+  on the shore, not in the water", "Nobody has found this place", "A storage zone is here" and
+  the like. View and Undo work as for Storage, and Storage and furniture refuse fishing spots in
+  turn.
+- **The window** (concept A, the owner's pick: the zone's own window, as Storage has;
+  `FishingZonePanel`) opens on a click on a zone, with the tool on or off. Its band names the
+  zone ("Fishing Zone 2"). It shows:
+  - a line on what the zone does, then the water and its fish with the fish's picture
+    ("Lowland lake", "Perch · a portion each, keeps 2 days"), and how this water's fish
+    differ, its `trait` (doc 42: "The lake holds the most fish.");
+  - FISH IN THE WATER: Plenty (from 70% of the maximum), Some (from 35%), Few or Fished out,
+    with the count ("Plenty · 153 of 154"), a bar, and "Regrows about 5 a day · Fished out below
+    16" (a small water that regrows less than one a day: "Regrows about one every 3 days");
+  - KEEP: − and + in steps of `keep_step`, with how many the colony keeps now and whether the
+    zone is fishing, paused with enough kept or stopped by a fished-out water;
+  - AT WORK: each Ranger there, casting or walking to the shore; else "No Ranger yet: promote
+    one to fish here." or that Rangers need Fish allowed in Labor;
+  - Remove zone: a fisher at work stops, and nothing is lost.
 
 ## Toasts and the event log
 
@@ -2858,9 +2940,12 @@ dimmed while the career is planned. The career map is the Professions window
   two stats' pictures: "Average fit · Strength, then Toughness".
 - **The appointment card.** Requirements; for a tool career, the starter tool with its
   available stock and maker (Worker · crude workbench), then the collection message and
-  Cancel promotion, or why it waits (no spare tool, the dwarf asleep); the profession's
+  Cancel promotion, or why it waits, each in its own words (no spare tool: TOOL REQUIRED and
+  Waiting for tool; the dwarf asleep: RESTING; on a ladder: ON A LADDER and Waiting for solid
+  ground); the profession's
   next planned tool, pointing to the Equipment tab; retained experience and, for a career
-  that earns it (the Miner, the Ranger), the level rewards, how it is earned and the bar;
+  that earns it (the Miner, the Ranger, the Carpenter, the Stonemason and the Blacksmith), the level rewards,
+  how it is earned and the bar;
   and a warning when the career's own work is unticked in Labor.
 - **Acting.** Promote, Resume and Return to Worker work while paused; a tool collection
   starts when the clock runs. A planned career reads "Not yet available".

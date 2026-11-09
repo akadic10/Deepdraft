@@ -11,8 +11,8 @@ func _init() -> void:
 
 
 func _run() -> void:
-	if not OS.get_environment("APPDATA").replace("\\", "/").contains("/tmp/world_layout_review/"):
-		printerr("Use isolated APPDATA below tmp/world_layout_review.")
+	if not OS.get_user_data_dir().replace("\\", "/").contains("/tmp/world_layout_review/"):
+		printerr("Use an isolated user:// profile below tmp/world_layout_review.")
 		quit(2)
 		return
 	for arg in OS.get_cmdline_user_args():

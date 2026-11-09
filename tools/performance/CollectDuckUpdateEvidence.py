@@ -97,7 +97,7 @@ def main():
     for name in ["AnimalNavigation", "DuckNavigation"]:
         copy(SCRATCH / (name + ".gd.before.txt"), DEST / (name + ".before.txt"))
         copy(ROOT / "scripts/components" / (name + ".gd"), DEST / (name + ".after.txt"))
-    save = Path("C:/Users/akadi/AppData/Roaming/Godot/app_userdata/Deepdraft/saves/quicksave.json")
+    save = Path.home() / ".local/share/godot/app_userdata/Deepdraft/saves/quicksave.json"
     assert sha(save) == sha(SCRATCH / "input_quicksave.json") == "f223eee6dfe52fefe6add9a763362640f02c439fb2f33687f550661fb9cc148b"
     package = read(SCRATCH / "package.json")
     assert sha(Path(package["zip"])) == package["zip_sha256"]

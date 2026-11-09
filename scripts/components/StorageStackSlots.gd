@@ -36,13 +36,13 @@ func has_any_room() -> bool:
 ## Top up a matching crate before claiming another physical slot. Food that spoils (`spoil`
 ## 0 to 1; -1 for goods that never do) tops up only a crate within `band` of its freshness
 ## while an empty slot is left, so fresh fruit never joins a rotting crate (doc 42
-## "Spoilage"). With no empty slot it tops up the crate closest in freshness rather than
-## wait outside.
+## "Spoilage"). With no empty slot, food lying `outside` tops up the crate closest in freshness
+## rather than wait there; food already stored, moving to another store, waits for room instead.
 func reserve(key: String, amount: int, owner: int, near: Vector3i, empty_only: bool = false, material_id: String = "",
-		spoil: float = -1.0, band: float = 1.0) -> Variant:
+		spoil: float = -1.0, band: float = 1.0, outside: bool = true) -> Variant:
 	for pass_name: String in ["like", "empty", "closest"]:
 		if pass_name != "empty" and empty_only: continue
-		if pass_name == "closest" and spoil < 0.0: continue
+		if pass_name == "closest" and (spoil < 0.0 or not outside): continue
 		var best: Variant = null
 		var best_rank := INF
 		for slot in slots:

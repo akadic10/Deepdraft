@@ -36,14 +36,23 @@ func items() -> ItemDropManager:
 		_items = ItemDropManager.find(agent.get_tree())
 	return _items
 
-func blocked_reason(role: String) -> String:
+## Why a promotion to `role` can't start now, by kind: "sleeping", "ladder" (off solid ground),
+## "tool" (no spare tool), or "" when it can. The career map words each kind.
+func blocked_kind(role: String) -> String:
 	var required := DwarfAssets.profession_tool(role)
 	if required.is_empty(): return ""
-	if agent.is_sleeping(): return "Let this dwarf wake before collecting a tool."
-	if agent.needs_ladder_exit() or agent._ladder_exiting: return "Let this dwarf reach solid ground first."
-	if items() == null: return "No tools are available."
-	if int(Inventory.snapshot(_items, null).get(required, {}).get("available", 0)) < 1:
-		return "Craft a spare %s at the crude workbench." % _items.get_item_def(required).get("display_name", "tool")
+	if agent.is_sleeping(): return "sleeping"
+	if agent.needs_ladder_exit() or agent._ladder_exiting: return "ladder"
+	if items() == null or int(Inventory.snapshot(_items, null).get(required, {}).get("available", 0)) < 1: return "tool"
+	return ""
+
+func blocked_reason(role: String) -> String:
+	match blocked_kind(role):
+		"sleeping": return "Let this dwarf wake before collecting a tool."
+		"ladder": return "Let this dwarf reach solid ground first."
+		"tool":
+			if items() == null: return "No tools are available."
+			return "Craft a spare %s at the crude workbench." % _items.get_item_def(DwarfAssets.profession_tool(role)).get("display_name", "tool")
 	return ""
 
 func request(role: String) -> bool:
@@ -69,8 +78,7 @@ func tick(delta: float) -> void:
 		cancel("Promotion cancelled: the tool is no longer available.")
 		return
 	if stage == "walking":
-		if agent._move_path.is_empty() or agent._ladder_path_revision != NavGrid.ladder_revision \
-				or not NavGrid.is_navigable(agent._move_path[agent._move_index]):
+		if agent._move_path.is_empty():
 			cancel("Promotion cancelled: the route to the tool changed.")
 			return
 		agent._follow_path(delta * WorldClock.speed)
@@ -119,11 +127,7 @@ func _find_tool() -> void:
 	stage = "walking"
 	message = "Collecting %s before promotion." % _items.get_item_def(keys[0]).get("display_name", "starter tool")
 	# Reuse the checked route, rather than performing a second unbounded search.
-	agent._move_path = _route.path.duplicate()
-	agent._move_index = 0
-	agent._ladder_path_revision = NavGrid.ladder_revision
-	agent._walk_cycle = 0.0
-	agent._shortcut_timer = 0.0
+	agent.start_route(_route.path)
 	_clear_search()
 
 func walk_finished(success: bool) -> void:

@@ -195,6 +195,8 @@ previous exit listener, so a departing older scene cannot clear a newer binding.
 A sun or moon that leaves the tree on its own is skipped and hidden in the backdrop. A null check is not enough: the
 lights still exist during the gap, so check `is_inside_tree()` before reading a
 transform. `SkySceneLifecycleTest` and the dock-driven save round trip cover this.
+A `--script` capture that loads a world must call `SkyController.rebind_to_current_scene()`
+after the load too, or the sky and light never change (night looks like day).
 
 **Full-sphere sky (2026-10-13, 166):** replaces the plain procedural backdrop
 with a continuous directional sky shader, stars and celestial discs. `SkyController` now owns time/weather haze as well as sky color;
@@ -559,6 +561,10 @@ Stonehearth uses a **hard horizontal clip** at `slice_y` — geometry above the 
 > slice-aware block-face overview (per-column cut tops, strata-only floors, per-tile
 > invalidation). See §Slice meshing rules and §Slice known limits under Terrain Render Modes.
 
+**Check effects under a low cut.** The owner plays with the slice on, a few blocks above the
+ground. Anything drawn above the ground, such as weather, must be checked with the slice just
+above it, not only with the slice off.
+
 ### The Black Ceiling Reads as Rock
 
 When the player is working inside a carved underground chamber and the slice removes geometry above them, the black void is not perceived as a missing sky — it reads as the solid mountain above. This effect is free and correct. Do not add ambient fill light or particle effects to the overhead void.
@@ -569,16 +575,17 @@ When the player is working inside a carved underground chamber and the slice rem
 
 - `is_block_visible(pos)` — inside the slice plane, then (while X-ray inspects) inside the
   discovered shell. The order is always clip first, then the interior set.
-- `filter_blocks(blocks)` — the visible subset, order kept; returns the input unchanged when
-  the slice is off and X-ray is not inspecting.
-- `clip_aabb(aabb)` — slice plane only; a box wholly above the plane comes back zero-size.
 - `visible_volume_changed` — any visibility change sets a dirty flag, flushed as at most one
   emission per frame in `_process`. Consumers (mining overlays, water, moisture, construction)
   rebuild on the signal; no consumer may poll.
 - The signal is for overlays only and never rebuilds the physical cavity shell or terrain.
   Slice moves (`slice_y`'s setter) and terrain edits invalidate the shell on their own
-  paths. X-ray marks the volume dirty with every chunk upload; when the signal also
-  rebuilt the whole shell, each upload stalled a frame (doc 218).
+  paths. X-ray marks the volume dirty with every chunk upload while it inspects; when the
+  signal also rebuilt the whole shell, each upload stalled a frame (doc 218).
+- X-ray marks the volume for its own changes (a changed interior, a chunk upload) only while it
+  inspects (`XrayController._mark_volume`). Behind a click tool the normal view shows, and each
+  such mark hid and re-meshed all its water and damp ground, so both blinked while dwarves
+  mined (2026-11-09; `XrayToolVolumeTest`). Putting the tool away marks the volume once.
 
 Mining zone overlays and previews clip through this contract, so a zone wholly above the
 plane disappears (its data is untouched) and designation is WYSIWYG — see
@@ -822,8 +829,8 @@ follow-up, the path follower moved positions directly with collision mask zero;
 smoothing checked from cell centers with a smaller margin than the logical
 footprint. These were hypotheses, not a reproduced root cause of the player's
 route. Later actual-position checks are documented in [32 — Navigation](../30_simulation_systems/32_navigation_3d.md).
-[Issue 002](../00_dev_roadmap/00_open_issues.md) retains the historical report;
-Alen provisionally closed it on 2026-10-12, to reopen only if reported again.
+The historical report, issue 002, is in git history (cleared from the open issues log on
+2026-11-09); Alen provisionally closed it on 2026-10-12, to reopen only if reported again.
 
 Validation for this follow-up:
 
@@ -947,6 +954,25 @@ every unseen block in its way, rock, ore, deposit, water or hidden cave, is in t
 the same reason. `HiddenCavePlacementTest`. The camera's ground (doc 21) also takes a hidden
 cave for rock, so zoom, drag, orbit and the camera floor stop on the cut above it.
 
+**Everything the player reads or hears (2026-11-09, the project review):** anything that
+tells the player about a place reads a hidden cave as rock: hover cards, pointers, clicks,
+drags, the sound focus and a window's counts. Rays pass `ObjectPicking.concealed_block` as
+`terrain_hit`'s `sample_block`, and a single cell asks `InteriorTracker.is_hidden_cave`. The
+inspection tools' rendered-cut sampler (`TerrainExplorerProvider`) conceals the same way.
+- **What follows it:**
+  - the Temperature view's card and the Appeal view's room under the pointer;
+  - the sound focus (doc 21), so a cave's sky and ambience never play over cut rock;
+  - a mining zone's faces: a stand inside a hidden cave is not a place to work from, so the
+    zone window's "Faces" count and the miners' stand search skip it;
+  - the felling and gathering box's corner;
+  - the object explorer's clicks;
+  - the DEV item stamper, which also refuses the cut plane over rock, where rock stands
+    above the cut.
+- **Live-grid reads that may stay:** reads that only steer dwarves or schedule work. These
+  are navigation, room detection, a seat's view, the Temperature view's build order and
+  need-icon occlusion. No dwarf reaches a hidden cave, and rock surrounds every one.
+- **Tests:** `HiddenCavePlacementTest`, case `_reads_test`.
+
 **Explicit developer inspection exception:** at the user's request, **Menu →
 Development → DEV: Cave explorer** can outline hidden caves and temporarily
 preview their actual interiors. The preview uses a separate cut set and temporary
@@ -971,8 +997,10 @@ tints these tagged cut faces toward darker, warmer rock (`slice_cap_tint`, appli
 `terrain_appearance.gdshaderinc`); block identity is still untouched.
 
 **Cut cells and revealed air.** Designated, mined and discovered cave cells are all cut cells.
-Revealed air (executed mining, discovered caves, terrain overrides) is the subset that earns
-exact colours; a plan reveals nothing. Every cut block opens the overview:
+Revealed air (executed mining, discovered caves, and cells the colony dug, whatever has been
+built there since: `WorldData.is_dug`) is the subset that earns exact colours; a plan reveals
+nothing, and neither does a block built into open air: a log against a cliff leaves the cliff's
+strata (2026-11-09, Hard Rule 11; `OverviewSnapshotTest`). Every cut block opens the overview:
 
 - **Side-band punching.** A cliff band ends before any cut wall block and restarts after it,
   so plans and holes both open a block-sized mouth in the wall.
@@ -1063,9 +1091,10 @@ Mining cuts are **renderer state** (Stonehearth's model — designation never mu
 - **Dirty rule:** changed blocks dirty their own overview tiles **plus X/Z neighbour columns'
   tiles** (side faces compare neighbouring column heights). Deduplicated, drained on the
   existing per-frame budget.
-- **`set_visual_cut_blocks()` (full replacement) is fallback/global-sync only.** Risk to
-  guard in review: a controller edit path quietly reverting to it reintroduces global
-  invalidation.
+- **Plans change the cut set only through `add_visual_cut_blocks()` and
+  `remove_visual_cut_blocks()`.** The full-replacement `set_visual_cut_blocks()` and its global
+  invalidation were removed with the overlay's unreachable fallback (2026-11-09); don't bring
+  a full replacement back for ordinary edits.
 - **`TerrainTileMesher.invalidate_global()` is reserved for genuinely global events:** initial build
   after worldgen, season/colour changes, wholesale world-data swaps.
   Ordinary mining edits must never reach it.

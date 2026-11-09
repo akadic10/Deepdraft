@@ -91,10 +91,10 @@
   "__comment_fishing": "Fishing (doc 289). waters: each generated water a zone can fish, its catch and name, in the order a cast cell is matched (the lake, the tarn, the spring cave's pool, then the river). Its stock is stock_per_cell fish for each cell of it: the lake's and tarn's surface columns (lake 12,000-27,000, so 150-330 perch; a tarn about 900, so 60 char), the river's columns (2,000-3,200, so 60-95 trout) and the spring cave's water cells (31-37, so about 20 cave fish). It regrows regrowth_per_day of that maximum a day, continuously. Below fished_out_share of its maximum a water is Fished out and its zones post no work. A catch takes catch_hours of game time on a full water in spring, divided by season_speed, up to low_stock_factor times as long near Fished out, give or take catch_spread (seeded); Wisdom speeds it (stats.json). A zone keeps keep_default fish in store unless changed, by keep_step up to keep_max. A spot needs water at least min_depth deep within reach blocks of it, from its feet down to bank_drop blocks below them.",
   "fishing": {
     "waters": {
-      "lake": {"name": "Lowland lake", "item": "base:resources:fish:perch", "stock_per_cell": 0.012},
-      "tarn": {"name": "Mountain tarn", "item": "base:resources:fish:char", "stock_per_cell": 0.067},
-      "spring_cave": {"name": "Spring cave pool", "item": "base:resources:fish:cave_fish", "stock_per_cell": 0.6},
-      "river": {"name": "River", "item": "base:resources:fish:trout", "stock_per_cell": 0.03}
+      "lake": {"name": "Lowland lake", "item": "base:resources:fish:perch", "stock_per_cell": 0.012, "trait": "The lake holds the most fish."},
+      "tarn": {"name": "Mountain tarn", "item": "base:resources:fish:char", "stock_per_cell": 0.067, "trait": "Char keep a day longer."},
+      "spring_cave": {"name": "Spring cave pool", "item": "base:resources:fish:cave_fish", "stock_per_cell": 0.6, "seasonless": true, "trait": "They bite all year: the cave has no seasons."},
+      "river": {"name": "River", "item": "base:resources:fish:trout", "stock_per_cell": 0.03, "big_bonus": 0.1, "trait": "Trout are often big."}
     },
     "season_speed": {"spring": 1.0, "summer": 0.85, "autumn": 1.0, "winter": 0.5},
     "bank_drop": 4,
@@ -146,7 +146,7 @@
     "seat_chance": 0.6,
     "sit_min_s": 18.0,
     "sit_max_s": 35.0,
-    "seat_transition_s": 0.5,
+    "seat_transition_s": 0.9,
     "spacing": 2.4,
     "candidate_attempts": 12
   },
@@ -208,6 +208,11 @@
       "bonus": 0.08,
       "solo_bonus": 0.04,
       "duration_hours": 12.0
+    },
+    "quiet_hour": {
+      "__comment": "Each catch leaves a Ranger 'A quiet hour by the water', renewed by the next catch (doc 42).",
+      "bonus": 0.03,
+      "duration_hours": 8.0
     },
     "grilled": {
       "__comment": "A fish grilled and eaten at a campfire (doc 290): alone, or with another dwarf grilling or sitting at the same fire. Only the stronger counts.",

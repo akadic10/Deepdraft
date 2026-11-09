@@ -377,33 +377,16 @@ static func zone_clip_state(min_y: int, max_y: int, slice_y: int) -> int:
 
 # ── Renderer visual cuts ──────────────────────────────────────────────────────
 
-static func sync_visual_cuts(renderer: Node, zones: Dictionary) -> void:
-	if renderer == null or not renderer.has_method("set_visual_cut_blocks"):
-		return
-	var cut_blocks: Dictionary = {}
-	for zone_id: int in zones.keys():
-		var zone: Dictionary = zones[zone_id]
-		for block: Vector3i in zone.get("blocks", []):
-			cut_blocks[block] = true
-	renderer.call("set_visual_cut_blocks", cut_blocks)
-
-
-static func add_visual_cuts(renderer: Node, blocks: Array[Vector3i], zones: Dictionary) -> void:
+static func add_visual_cuts(renderer: Node, blocks: Array[Vector3i]) -> void:
 	if renderer == null:
 		return
-	if renderer.has_method("add_visual_cut_blocks"):
-		renderer.call("add_visual_cut_blocks", blocks)
-	else:
-		sync_visual_cuts(renderer, zones)
+	renderer.call("add_visual_cut_blocks", blocks)
 
 
-static func remove_visual_cuts(renderer: Node, blocks: Array[Vector3i], zones: Dictionary) -> void:
+static func remove_visual_cuts(renderer: Node, blocks: Array[Vector3i]) -> void:
 	if renderer == null:
 		return
-	if renderer.has_method("remove_visual_cut_blocks"):
-		renderer.call("remove_visual_cut_blocks", blocks)
-	else:
-		sync_visual_cuts(renderer, zones)
+	renderer.call("remove_visual_cut_blocks", blocks)
 
 
 # ── Mesh builders ─────────────────────────────────────────────────────────────

@@ -8,6 +8,8 @@ extends RefCounted
 ## no fire or no room at it, the meal is an ordinary one.
 const Route = preload("res://scripts/components/WorkRouteProbe.gd")
 const Fires = preload("res://scripts/components/FurnitureFires.gd")
+const Foraging = preload("DwarfForaging.gd")
+enum Search { PENDING, FOUND, NONE }
 var agent: DwarfAgent
 var config: Dictionary
 var value := 1.0
@@ -28,15 +30,23 @@ var _source: StorageComponent
 var _loose := false
 var _elapsed := 0.0
 var _search_elapsed := 0.0
+var _search_from := Vector3i.ZERO          # where the search stands; a dwarf on a job walks on meanwhile
+var _scouting := false                     # searching while still on the job
 var _travel_left := 0.0
 var shortage := false
 var last_dining := ""
 var _foraging: RefCounted
 var _dining: RefCounted
 var _serving: Node3D
+var _reach := Vector3(0,1.1,.85)           # where the hands go for the food, in the dwarf's own space
+var _grill_frame := ""
 var grilled := false                       # this meal's fish is grilled at `_grill_fire`
 var _grill_fire: InstalledFurnitureComponent
 var _grill_search := false                 # the search is for fish to grill
+const BITE_PITCH := .2
+const CHEW_PITCH := .05
+const CHEW_RISE := .025
+var _head_nudge := Vector3.ZERO
 var _at_fire_seconds := 0.0                # grilling and eating there, for the seat's blend
 
 func _init(owner: DwarfAgent) -> void:
@@ -65,9 +75,19 @@ func clock_tick(hours: float) -> void:
 	if not hungry(): shortage = false
 	if not last_meal.is_empty(): hours_since_meal += hours
 
+## True once the dwarf has left what it was doing for its meal. A dwarf on a job searches first and
+## keeps working meanwhile, so hunger only costs it the job, and any cargo, when there is food to go to.
 func begin_if_needed() -> bool:
-	if active() or not hungry() or retry_hours > 0.0: return false
-	if agent.is_sleeping() or agent.promotion_pending() or not NavGrid.is_walkable(agent.current_cell()): return false
+	if not hungry() or agent.is_sleeping() or agent.promotion_pending():
+		_scouting = false
+		return false
+	if active() or retry_hours > 0.0 or not NavGrid.is_walkable(agent.current_cell()): return false
+	if not _scouting and not _open_search(): return false
+	if agent.current_task_id >= 0 and not _scout(): return false
+	_leave_work()
+	return true
+
+func _open_search() -> bool:
 	_items = ItemDropManager.find(agent.get_tree())
 	if _items == null: return false
 	_keys = _items.edible_keys()
@@ -76,17 +96,54 @@ func begin_if_needed() -> bool:
 	if _grill_fire != null: grill_keys = _items.grill_keys()
 	_grill_search = not grill_keys.is_empty()
 	if _grill_search: _keys = grill_keys
+	_query = {}; _quote = {}; _route = {}; _excluded = {}
+	_loose = false
+	_foraging = null
+	_search_from = agent.current_cell()
+	_scouting = true
+	return true
+
+## One slice of the search on the job. True when there is food, or ripe berries for a famished dwarf.
+func _scout() -> bool:
+	var deadline := Time.get_ticks_usec()+int(config.search_budget_usec)
+	if _foraging != null:
+		var forage: int = _foraging.advance_search(deadline)
+		if forage == Foraging.NONE: _scout_failed("No reachable food or nearby ripe berries; will try again.")
+		return forage == Foraging.FOUND
+	var result := _advance_search(deadline)
+	if result == Search.NONE:
+		shortage = true
+		if famished(): _foraging = Foraging.new(agent)
+		else: _scout_failed("No reachable food; will try again.")
+	return result == Search.FOUND
+
+func _scout_failed(reason: String) -> void:
+	_scouting = false
+	_foraging = null
+	_grill_fire = null
+	_grill_search = false
+	_query = {}; _quote = {}; _route = {}; _excluded = {}
+	message = reason
+	retry_hours = float(config.retry_hours)
+
+## What the search found stays, but its route is walked from here, so it is searched again from here.
+func _leave_work() -> void:
 	# Clear work and callbacks before claiming self-care ownership.
 	var had_task := agent.current_task_id >= 0
 	agent.abort_task()
 	if had_task: agent._work_execution.release(agent.dwarf_id, Task.ReleaseReason.NEED_INTERRUPT, false)
-	state = "finding"
-	message = "Looking for reachable food in storage."
-	_query = {}; _quote = {}; _route = {}; _excluded = {}
-	_loose = false
+	_scouting = false
+	_route = {}
+	_search_from = agent.current_cell()
 	_search_elapsed = 0.0
+	if _foraging != null:
+		_foraging.set_out()
+		state = "foraging"
+		message = "No reachable harvested food. Looking for nearby ripe berries."
+	else:
+		state = "finding"
+		message = "Looking for reachable food in storage."
 	TaskManager.notify_dwarf_unavailable(agent.dwarf_id)
-	return true
 
 func tick(seconds: float) -> void:
 	if state == "foraging":
@@ -140,7 +197,7 @@ func tick(seconds: float) -> void:
 			cancel("Food is no longer within reach.")
 			return
 		_elapsed += seconds
-		agent._carry_pose.gather(clampf(_elapsed/float(config.pickup_seconds),0.0,1.0), Vector3(0,1.1,.65))
+		agent._carry_pose.gather(clampf(_elapsed/float(config.pickup_seconds),0.0,1.0), _reach)
 		if _elapsed >= float(config.pickup_seconds): _take()
 	elif state == "eating":
 		if not _holding_portion():
@@ -152,47 +209,15 @@ func tick(seconds: float) -> void:
 		if _elapsed >= float(config.eat_seconds): _finish_meal()
 
 func _find_food() -> void:
-	var deadline := Time.get_ticks_usec()+int(config.search_budget_usec)
-	if _quote.is_empty():
-		var done: bool
-		# Older food first: a fully spoilt stack counts route_margin_blocks nearer (doc 41).
-		var margin := float(config.spoilage.route_margin_blocks)
-		if _loose:
-			done = _items.advance_material_quote(_keys,agent.current_cell(),_query,deadline,_excluded,-1,"","",false,margin)
-		else:
-			done = StockpileManager.advance_material_quote(_keys,agent.current_cell(),_query,deadline,_excluded,-1,"","",margin)
-		if not done: return
-		_quote = _query.best
-		if _quote.is_empty():
-			if not _loose:
-				_loose = true
-				_query = {}; _excluded = {}
-				message = "Looking for reachable harvested food."
-			elif _grill_search:
-				# No fresh fish within reach to grill: any food, eaten as usual.
-				_grill_search = false
-				_grill_fire = null
-				_keys = _items.edible_keys()
-				_loose = false
-				_query = {}; _excluded = {}
-				message = "Looking for reachable food in storage."
-			else:
-				shortage = true
-				if famished():
-					state = "foraging"
-					_foraging = preload("DwarfForaging.gd").new(agent)
-					message = "No reachable harvested food. Looking for nearby ripe berries."
-				else: cancel("No reachable food; will try again.")
-			return
-	var goals := {}
-	for cell: Vector3i in _stands():
-		if NavGrid.is_walkable(cell): goals[cell] = true
-	var result := NavGrid.ProbeResult.UNREACHABLE
-	if not goals.is_empty():
-		result = Route.advance(_route,agent.current_cell(),goals.keys()[0],int(config.search_nodes),deadline,false,goals) as NavGrid.ProbeResult
-	if result == NavGrid.ProbeResult.SEARCHING: return
-	if result != NavGrid.ProbeResult.REACHABLE:
-		_exclude_quote()
+	var result := _advance_search(Time.get_ticks_usec()+int(config.search_budget_usec))
+	if result == Search.PENDING: return
+	if result == Search.NONE:
+		shortage = true
+		if famished():
+			state = "foraging"
+			_foraging = Foraging.new(agent)
+			message = "No reachable harvested food. Looking for nearby ripe berries."
+		else: cancel("No reachable food; will try again.")
 		return
 	if _quote.has("source"):
 		_source = _quote.source
@@ -207,15 +232,49 @@ func _find_food() -> void:
 	message = "Collecting one portion of %s." % _items.get_item_def(_quote.key).display_name
 	_travel_left = start_walk(_route.path)
 
-func start_walk(path: Array) -> float:
-	agent._move_path = []
-	agent._move_path.assign(path)
-	agent._move_index = 0
-	agent._move_validation_index = -1
-	agent._ladder_path_revision = NavGrid.ladder_revision
-	agent._walk_cycle = 0.0
-	agent._shortcut_timer = 0.0
-	return maxf(10.0,preload("DwarfForaging.gd").path_length(agent.current_cell(),path)/maxf(.1,agent.walk_speed)*3.0)
+## Storage first, then loose food, each to a real route from `_search_from`. FOUND leaves the proven
+## food in `_quote` and its route in `_route`, nothing claimed yet.
+func _advance_search(deadline: int) -> Search:
+	if _quote.is_empty():
+		var done: bool
+		# Older food first: a fully spoilt stack counts route_margin_blocks nearer (doc 41).
+		var margin := float(config.spoilage.route_margin_blocks)
+		if _loose:
+			done = _items.advance_material_quote(_keys,_search_from,_query,deadline,_excluded,-1,"","",false,margin)
+		else:
+			done = StockpileManager.advance_material_quote(_keys,_search_from,_query,deadline,_excluded,-1,"","",margin)
+		if not done: return Search.PENDING
+		_quote = _query.best
+		if _quote.is_empty():
+			if not _loose:
+				_loose = true
+				_query = {}; _excluded = {}
+				message = "Looking for reachable harvested food."
+			elif _grill_search:
+				# No fresh fish within reach to grill: any food, eaten as usual.
+				_grill_search = false
+				_grill_fire = null
+				_keys = _items.edible_keys()
+				_loose = false
+				_query = {}; _excluded = {}
+				message = "Looking for reachable food in storage."
+			else: return Search.NONE
+			return Search.PENDING
+	var goals := {}
+	for cell: Vector3i in _stands():
+		if NavGrid.is_walkable(cell): goals[cell] = true
+	var result := NavGrid.ProbeResult.UNREACHABLE
+	if not goals.is_empty():
+		result = Route.advance(_route,_search_from,goals.keys()[0],int(config.search_nodes),deadline,false,goals) as NavGrid.ProbeResult
+	if result == NavGrid.ProbeResult.SEARCHING: return Search.PENDING
+	if result != NavGrid.ProbeResult.REACHABLE:
+		_exclude_quote()
+		return Search.PENDING
+	return Search.FOUND
+
+func start_walk(path: Array, private_walk := false) -> float:
+	agent.start_route(path, private_walk)
+	return maxf(10.0,Foraging.path_length(agent.current_cell(),path)/maxf(.1,agent.walk_speed)*3.0)
 
 func _stands() -> Array[Vector3i]:
 	if _quote.has("source"):
@@ -252,6 +311,9 @@ func walk_finished(success: bool) -> void:
 	var target: Vector3 = _source.withdrawal_contact(_quote.slot) if _source != null else Vector3(_quote.cell)+Vector3(.5,1,.5)
 	var offset := target-agent.global_position
 	if Vector2(offset.x,offset.z).length_squared() > .001: agent.rotation.y = atan2(offset.x,offset.z)
+	# Toward the food, which the dwarf now faces, and never into its own chest (doc 298). As high
+	# as a food shelf's upper deck (doc 299).
+	_reach = Vector3(0,clampf(offset.y,.2,2.0),maxf(Vector2(offset.x,offset.z).length(),.85))
 	agent._reset_part_offsets()
 
 func _take() -> void:
@@ -305,7 +367,11 @@ func _pose(seconds: float) -> void:
 	var browned := state == "eating" or (state == "grilling" and seconds >= float(config.grilling.grill_seconds) * float(config.grilling.browned_at))
 	var offset: Vector3 = _dining.pose(_at_fire_seconds) if state in ["grilling", "eating"] else Vector3.ZERO
 	if state == "eating": offset.y += sin(seconds * 5.0) * 0.03   # small bites
-	agent.get_grill_pose().apply({"dining": "carry", "grilling": "hold", "eating": "bite"}[state], stick.get("grilled" if browned else "raw"), offset)
+	var frame: String = {"dining": "carry", "grilling": "hold", "eating": "bite"}[state]
+	if frame != _grill_frame: agent.blend_pose()
+	_grill_frame = frame
+	agent.get_grill_pose().apply(frame, stick.get("grilled" if browned else "raw"), offset)
+	if state == "eating": _bite_head((1.0+sin(seconds*5.0))*.5, seconds, agent.get_head().rotation)
 
 func _meal_pose(seconds: float) -> void:
 	if not is_instance_valid(_serving): return
@@ -313,9 +379,25 @@ func _meal_pose(seconds: float) -> void:
 	var bite := (1.0-cos(seconds*TAU*.65))*.5 if state == "eating" else 0.0
 	var grip := offset+Vector3(-.42,lerpf(1.4,2.2,bite),lerpf(.85,.62,bite))
 	agent._carry_pose._pose_hand(agent._hand_r,grip,Quaternion.IDENTITY)
-	agent._carry_pose._pose_hand(agent._hand_l,offset+Vector3(.65,1.35,.7),Quaternion.IDENTITY)
+	# The free hand steadies the meal and comes up a little with each bite.
+	agent._carry_pose._pose_hand(agent._hand_l,offset+Vector3(.65,1.35+bite*.22,.7-bite*.08),Quaternion.IDENTITY)
 	_serving.position = grip+Vector3(0,.14,.08)
 	_serving.rotation = Vector3(bite*.3,0,0)
+	if state == "eating": _bite_head(bite, seconds, Vector3.ZERO)
+
+## The head dips to meet the food, then chews as the hand comes down (doc 298). It turns about its own
+## centre, on top of wherever the seat put it; standing, that is the rest position.
+func _bite_head(bite: float, seconds: float, base: Vector3) -> void:
+	var head: Node3D = agent.get_head()
+	if not is_instance_valid(head): return
+	var chew := sin(seconds*TAU*2.2)*(1.0-bite)
+	head.rotation = base+Vector3(bite*BITE_PITCH+chew*CHEW_PITCH,0,0)
+	var seated: bool = _dining != null and _dining.choice.get("seat") != null
+	var rest := head.position if seated else Vector3.ZERO   # the seat writes it afresh each frame
+	var pivot := Vector3(0,2.45,0)
+	_head_nudge = pivot+Vector3(0,chew*CHEW_RISE,0)-head.basis*pivot
+	head.position = rest+_head_nudge
+
 
 func _finish_meal() -> void:
 	var key := _items.item_key_of(portion)
@@ -362,6 +444,10 @@ func _end_meal(reason: String, resume: bool, retry: bool, rest_seated := false) 
 	_source = null
 	agent.stop_walking()
 	if not seated: agent._reset_part_offsets()
+	elif is_instance_valid(agent.get_head()):
+		agent.get_head().rotation = Vector3.ZERO
+		agent.get_head().position -= _head_nudge
+	_head_nudge = Vector3.ZERO
 	message = reason
 	retry_hours = float(config.retry_hours) if retry else 0.0
 	if resume and not agent.is_sleeping(): TaskManager.notify_dwarf_idle(agent.dwarf_id)
@@ -427,5 +513,6 @@ func restore(data: Dictionary) -> void:
 	last_meal = String(data.last_meal)
 	last_dining = String(data.last_dining)
 	shortage = false
+	_scouting = false
 	hours_since_meal = maxf(0.0,float(data.hours_since_meal))
 	retry_hours = maxf(0.0,float(data.retry_hours))

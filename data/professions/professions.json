@@ -31,14 +31,14 @@
     {"role": "ranger", "position": [224, 116], "summary": "Fishes the colony's waters and dries the catch on the rack. Hunting comes later.", "starter_tool": "base:resources:tools:ranger_kit", "availability": "Requires one available Ranger's kit. Promotion completes after the dwarf collects it."},
     {"role": "carpenter", "position": [332, 116], "summary": "Works timber with basic tools at the carpenter's bench, which they make first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it."},
     {"role": "stonemason", "position": [440, 116], "summary": "Shapes rough stone at the mason's bench, which they make first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:masonry_kit", "availability": "Requires one available crude masonry kit. Promotion completes after the dwarf collects it."},
-    {"role": "blacksmith", "position": [548, 116], "summary": "Smelts ore and forges the colony's metal tools, hardware, weapons and armor.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Planned: requires smelting, forging and tool equipping."}
+    {"role": "blacksmith", "position": [548, 116], "summary": "Melts copper at the basic smelter, which they make first, and practises on it before iron. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Requires one available stone hammer. Promotion completes after the dwarf collects it."}
   ],
   "work_permissions": [
     {"id": "haul", "label": "Haul", "description": "Unrelated hauling to storage. Carrying supplies for another permitted job stays allowed.", "tasks": ["HAUL"]},
     {"id": "gather", "label": "Gather", "description": "Chop trees, gather stone, harvest wild plants and clear or uproot plants.", "tasks": ["FELL_TREE", "CLEAR_BOULDER", "GATHER_SCREE", "HARVEST_SHRUB", "CLEAR_SHRUB", "CLEAR_PLANT", "UPROOT_SHRUB", "HARVEST_TREE"]},
     {"id": "mine", "label": "Mine", "description": "Mine designated terrain. Miners gain experience for completed blocks.", "tasks": ["MINE"]},
     {"id": "build", "label": "Build", "description": "Place and remove furniture, ladders and plants, including carrying their supplies.", "tasks": ["FETCH_BUILD", "UNINSTALL"]},
-    {"id": "craft", "label": "Craft", "description": "Craft the career's own recipes: Workers at the workbench; Carpenters and Stonemasons their own, before other work; Rangers hang fish on the drying rack and take them down dried.", "tasks": ["CRAFT", "COLLECT"]},
+    {"id": "craft", "label": "Craft", "description": "Craft the career's own recipes: Workers at the workbench; Carpenters, Stonemasons and Blacksmiths their own, before other work; Rangers hang fish on the drying rack and take them down dried; Blacksmiths take cast copper off the smelter.", "tasks": ["CRAFT", "COLLECT"]},
     {"id": "fish", "label": "Fish", "description": "Fish from Fishing zones until the colony keeps enough fish. Rangers only.", "tasks": ["FISH"]}
   ],
   "experience_thresholds": {
@@ -134,6 +134,7 @@
       "work_first": ["CRAFT"],
       "craft_section": "stonemason",
       "craft_tool": "res://assets/models/characters/dwarves/tools/stone_maul.glb",
+      "craft_motion": "tap",
       "craft_work": "stonework",
       "craft_sound": "hammer",
       "work_speed_bonus_per_level": 0.05,
@@ -170,6 +171,7 @@
       "work_first": ["CRAFT"],
       "craft_section": "carpenter",
       "craft_tool": "res://assets/models/characters/dwarves/tools/stone_adze.glb",
+      "craft_motion": "adze",
       "work_speed_bonus_per_level": 0.05,
       "experience": {
         "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Carpenter's own page.", "master": "Master Carpenter", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
@@ -181,10 +183,32 @@
 
     "base:profession:blacksmith": {
       "icon": "res://assets/ui/icons/blacksmith.png",
+      "promotion_enabled": true,
+      "required_tool": "base:resources:tools:stone_hammer",
+      "equipment_preview": {
+        "default_name": "No stone hammer equipped",
+        "default_description": "A stone hammer is required for this profession.",
+        "upgrade_name": "Copper tongs and hammer", "upgrade_status": "Planned · Not craftable yet",
+        "upgrade_description": "Future upgrade beyond the stone hammer, for the Smelter, the Forge and iron.",
+        "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
+      },
       "display_name": "Blacksmith",
-      "description": "Smelts raw ore into metal ingots and forges tools, hardware, weapons, armor and shields. The colony's only metalworking profession.",
+      "description": "Melts copper ore with coal at the basic smelter, which they make first, casts copper bars and hammers them into fittings. Iron, tools, weapons and armor wait for the Smelter and the Forge. The colony's only metalworking profession.",
       "promotes_from": "base:profession:worker",
-      "stats": ["base:stat:strength", "base:stat:wits"]
+      "stats": ["base:stat:strength", "base:stat:wits"],
+      "work_first": ["COLLECT", "CRAFT"],
+      "craft_section": "blacksmith",
+      "craft_tool": "res://assets/models/characters/dwarves/tools/stone_maul.glb",
+      "craft_motion": "blow",
+      "craft_work": "stonework",
+      "craft_sound": "hammer",
+      "work_speed_bonus_per_level": 0.05,
+      "experience": {
+        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Blacksmith's own page: copper bars and fittings are the practice.", "master": "Master Blacksmith", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
+        "thresholds": {"level_2": 10, "level_3": 50, "level_4": 150, "level_5": 400},
+        "speed_text": "%d%% less work time crafting",
+        "rewards": [{"level": 1, "text": "Smithing focus"}, {"level": 2, "text": "Ready for iron when the Smelter comes"}]
+      }
     }
   }
 }

@@ -47,15 +47,22 @@ func apply(phase: float, contact: Vector3) -> void:
 	var agent := _body.get_parent() as Node3D
 	var water: Vector3 = agent.to_global(contact)
 	var pose: Dictionary
-	var pointing := false
+	var pointing := 0.0
 	if phase < CAST_END * 0.4:
 		pose = POSES.cast
-		pointing = true
+		pointing = 1.0
 	elif phase < CAST_END:
-		pose = _blend(POSES.cast, POSES.wait, smoothstep(CAST_END * 0.4, CAST_END, phase))
+		var swing := smoothstep(CAST_END * 0.4, CAST_END, phase)
+		pose = _blend(POSES.cast, POSES.wait, swing)
+		pointing = 1.0 - swing
 	elif phase < BITE_START:
 		pose = POSES.wait.duplicate()
 		pose.pitch += sin(phase * 140.0) * 1.5     # the rod nods while waiting
+		# A long wait keeps the dwarf alive: it breathes, shifts and glances around.
+		var settled := smoothstep(CAST_END, CAST_END + 0.05, phase) * (1.0 - smoothstep(BITE_START - 0.05, BITE_START, phase))
+		pose.breath = sin(phase * 38.0) * 0.035 * settled
+		pose.glance = pow(sin(phase * 11.0), 3.0) * 0.45 * settled
+		pose.shift = sin(phase * 7.0) * 0.06 * settled
 	elif phase < BITE_END:
 		pose = _blend(POSES.wait, POSES.bite, smoothstep(BITE_START, BITE_START + 0.02, phase))
 		pose.pitch += sin(phase * 900.0) * 3.0     # the tip shakes with the bite
@@ -94,21 +101,20 @@ func reset() -> void:
 	if is_instance_valid(_props): _props.visible = false
 
 
-func _hold(pose: Dictionary, pointing: bool) -> void:
+func _hold(pose: Dictionary, pointing: float) -> void:
 	var rotation := _orientation(float(pose.pitch), float(pose.yaw))
 	var grip: Vector3 = pose.grip
 	_pose_hand(_right, grip, rotation)
-	if pointing:   # the free hand points at the water while winding up
-		_pose_hand(_left, Vector3(0.5, 1.45, 0.6), _orientation(95, 15))
-	else:
-		_pose_hand(_left, grip + rotation * SUPPORT_GRIP, rotation * Quaternion(Vector3.UP, PI))
+	# The free hand points at the water while winding up, and comes to the rod over the swing.
+	var support := rotation * Quaternion(Vector3.UP, PI)
+	_pose_hand(_left, (grip + rotation * SUPPORT_GRIP).lerp(Vector3(0.5, 1.45, 0.6), pointing), support.slerp(_orientation(95, 15), pointing))
 	var lean := float(pose.lean)
 	if is_instance_valid(_body):
-		_body.position = (_rest[_body] as Transform3D).origin + Vector3(0, -absf(lean) * 0.2, lean * 0.4)
+		_body.position = (_rest[_body] as Transform3D).origin + Vector3(float(pose.get("shift", 0.0)), float(pose.get("breath", 0.0)) - absf(lean) * 0.2, lean * 0.4)
 		_body.rotation = (_rest_rotations[_body] as Vector3) + Vector3(lean, 0, 0)
 	if is_instance_valid(_head):
-		_head.position = (_rest[_head] as Transform3D).origin + Vector3(0, -absf(lean) * 0.15, lean * 0.5)
-		_head.rotation = (_rest_rotations[_head] as Vector3) + Vector3(float(pose.look), 0, 0)
+		_head.position = (_rest[_head] as Transform3D).origin + Vector3(float(pose.get("shift", 0.0)) * 0.8, float(pose.get("breath", 0.0)) * 1.3 - absf(lean) * 0.15, lean * 0.5)
+		_head.rotation = (_rest_rotations[_head] as Vector3) + Vector3(float(pose.look), float(pose.get("glance", 0.0)), 0)
 
 
 func _blend(a: Dictionary, b: Dictionary, t: float) -> Dictionary:

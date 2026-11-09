@@ -21,7 +21,7 @@ func _run() -> void:
 		_expect(panel._folded==folded and panel._right.visible!=folded and panel._tabs.visible==folded,"the queue folds into an Orders tab only on small screens: "+str(viewport))
 		_expect(panel._recipe_scroll.is_visible_in_tree() and panel._queue_scroll.is_visible_in_tree()!=folded,"recipes show, with the queue beside them unless folded")
 		var categories := _categories()
-		_expect(categories.size()==7 and categories.has("Rooms") and categories.has("Recreation") and not categories.has("Food"),"seven recipe categories include room furnishings and recreation; the drying rack is the Ranger's (owner, 2026-11-01)")
+		_expect(categories==["Workshops","Lighting","Access","Dining","Starter tools"],"Rudimentary keeps the first camp's five categories; room pieces, recreation and food are the careers' (owner, 2026-11-02): %s" % [categories])
 		for key: String in _rudimentary():
 			var tile: Button = panel._recipes.get_tile(key)
 			_expect(tile!=null and tile.icon!=null and tile.text.is_empty(),"illustrated recipe tile: "+key)
@@ -60,11 +60,11 @@ func _run() -> void:
 			event.pressed = true
 			Input.parse_input_event(event)
 		await _frames(5)
-		_expect(panel._search.text=="ACCESS" and _visible_recipes().size()==3,"case-insensitive category search finds ladder, fence and gate")
+		_expect(panel._search.text=="ACCESS" and _visible_recipes().size()==1,"case-insensitive category search finds the ladder; fences and gates are the Carpenter's")
 		_expect(_categories()==["Access"],"search hides empty categories")
-		_click(panel._recipes.get_tile(PREFIX+"log_gate").get_global_rect().get_center())
+		_click(panel._recipes.get_tile(PREFIX+"crude_ladder").get_global_rect().get_center())
 		await _frames(4)
-		_expect(panel.selected==PREFIX+"log_gate" and panel._title.text=="Log Gate","clicking a search result selects its board")
+		_expect(panel.selected==PREFIX+"crude_ladder" and panel._title.text=="Ladder section","clicking a search result selects its board")
 		_click(panel._make_row.more.get_global_rect().get_center())
 		await _frames(2)
 		_click(panel._queue_button.get_global_rect().get_center())
@@ -80,10 +80,10 @@ func _run() -> void:
 			_click(panel._orders_tab.get_global_rect().get_center())
 			await _frames(4)
 			_expect(panel._queue_scroll.is_visible_in_tree() and not panel._recipe_scroll.is_visible_in_tree(),"Orders tab reveals the queue even when search is empty")
-			_expect(panel._title.text=="Log Gate" and panel._queue_button.is_visible_in_tree(),"recipe search does not blank the board behind the Orders tab")
+			_expect(panel._title.text=="Ladder section" and panel._queue_button.is_visible_in_tree(),"recipe search does not blank the board behind the Orders tab")
 		var id: int = crafting.orders[0].id
 		var row: Dictionary = panel._rows[id]
-		_expect(row.title.text=="Log Gate ×2" and row.status.text.begins_with("Waiting"),"an order row names the item, how many and its status")
+		_expect(row.title.text=="Ladder section ×2" and row.status.text.begins_with("Waiting"),"an order row names the item, how many and its status")
 		_click(row.pause.get_global_rect().get_center())
 		await _frames(4)
 		_expect(crafting.get_order(id).paused and row.pause.text=="Resume" and row.tag.get_theme_stylebox("panel")==UITheme.cell_style("tag_blocked", 2),"pausing an order shows it on a rust tag")
@@ -127,9 +127,9 @@ func _run() -> void:
 		panel.maintain = false
 		panel.make_count = 1
 		panel.keep_count = 1
-		_click(panel._crafter_tiles.blacksmith.get_global_rect().get_center())
+		_click(panel._crafter_tiles.farmer.get_global_rect().get_center())
 		await _frames(6)
-		_expect(panel.section_id=="blacksmith" and not panel._tabs.visible and not panel._queue_button.is_visible_in_tree() and panel._planned.visible,"planned professions remain preview-only")
+		_expect(panel.section_id=="farmer" and not panel._tabs.visible and not panel._queue_button.is_visible_in_tree() and panel._planned.visible,"planned professions remain preview-only")
 		_click(panel._crafter_tiles.rudimentary.get_global_rect().get_center())
 		await _frames(6)
 		_expect(panel.selected==TORCH_RECIPE and _visible_recipes().size()==_rudimentary().size(),"returning restores selection and clears search")

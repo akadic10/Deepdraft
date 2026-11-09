@@ -114,10 +114,6 @@ func discovered_cave_count() -> int:
 	return _discovered_caves.size()
 
 
-func interior_cell_count() -> int:
-	return _cell_count
-
-
 func get_stats() -> Dictionary:
 	return {
 		"interior_cells": _cell_count,

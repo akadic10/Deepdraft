@@ -84,6 +84,7 @@ func _snapshot_units() -> int:
 
 
 func _check_grip() -> void:
+	worker._rig.begin_frame()   # the true pose under any crossfade (doc 298)
 	var pose = worker._carry_pose
 	var node: Node3D = worker._carried_entries[0][0]
 	var box: AABB = node.transform * pose.item_bounds(node)
@@ -98,6 +99,7 @@ func _check_grip() -> void:
 
 
 func _check_empty_pose() -> void:
+	worker._rig.begin_frame()   # the true pose under any crossfade (doc 298)
 	_expect(worker._carried_entries.is_empty(), "no cargo remains attached after interruption")
 	_expect(worker._hand_r.scale.is_equal_approx(Vector3(-1,1,1)), "interruption preserves mirrored fist scale")
 	# Relaxed hands hang under the sleeves (proportions.json, doc 256).

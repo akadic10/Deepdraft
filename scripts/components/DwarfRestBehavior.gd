@@ -266,8 +266,10 @@ func _fallback() -> void:
 func _part(node: Node3D, center: Vector3, target: Vector3, rotation: Vector3, mirror := false) -> void:
 	if not is_instance_valid(node): return
 	if bed_rest.bed != null: target += bed_rest.offset()
-	var weight := smoothstep(0.0,1.0,blend)
-	var turn := Quaternion.IDENTITY.slerp(Quaternion.from_euler(rotation),weight)
+	# Lying down, the body lowers first and tips over once it is low. Waking, it sits up and then rises.
+	var weight := smoothstep(0.0,.65,blend)
+	var turn := Quaternion.IDENTITY.slerp(Quaternion.from_euler(rotation),smoothstep(.3,1.0,blend))
+	if bed_rest.bed != null: target.y += sin(weight*PI)*BED_CLEARANCE   # over the frame, not through it
 	var basis := Basis(turn)
 	# Transform about each authored part's centre, preserving the right-hand/boot reflection.
 	var anchor := center
@@ -276,6 +278,8 @@ func _part(node: Node3D, center: Vector3, target: Vector3, rotation: Vector3, mi
 	if node==agent._body: reflection=Basis.from_scale(Vector3(agent.proportions.body_width,1,1))
 	if node==agent._head: reflection=Basis.from_scale(Vector3(agent.proportions.head_width,1,1))
 	node.transform = Transform3D(basis*reflection,anchor.lerp(target,weight)-basis*anchor)
+
+const BED_CLEARANCE := .6
 
 ## A lying head rests on its lowest cell, so a back bun or a deep knot lifts it
 ## slightly instead of sinking into the bed or floor (doc 256). Each dwarf's
@@ -338,6 +342,10 @@ func _build_eyelids() -> void:
 		lid.material_override=material
 		lid.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_eyes(false)
+
+## A waking blink. A sleeper keeps its eyes shut.
+func blink(closed: bool) -> void:
+	if not agent.is_sleeping(): _eyes(closed)
 
 func _eyes(closed: bool) -> void:
 	if is_instance_valid(_eyelids): _eyelids.visible = closed

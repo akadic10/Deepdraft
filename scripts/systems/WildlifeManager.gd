@@ -135,6 +135,7 @@ func initial_cells(seed_value: int) -> Array[Vector3i]:
 	return result
 
 func initialize_population() -> void:
+	var before := [initialized, deer_initialized, wolf_initialized, duck_initialized]
 	if not initialized:
 		for cell in initial_cells(WorldGenerator.world_seed):
 			var id := "rabbit:%d:%d:%d" % [WorldGenerator.world_seed, cell.x, cell.z]
@@ -157,7 +158,9 @@ func initialize_population() -> void:
 				var duck := add_duck("duck:%d:%d:%d" % [WorldGenerator.world_seed,cell.x,cell.z],cell,WorldGenerator.world_seed+cell.x*3251+cell.z*421,group.id)
 				duck.home = group.home
 		duck_initialized = true
-	print("Wildlife: %d rabbits, %d deer, %d wolves, %d ducks." % [animals_of_species("rabbit").size(),animals_of_species("deer").size(),animals_of_species("wolf").size(),animals_of_species("duck").size()])
+	# Said when a kind arrives, not every frame while the ducks wait for the water.
+	if before != [initialized, deer_initialized, wolf_initialized, duck_initialized]:
+		print("Wildlife: %d rabbits, %d deer, %d wolves, %d ducks." % [animals_of_species("rabbit").size(),animals_of_species("deer").size(),animals_of_species("wolf").size(),animals_of_species("duck").size()])
 
 func initial_wolf_cells(seed_value: int) -> Array[Vector3i]:
 	var random := RandomNumberGenerator.new()
@@ -587,10 +590,10 @@ func restore_state(state: Dictionary) -> void:
 		remove_child(animal)
 		animal.queue_free()
 	animals.clear()
-	initialized = bool(state.get("initialized", false))
+	initialized = bool(state.initialized)
 	deer_initialized = bool(state.deer_initialized)
 	wolf_initialized = bool(state.wolf_initialized)
-	duck_initialized = bool(state.get("duck_initialized",false))
+	duck_initialized = bool(state.duck_initialized)
 	var seen := {}
 	for raw: Dictionary in state.get("rabbits", []):
 		var id := String(raw.get("id", ""))

@@ -24,6 +24,7 @@ var solo_recreation_memory_hours := 0.0
 var recreation_retry_hours := 0.0
 var grill_memory_hours := 0.0            # a fish grilled at the campfire alone (doc 290)
 var grill_together_memory_hours := 0.0   # ... with company at the same fire
+var quiet_hour_hours := 0.0              # a catch landed, renewed by the next (doc 42)
 var room_words := {"slept": "", "ate": "", "played": ""}   # activity -> the room's word, lower case
 var room_hours := {"slept": 0.0, "ate": 0.0, "played": 0.0}
 var room_tastes := {"slept": "", "ate": "", "played": ""}   # activity -> the taste its thought names
@@ -37,6 +38,7 @@ func tick(hours: float) -> void:
 	recreation_retry_hours = maxf(0.0,recreation_retry_hours-hours)
 	grill_memory_hours = maxf(0.0,grill_memory_hours-hours)
 	grill_together_memory_hours = maxf(0.0,grill_together_memory_hours-hours)
+	quiet_hour_hours = maxf(0.0,quiet_hour_hours-hours)
 	dining_memory_hours = maxf(0.0,dining_memory_hours-hours)
 	bedroom_memory_hours = maxf(0.0,bedroom_memory_hours-hours)
 	for kind: String in thermal_memory: thermal_memory[kind] = maxf(0.0,float(thermal_memory[kind])-hours)
@@ -62,7 +64,7 @@ func finish_sleep(appeal := {}) -> void:
 	record_room("slept", appeal)
 
 func value() -> float:
-	return clampf(float(config.baseline)+(float(config.personal_bedroom.bonus) if bedroom_memory_hours>0 else 0.0)+_recreation_bonus()+_grill_bonus()-_thermal_penalty()-_dining_penalty()-(food.mood_penalty() if food != null else 0.0)
+	return clampf(float(config.baseline)+(float(config.personal_bedroom.bonus) if bedroom_memory_hours>0 else 0.0)+_recreation_bonus()+_grill_bonus()+(float(config.quiet_hour.bonus) if quiet_hour_hours>0 else 0.0)-_thermal_penalty()-_dining_penalty()-(food.mood_penalty() if food != null else 0.0)
 		-(health.mood_penalty() if health != null else 0.0)+_room_bonus(),0.0,1.0)
 
 ## After a sleep, a meal or a game: the room's appeal (RoomManager.appeal_at), or {} outside
@@ -109,6 +111,10 @@ func record_grill(together: bool) -> void:
 	if together: grill_together_memory_hours = float(config.grilled.duration_hours)
 	else: grill_memory_hours = float(config.grilled.duration_hours)
 
+## A Ranger's catch: the first work that lifts a dwarf's mood.
+func record_quiet_hour() -> void:
+	quiet_hour_hours = float(config.quiet_hour.duration_hours)
+
 func _grill_bonus() -> float:
 	return maxf(float(config.grilled.together_bonus) if grill_together_memory_hours>0 else 0.0,
 		float(config.grilled.bonus) if grill_memory_hours>0 else 0.0)
@@ -133,6 +139,10 @@ func thoughts() -> Array[Dictionary]:
 		rows.append(_thought("recreation_together","Played a board game with a friend",float(config.recreation.bonus),recreation_memory_hours,float(config.recreation.duration_hours)))
 	elif solo_recreation_memory_hours>0:
 		rows.append(_thought("recreation_alone","Played a board game on my own",float(config.recreation.solo_bonus),solo_recreation_memory_hours,float(config.recreation.duration_hours)))
+	if quiet_hour_hours>0:
+		var quiet := _thought("quiet_hour","A quiet hour by the water",float(config.quiet_hour.bonus),quiet_hour_hours,float(config.quiet_hour.duration_hours))
+		quiet.steady = true   # each catch renews it; the journal speaks only as it begins
+		rows.append(quiet)
 	if grill_together_memory_hours>0:
 		rows.append(_thought("grilled_together","Grilled fish with company",float(config.grilled.together_bonus),grill_together_memory_hours,float(config.grilled.duration_hours)))
 	elif grill_memory_hours>0:
@@ -210,6 +220,7 @@ func serialize() -> Dictionary:
 	data.recreation_retry_hours = recreation_retry_hours
 	if grill_memory_hours>0: data.grill_memory_hours = grill_memory_hours
 	if grill_together_memory_hours>0: data.grill_together_memory_hours = grill_together_memory_hours
+	if quiet_hour_hours>0: data.quiet_hour_hours = quiet_hour_hours
 	for kind: String in thermal_hours:
 		data[kind+"_sleep_hours"] = thermal_hours[kind]
 		data[kind+"_memory_hours"] = thermal_memory[kind]
@@ -225,6 +236,7 @@ func restore(data: Dictionary) -> void:
 	recreation_retry_hours = clampf(float(data.recreation_retry_hours),0.0,float(TaskManager.get_config_section("recreation").cooldown_hours))
 	grill_memory_hours = clampf(float(data.get("grill_memory_hours",0.0)),0.0,float(config.grilled.duration_hours))
 	grill_together_memory_hours = clampf(float(data.get("grill_together_memory_hours",0.0)),0.0,float(config.grilled.duration_hours))
+	quiet_hour_hours = clampf(float(data.get("quiet_hour_hours",0.0)),0.0,float(config.quiet_hour.duration_hours))
 	dining_outcome = String(data.dining_outcome)
 	dining_memory_hours = clampf(float(data.dining_memory_hours),0.0,float(config.dining.duration_hours))
 	personal_sleep_hours = clampf(float(data.personal_sleep_hours),0.0,DwarfAgent.SLEEP_HOURS)

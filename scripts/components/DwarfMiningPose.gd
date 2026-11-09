@@ -3,6 +3,8 @@ extends "res://scripts/components/DwarfWorkToolPose.gd"
 ## Long-haft pick for the existing five-up/one-down mining reach envelope.
 const PICK_POINT := Vector3(0,1.375,.9375)
 const CONTACT_PHASE := .92
+const READY_PHASE := .2   # a swing's loop opens on the last strike; the first opens here instead
+const STRIKE_ARC := Vector3(-.5,0,.75)   # the fists travel out and forward, around the big head
 var pickaxe: Node3D:
 	get: return tool
 
@@ -26,7 +28,7 @@ func apply(phase: float, contact: Vector3) -> void:
 	phase = clampf(phase,0,1)
 	var low := clampf((1.4-contact.y)/2.6,0,1)
 	var high := clampf((contact.y-1.4)/2.75,0,1)
-	var stance := Vector3(0,-low*.20,minf(contact.z-1.4,0))
+	var stance := Vector3(0,-low*.20,minf(contact.z-STANCE_REACH,0))
 	var strike := _orientation(lerpf(lerpf(55,125,low),-25,high),40)
 	var strike_grip := contact-strike*PICK_POINT
 	var ready := _orientation(15,10)
@@ -38,7 +40,7 @@ func apply(phase: float, contact: Vector3) -> void:
 	var effort: float
 	if phase < .2:
 		var t := smoothstep(0,.2,phase)
-		grip = strike_grip.lerp(ready_grip,t)
+		grip = strike_grip.lerp(ready_grip,t)+STRIKE_ARC*sin(t*PI)
 		rotation = strike.slerp(ready,t)
 		effort = 1.0-t
 	elif phase < .55:
@@ -48,7 +50,7 @@ func apply(phase: float, contact: Vector3) -> void:
 		effort = -t
 	elif phase < CONTACT_PHASE:
 		var t := pow((phase-.55)/(CONTACT_PHASE-.55),2)
-		grip = raised_grip.lerp(strike_grip,t)
+		grip = raised_grip.lerp(strike_grip,t)+STRIKE_ARC*sin(t*PI)
 		rotation = raised.slerp(strike,t)
 		effort = lerpf(-1,1,t)
 	else:

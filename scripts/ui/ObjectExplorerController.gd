@@ -133,8 +133,9 @@ func pick_at_screen(screen_pos: Vector2, include_terrain: bool = false) -> Dicti
 		return {}
 	var start := camera.project_ray_origin(screen_pos)
 	var direction := camera.project_ray_normal(screen_pos).normalized()
+	# A cave not yet found is rock to a click, so nothing in it can be picked (Hard Rule 11).
 	var terrain: Dictionary = _terrain.terrain_hit(start,direction,_slice_y,RAY_MAX) \
-		if include_terrain and is_instance_valid(_terrain) else Picking.terrain_hit(start,direction,_slice_y,RAY_MAX)
+		if include_terrain and is_instance_valid(_terrain) else Picking.terrain_hit(start,direction,_slice_y,RAY_MAX,Picking.concealed_block)
 	var underground := get_tree().get_first_node_in_group("underground_view")
 	if underground!=null and underground.is_inspecting():
 		terrain = Picking.terrain_hit(start,direction,_slice_y,RAY_MAX,Callable(),underground.is_terrain_face_visible)

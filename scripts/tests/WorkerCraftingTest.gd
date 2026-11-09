@@ -49,6 +49,21 @@ func _setup_crafting_fixture() -> void:
 	root.size = Vector2i(1280,720)
 	await _frames(4)
 
+## Makes the fixture's worker a Carpenter with an installed carpenter's bench at `cell`, for the
+## Carpenter's page (log furniture: tables, benches, beds, doors, fences, gates, the game table).
+func _carpenter_bench_at(cell: Vector3i, yaw := 0) -> void:
+	_career_bench_at("base:profession:carpenter", "base:furniture:carpenter_bench", cell, yaw)
+
+## Makes the fixture's worker a Stonemason with an installed mason's bench at `cell`, for the
+## Stonemason's page (the stone stool and the hearth).
+func _mason_bench_at(cell: Vector3i, yaw := 0) -> void:
+	_career_bench_at("base:profession:stonemason", "base:furniture:mason_bench", cell, yaw)
+
+func _career_bench_at(profession: String, key: String, cell: Vector3i, yaw: int) -> void:
+	worker.profession = profession
+	tasks.work_policy_changed()
+	furniture._install(key, furniture.get_defs()[key], cell, yaw, "base:material:pine")
+
 func _run() -> void:
 	create_timer(100).timeout.connect(func(): push_error("Worker crafting timed out"); quit(1))
 	await _setup_crafting_fixture()

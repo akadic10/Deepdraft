@@ -24,8 +24,10 @@ TARN = "#85d9f2"
 
 
 def font(size, bold=False):
-    fonts = Path("C:/Windows/Fonts")
-    return ImageFont.truetype(str(fonts / ("segoeuib.ttf" if bold else "segoeui.ttf")), size)
+    # The game's bundled UI face (Nunito, variable weight; its default is 200), on any OS.
+    face = ImageFont.truetype(str(ROOT / "assets/ui/fonts/nunito_variable.ttf"), size)
+    face.set_variation_by_axes([700 if bold else 400])
+    return face
 
 
 def rgb(color):

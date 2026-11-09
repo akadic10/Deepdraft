@@ -1,7 +1,7 @@
 extends "res://scripts/tests/HaulingAnimationTest.gd"
 
-## Real GUI drags, zone actions, z-order and layout-file reload. Run with APPDATA
-## pointing inside tmp/zone_window_review so player preferences are never written.
+## Real GUI drags, zone actions, z-order and layout-file reload. Run with user://
+## inside tmp/zone_window_review so player preferences are never written.
 var mining
 var storage
 
@@ -14,7 +14,7 @@ class InputProbe extends Node:
 
 func _run() -> void:
 	if not "/zone_window_review/" in OS.get_user_data_dir().replace("\\", "/"):
-		push_error("ZoneWindowTest requires isolated APPDATA under tmp/zone_window_review.")
+		push_error("ZoneWindowTest requires an isolated user:// profile under tmp/zone_window_review.")
 		quit(1)
 		return
 	create_timer(30).timeout.connect(func(): push_error("Zone window test timed out"); quit(1))

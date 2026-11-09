@@ -653,7 +653,7 @@ func _plan_at_screen(screen: Vector2) -> Dictionary:
 	if camera == null: return {}
 	var origin := camera.project_ray_origin(screen)
 	var direction := camera.project_ray_normal(screen)
-	var terrain := Picking.terrain_hit(origin,direction,_slice_y())
+	var terrain := Picking.terrain_hit(origin,direction,_slice_y(),600.0,Picking.concealed_block)
 	return pick_explorer_object(origin,origin+direction*minf(600.0,float(terrain.get("distance",600.0))+.002))
 
 func pick_explorer_object(start: Vector3,end: Vector3) -> Dictionary:

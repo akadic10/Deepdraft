@@ -48,8 +48,7 @@ const COLOR_ZONE := Color(0.25, 0.65, 0.90, 0.22)      # confirmed zone fill
 const COLOR_ZONE_EDGE := Color(0.35, 0.80, 1.00, 0.60)
 const EDGE_INSET := 0.08             # perimeter strip width (blocks)
 
-signal zone_created(zone_id: int)
-signal zone_removed(zone_id: int)
+var _lost_floors := {}   # zone cells whose floor block was removed this frame
 
 ## Fired on every activate/deactivate — DockUI refreshes button pressed-state
 ## from it (the SliceController slice_active_changed pattern), so Esc-cancel
@@ -87,6 +86,10 @@ var _storage_panel: MarginContainer
 func _ready() -> void:
 	add_to_group("stockpile_controller")
 	add_to_group(SaveManager.OWNER_GROUP)
+	# A container's window closes with its furniture, rather than edit a store no longer there
+	# (its edits were lost).
+	StockpileManager.container_removed.connect(func(container: StorageComponent) -> void:
+		if _storage_panel != null and _storage_panel.storage == container: _close_zone_window())
 	_dock_ui = get_node_or_null(dock_ui_path)
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
 	if _dock_ui != null:
@@ -98,6 +101,7 @@ func _ready() -> void:
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
 	SkyController.hearthblock_lighting_changed.connect(_on_hearthblock_lighting_changed)
+	WorldData.block_changed.connect(_on_block_changed)
 	_overlay_material = StandardMaterial3D.new()
 	_overlay_material.vertex_color_use_as_albedo = true
 	_overlay_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -106,7 +110,36 @@ func _ready() -> void:
 	_build_window()
 
 
+## A zone's cells are its floor blocks: a mined one leaves the zone, its goods falling (doc 31).
+func _on_block_changed(cell: Vector3i, old_id: int, new_id: int) -> void:
+	if _cell_to_zone.has(cell) and BlockRegistry.is_solid(old_id) and not BlockRegistry.is_solid(new_id):
+		_lost_floors[cell] = true
+
+
+func _drop_lost_floors() -> void:
+	var by_zone := {}
+	for cell: Vector3i in _lost_floors:
+		if _cell_to_zone.has(cell) and not BlockRegistry.is_solid(WorldData.get_block(cell.x, cell.y, cell.z)):
+			var lost: Array[Vector3i] = by_zone.get(_cell_to_zone[cell], [] as Array[Vector3i])
+			lost.append(cell)
+			by_zone[_cell_to_zone[cell]] = lost
+	_lost_floors.clear()
+	for zone_id: int in by_zone:
+		var lost: Array[Vector3i] = by_zone[zone_id]
+		var zone: StockpileZoneComponent = _zones[zone_id]
+		if lost.size() == zone.cell_count():
+			remove_zone(zone_id)
+		else:
+			StockpileManager.remove_zone_cells(zone, lost)
+			for cell: Vector3i in lost: _cell_to_zone.erase(cell)
+			var colors := _zone_colors()
+			_draw_cells(_zone_overlays[zone_id], zone.tile_cells, colors[0], colors[1], zone.floor_y)
+		var drops: ItemDropManager = ItemDropManager.find(get_tree())
+		if drops != null: drops.settle_cells(lost)
+
+
 func _process(_delta: float) -> void:
+	if not _lost_floors.is_empty(): _drop_lost_floors()
 	if not _active:
 		return
 	_update_hover()
@@ -394,7 +427,6 @@ func _create_zone(cells: Array[Vector3i], requested_id: int = -1) -> StockpileZo
 	StockpileManager.register_zone(zone)   # work source goes live (doc 18 Phase 3)
 	print("StockpileDesignationController: zone %d created (%d cells at Y %d)." % [
 		zone_id, cells.size(), zone.floor_y])
-	zone_created.emit(zone_id)
 	_next_zone_id = maxi(_next_zone_id, zone_id + 1)
 	return zone
 
@@ -412,7 +444,6 @@ func remove_zone(zone_id: int) -> void:
 		_zone_overlays.erase(zone_id)
 	if _window_zone_id == zone_id:
 		_close_zone_window()
-	zone_removed.emit(zone_id)
 
 
 ## Cross-system lookup (doc 19 Phase 2): the furniture tool must not place

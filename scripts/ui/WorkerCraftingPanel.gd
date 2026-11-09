@@ -661,10 +661,10 @@ func _refresh_orders(totals: Dictionary) -> void:
 		row.up.disabled = ids.front() == order.id or order.worker_id >= 0
 		row.down.disabled = ids.back() == order.id or order.worker_id >= 0
 	_empty.visible = ids.is_empty()
-	# Fish drying on the racks, which no order shows once hung (doc 292).
+	# Fish drying on the racks, copper melting in the smelter: no order shows them once left there.
 	var hanging: Array[String] = controller.section_hanging(section_id)
 	_hanging.visible = _queue_scroll.visible and not hanging.is_empty()
-	_hanging_heading.text = "DRYING · %d batch%s" % [hanging.size(), "" if hanging.size() == 1 else "es"]
+	_hanging_heading.text = "%s · %d batch%s" % [controller.section_batch_heading(section_id), hanging.size(), "" if hanging.size() == 1 else "es"]
 	_hanging_words.text = "\n".join(hanging)
 	_queue_heading.text = "QUEUE · %d order%s" % [ids.size(), "" if ids.size() == 1 else "s"]
 	_orders_tab.text = "Orders (%d)" % ids.size()

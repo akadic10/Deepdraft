@@ -11,7 +11,7 @@ extends Node3D
 ## ends stamping (doc 23, "The tool bar"). It only works with DEV tools on.
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const RAY_MAX := 600.0
-const FLAG_ITEM := "base:resources:special:settlement_flag"
+const FLAG_ITEM := "base:items:special:settlement_flag"
 ## How far around the clicked floor bushes look for room, in floors.
 const BUSH_REACH := 6
 const NO_FLOOR := Vector3i(-1, -1, -1)
@@ -126,15 +126,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 ## The floor a pile would stand on under a screen point: the block the pointer shows under
-## the slice, or the floor below the air beside the face it shows. NO_FLOOR for none.
+## the slice, or the floor below the air beside the face it shows. NO_FLOOR for none: on the
+## cut plane over rock, where rock stands above the cut, and over a cave not yet found, which
+## is rock to the pointer (Hard Rule 11).
 func floor_under(screen_pos: Vector2) -> Vector3i:
 	var camera := get_viewport().get_camera_3d()
 	var drops := ItemDropManager.find(get_tree())
 	if camera == null or drops == null: return NO_FLOOR
 	var cut := int(_slice.get_slice_y()) if _slice != null and bool(_slice.is_active()) else SliceController.MAX_SLICE_Y
-	var hit := Picking.terrain_hit(camera.project_ray_origin(screen_pos), camera.project_ray_normal(screen_pos).normalized(), cut, RAY_MAX)
+	var hit := Picking.terrain_hit(camera.project_ray_origin(screen_pos), camera.project_ray_normal(screen_pos).normalized(),
+		cut, RAY_MAX, Picking.concealed_block)
 	if hit.is_empty(): return NO_FLOOR
 	var air := Vector3i(int(hit.x), int(hit.y), int(hit.z)) + Vector3i(hit.normal)
+	if Picking.concealed_block(air) != BlockRegistry.AIR_ID: return NO_FLOOR
 	return Vector3i(air.x, drops.floor_rest_y(air) - 1, air.z)
 
 

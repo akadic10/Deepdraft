@@ -165,8 +165,9 @@ func _begin_drag(screen_pos: Vector2) -> void:
 	var camera := get_viewport().get_camera_3d()
 	var provider := _designation_owner()
 	if camera != null and provider != null:
+		# A cave not yet found is rock to the box's corner too (Hard Rule 11).
 		var hit := Picking.terrain_hit(camera.project_ray_origin(screen_pos),
-			camera.project_ray_normal(screen_pos), int(provider.call("get_slice_y")))
+			camera.project_ray_normal(screen_pos), int(provider.call("get_slice_y")), 600.0, Picking.concealed_block)
 		if not hit.is_empty():
 			_anchor = Vector3i(hit.x, hit.y, hit.z)
 

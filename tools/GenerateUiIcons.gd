@@ -5,12 +5,13 @@ extends SceneTree
 ## The tile is not baked in: UITheme draws it in the icon's family colour.
 ## It also renders the Sky Dial's layers (doc 23): each staged sky piece from the front,
 ## tilted down, in the framing data/ui/sky_dial.json gives, with the same light.
-##   py -3 tools/voxel_assets/build.py icons
-##   py -3 tools/voxel_assets/build.py sky
+##   python3 tools/voxel_assets/build.py icons
+##   python3 tools/voxel_assets/build.py sky
 ##   godot --path . --script res://tools/GenerateUiIcons.gd [-- --only=orders,colony | --sky]
 ## Reads the staged `icons` and `sky` manifests and writes res://assets/ui/icons/<name>.png
 ## and res://assets/ui/sky_dial/<piece>.png only. --only renders those icons and no sky;
-## --sky renders the sky alone.
+## --sky renders the sky alone. --app renders the project icon alone (res://icon.png): the
+## colony dwarf on a deep-earth tile with stepped strata and a warm lantern glow.
 const STAGED := "res://tmp/voxel_migration_20261018/staged/"
 const OUT := "res://assets/ui/icons/"
 const SKY_OUT := "res://assets/ui/sky_dial/"
@@ -20,6 +21,10 @@ const RENDER := PIXELS * 2                # rendered larger, then downsampled
 const OUTLINE := Color("1e1712")
 const OUTLINE_SHARE := 0.023              # outline width as a share of the icon
 const SKY_OUTLINE_SHARE := 0.008          # the dial's edge, about as thick on screen as an icon's
+const APP_OUT := "res://icon.png"
+const APP_PIXELS := 256
+const APP_MODEL := "assets/ui/icon_models/colony.glb"
+const APP_YAW := 32.0
 
 
 func _init() -> void:
@@ -33,13 +38,17 @@ func _run() -> void:
 	root.get_node("SaveManager").set_process(false)
 	root.get_node("WorldClock").set_paused(true)
 	var only := PackedStringArray()
+	if "--app" in OS.get_cmdline_user_args():
+		var ok := await _render_app_icon()
+		quit(0 if ok else 1)
+		return
 	var sky_only := "--sky" in OS.get_cmdline_user_args()
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--only="): only = arg.trim_prefix("--only=").split(",")
 	if not sky_only:
 		var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(STAGED + "icons.json"))
 		if not manifest is Dictionary:
-			push_error("No staged icons manifest; run py -3 tools/voxel_assets/build.py icons first")
+			push_error("No staged icons manifest; run python3 tools/voxel_assets/build.py icons first")
 			quit(1)
 			return
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
@@ -115,7 +124,7 @@ func _render_sky() -> int:
 	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(STAGED + "sky.json"))
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(SKY_DATA))
 	if not manifest is Dictionary or not data is Dictionary:
-		push_error("No staged sky manifest; run py -3 tools/voxel_assets/build.py sky first")
+		push_error("No staged sky manifest; run python3 tools/voxel_assets/build.py sky first")
 		return -1
 	var framing: Dictionary = data.picture
 	var area := Rect2(float(framing.rect[0]), float(framing.rect[1]), float(framing.rect[2]), float(framing.rect[3]))
@@ -176,6 +185,55 @@ func _render_sky_piece(path: String, area: Rect2, scale: float, pitch: float, au
 	camera.position = Vector3(middle.x, 0, 0) + up * middle.y + back * 300.0
 	camera.size = area.size.x
 	return await _capture(viewport)
+
+
+## The project icon: the colony dwarf, outlined like the UI icons, on a rounded tile of
+## dark earth. Rendered at twice the size and downsampled, as the icons are.
+func _render_app_icon() -> bool:
+	var size := APP_PIXELS * 2
+	var model := _outlined(await _render(STAGED + APP_MODEL, APP_YAW))
+	var inner := roundi(size * 0.74)
+	model.resize(inner, inner, Image.INTERPOLATE_LANCZOS)
+	var tile := _app_tile(size)
+	tile.blend_rect(model, Rect2i(0, 0, inner, inner), Vector2i((size - inner) / 2, roundi(size * 0.13)))
+	tile.resize(APP_PIXELS, APP_PIXELS, Image.INTERPOLATE_LANCZOS)
+	if tile.save_png(ProjectSettings.globalize_path(APP_OUT)) != OK:
+		push_error("Could not save the project icon")
+		return false
+	print("APP_ICON_OK")
+	return true
+
+
+## A rounded tile: stepped earth strata darkening with depth, a warm glow behind the
+## dwarf and the icons' dark outline round the edge. Steps are whole cells so it reads
+## as blocks.
+func _app_tile(size: int) -> Image:
+	var tile := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	tile.fill(Color(0, 0, 0, 0))
+	var strata: Array[Color] = [Color("7a5639"), Color("5e4130"), Color("6a5a4c"), Color("4a3a30"), Color("3a3532"), Color("221c18")]
+	var cell := size / 32
+	var radius := size * 0.17
+	var border := maxi(2, roundi(size * 0.03))
+	var glow := Vector2(size * 0.5, size * 0.52)
+	for y in range(size):
+		for x in range(size):
+			var corner := Vector2(clampf(x + 0.5, radius, size - radius), clampf(y + 0.5, radius, size - radius))
+			var reach := Vector2(x + 0.5, y + 0.5).distance_to(corner)
+			if reach > radius: continue
+			var cx := x / cell
+			# Each stratum's lower edge wanders by whole cells, from the column's hash.
+			var row := float(y / cell) + float(((cx * 7349 + 13) % 5) - 2) * 0.35
+			var band := clampi(int(row / 32.0 * strata.size()), 0, strata.size() - 1)
+			var colour: Color = strata[band]
+			var light := 1.0 - clampf(Vector2(x, y).distance_to(glow) / (size * 0.55), 0.0, 1.0)
+			# A few ore cells in the deeper strata, as in the mine icon.
+			var fleck := (cx * 92821 + (y / cell) * 68917) % 37
+			if band >= 3 and fleck == 0: colour = Color("d9893b")
+			elif band >= 3 and fleck == 1: colour = Color("e9c247")
+			colour = colour.lerp(Color("e8a24a"), light * light * 0.5)
+			if reach > radius - border: colour = OUTLINE
+			tile.set_pixel(x, y, colour)
+	return tile
 
 
 ## A transparent viewport holding a scene with the icons' studio: an ambient fill and a

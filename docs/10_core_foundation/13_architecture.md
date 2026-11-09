@@ -90,7 +90,8 @@ hammering. Saved orders always include their construction kind and total blocks,
 optionally the crate location and actual staged materials; a log order also names its wood
 and each cell's direction (doc 275). A placed blueprint's order (doc 276) also saves its name
 and, when it needs more than one good, each good's total blocks; a block of another material
-than the order's names its own kind and wood. The save catalogs give each construction kind's
+than the order's names its own kind and wood. A Replace plan (doc 285) also saves `replace`;
+the blocks it swaps are ordinary terrain edits. The save catalogs give each construction kind's
 good, so staged goods are checked against their own blocks. Runtime claims/routes rebuild. ColonyInventory includes staged
 stock as reserved, never available to other consumers. No new autoload or
 global class is introduced. `WorldData` holds solidity; the existing mining,
@@ -185,8 +186,8 @@ loading" and "The UI scale") owns the player's video settings: display mode, ren
 frame rate, VSync, shadows and anti-aliasing, and the UI scale the Interface tab shows.
 - It reads `data/video/video_settings.json`: the settings in the page's order, with their
   titles, lines, choices, defaults, presets and Settings section. Each Video default is
-  what the game does unaided; the UI scale starts at Auto, the scale Windows sets for the
-  screen.
+  what the game does unaided; the UI scale starts at Auto, from the screen's pixel
+  density (doc 23).
 - It is the one owner of the window's content scale, which is the UI scale. It applies the
   scale while the window draws at its own size, and keeps it at 1 for a tool that
   stretches the window. Scripts change it with `set_value("ui_scale", …)`.
@@ -300,8 +301,7 @@ Placement and removal rules: `42_farming_brewing.md` §Surface details.
 Mature shrub relocation keeps
 generated identities stable while saving current origin/yaw and packed state.
 Optional item `instance_id` links loose/carried/stored whole shrubs to those
-records; each stockpile stack saves its own (the furniture containers that saved
-identities beside aggregate counts were deleted on 2026-10-22, doc 258).
+records; each stored stack saves its own, in a zone or in storage furniture (doc 294).
 SurfaceDetailRegistry supplies plant definitions to shared furniture placement;
 `ShrubPlantingComponent` specializes its fetch/carry source with persistent work.
 Successful planting returns the record to SurfaceDetailManager. Exact Move claims
@@ -404,7 +404,6 @@ func set_speed(new_speed: float) -> void
 func set_paused(value: bool) -> void
 func game_hours_per_real_second() -> float   # honours speed; 0 while paused
 func advance_hours(amount: float) -> void    # DEV/testing
-func growth_rate_multiplier() -> float       # spring 1.2 / summer 1.0 / autumn 0.8 / winter 0.0
 func day_of_year() -> int                    # 0–83
 func daylight_hours(day_of_year: int) -> float  # solstice cosine curve (11_overview.md §5)
 func solstice_cosine(day_of_year: int) -> float # that curve's cosine; rooms' seasonal temperature uses it
@@ -577,7 +576,7 @@ func notify_dwarf_idle(dwarf_id: int) -> void
 func notify_dwarf_unavailable(dwarf_id: int) -> void                # sleeper leaves the idle pool
 func get_scheduler_stats() -> Dictionary                            # debug overlay row
 
-signal task_added / task_assigned / task_released / task_completed / task_failed / task_unreachable
+signal task_assigned / task_released / task_completed / task_failed / task_unreachable
 ```
 
 Other systems never read another script's `_private` members (doc 258 step 6;
@@ -791,7 +790,7 @@ For the game menu it also reads:
 - `request_load_save(id)` loads a slot by its `save_slots()` id, the quick save and the
   autosave too. `request_delete_save(id)` deletes any slot's save, the quick save and the
   autosave too (owner, 2026-10-26), with its backup and unfinished writes, whether or not it
-  would load. The player's own go to the Recycle Bin (`OS.move_to_trash`); test storage
+  would load. The player's own go to the Trash (`OS.move_to_trash`); test storage
   (`configure_storage_for_testing`, which also moves the named folder) deletes outright, so
   tests never fill the player's bin. A deleted quick save or autosave is written again by
   the next Save game or autosave. `open_saves_folder()` shows the named saves' folder.
@@ -809,7 +808,10 @@ For the game menu it also reads:
 Writes use a shared transactional path: its private `SaveFileStore` writes and validates a temporary
 snapshot, rotates only the selected slot's valid primary to its own backup, then promotes
 and revalidates the new primary. An invalid primary cannot displace a valid backup, and
-autosave never touches manual-save files. Loading either slot falls back to its matching
+autosave never touches manual-save files. Each step renames the staged file over its target in
+one move, never deleting the target first: that is the filesystem's safe replace, so a power
+cut leaves the old file or the new one, never neither (2026-11-09; deleting first could leave
+both the primary and the backup empty; `SaveWorkerChecks`, "safe replace"). Loading either slot falls back to its matching
 backup when necessary and repairs its primary before replacing the world.
 
 A save captures private owner data and registry catalogs on the main thread, then one
@@ -850,9 +852,14 @@ Structural rules:
   rejected; there are no migrations.
 
 This is structural validation plus a few cross-section identity checks (water stones,
-furniture Moves, bed owners), not exhaustive gameplay validation. Errors name the
-failing field. If both generations of a slot are invalid, the load reports failure
-without pausing, resetting or reloading the running colony.
+furniture Moves, bed owners), not exhaustive gameplay validation. The stone and Move
+checks count goods wherever a save holds them: loose, in stockpile zones, in storage
+furniture and carried (`SaveSnapshotValidator.saved_goods`). A new place that holds
+goods belongs there too, or every save fails while a Move's packed piece sits in it (the
+finished goods pallet did until 2026-11-09). Errors name the failing field. A failed save or load shows
+its reason in a toast and also logs it as a warning (`SaveManager._notify`). If both
+generations of a slot are invalid, the load reports failure without pausing, resetting
+or reloading the running colony.
 
 Scene nodes, and the autoloads TaskManager, WaterManager, EventLog and ColonyJournal, opt in through the
 `save_state_owner` group and expose:
@@ -878,15 +885,15 @@ first; equal priorities have no dependency on each other):
 | 15 | `construction` | `ConstructionController` | Unfinished areas, staged materials, partial work, next ID |
 | 16 | `surface_details` | `SurfaceDetailManager` | Removed/changed details, planted shrubs and flowers, growth and regrowth |
 | 20 | `settlement_flag` | `FlagPlacementController` | Founded state, last anchor, the settlement's name and founding day (the physical flag belongs to furniture/items) |
-| 30 | `stockpiles` | `StockpileDesignationController` | Zones, filters and stored stacks |
+| 30 | `stockpiles` | `StockpileDesignationController` | Zones, filters, priorities and stored stacks |
 | 35 | `fishing` | `FishingSystem` | Fishing zones (their spots and Keep) and each water's fish stock with the day it was counted (doc 289). Zones are player orders and catches change the stock, so neither comes from the seed; spots and their leases are rebuilt on restore |
-| 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces, uninstall flags, Move records (no storage: the container code and its save fields were deleted in doc 258) |
+| 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces (a storage piece with its stacks, filter and priority, doc 294), uninstall flags, Move records |
 | 41 | `ladders` | `LadderSystem` | Routes, build/removal progress, next ID |
 | 50 | `items` | `ItemDropManager` | Loose items: key, position, yaw, count, permission, identity, material |
 | 60 | `dwarves` | `DwarfDirector` | Roster identity, appearance, professions, position, needs, mood, carried cargo, equipment |
 | 65 | `wildlife` | `WildlifeManager` | Populations, needs, motion, herd/flock identity and RNG state |
 | 66 | `world_events` | `WorldEventDirector` | Arrival schedules, active groups, hunting pressure, history |
-| 70 | `worker_crafting` | `CraftingManager` | Orders, quantities/mode, pause state, partial work, allowed ingredients |
+| 70 | `worker_crafting` | `CraftingManager` | Orders, quantities/mode, pause state, partial work, allowed ingredients, and each batch drying on a workshop (`batches`: its rack, fish and the hour it was hung) |
 | 70 | `camera` | `Camera` | Target position, zoom, pitch, orbit |
 | 80 | `slice` | `SliceController` | Active/seeded state, current plane, last manual plane |
 | 90 | `events` | `EventLog` | The event log's entries (at most 200), pinned warnings, the next id and the last seen |
@@ -1091,6 +1098,12 @@ save fields. Ducks also use the same bus/pool for quacks and landing splashes.
 Their quack interval is a saved behavior timer driven by the duck's RNG;
 playback variation uses cosmetic RNG and voices are not serialized. Work impacts
 retain their existing real-time tail and attenuation defaults.
+
+Fishing's cues (doc 289) share the bus and pool: `fish_plop` as the float lands, `fish_bite`
+at the bite and `fish_land` as the fish comes out, each played as `DwarfFishingPose` crosses its
+frame (`DwarfWorkExecution`, `WorkFeedback.play_fishing`). Each is its own kind with its own
+cooldown and voice cap, so one never silences the next. They reuse the recorded duck splashes;
+the cast itself has no sound yet (`00_todo.md`, Food).
 
 `WaterSound`, a child of `WaterRenderer` (doc 108), owns exactly two spatial loop
 players on the Work bus: a waterfall rush and a softer river bed. `WaterAudioBank`
@@ -1297,6 +1310,8 @@ JsonData.inspect(path, expected_type := TYPE_DICTIONARY) -> Dictionary  # {data,
 
 ### Measuring performance
 
+- Figures in the docs from before 2026-11-02 were measured on Windows with Direct3D 12
+  ("Platform", below). Measure again under Vulkan before comparing.
 - Measure startup and load in a release export (Export With Debug unchecked, console
   wrapper included so prints show). Editor/debug runs are about 2.3× slower in the
   script-heavy generation and meshing loops; do not tune against them.
@@ -1314,9 +1329,22 @@ JsonData.inspect(path, expected_type := TYPE_DICTIONARY) -> Dictionary  # {data,
   restore reports through `SliceTiming`.
 - Fix a stall where it happens. Offscreen simulation keeps its normal rate, and a fog of
   war (an idea in `00_todo.md`) must never hide simulation stalls (docs 189, 192).
-- Colony work at the 5/20/30-dwarf cases (doc 41):
-  `tools/performance/RunScaling.ps1 -Population 30 -Label <new label> -Seconds 20`
-  runs `ColonyScalingBenchmark.gd` (docs 187, 188), a seed-1234 elevated yard of
+- **Launching a benchmark.** The Windows launchers (`Run*.ps1`) were deleted in the move to
+  Linux (2026-11-02); git history keeps them. Start the benchmark's `.gd` directly, in an
+  isolated profile (`isolated_env()` in `tools/run_job_reliability.py`), with its options
+  after `--`:
+
+  ```
+  godot --path <project> --audio-driver Dummy --disable-vsync \
+    --script res://tools/performance/<Benchmark>.gd -- \
+    --output=res://tmp/<folder>/<new label> --seconds=<s> [options below]
+  ```
+
+  For a save, copy it to `user://saves/quicksave.json` in that profile and pass `--saved`,
+  then check that the original's hash is unchanged, as the old launchers did.
+- Colony work at the 5/20/30-dwarf cases (doc 41): `ColonyScalingBenchmark.gd` with
+  `--population=30 --seconds=20 --no-ablations --weather=base:weather:clear` (docs 187,
+  188) runs a seed-1234 elevated yard of
   mining, construction plans, loose stone and logs and wood stockpiles, with an
   isolated profile, saving off and a new label per run. It extends
   `CameraBenchmark.gd`, so the camera-pan rules below apply too. Run the cases one
@@ -1327,10 +1355,10 @@ JsonData.inspect(path, expected_type := TYPE_DICTIONARY) -> Dictionary  # {data,
   - Temporary scheduler counters eat into the 1 ms wake budget, so frame times from
     an instrumented run never back a before/after claim.
   - The yard is artificial, not a mature colony.
-- Camera pans (docs 178, 190, 191, 195): `tools/performance/Run.ps1 -Label <new label>
-  -Seconds 30 [-SavePath <save>]` runs `CameraBenchmark.gd` on a copy of the save in an
-  isolated profile; the original is only read. It uses real-time delta, not
-  `--fixed-fps`, and runs uncapped unless `-Paced` (doc 21). `-NoMarkers` gives the
+- Camera pans (docs 178, 190, 191, 195): `CameraBenchmark.gd` with `--seconds=30` (and
+  `--saved` for a save) runs on a copy of the save in an isolated profile; the original is
+  only read. It uses real-time delta, not `--fixed-fps`, and runs uncapped unless
+  `--paced` (then leave out `--disable-vsync`; doc 21). `--no-markers` gives the
   production-source control.
   - Match the save, seed, camera path, resolution, speed, weather and warmup, and
     compare at least three repeats before trusting a small change.
@@ -1341,28 +1369,51 @@ JsonData.inspect(path, expected_type := TYPE_DICTIONARY) -> Dictionary  # {data,
   - Process markers include same-priority children (the renderer's bracket holds water
     and lighting), so never add nested timings. A 720p run that barely changes frame
     time means the scene is CPU-bound.
-  - The freeze phases (skipped with `-NoAblations`) only locate costs: stopping water
+  - The freeze phases (skipped with `--no-ablations`) only locate costs: stopping water
     simulation also stops most water-mesh work, and the phases advance one world, so
     their differences are not additive savings.
   - Take no screenshots while sampling; each readback stalled 0.2–0.4 s (doc 194).
   - Time loading, saves, first shader use, season changes, slicing and edits as events
     of their own, not inside steady-pan averages.
-- Saves (doc 192): `tools/performance/RunAutosave.ps1 -Population <5|20|30> -SavePath
-  <save> -Label <new label> -Seconds 24 -NoAblations` runs `AutosaveBenchmark.gd`, which
-  turns saving back on (the other benchmarks keep it off) and requests two saves during
-  the pan: a fresh file at 6 s, then a backup rotation at 14 s. It records each request's
-  main-thread time and the worker's completion beside the frame rows, and fails if the
-  source save changed. The five-minute timer itself is covered by
+- Saves (doc 192): `AutosaveBenchmark.gd` with `--population=<5|20|30> --seconds=24
+  --no-ablations --saved` (it needs a copied save) turns saving back on (the other
+  benchmarks keep it off) and requests two saves during the pan: a fresh file at 6 s, then
+  a backup rotation at 14 s. It records each request's main-thread time and the worker's
+  completion beside the frame rows. The source save must stay unchanged; the old launcher
+  failed the run otherwise. The five-minute timer itself is covered by
   `SaveManagerRoundTripTest`.
 
 ---
 
 ## Builds and tests
 
-### Windows builds
+### Platform
 
-Builds are made only when the owner asks (CLAUDE.md), from the editor: Project → Export →
-Windows Desktop (doc 171).
+Deepdraft is developed on CachyOS Linux (KDE Plasma on Wayland) since 2026-11-02, with Claude
+Code in a terminal; there is no Windows machine. CLAUDE.md has the Godot 4.7.2 path.
+- **Renderer.** Vulkan. `project.godot` sets Direct3D 12 for Windows only
+  (`rendering_device/driver.windows`), so Windows builds keep it.
+- **Paths are case-sensitive.** Every `res://` path, and every file name built from an id,
+  must match the file on disk exactly; a wrong case fails to load on Linux only.
+- **The player's profile** (`user://`) is `~/.local/share/godot/app_userdata/Deepdraft/`. The
+  Steam build is self-contained, so its editor settings sit in `editor_data/` beside the
+  binary, but `user://` still uses that path. Tools isolate it with the `XDG_*` variables
+  ("Running tests", below), never `APPDATA`, which Linux Godot ignores.
+- **The cursor.** The camera only hides the OS cursor, never warps or captures it, which
+  Wayland refuses (doc 21). `OS.shell_open` (the saves and blueprints folders) and
+  `OS.move_to_trash` (deleting a save) work on KDE.
+- **Tools** are Python or GDScript, never PowerShell. The six art capture launchers still in
+  PowerShell wait in `00_todo.md` ("Tools and builds").
+
+### Builds
+
+Builds are made only when the owner asks (CLAUDE.md), from the editor: Project → Export.
+The one preset is still Windows Desktop (doc 171); its saved path is still the Windows
+`D:/Deepdraft.exe`, so pick `build/windows/manual_export/` in the export dialog. A Linux
+preset needs the 4.7.2 export templates and waits until the owner asks for a build
+(`00_todo.md`, "Tools and builds"). Windows builds still export from Linux, with no Windows
+here to test them (Proton or Wine can run one); `tools/windows_playtest/README.txt` stays for
+Windows players.
 - `export_presets.cfg` adds every runtime JSON file (`data/**/*.json`) and leaves out docs,
   tools, tests, studies, scratch and build output.
 - It writes `build/windows/manual_export/Deepdraft.exe`, which git ignores. Never export
@@ -1377,26 +1428,30 @@ Windows Desktop (doc 171).
 
 ### Running tests
 
-`tools/run_job_reliability.ps1` runs the headless tests in `scripts/tests`; CLAUDE.md says
+`python3 tools/run_job_reliability.py` runs the headless tests in `scripts/tests`; CLAUDE.md says
 when to run which (doc 257). `tools/test_suite.json` holds the selection and what each test
 needs:
-- `gate` (run with no arguments) and `areas`, wildcard groups for `-Area`. `-Tests` takes
-  names or wildcards, `-All` runs every `*Test.gd`, and `-List` prints the selection.
+- `gate` (run with no arguments) and `areas`, wildcard groups for `--area`. `--tests`
+  takes names or wildcards, `--all` runs every `*Test.gd`, and `--list` prints the selection.
 - `timeouts` (default 180 s; the longest start first), `phases` (argument sets run in turn
   in one profile, such as `StartupSaveTest`'s `--prepare` then a plain resume),
   `shared_output` (tests that write the same `tmp/` folder never overlap) and
   `profile_roots` (a test whose guard checks its profile path gets its profile there).
 - `expected_errors`: error lines a test triggers on purpose, left out of the check.
 
-Each test gets a throwaway `APPDATA`/`LOCALAPPDATA`, eight at a time (`-Parallel`).
+Each test gets its own throwaway `XDG_DATA_HOME`, `XDG_CONFIG_HOME` and `XDG_CACHE_HOME`,
+set for its process only, so its `user://` lies inside its profile; eight run at a time
+(`--parallel`). Godot comes from `$GODOT`, then the Steam install, then `godot` on `PATH`.
+`python3 tools/import_assets.py` runs Godot's headless import in an isolated profile the
+same way: run it after adding a WAV, PNG or GLB, before tests load the new asset.
 - **Pass rule.** Exit 0 within the timeout, the pass marker (`_OK`, `_PASS` or
   `<Test>: PASS`) and no `SCRIPT ERROR` on stderr. A runtime error in an awaited coroutine
   ends only that coroutine, so a test can still print its marker and exit 0 with its later
   checks skipped. Plain `ERROR` and `WARNING` lines (audio drivers, `push_warning`
   backtraces) don't fail a test.
 - **Output.** One summary line, and each failure with its distinct script errors first
-  (`-ShowPasses` lists passes too). Full success deletes the run's logs, profiles and new
-  `tmp/` folders unless `-KeepOutput` is given; a failure keeps them and prints the log
+  (`--show-passes` lists passes too). Full success deletes the run's logs, profiles and new
+  `tmp/` folders unless `--keep-output` is given; a failure keeps them and prints the log
   folder. The run warns when it changed a tracked file's `git status`.
 - **Headless.** Screenshots run only with `--capture`. A few tests (sky, audio, the
   loading screen) skip their render or audio checks without a display, so the runner does

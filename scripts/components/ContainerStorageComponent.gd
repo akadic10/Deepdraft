@@ -3,15 +3,20 @@ extends StorageComponent
 ## A furniture container (doc 294): storage slots behind one installed piece, the tool rack
 ## first. Its furniture JSON `storage` block says:
 ## - `accepts`: the material tags of the goods it may hold (the tool rack: `tool`). Its filter
-##   lists only those goods; the player may narrow it to one;
-## - `capacity`: its slots (the rack's three hooks), `slot_word` for the window ("hooks");
+##   lists only those goods; the player may narrow it to one. With `edible_only`, only those
+##   dwarves eat (the food shelf, doc 299);
+## - `capacity`: its slots (the rack's three hooks), `slot_word` for the window ("hooks"),
+##   `slot_good` for what a slot takes ("One crate of food");
 ## - `per_slot`: the goods a slot holds (the crate's quarters 3, step 4); 1 when absent. A slot
-##   shows one of its goods, and its window counts goods ("Used 9 / 12");
+##   shows one of its goods, and its window counts goods ("Used 9 / 12"). With 1 it counts its
+##   places, and its goods too when crates of produce hold more ("Used 4 / 6 places · 96 goods");
 ## - `priority`: where it starts in line (4, ahead of ground storage at 5);
 ## - `anchors`: where each slot's goods show, in footprint-local blocks from the back-left floor
-##   corner. With `hang`, goods hang upright from their tops (tools on hooks); else they sit.
+##   corner, filled in that order. With `hang`, goods hang upright from their tops (tools on
+##   hooks); else they sit, every other slot turned a quarter unless `straight`.
 ## FurnitureStorage creates it on install and registers it with StockpileManager beside the
 ## zones. Goods leave it reserved on the floor in front of it, at the stand nearest the slot.
+## Food on it spoils as on the floor beside it (doc 42 "Spoilage"; FoodSpoilage walks every store).
 
 const HANG := Basis(Vector3.UP, PI) * Basis(Vector3.RIGHT, -PI * .5)   # old z up, old y out
 
@@ -19,8 +24,12 @@ var capacity := 1
 var per_slot := 1                      # goods to a slot
 var accepts_tags: Array[String] = []
 var slot_word := "places"
+var slot_good := "One good"            # what a slot takes, for its window's capacity bar
+var edible_only := false               # only goods dwarves eat, of its tags
 var anchors: Array = []
 var hang := false
+var straight := false                  # its goods all stand the same way
+var piece_name := "storage"            # the piece, for Events ("on the food shelf")
 var cells: Array[Vector3i] = []        # the piece's footprint floor cells
 var footprint := Vector2(1, 1)         # its width and depth in blocks, for the anchors
 var display_parent: Node3D = null      # the piece's node: shown goods are its children
@@ -36,8 +45,12 @@ func setup_container(def: Dictionary, footprint_cells: Array[Vector3i], node: No
 	per_slot = maxi(1, int(storage.get("per_slot", 1)))
 	accepts_tags.assign(storage.get("accepts", []))
 	slot_word = String(storage.get("slot_word", "places"))
+	slot_good = String(storage.get("slot_good", "One good"))
+	edible_only = bool(storage.get("edible_only", false))
 	anchors = storage.get("anchors", [])
 	hang = bool(storage.get("hang", false))
+	straight = bool(storage.get("straight", false))
+	piece_name = String(def.get("display_name", piece_name)).to_lower()
 	priority = clampi(int(storage.get("priority", LAST_PRIORITY - 1)), FIRST_PRIORITY, LAST_PRIORITY)
 	footprint = Vector2(float(def.footprint.width), float(def.footprint.depth))
 	_slots.slots = range(capacity)
@@ -52,6 +65,7 @@ func setup_container(def: Dictionary, footprint_cells: Array[Vector3i], node: No
 ## Whether `key` is of this container's kind, whatever the player's filter.
 func holds_kind(key: String) -> bool:
 	if not is_instance_valid(drop_manager): return false
+	if edible_only and drop_manager.food_definition(key).is_empty(): return false
 	var tags: Array = drop_manager.get_item_def(key).get("material_tags", [])
 	return accepts_tags.any(func(tag: String): return tag in tags)
 
@@ -100,18 +114,22 @@ func _shown_quantity(slot: Variant) -> int:
 	return mini(int(held.count), _item_capacity(String(held.item)))
 
 
+## What storage_capacity counts: its goods, or with one to a slot its filled places.
 func storage_used() -> int:
-	return stored_count()
+	return stored_count() if per_slot > 1 else _slots.entries.size()
 
 
-## "2 / 3 hooks", "9 / 12 goods": what it holds of what it can (its window, its details).
+## "2 / 3 hooks", "9 / 12 goods", "4 / 6 places · 96 goods": what it holds of what it can (its
+## window, its details).
 func usage_text() -> String:
-	return "%d / %d %s" % [stored_count(), storage_capacity(), slot_word if per_slot == 1 else "goods"]
+	if per_slot > 1: return "%d / %d goods" % [stored_count(), storage_capacity()]
+	var places := "%d / %d %s" % [storage_used(), storage_capacity(), slot_word]
+	return places if stored_count() == storage_used() else "%s · %d goods" % [places, stored_count()]
 
 
 ## The window's capacity bar: "One good to each of its hooks.", "3 goods to each of its quarters."
 func capacity_hint() -> String:
-	return "%s to each of its %s." % ["One good" if per_slot == 1 else "%d goods" % per_slot, slot_word]
+	return "%s to each of its %s." % [slot_good if per_slot == 1 else "%d goods" % per_slot, slot_word]
 
 
 # ── The storage contract ──────────────────────────────────────────────────────
@@ -124,9 +142,10 @@ func _has_room_for_key(key: String) -> bool:
 	return not suspended and _slots.has_room(key)
 
 
-func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "", _spoil: float = -1.0) -> Variant:
+func _reserve_deposit(item_key: String, near: Vector3i, dwarf_id: int, amount: int = 1, material_id: String = "", spoil: float = -1.0,
+		outside: bool = true) -> Variant:
 	if suspended or not accepts_key(item_key): return null
-	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id)
+	return _slots.reserve(item_key, amount, dwarf_id, near, false, material_id, spoil, spoil_band, outside)
 
 
 func _release_deposit(token: Variant) -> void:
@@ -203,13 +222,31 @@ func delivery_stand_cells(_target: Vector3i, _dwarf_id: int = -1) -> Array[Vecto
 	return stand_cells()
 
 
-## The hands reach for the anchor nearest the stand: a hook, or a place in the crate.
+## The stands beside the places this dwarf's load goes to, so the hands reach straight in: across a
+## row of places, since a shelf's ends are its frame. Hauling tries these first (doc 299).
+func stands_beside_load(dwarf_id: int) -> Array[Vector3i]:
+	var beside: Array[Vector3i] = []
+	var stands := stand_cells()
+	var across: Array[Vector3i] = [Vector3i.LEFT, Vector3i.RIGHT, Vector3i.FORWARD, Vector3i.BACK]
+	if cells.all(func(cell: Vector3i): return cell.z == cells[0].z): across = [Vector3i.FORWARD, Vector3i.BACK]
+	elif cells.all(func(cell: Vector3i): return cell.x == cells[0].x): across = [Vector3i.LEFT, Vector3i.RIGHT]
+	for token: Dictionary in _pulls.get(dwarf_id, {}).get("cargo", {}).values():
+		for part: Dictionary in cargo_deposits(token):
+			for offset: Vector3i in across:
+				var stand := slot_cell(part.slot) + offset
+				if stand in stands and not stand in beside: beside.append(stand)
+	return beside
+
+
+## The hands reach for the anchor nearest the stand: a hook, or a place in the crate. A place
+## with goods on their way comes first, so on a shelf they reach for the right deck.
 func delivery_contact(stand: Vector3i) -> Vector3:
 	var best := Vector3(stand) + Vector3(.5, 1, .5)
 	var nearest := INF
 	for slot in range(mini(capacity, anchors.size())):
 		var at := anchor_position(slot)
 		var distance := Vector2(at.x, at.z).distance_to(Vector2(stand.x + .5, stand.z + .5))
+		if not _slots.reservations.has(slot): distance += 1000.0
 		if distance < nearest:
 			nearest = distance
 			best = at
@@ -242,6 +279,7 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	var node: Node3D = drop_manager.spawn_reserved(key, stand, dwarf_id, String(stack.get("instance_id", "")), String(stack.get("material_id", "")))
 	if node == null: return null
 	drop_manager.set_quantity(node, amount)
+	ItemDropManager.set_spoil(node, float(stack.get("spoil", 0.0)))
 	stack.count = int(stack.count) - amount
 	if int(stack.count) <= 0:
 		_slots.entries.erase(slot)
@@ -253,7 +291,35 @@ func withdraw_stack(slot: Variant, amount: int, dwarf_id: int) -> Node3D:
 	return node
 
 
+## Rot (doc 42 "Spoilage"): a rotten slot loses the units nobody has claimed; units claimed for a
+## meal or a haul stay until used. Returns how many went.
+func discard_unclaimed(slot: Variant) -> int:
+	var stack: Dictionary = _slots.entries.get(slot, {})
+	var claimed := outgoing_count(slot)
+	var gone := int(stack.get("count", 0)) - claimed
+	if gone <= 0: return 0
+	var key := String(stack.item)
+	if claimed > 0:
+		stack.count = claimed
+		if _shown.has(slot): drop_manager.set_quantity(_shown[slot], _shown_quantity(slot))
+	else:
+		_slots.entries.erase(slot)
+		_clear_shown(slot)
+	if changed_callback.is_valid(): changed_callback.call(key, -gone)
+	changed.emit()
+	return gone
+
+
+func place_words() -> String:
+	return "on the %s" % piece_name
+
+
 # ── What it shows ─────────────────────────────────────────────────────────────
+
+func shown_goods(slot: Variant, _stored: Dictionary) -> Variant:
+	return _shown.get(slot)
+
+
 
 ## A delivered good joins its slot on the piece: hung from its top on a hook, or set on its place.
 func _place_visual(node: Node3D, token: Variant) -> void:
@@ -262,8 +328,10 @@ func _place_visual(node: Node3D, token: Variant) -> void:
 	if not is_instance_valid(display_parent) or slot < 0 or slot >= anchors.size():
 		node.queue_free()
 		return
+	var spoil := float(_slots.entries.get(slot, {}).get("spoil", 0.0))
 	if _shown.has(slot) and is_instance_valid(_shown[slot]):
 		drop_manager.set_quantity(_shown[slot], _shown_quantity(slot))
+		ItemDropManager.set_spoil(_shown[slot], spoil)
 		node.queue_free()
 		return
 	if node.get_parent() != null: node.get_parent().remove_child(node)
@@ -275,8 +343,9 @@ func _place_visual(node: Node3D, token: Variant) -> void:
 		var box := _bounds(node)
 		node.transform = Transform3D(HANG, at + Vector3((box.position.x + box.end.x) * .5, -box.end.z, -box.position.y))
 	else:
-		node.transform = Transform3D(Basis(Vector3.UP, float(slot % 2) * PI * .5), at)
+		node.transform = Transform3D(Basis.IDENTITY if straight else Basis(Vector3.UP, float(slot % 2) * PI * .5), at)
 	node.visible = true
+	ItemDropManager.set_spoil(node, spoil)
 	node.set_meta("stored", true)
 	node.set_meta("disallowed", false)
 	_shown[slot] = node
@@ -316,7 +385,7 @@ func dump_contents() -> int:
 		if at.x < 0: at = slot_cell_fallback()
 		if is_instance_valid(drop_manager):
 			drop_manager.restore_loose_item(String(stack.item), Vector3(at) + Vector3(.5, 1, .5), 0.0, int(stack.count),
-				String(stack.get("instance_id", "")), false, String(stack.get("material_id", "")))
+				String(stack.get("instance_id", "")), false, String(stack.get("material_id", "")), float(stack.get("spoil", 0.0)))
 		if changed_callback.is_valid(): changed_callback.call(String(stack.item), -int(stack.count))
 		dumped += int(stack.count)
 		_clear_shown(slot)
@@ -332,6 +401,7 @@ func serialize() -> Dictionary:
 		var stack: Dictionary = _slots.entries[slot]
 		var entry := {"slot": int(slot), "item": String(stack.item), "count": int(stack.count), "material_id": String(stack.get("material_id", ""))}
 		if stack.has("instance_id"): entry["instance_id"] = String(stack.instance_id)
+		if float(stack.get("spoil", 0.0)) > 0.0: entry["spoil"] = float(stack.spoil)
 		stacks.append(entry)
 	return {"stacks": stacks, "storage_filter": serialize_filter(), "priority": priority}
 
@@ -345,13 +415,15 @@ func restore(saved: Dictionary) -> void:
 		var key := String(entry.get("item", ""))
 		var count := maxi(0, int(entry.get("count", 0)))
 		var material_id := String(entry.get("material_id", ""))
+		var spoil := clampf(float(entry.get("spoil", 0.0)), 0.0, 1.0)
 		if key.is_empty() or count <= 0: continue
 		var kept := 0
 		if slot >= 0 and slot < capacity and not _slots.entries.has(slot): kept = mini(count, _slot_capacity(key))
 		if kept > 0:
 			_slots.entries[slot] = {"item": key, "count": kept, "material_id": material_id, "disallowed": false}
 			if entry.has("instance_id"): _slots.entries[slot]["instance_id"] = String(entry.instance_id)
+			if spoil > 0.0: _slots.entries[slot]["spoil"] = spoil
 			_place_visual(drop_manager.create_item_visual(key, _shown_quantity(slot), String(entry.get("instance_id", "")), material_id), {"slot": slot})
 		if count > kept and is_instance_valid(drop_manager):
 			var at := nearest_stand_target(slot_cell_fallback())
-			drop_manager.restore_loose_item(key, Vector3(at if at.x >= 0 else slot_cell_fallback()) + Vector3(.5, 1, .5), 0.0, count - kept, "", false, material_id)
+			drop_manager.restore_loose_item(key, Vector3(at if at.x >= 0 else slot_cell_fallback()) + Vector3(.5, 1, .5), 0.0, count - kept, "", false, material_id, spoil)

@@ -10,8 +10,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - each filled quarter shows one of its goods on the ground inside it, over the rim;
 ## - its window counts goods ("Used 8 / 12 goods") and lists only its kind;
 ## - a craft takes a stone out of it, one good at a time;
-## - narrowed to one good its title names it, and the goods it stops keeping move out one at a
-##   time, a quarter of stones included;
+## - narrowed to one good its title names it, and the goods it stops keeping move out in a
+##   full load, a quarter of stones included;
 ## - a save keeps a quarter of three, its goods and its priority;
 ## - marked for uninstall it takes nothing more, and uninstalled its goods drop beside it.
 const CRATE := "base:furniture:raw_materials_crate"
@@ -62,9 +62,18 @@ func _run() -> void:
 	var crate = piece.storage
 	_expect(crate != null and stockpiles.is_registered(crate) and crate.priority == 4 and crate.storage_capacity() == 12 and crate.per_slot == 3
 		and crate.slot_word == "quarters" and piece.cells.size() == 4, "it is a store of twelve goods in four quarters, at priority 4")
-	# The stones on the ground move up to it, both into one quarter.
-	_expect(await _until_true(func(): return int(crate.contents().get(STONE, 0)) == 2 and not zone.contents().has(STONE)),
-		"the stones move up from ground storage to the crate")
+	# The stones on the ground move up to it, both into one quarter, in one trip: a move between
+	# stores fills the carrying limit like any haul (owner, 2026-11-02: "dwarves carry only one
+	# unit per load to it when they can carry four stones").
+	_expect(zone.stored_entries().size() == 2, "the two stones lie in two ground cells")
+	var most_carried := 0
+	for i in range(1600):
+		most_carried = maxi(most_carried, worker._carried_entries.size())
+		if int(crate.contents().get(STONE, 0)) == 2 and not zone.contents().has(STONE): break
+		stockpiles._process(.25)
+		await _tick()
+	_expect(int(crate.contents().get(STONE, 0)) == 2 and not zone.contents().has(STONE), "the stones move up from ground storage to the crate")
+	_expect(most_carried == 2, "both stored stones come up in one trip: at most %d carried" % most_carried)
 	_expect(crate.stored_entries().size() == 1 and int(crate.stored_entries().values()[0].count) == 2, "two stones share a quarter")
 	# New goods top up their own quarter before taking another.
 	for key: String in [STONE, IRON, COAL, SOIL]: drops.restore_loose_item(key, DROP, 0, 1)
@@ -78,19 +87,31 @@ func _run() -> void:
 		and not HOE in allowed and not crate.accepts_key(PINE), "it keeps only raw goods: %s" % [allowed])
 	_expect(crate.stored_entries().keys().all(func(slot): return _shows(crate, slot)), "each filled quarter shows one of its goods on the ground inside it, over the rim")
 	await _windows(piece, crate)
-	# A craft takes one stone out of its quarter.
+	# A craft takes one stone out of its quarter. The stone hoe is a Worker's (Rudimentary), so the
+	# Carpenter steps back down to make it.
+	worker.profession = "base:profession:worker"
+	tasks.work_policy_changed()
 	furniture._install(BENCH, furniture.get_defs()[BENCH], Vector3i(44, 20, 36), 0, "base:material:pine")
 	drops.spawn_drop(PINE, 1, Vector3i(42, 21, 38))
 	id = crafting.queue_order(HOE_RECIPE, 1)
 	_expect(await _completed(id) and _quarter(crate, STONE) == 2 and crate.stored_entries().size() == 4 and _shows(crate, _slot_of(crate, STONE)),
 		"a stone hoe takes one stone out of the crate's quarter: %s" % [crate.contents()])
-	# Narrowed to iron ore, its title names it, and the rest moves out one good at a time.
+	# Narrowed to iron ore, its title names it, and the rest moves out in full loads: the quarter's
+	# two stones, the coal and the soil in one trip (owner, 2026-11-02).
 	crate.set_all_accepted(false)
 	crate.set_item_accepted(IRON, true)
 	var title: String = furniture.get_furniture_storage().title(piece)
-	_expect(crate.chosen_key() == IRON and title.ends_with("Raw Materials Crate · Iron Ore"), "narrowed to iron ore, its title names it: %s" % title)
-	_expect(await _until_true(func(): return crate.contents() == {IRON: 3} and int(zone.contents().get(STONE, 0)) == 2 and zone.contents().has(COAL) and zone.contents().has(SOIL)),
+	_expect(crate.chosen_key() == IRON and title == "Pine raw materials crate · Iron Ore", "narrowed to iron ore, its title names its wood once and the ore: %s" % title)
+	_expect(_quarter(crate, STONE) == 2, "the stones' quarter holds two")
+	var most_out := 0
+	for i in range(1600):
+		most_out = maxi(most_out, worker._carried_entries.size())
+		if crate.contents() == {IRON: 3} and int(zone.contents().get(STONE, 0)) == 2 and zone.contents().has(COAL) and zone.contents().has(SOIL): break
+		stockpiles._process(.25)
+		await _tick()
+	_expect(crate.contents() == {IRON: 3} and int(zone.contents().get(STONE, 0)) == 2 and zone.contents().has(COAL) and zone.contents().has(SOIL),
 		"the stones, the coal and the soil move out to the ground: crate %s, ground %s" % [crate.contents(), zone.contents()])
+	_expect(most_out == 4, "the quarter's two stones, the coal and the soil leave in one trip: at most %d carried" % most_out)
 	# A save keeps its quarter of three, its goods and its priority.
 	var held: Dictionary = crate.contents()
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
@@ -107,6 +128,11 @@ func _run() -> void:
 	_expect(restored != null and restored.contents() == held and _quarter(restored, IRON) == 3 and restored.priority == 2 and restored.chosen_key() == IRON
 		and restored._shown.size() == 1 and _shows(restored, _slot_of(restored, IRON)) and int(stockpiles.get_inventory_totals().get(IRON, 0)) == 3,
 		"a save keeps its quarter of three iron ores, its goods and its priority: %s" % [restored.contents() if restored != null else {}])
+	# Its storage window, open while it goes, closes with it rather than edit a crate no longer there
+	# (the project review, 2026-11-09: the edits were lost).
+	furniture.perform_explorer_action("installed:%d" % piece.installed_id, "storage")
+	await _frames(4)
+	_expect(manager.is_open(storage_ui.ZONE_WINDOW_ID) and storage_ui._storage_panel.storage == restored, "its storage window opens on it")
 	# Marked for uninstall it takes nothing more; uninstalled, its ores drop beside it.
 	furniture.perform_explorer_action("installed:%d" % piece.installed_id, "uninstall")
 	_expect(piece.flagged_uninstall and restored.suspended and not restored.has_any_room() and not restored.has_room_for(IRON),
@@ -116,6 +142,7 @@ func _run() -> void:
 	var loose: Array = drops._loose.keys().filter(func(node): return drops.item_key_of(node) == IRON)
 	_expect(not stockpiles.is_registered(restored) and loose.size() == 3 and loose.all(func(node): return drops.item_floor_cell(node) in stands) and _count(CRATE_ITEM) == 1,
 		"its three iron ores and the packed crate are left beside it: %d ores" % loose.size())
+	_expect(not manager.is_open(storage_ui.ZONE_WINDOW_ID), "its storage window closed with it")
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("CRATE_OK: Carpenters make it, raw goods only, three to a quarter at priority 4 ahead of the ground, moving up, its windows, a craft, one chosen good, saves and uninstall")
 	quit(0 if failures.is_empty() else 1)
