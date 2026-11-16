@@ -79,14 +79,14 @@ func _tool_test() -> void:
 		"a hollow rectangle offers its height, a door gap, Filled and the 32 × 32 guide")
 	var key := InputEventKey.new()
 	key.pressed = true
-	key.keycode = KEY_TAB
+	key.keycode = KEY_TAB; key.physical_keycode = KEY_TAB
 	construction._unhandled_input(key)
 	_expect(construction._shape=="circle","Tab steps to the next shape")
-	key.keycode = KEY_F
+	key.keycode = KEY_F; key.physical_keycode = KEY_F
 	construction._unhandled_input(key)
 	_expect(construction._filled and not construction.tool_bar_state().settings.any(func(setting: Dictionary) -> bool: return setting.id=="door"),
 		"F fills the shape, which keeps no door gap")
-	key.keycode = KEY_TAB
+	key.keycode = KEY_TAB; key.physical_keycode = KEY_TAB
 	key.shift_pressed = true
 	construction._unhandled_input(key)
 	_expect(construction._shape=="rectangle","Shift + Tab steps back")

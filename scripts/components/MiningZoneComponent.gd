@@ -188,6 +188,11 @@ func release_worker(dwarf_id: int) -> void:
 	unreserve(dwarf_id)
 
 
+## The dwarves that hold a block here, for TaskManager's self-check (WorkSourceAdapter).
+func claimed_workers() -> Array:
+	return reserved.values()
+
+
 ## The dwarf's reserved block, or Vector3i(-1,-1,-1).
 func reserved_block_of(dwarf_id: int) -> Vector3i:
 	return _reserved_by_dwarf.get(dwarf_id, Vector3i(-1, -1, -1))

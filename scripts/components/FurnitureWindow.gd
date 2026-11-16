@@ -10,6 +10,7 @@ extends RefCounted
 # Text sizes come from the type scale (doc 23, "Type").
 const MEDIUM := UITheme.TYPE_MEDIUM
 const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const GridFence = preload("res://scripts/components/GridFence.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 
@@ -261,10 +262,15 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	var actions: Array = []
 	var details := String(piece.def.get("description", ""))
 	var in_use := {}   # the compact panel's line for an installed piece in use (doc 260)
+	# The Status row's tone, settled with its words: amber while the piece waits, red with no
+	# place to work from, none once it is installed and nothing is asked of it.
+	var tone := ""
 	if piece is FurnitureGhostComponent:
 		rows.append(["Status", "Awaiting delivery" if piece.has_lease() else "Awaiting packed item"])
+		tone = "waiting"
 		if WallMount.is_wall(piece.def) and WallMount.work_stands(piece.def,piece.origin_cell,piece.yaw_steps).is_empty():
 			rows[0][1] = "Waiting for reachable work position"
+			tone = "blocked"
 		rows.append(["Required item", _explorer_item_name(piece.item_key)])
 		actions = [
 			{"id": "cancel", "text": "Cancel placement", "variant": "danger"},
@@ -272,6 +278,7 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		]
 	else:
 		rows.append(["Status", "Marked for uninstall" if piece.flagged_uninstall else "Installed"])
+		if piece.flagged_uninstall: tone = "waiting"
 		# A door's or a gate's hit points (doc 62): what invaders will have to break. Nothing
 		# damages one yet, so it is always intact.
 		if piece.def.has("hit_points"):
@@ -322,6 +329,7 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			actions.push_front(preload("res://scripts/components/BedAssignment.gd").action(controller,piece))
 		if not moves.for_source(piece.installed_id).is_empty():
 			rows[0][1] = "Waiting to move"
+			tone = "waiting"
 			actions[actions.size()-2] = {"id":"cancel_move","text":"Cancel move"}
 		elif not piece.flagged_uninstall:
 			actions.push_front({"id":"move","text":"Move"})
@@ -330,12 +338,15 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		rows.append(["Footprint", String(piece.def.placement_label)])
 	if piece is FurnitureGhostComponent and moves.records.has(piece.required_instance_id):
 		rows[0][1] = "Awaiting uninstall" if int(moves.records[piece.required_instance_id].installed_id)>=0 else "Worker delivery / placement" if piece.has_lease() else "Awaiting packed furniture"
+		tone = "waiting"
 		return _compact({"title":CraftMaterials.product_name(piece.display_name(),piece.required_material_id),"rows":rows,
 			"details":"A dwarf will pack this exact piece and install it here. Cancelling before packing leaves it installed; cancelling afterward keeps the packed item.",
-			"actions":[{"id":"cancel","text":"Cancel move"}]}, piece, in_use)
+			"actions":[{"id":"cancel","text":"Cancel move"}]}, piece, in_use, tone)
 	if WallMount.is_wall(piece.def):
 		rows.append(["Mount level",str(WallMount.mount_cell(piece.def,piece.origin_cell).y)])
-		if piece is InstalledFurnitureComponent and piece.flagged_uninstall and piece.wall_work_stands().is_empty(): rows[0][1] = "Waiting for reachable work position"
+		if piece is InstalledFurnitureComponent and piece.flagged_uninstall and piece.wall_work_stands().is_empty():
+			rows[0][1] = "Waiting for reachable work position"
+			tone = "blocked"
 	# A workshop is a piece some recipe is made at (doc 44, "Its window's action"): the workbench's
 	# Craft items, the drying rack's Dry fish (doc 289).
 	var made_here: Array = ContentRegistry.recipes_at(piece.furniture_key) if piece is InstalledFurnitureComponent and not piece.flagged_uninstall else []
@@ -360,14 +371,15 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			rows.append([String(hanging.get("label", "Drying")), String(hanging.row)])
 			in_use = {"text": String(hanging.text), "tone": String(hanging.tone)}
 	if piece.def.has("water_stone"):
-		return _compact({"title":piece.display_name(),"rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}, piece, in_use)
+		return _compact({"title":piece.display_name(),"rows":rows,"details":"A dwarf will pack, carry and place this stone. Water resumes at its destination after placement.","actions":[{"id":"cancel","text":"Cancel placement"}]}, piece, in_use, tone)
 	if piece.def.has("tree_species"): # A seed's plan (doc 284).
 		var seed_name := String(piece.def.display_name).to_lower()
 		rows[0] = ["Status", "Worker delivery / planting" if piece.has_lease() else "Awaiting " + seed_name]
+		tone = "waiting"
 		rows.append(["Planting", "%d%%" % floori(piece.progress / float(piece.def.planting_seconds) * 100)])
 		return _compact({"title": piece.display_name(), "rows": rows,
 			"details": "Uses one %s to plant a sapling that grows to an ancient tree. Cancelling before completion keeps the %s." % [seed_name, seed_name],
-			"actions": [{"id": "cancel", "text": "Cancel planting"}]}, piece, in_use)
+			"actions": [{"id": "cancel", "text": "Cancel planting"}]}, piece, in_use, tone)
 	if bool(piece.def.get("plant", false)):
 		var cutting := bool(piece.def.get("from_cutting", false))
 		var status := "Awaiting cutting" if cutting else "Awaiting whole plant"
@@ -376,25 +388,25 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 			status = "Awaiting uprooting"
 		elif piece.has_lease(): status = "Worker delivery / planting"
 		rows[0] = ["Status", status]
+		tone = "waiting"
 		rows.append(["Planting", "%d%%" % floori(piece.progress / float(piece.def.planting_seconds) * 100)])
 		return _compact({"title":piece.display_name(), "rows":rows,
 			"details":"Uses one cutting to grow a young shrub. Cancelling before completion keeps the cutting intact." if cutting else "The existing plant keeps its seasonal state. Cancelling after uprooting leaves the whole plant available for storage or another placement.",
-			"actions":[{"id":"cancel","text":"Cancel planting"}]}, piece, in_use)
-	return _compact({"title": piece.display_name(), "rows": rows, "details": details, "actions": actions}, piece, in_use)
+			"actions":[{"id":"cancel","text":"Cancel planting"}]}, piece, in_use, tone)
+	return _compact({"title": piece.display_name(), "rows": rows, "details": details, "actions": actions}, piece, in_use, tone)
 
 
 ## The compact panel's fields (doc 260): the piece's picture, its appeal on the badge and
-## one status line. A waiting or blocked Status row wins over the in-use line.
-func _compact(data: Dictionary, piece, in_use: Dictionary) -> Dictionary:
+## one status line. A waiting or blocked Status row (`tone`, "" when it is neither) wins over
+## the in-use line.
+func _compact(data: Dictionary, piece, in_use: Dictionary, tone: String) -> Dictionary:
 	data.family = "settlement"
-	data.picture = "res://assets/ui/furniture/%s.png" % String(piece.furniture_key).get_slice(":", 2)
+	data.picture = Pictures.furniture(String(piece.furniture_key))
 	if piece.def.has("appeal"):
 		var material: String = piece.material_id
 		if piece is FurnitureGhostComponent and not piece.required_material_id.is_empty(): material = piece.required_material_id
 		data.badge = CraftMaterials.appeal_badge(piece.def, material)
-	var state := String(data.rows[0][1])
-	if state.begins_with("Waiting for reachable"): data.status = {"text": state, "tone": "blocked"}
-	elif piece is FurnitureGhostComponent or state != "Installed": data.status = {"text": state, "tone": "waiting"}
+	if not tone.is_empty(): data.status = {"text": String(data.rows[0][1]), "tone": tone}
 	elif not in_use.is_empty(): data.status = in_use
 	return data
 

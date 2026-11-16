@@ -8,7 +8,7 @@
   "furniture_key": "base:furniture:bench",
   "furniture_category": "seating",
   "display_name": "Plank bench",
-  "description": "Two boards pegged onto two plank ends, with a stretcher between them. Sawn and pegged by a Carpenter: one broad seat.",
+  "description": "Two boards nailed onto two plank ends, with a stretcher between them. Sawn and nailed by a Carpenter: one broad seat.",
   "model": "res://assets/models/furniture/bench.glb",
   "item_key": "base:item:bench",
   "placement": "floor",

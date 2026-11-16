@@ -1,5 +1,20 @@
 {
-  "__comment": "The starter blueprints (doc 273): the same format as a player's blueprint file, read by BlueprintLibrary. Only materials workers can build. A log is \"log:<wood>:<direction>\" (doc 275). Cells sit relative to the corner; R turns them when placed.",
+  "__comment": "The starter blueprints (doc 273): the same format as a player's blueprint file, read by BlueprintLibrary. Only materials workers can build. A log is \"log:<wood>:<direction>\" (doc 275). Cells sit relative to the corner; R turns them when placed. \"refusals\" says why a file in the player's folder was not read, one sentence a refusal code (BlueprintLibrary.parse gives the code and the fields).",
+  "refusals": {
+    "file_too_big": "{file}: it is too big to be a blueprint",
+    "not_a_file": "{file}: it is not a blueprint file",
+    "not_a_blueprint": "{file}: it is not a Deepdraft blueprint",
+    "other_version": "{file}: it was made for another version of the game",
+    "size_not_numbers": "{file}: its size is not three whole numbers",
+    "size_empty": "{file}: its size is empty",
+    "too_large": "{file}: it is too large: a blueprint is at most {across} × {tall} × {deep}",
+    "no_blocks": "{file}: it has no blocks",
+    "unknown_material": "{file}: it uses a material the game does not know: {material}",
+    "blocks_not_a_list": "{file}: its {material} blocks are not a list",
+    "block_not_numbers": "{file}: a {material} block is not three whole numbers",
+    "block_outside": "{file}: a block lies outside its size",
+    "blocks_share_a_cell": "{file}: two blocks share a cell"
+  },
   "starters": [
     {
       "deepdraft_blueprint": 1,

@@ -222,7 +222,7 @@ func _show() -> void:
 	grid.show_groups(groups)
 	var refused := BlueprintLibrary.refused()
 	_refused.visible = not refused.is_empty()
-	_refused.text = "Not read from the folder:\n" + "\n".join(refused)
+	_refused.text = "Not read from the folder:\n" + "\n".join(refused.map(BlueprintLibrary.refusal_words))
 	_show_card()
 
 

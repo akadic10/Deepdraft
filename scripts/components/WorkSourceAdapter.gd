@@ -38,12 +38,7 @@ static func valid_commit(source: Object, family: String) -> bool:
 	if family == "fetch" and source.has_method("can_complete_build"): return bool(source.can_complete_build())
 	return true
 
+## The dwarves a source says hold it. Each source that keeps a worker's claim answers for
+## itself (`claimed_workers()`), so a new kind of source is covered without a line here.
 static func claimed_workers(source: Object) -> Array:
-	if source is StorageComponent: return source.puller_ids()
-	if source is FurnitureGhostComponent: return source.fetching_workers()
-	if source is MiningZoneComponent: return source.reserved.values()
-	if source.get_script().resource_path.ends_with("TreeFellingComponent.gd"):
-		return [source.reserved_by] if source.reserved_by>=0 else []
-	if source.get_script().resource_path.ends_with("WorkerCraftOrder.gd"):
-		return [source.worker_id] if source.worker_id>=0 else []
-	return []
+	return source.claimed_workers() if source.has_method("claimed_workers") else []

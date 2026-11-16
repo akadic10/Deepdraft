@@ -69,9 +69,9 @@ func _run() -> void:
 	wildlife.animals.append(wolf)
 	var found: Dictionary = source_scan.scan(view.position,127,18,null,wildlife)
 	_expect(found.has("wolves"), "howl requires actual nearby wolf")
-	wolf.activity = "Sleeping"
+	wolf.activity = "sleeping"
 	_expect(not source_scan.scan(view.position,127,18,null,wildlife).has("wolves"), "sleeping wolves do not howl")
-	wolf.activity = "Idle"
+	wolf.activity = "idle"
 	# Exercise real voice allocation, source lifetime and each new audio asset.
 	ambience._process(.1)
 	ambience._habitat = wet.duplicate(true)

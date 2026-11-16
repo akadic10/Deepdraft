@@ -21,7 +21,7 @@ signal caption_pressed(id: String)
 const MARK_RISE := 8.0   # how far a mark stands above its tile
 const RING_OUT := 4.0   # how far the chosen tile's ring stands outside it
 const MARKS := {"on": ["✓", "fine"], "some": ["−", "waiting"], "missing": ["!", "waiting"], "off": ["✕", "blocked"]}
-const STATES := {"All": "fine", "Some": "waiting"}
+const STATES := {"all": ["All", "fine"], "some": ["Some", "waiting"], "none": ["None", ""]}   # a group's state: its word, its tag's tone
 const LOOKS := ["count", "mark", "dim", "selected", "tooltip", "hidden"]   # restyled in place
 # Text sizes come from the type scale (doc 23, "Type").
 const MEDIUM := UITheme.TYPE_MEDIUM
@@ -48,7 +48,7 @@ func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
-## groups: [{id, title, state ("", "All", "Some" or "None"), items: [{id, picture
+## groups: [{id, title, state ("", "all", "some" or "none"), items: [{id, picture
 ## (Texture2D), text (a word in place of a picture), count (shown when 0 or more), mark ("",
 ## "on", "some", "missing" or "off"), dim, selected, hidden, tooltip, caption,
 ## caption_button}]}]. A group with neither title nor state has no heading; a group whose
@@ -207,19 +207,20 @@ func _heading(group: Dictionary) -> Control:
 		UITheme.format_label(title, false, MEDIUM.small, UITheme.TAG_TONES.waiting[0])
 	box.add_child(title)
 	var state := String(group.get("state", ""))
-	if not state.is_empty():
+	if STATES.has(state):
 		# All and Some are tags in their tone; None is quiet text. Each toggles the group.
+		var tone := String(STATES[state][1])
 		var button := Button.new()
-		button.text = state
-		button.flat = state == "None"
+		button.text = String(STATES[state][0])
+		button.flat = tone.is_empty()
 		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		button.focus_mode = Control.FOCUS_NONE
 		var id := String(group.get("id", ""))
 		button.pressed.connect(func(): group_pressed.emit.call_deferred(id))
-		if STATES.has(state):
-			var style: StyleBox = UITheme.cell_style("tag_" + String(STATES[state]), 3)
+		if not tone.is_empty():
+			var style: StyleBox = UITheme.cell_style("tag_" + tone, 3)
 			for look: String in ["normal", "hover", "pressed", "hover_pressed"]: button.add_theme_stylebox_override(look, style)
-			for look: String in ["font_color", "font_hover_color", "font_pressed_color"]: button.add_theme_color_override(look, UITheme.tag_ink(String(STATES[state])))
+			for look: String in ["font_color", "font_hover_color", "font_pressed_color"]: button.add_theme_color_override(look, UITheme.tag_ink(tone))
 		else:
 			for look: String in ["font_color", "font_hover_color"]: button.add_theme_color_override(look, UITheme.HEARTH_MUTED)
 		button.add_theme_font_override("font", UITheme.body_font())

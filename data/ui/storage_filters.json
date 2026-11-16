@@ -6,18 +6,18 @@
     {"id": "goods", "label": "Goods"}
   ],
   "categories": [
-    {"tag": "stockpile_stone", "label": "Stone", "group": "materials", "picture": "res://assets/ui/items/base_item_rough_stone.png"},
-    {"tag": "stockpile_wood", "label": "Wood", "group": "materials", "picture": "res://assets/ui/items/base_item_oak_log.png"},
-    {"tag": "stockpile_plank", "label": "Planks", "group": "materials", "picture": "res://assets/ui/items/base_item_oak_plank.png"},
-    {"tag": "stockpile_ore", "label": "Ores", "group": "materials", "picture": "res://assets/ui/items/base_item_iron_ore.png"},
-    {"tag": "stockpile_gem", "label": "Gems", "group": "materials", "picture": "res://assets/ui/items/base_item_ruby_raw.png"},
-    {"tag": "stockpile_soil", "label": "Soil", "group": "materials", "picture": "res://assets/ui/items/base_item_soil.png"},
-    {"tag": "stockpile_metal", "label": "Metal", "group": "materials", "picture": "res://assets/ui/items/base_item_copper_bar.png"},
-    {"tag": "stockpile_food", "label": "Food", "group": "food_farming", "picture": "res://assets/ui/items/base_item_apple.png"},
-    {"tag": "stockpile_drink", "label": "Drink", "group": "food_farming", "picture": "res://assets/ui/items/base_item_ale.png"},
-    {"tag": "stockpile_seed", "label": "Seeds & cuttings", "group": "food_farming", "picture": "res://assets/ui/items/base_item_oak_acorn.png"},
+    {"tag": "stockpile_stone", "label": "Stone", "group": "materials", "picture": "res://assets/ui/items/rough_stone.png"},
+    {"tag": "stockpile_wood", "label": "Wood", "group": "materials", "picture": "res://assets/ui/items/oak_log.png"},
+    {"tag": "stockpile_plank", "label": "Planks", "group": "materials", "picture": "res://assets/ui/items/oak_plank.png"},
+    {"tag": "stockpile_ore", "label": "Ores", "group": "materials", "picture": "res://assets/ui/items/iron_ore.png"},
+    {"tag": "stockpile_gem", "label": "Gems", "group": "materials", "picture": "res://assets/ui/items/ruby_raw.png"},
+    {"tag": "stockpile_soil", "label": "Soil", "group": "materials", "picture": "res://assets/ui/items/soil.png"},
+    {"tag": "stockpile_metal", "label": "Metal", "group": "materials", "picture": "res://assets/ui/items/copper_bar.png"},
+    {"tag": "stockpile_food", "label": "Food", "group": "food_farming", "picture": "res://assets/ui/items/apple.png"},
+    {"tag": "stockpile_drink", "label": "Drink", "group": "food_farming", "picture": "res://assets/ui/items/ale.png"},
+    {"tag": "stockpile_seed", "label": "Seeds & cuttings", "group": "food_farming", "picture": "res://assets/ui/items/oak_acorn.png"},
     {"tag": "stockpile_furniture", "label": "Furniture", "group": "goods", "picture": "res://assets/ui/furniture/bench.png"},
-    {"tag": "stockpile_currency", "label": "Currency", "group": "goods", "picture": "res://assets/ui/items/base_item_gold_coin.png"},
+    {"tag": "stockpile_currency", "label": "Currency", "group": "goods", "picture": "res://assets/ui/items/gold_coin.png"},
     {"tag": "stockpile_misc", "label": "Other goods", "group": "goods", "picture": "res://assets/ui/icons/stocks.png"}
   ]
 }

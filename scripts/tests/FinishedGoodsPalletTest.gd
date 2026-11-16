@@ -43,6 +43,7 @@ func _run() -> void:
 	# A Carpenter makes it at their bench.
 	_carpenter_bench_at(Vector3i(44, 20, 41))
 	drops.spawn_drop(PINE_PLANK, 4, Vector3i(42, 21, 40))
+	drops.spawn_drop("base:item:copper_nail", 4, Vector3i(43, 21, 40))   # a nail to each plank (doc 313)
 	var id: int = crafting.queue_order(PALLET_RECIPE, 1)
 	_expect(await _completed(id) and _count(PALLET_ITEM) == 1 and _count(PINE_PLANK) == 0, "four planks make one packed pallet")
 	furniture.activate_for(PALLET, true)
@@ -136,7 +137,7 @@ func _metal_on_a_pallet() -> void:
 	furniture._install(PALLET, furniture.get_defs()[PALLET], SECOND, 0, "base:material:pine")
 	var piece = furniture._installed[furniture._next_installed_id - 1]
 	var pallet = piece.storage
-	_expect(pallet != null and pallet.capacity_hint() == "One packed piece, three metal goods or four planks to each of its quarters.",
+	_expect(pallet != null and pallet.capacity_hint() == "One packed piece, three bars, a crate of nails or four planks to each of its quarters.",
 		"its bar says what a quarter takes: %s" % (pallet.capacity_hint() if pallet != null else ""))
 	if pallet == null: return
 	var beside := Vector3(SECOND) + Vector3(-1.5, 1, .5)

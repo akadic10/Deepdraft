@@ -158,7 +158,7 @@ capacity remain source-owned.
 - Eviction ends sharing, never a lease's own unfinished frontier, which rejoins the
   cache on its next turn. A finished proof is reused while its navigation
   dependencies are current. A search that ran out of allowance (reachability
-  unknown) is retried only after the maximum backoff (`backoff_max_s`, 30 simulated
+  unknown) is retried only after the maximum backoff (`backoff_max_seconds`, 30 simulated
   seconds).
 - Load, New game and quitting to the title clear it with the rest of the
   scheduler's runtime state (`TaskManager.reset_runtime_state`).
@@ -603,6 +603,15 @@ water stones keep their own routing. The work-journal key
 enum number, so reordering `Task.Type` does not orphan saved journal entries.
 `WorkSourceTableTest` (gate) covers the contract.
 
+**A source answers for itself (2026-11-16, doc 312).** A source that keeps a worker's
+claim (`reserved_by` and the like) also answers `claimed_workers() -> Array`, the dwarves
+that hold it now. `TaskManager.lifecycle_errors` reads it through
+`WorkSourceAdapter.claimed_workers` and reports "Orphan source claim" when a dwarf holds a
+source without a matching lease. Storage, furniture plans, mining zones, trees, craft
+orders, fishing spots, farm tiles and hanging batches all answer. Before this the adapter
+knew five kinds by class or file name, and the last three were never checked. A new kind of
+source needs no line in the adapter.
+
 ## Task Object Schema
 
 ```gdscript
@@ -707,8 +716,8 @@ marks unfinished work complete.
   are not quarantined.
 - **Reconciliation.** Each pass also checks four registered workers: a missed idle
   notification is repaired, and an orphan executor drops its cargo before the
-  dwarf rejoins the pool. `worker_availability` reports Available, Working,
-  Self-care, Recovering access or Trapped: no navigable footing.
+  dwarf rejoins the pool. `worker_availability` reports a code: `available`, `working`,
+  `self_care`, `recovering_access`, `trapped` (no navigable footing) or `unavailable`.
 - **Job inspector.** DEV only (Development → Dwarf tools → DEV: Job inspector,
   `JobInspectorPanel`), refreshed only while open: orders, waiting reasons, the
   active worker, attempt, phase and progress age, rejected-worker counts and the
@@ -764,9 +773,11 @@ components use `get_config_section()`. Its `supervision` section:
 Budgets are cooperative: one bounded query or operation can cross its deadline,
 and preparation, final validation and assignment run synchronously, so a wake can
 exceed the 1 ms scheduler budget. Ingredient planning adds up with active
-crafters. Scheduler retry timestamps and backoff use wall-clock milliseconds;
-work deadlines, handling and planning holds use simulated time, and pausing stops
-execution and supervision even when a retry falls due. `JobLifecycleTest`,
+crafters. Scheduler retry timestamps and backoff use wall-clock milliseconds: they
+bound how often a route is searched again, so they protect frame time and do not follow
+the game's speed. Work deadlines, handling and planning holds use simulated time
+(`WorldClock.game_seconds`), and pausing stops execution and supervision even when a
+retry falls due. `JobLifecycleTest`,
 `JobPlanningTest` and `JobMixedWorldTest` (gate) cover the contract.
 
 ## Action Weight Priorities

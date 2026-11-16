@@ -7,8 +7,16 @@ extends RefCounted
 ## of each replaces it. Their hours are room_appeal's slept_hours, ate_hours and played_hours.
 ## The word is the room as this dwarf feels it: their found tastes (DwarfTastes) count, and
 ## the thought names the strongest ("Slept in a pleasant room · loves the log bed").
+const Tastes = preload("res://scripts/components/DwarfTastes.gd")
 const ROOM_ACTIVITIES := {"slept": "Slept", "ate": "Ate", "played": "Played"}
 const ROOM_HOURS := {"slept": "slept_hours", "ate": "ate_hours", "played": "played_hours"}
+## Each thought's words by its id. A room's thought has none here: thought_text() words it
+## from its id, the activity and the room's word ("slept_pleasant").
+const THOUGHT_WORDS := {"recreation_together": "Played a board game with a friend", "recreation_alone": "Played a board game on my own",
+	"quiet_hour": "A quiet hour by the water", "grilled_together": "Grilled fish with company", "grilled_alone": "Grilled fish by the fire",
+	"famished": "Famished", "hungry": "Hungry", "injured": "Injured", "dining_seat_only": "Ate without a table",
+	"dining_table_only": "Ate standing up", "dining_neither": "Ate without a proper place", "bedroom": "Slept in my own bedroom",
+	"cold": "Slept in the cold", "chilly": "Chilly sleep", "hot": "Slept in the heat"}
 var config: Dictionary
 var personal_sleep_hours := 0.0
 var bedroom_memory_hours := 0.0
@@ -74,7 +82,7 @@ func record_room(activity: String, appeal: Dictionary) -> void:
 	var felt: Dictionary = tastes.felt(appeal) if tastes != null and not appeal.is_empty() else {"word": appeal.get("word", {}), "taste": ""}
 	var word: Dictionary = felt.word
 	var gives := not word.is_empty() and not is_zero_approx(float(word.get("points", 0.0)))
-	room_words[activity] = String(word.word).to_lower() if gives else ""
+	room_words[activity] = String(word.id) if gives else ""
 	room_hours[activity] = float(config.room_appeal[ROOM_HOURS[activity]]) if gives else 0.0
 	room_tastes[activity] = String(felt.taste) if gives else ""
 
@@ -87,7 +95,7 @@ func _room_bonus() -> float:
 func _room_points(activity: String) -> float:
 	if float(room_hours[activity]) <= 0.0: return 0.0
 	for entry: Dictionary in RoomManager.appeal_config.get("words", []):
-		if String(entry.word).to_lower() == String(room_words[activity]): return float(entry.points)
+		if String(entry.id) == String(room_words[activity]): return float(entry.points)
 	return 0.0
 
 func _recreation_bonus() -> float:
@@ -130,56 +138,67 @@ func _thermal_penalty() -> float:
 
 
 ## The thoughts that count toward happiness now (doc 261), as rows: a stable id (the
-## journal's topic and its lines' key), the words, the happiness points (+ or −), the game
+## journal's topic and its lines' key), the words, the fields its words took beyond the id
+## (a room's taste and the dwarf's feeling for it), the happiness points (+ or −), the game
 ## hours left (−1 while it lasts until the dwarf eats), how many hours ago it came, what
 ## helps a bad one, and any other effect.
 func thoughts() -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	if recreation_memory_hours>0:
-		rows.append(_thought("recreation_together","Played a board game with a friend",float(config.recreation.bonus),recreation_memory_hours,float(config.recreation.duration_hours)))
+		rows.append(_thought("recreation_together",float(config.recreation.bonus),recreation_memory_hours,float(config.recreation.duration_hours)))
 	elif solo_recreation_memory_hours>0:
-		rows.append(_thought("recreation_alone","Played a board game on my own",float(config.recreation.solo_bonus),solo_recreation_memory_hours,float(config.recreation.duration_hours)))
+		rows.append(_thought("recreation_alone",float(config.recreation.solo_bonus),solo_recreation_memory_hours,float(config.recreation.duration_hours)))
 	if quiet_hour_hours>0:
-		var quiet := _thought("quiet_hour","A quiet hour by the water",float(config.quiet_hour.bonus),quiet_hour_hours,float(config.quiet_hour.duration_hours))
+		var quiet := _thought("quiet_hour",float(config.quiet_hour.bonus),quiet_hour_hours,float(config.quiet_hour.duration_hours))
 		quiet.steady = true   # each catch renews it; the journal speaks only as it begins
 		rows.append(quiet)
 	if grill_together_memory_hours>0:
-		rows.append(_thought("grilled_together","Grilled fish with company",float(config.grilled.together_bonus),grill_together_memory_hours,float(config.grilled.duration_hours)))
+		rows.append(_thought("grilled_together",float(config.grilled.together_bonus),grill_together_memory_hours,float(config.grilled.duration_hours)))
 	elif grill_memory_hours>0:
-		rows.append(_thought("grilled_alone","Grilled fish by the fire",float(config.grilled.bonus),grill_memory_hours,float(config.grilled.duration_hours)))
+		rows.append(_thought("grilled_alone",float(config.grilled.bonus),grill_memory_hours,float(config.grilled.duration_hours)))
 	if food != null and food.hungry():
-		var hunger := _thought("famished" if food.famished() else "hungry","Famished" if food.famished() else "Hungry",-food.mood_penalty(),-1.0,0.0,"Keep harvested food accessible.")
+		var hunger := _thought("famished" if food.famished() else "hungry",-food.mood_penalty(),-1.0,0.0,"Keep harvested food accessible.")
 		hunger.effect = "Work speed −%d%% until fed" % roundi((1.0-food.work_multiplier())*100)
 		rows.append(hunger)
 	if health != null and health.badly_hurt():
-		var injured := _thought("injured","Injured",-health.mood_penalty(),-1.0,0.0,"Health comes back slowly, faster while asleep.")
+		var injured := _thought("injured",-health.mood_penalty(),-1.0,0.0,"Health comes back slowly, faster while asleep.")
 		injured.effect = "Until health is back above half"
 		rows.append(injured)
 	if _dining_penalty()>0:
-		rows.append(_thought("dining_"+dining_outcome,{"seat_only":"Ate without a table","table_only":"Ate standing up","neither":"Ate without a proper place"}[dining_outcome],
-			-_dining_penalty(),dining_memory_hours,float(config.dining.duration_hours),"Provide a seat beside a table. The memory will fade over time."))
+		rows.append(_thought("dining_"+dining_outcome,-_dining_penalty(),dining_memory_hours,float(config.dining.duration_hours),"Provide a seat beside a table. The memory will fade over time."))
 	if bedroom_memory_hours>0:
-		rows.append(_thought("bedroom","Slept in my own bedroom",float(config.personal_bedroom.bonus),bedroom_memory_hours,float(config.personal_bedroom.duration_hours)))
+		rows.append(_thought("bedroom",float(config.personal_bedroom.bonus),bedroom_memory_hours,float(config.personal_bedroom.duration_hours)))
 	for kind: String in thermal_memory:
 		if float(thermal_memory[kind])<=0 or not is_equal_approx(float(config.thermal[kind+"_penalty"]),_thermal_penalty()): continue
-		rows.append(_thought(kind,{"cold":"Slept in the cold","chilly":"Chilly sleep","hot":"Slept in the heat"}[kind],-_thermal_penalty(),
+		rows.append(_thought(kind,-_thermal_penalty(),
 			float(thermal_memory[kind]),float(config.thermal.duration_hours),
 			"Reduce heating in the sleeping room. The memory will fade over time." if kind=="hot" else "Warm the sleeping room with a hearth. The memory will fade over time."))
 		break
 	for activity: String in ROOM_ACTIVITIES:
 		var points := _room_points(activity)
 		if is_zero_approx(points): continue
-		var word := String(room_words[activity])
 		var taste := String(room_tastes[activity])
-		var text := "%s in a %s room" % [ROOM_ACTIVITIES[activity], word]
-		if not taste.is_empty() and tastes != null: text += " · " + tastes.describe(taste)
-		rows.append(_thought("%s_%s" % [activity, word], text, points,
+		var fields := {}
+		if not taste.is_empty() and tastes != null: fields = {"taste": taste, "feeling": String(tastes.tastes.get(taste, ""))}
+		rows.append(_thought("%s_%s" % [activity, String(room_words[activity])], points,
 			float(room_hours[activity]), float(config.room_appeal[ROOM_HOURS[activity]]),
-			"Furnish the room, and clear loose goods and stores out of it. The memory will fade over time." if points < 0 else ""))
+			"Furnish the room, and clear loose goods and stores out of it. The memory will fade over time." if points < 0 else "", fields))
 	return rows
 
-func _thought(id: String, text: String, amount: float, hours: float, duration: float, help := "") -> Dictionary:
-	return {"id":id,"text":text,"points":roundi(amount*100),"hours":hours,"age":maxf(0.0,duration-hours) if hours>=0 else 0.0,"help":help,"effect":""}
+func _thought(id: String, amount: float, hours: float, duration: float, help := "", fields := {}) -> Dictionary:
+	return {"id":id,"text":thought_text(id,fields),"fields":fields,"points":roundi(amount*100),"hours":hours,
+		"age":maxf(0.0,duration-hours) if hours>=0 else 0.0,"help":help,"effect":""}
+
+## A thought's words from its id alone, so a thought can be kept as a code (the journal does):
+## its own words, or for a room's thought ("slept_pleasant") the activity and the room's
+## word, with the taste it names when `fields` has one (taste, a thing's id; feeling, the
+## dwarf's for it: love, like or dislike).
+static func thought_text(id: String, fields: Dictionary = {}) -> String:
+	if THOUGHT_WORDS.has(id): return String(THOUGHT_WORDS[id])
+	var activity := id.get_slice("_", 0)
+	var text := "%s in a %s room" % [String(ROOM_ACTIVITIES.get(activity, activity.capitalize())), id.substr(activity.length() + 1)]
+	if fields.has("taste"): text += " · " + Tastes.said(String(fields.get("feeling", "")), String(fields.taste))
+	return text
 
 ## Happiness on the sheet's 0-100 scale.
 func points() -> int:

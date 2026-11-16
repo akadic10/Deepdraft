@@ -20,6 +20,10 @@ extends RefCounted
 enum Type { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT, FARM }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
+## What wait_reason says until a scheduler pass has looked at the task. Code asks whether the
+## reason is still this one by the constant, never by its words.
+const NOT_ASSESSED := "Waiting for assessment"
+
 ## Task-type categories: the one place each grouping is listed (read-only).
 ## Work on a surface source (tree, boulder, scree, shrub, plant, a fishing spot, a finished
 ## batch on a workshop, a field's tile): one executor, the specialized surface-work matcher.
@@ -52,7 +56,7 @@ var retry_at: int = 0                  # msec; BLOCKED until then (scheduler ski
 var blocked_count: int = 0             # consecutive blocked probes -> backoff + task_unreachable
 var order_key := ""
 var order_locator := ""
-var wait_reason := "Waiting for assessment"
+var wait_reason := NOT_ASSESSED         # why it waits, in words; NOT_ASSESSED until a pass looks
 var attempt: RefCounted
 var planning_context: Dictionary = {}
 var recovery_paused := false

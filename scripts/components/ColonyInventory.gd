@@ -66,7 +66,3 @@ static func _row(rows: Dictionary, key: String) -> Dictionary:
 
 static func _material(row: Dictionary, id: String, count: int) -> void:
 	row.materials[id] = int(row.materials.get(id, 0)) + count
-
-
-static func thumbnail_path(key: String) -> String:
-	return "res://assets/ui/items/%s.png" % key.replace(":", "_")

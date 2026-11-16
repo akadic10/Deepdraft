@@ -165,6 +165,25 @@ These come from the owner and override older guidance in milestone docs.
     one thing has one name wherever it is shown.
   - The rules are in [13](docs/10_core_foundation/13_architecture.md), "Naming ids and files",
     and [23](docs/20_player_interface/23_user_interface.md), "Names are sentence case".
+- **Text: codes and words.** Follow these when adding text the player reads:
+  - A state or a reason is a code (`grazing`, `badly_hurt`, `unknown_material`) wherever logic,
+    a save or a test tells two messages apart. Logic never compares, searches or trims wording.
+  - One place turns a code into words, kept in the feature's own JSON. A sentence is whole,
+    with named fields, and a plural gives its forms: fill it with `Wording.fill`
+    (`scripts/components/Wording.gd`), never with `"s" if n != 1`.
+  - A status line's tone is settled with its words, and saves keep codes, not sentences.
+  - `push_error`, `push_warning` and `print` text stays English and inline. Captions that are
+    only shown stay in code until a translation is planned; that will use Godot's own system.
+  - The rules are in [13](docs/10_core_foundation/13_architecture.md), "Codes and words".
+- **Code: one job, one way.** Follow these when adding a feature like one that exists:
+  - Share the part instead of copying the neighbour. A new zone-type tool uses
+    `scripts/components/ZoneTool.gd`.
+  - A fact is typed once: world numbers in `WorldSize.gd`, a picture's path through
+    `Pictures.gd`, a panel colour in `UITheme`.
+  - A tool registers with `DockUI.register_tool`, and only `DockUI.cancel()` decides what Esc
+    finishes. A key is an input-map action, never a key constant.
+  - An object answers for itself; shared code does not ask it what it is.
+  - The rules are in [13](docs/10_core_foundation/13_architecture.md), "One job, one way".
 - **Gems: no Jeweller.** There is no Jeweller profession or workshop and no
   cutting/polishing stage. Gem ids keep their `_raw` suffix; display names leave out "Raw".
 - **Metalwork: Blacksmith only.** There is no Weaponsmith or Armorsmith. The Blacksmith
@@ -187,7 +206,10 @@ These come from the owner and override older guidance in milestone docs.
   - The gate and `--all` runs also run `tools/lint_project.py`, which fails on new
     violations of the mechanical code rules (private access, JSON outside its owner, DEV
     tools without the switch, garbled text, unused data, legacy code, world-size literals,
-    growing an over-long file, text sizes typed as numbers, names that break the naming rules).
+    growing an over-long file, text sizes typed as numbers, names that break the naming rules,
+    logic that reads the words the player reads, a plural chosen in code by a count of one,
+    a method, signal or group named in text that nothing defines, a picture folder named
+    outside `Pictures.gd`, a key read by its constant).
     Fix the code rather than the baseline. After fixing known
     violations, record that with `python3 tools/lint_project.py --update-baseline`, which only
     lowers counts. `--reset-baseline` is for the owner to approve.

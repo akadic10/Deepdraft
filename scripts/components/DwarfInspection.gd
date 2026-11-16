@@ -3,6 +3,7 @@ extends RefCounted
 ## Read-only presentation of an agent's existing state. No task, reservation or
 ## inventory mutation belongs here; the inspector is safe even while paused.
 const Phase = DwarfAgent.TaskPhase
+const Pictures = preload("res://scripts/components/Pictures.gd")
 
 
 static func roster_state(agent: DwarfAgent) -> Dictionary:
@@ -75,7 +76,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 	var task := TaskManager.get_task(agent.current_task_id)
 	var activity := "Ready for work"
 	var explanation := "Waiting for an available job."
-	var destination := "No destination"
+	var destination := ""   # where the dwarf is headed, in words; "" when nowhere
 	var phase := agent.get_task_phase()
 	var clearing_stone := task != null and task.type == Task.Type.CLEAR_BOULDER
 	var gathering_stone := task != null and task.type == Task.Type.GATHER_SCREE
@@ -183,7 +184,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		explanation = "Moving to the requested position."
 		destination = location(agent.get_move_path().back())
 	var availability := TaskManager.worker_availability(agent)
-	if availability.begins_with("Trapped") and task == null and not agent.is_sleeping():
+	if availability == "trapped" and task == null and not agent.is_sleeping():
 		activity = "Needs accessible footing"
 		explanation = "This dwarf cannot start work from here. Restore a safe route or support."
 	var items := _cargo(agent)
@@ -198,7 +199,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 				activity = "Setting down " + material
 				explanation = "Delivering this ingredient before collecting the next one." if items.size() == 1 else "Putting the load down beside the bench."
 			elif phase in [Phase.FETCH_WORKING,Phase.FETCH_DEPOSIT]:
-				activity = "Crafting " + String(craft_source.recipe.name).to_lower()
+				activity = "Crafting " + String(craft_source.recipe.display_name).to_lower()
 				explanation = "Working with the gathered materials to finish the recipe."
 				if phase == Phase.FETCH_WORKING and craft_source.work_motion() == "charge":
 					# The basic smelter's charge (doc 300): the lumps go into the pot, then the fire is blown on.
@@ -206,11 +207,11 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 					activity = "Blowing on the smelter's fire" if lit else "Charging the smelter"
 					explanation = "Blowing through a hollow stick to bring the fire up under the pot." if lit else ("Throwing the ore and the coal into the smelter's pot." if craft_source.fire_goods().is_empty() else "Throwing the ore into the smelter's pot and pushing the logs into its fire hole.")
 	var ladder_build := agent.fetch_source()
-	if task == null and not agent.is_sleeping() and not availability.begins_with("Trapped") and agent.get_idle_behavior() != null and agent.get_idle_behavior().active():
+	if task == null and not agent.is_sleeping() and availability != "trapped" and agent.get_idle_behavior() != null and agent.get_idle_behavior().active():
 		var leisure: Dictionary = agent.get_idle_behavior().describe()
 		activity = leisure.activity
 		explanation = leisure.explanation
-		destination = location(leisure.destination) if leisure.destination.x >= 0 else "No destination"
+		destination = location(leisure.destination) if leisure.destination.x >= 0 else ""
 	if ladder_build != null and ladder_build.has_method("advance_install"):
 		if ladder_build.has_method("commit_staged_build"):
 			activity = "Building stone blocks" if phase == Phase.FETCH_WORKING else "Going to build"
@@ -282,7 +283,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			effect = String(stat.get("does", "")).format({"speed": speed})
 		elif live:
 			effect = "%d hit points; Average is %d" % [health.maximum, int(health_config.get("base_hit_points", 100))]
-		stat_details.append({"id": id, "name": String(stat.get("name", id)), "step": step, "word": DwarfAssets.stat_word(step),
+		stat_details.append({"id": id, "name": String(stat.get("display_name", id)), "step": step, "word": DwarfAssets.stat_word(step),
 			"description": String(stat.get("description", "")), "effect": effect, "live": live})
 	# The compact panel's mood badge (doc 260): happiness beside the step's face, with the
 	# thought on hover.
@@ -402,7 +403,7 @@ static func equipment_details(agent: DwarfAgent) -> Dictionary:
 		"tier": String(details.get("tier", "Standard")),
 		"materials": String(details.get("materials", "Included work tools")) + (" · " + CraftMaterials.material_name(material_id) if not material_id.is_empty() else ""),
 		"benefit": String(details.get("benefit", preview.get("default_description", "No crafted tool equipped."))),
-		"icon": "res://assets/ui/items/%s.png" % key.replace(":", "_") if not key.is_empty() else String(DwarfAssets.profession_definition(agent.profession).get("icon", "")),
+		"icon": Pictures.item(key) if not key.is_empty() else String(DwarfAssets.profession_definition(agent.profession).get("icon", "")),
 		"upgrade_name": String(preview.get("upgrade_name", "Future tool upgrades")),
 		"upgrade_status": String(preview.get("upgrade_status", "Choose a profession")),
 		"upgrade_description": String(preview.get("upgrade_description", "Upgrade details will appear with this profession's gameplay.")),

@@ -2,10 +2,12 @@ extends RefCounted
 
 ## A dwarf's health (doc 41 "Health"), tuned by `health` in task_config.json: whole hit points
 ## from the dwarf's Toughness, healing a share of the maximum each game hour (more asleep),
-## its word (Healthy, Hurt, Badly hurt), and the Injured thought while Badly hurt. Nothing in
+## its level (healthy, hurt, badly_hurt) and the word for it, and the Injured thought while
+## badly hurt. Nothing in
 ## the world hurts a dwarf yet; DEV: hurt a dwarf does, and health never drops below
 ## `minimum`. A save keeps what is left only while the dwarf is hurt.
 const HitPoints = preload("res://scripts/components/HitPoints.gd")
+const Wording = preload("res://scripts/components/Wording.gd")
 var config: Dictionary
 var hit_points := HitPoints.new()
 
@@ -36,15 +38,21 @@ func hurt(amount: float) -> float:
 	return hit_points.hurt(amount)
 
 
-## Healthy, Hurt or Badly hurt, by the share left.
+## How hurt the dwarf is, by the share left: "healthy", "hurt" or "badly_hurt". Logic and
+## colours read this code; word() says it.
+func level() -> String:
+	if hit_points.share() < float(config.get("badly_hurt_below", 0.5)): return "badly_hurt"
+	if hit_points.share() < float(config.get("hurt_below", 0.75)): return "hurt"
+	return "healthy"
+
+
+## The level in words (task_config.json, health.words): Healthy, Hurt or Badly hurt.
 func word() -> String:
-	if hit_points.share() < float(config.get("badly_hurt_below", 0.5)): return "Badly hurt"
-	if hit_points.share() < float(config.get("hurt_below", 0.75)): return "Hurt"
-	return "Healthy"
+	return Wording.of(config.get("words", {}), level())
 
 
 func badly_hurt() -> bool:
-	return word() == "Badly hurt"
+	return level() == "badly_hurt"
 
 
 ## The Injured thought's happiness cost while Badly hurt.
@@ -52,12 +60,12 @@ func mood_penalty() -> float:
 	return float(config.get("injured_mood_penalty", 0.0)) if badly_hurt() else 0.0
 
 
-## For the readouts: whole points, the maximum, the share left, the word, and whether the
-## dwarf is hurt enough to show it (Hurt or Badly hurt).
+## For the readouts: whole points, the maximum, the share left, the level (a code) and its
+## word, and whether the dwarf is hurt enough to show it (hurt or badly hurt).
 func describe() -> Dictionary:
-	var shown := word()
+	var now := level()
 	return {"points": hit_points.points(), "maximum": roundi(hit_points.maximum), "share": hit_points.share(),
-		"word": shown, "hurt": shown != "Healthy"}
+		"level": now, "word": word(), "hurt": now != "healthy"}
 
 
 ## What a save keeps: the hit points left, or -1 while full (nothing to save).

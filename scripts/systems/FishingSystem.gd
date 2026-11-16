@@ -8,9 +8,10 @@ extends Node3D
 ## one FISH lease. A catch lands at the fisher's feet and comes off the water's stock, which
 ## regrows a share of its maximum each day. Zones and stocks save as the `fishing` section.
 ##
-## The tool behaves as Storage's does (StockpileDesignationController): Esc exits, a drag
-## paints a flat rectangle on the anchor's plane, a click on a zone opens its window (with the
-## tool off too), and right mouse stays the camera's.
+## The tool is the one every zone shares (ZoneTool.gd): a drag paints a flat rectangle on the
+## anchor's plane, a click on a zone opens its window (with the tool off too), right mouse stays
+## the camera's and Esc is the dock's. This script says which cells are spots (`spot_reason`),
+## keeps a drag to one water, and makes the zone.
 
 @export var dock_ui_path: NodePath
 @export var slice_controller_path: NodePath
@@ -18,24 +19,19 @@ extends Node3D
 
 const TOOL_ID := "fishing_zone"
 const WINDOW_ID := "fishing_zone_info"
-const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const Spot = preload("res://scripts/components/FishingSpot.gd")
 const Sources = preload("res://scripts/components/WorkSourceTable.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const ZonePanel = preload("res://scripts/ui/FishingZonePanel.gd")
 const CatchLog = preload("res://scripts/components/CatchLog.gd")
-const WORLD_EDGE_MARGIN := 2
-const RAY_MAX := 700.0
-const OVERLAY_LIFT := 1.04
-const EDGE_INSET := 0.08
-const DRAG_THRESHOLD_PX := 6.0
+const ZoneTool = preload("res://scripts/components/ZoneTool.gd")
 const REFRESH_SECONDS := 1.0
 const NOWHERE := Vector3i(-1, -1, -1)
 const DIRECTIONS: Array[Vector2i] = [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]
 # Teal, so a fishing zone never reads as storage (blue) or mining (yellow).
 const COLOR_VALID := Color(0.30, 0.78, 0.74, 0.30)
 const COLOR_VALID_EDGE := Color(0.45, 0.92, 0.86, 0.85)
-const COLOR_INVALID := Color(1.00, 0.30, 0.25, 0.35)
 const COLOR_ZONE := Color(0.30, 0.78, 0.74, 0.22)
 const COLOR_ZONE_EDGE := Color(0.45, 0.92, 0.86, 0.60)
 
@@ -43,26 +39,14 @@ signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
 
 var config: Dictionary = {}
-var _dock_ui: Node
 var _window_manager: UIWindowManager
 var _window: UIWindow
 var _panel: Control
 var _window_zone := -1
-var _active := false
-var _dragging := false
-var _anchor := NOWHERE
-var _drag_start := Vector2.ZERO
-var _hover := NOWHERE
-var _hover_reason := ""
-var _preview: Array[Vector3i] = []
-var _pointer := Vector2.INF
-var _slice_y: int = SliceController.MAX_SLICE_Y
-var _material: StandardMaterial3D
-var _preview_mesh: MeshInstance3D
+var _tool: ZoneTool                  # the drag, its preview and the zones on the ground
 var _next_id := 1
 ## Zone id -> {"id": int, "cells": Array[Vector3i], "keep": int, "water": String}.
 var _zones: Dictionary = {}
-var _overlays: Dictionary = {}       # zone id -> MeshInstance3D
 var _cell_to_zone: Dictionary = {}   # floor cell -> zone id
 ## Water id -> {"fish": float, "day": float}: the stock when last counted, on that day.
 var _stocks: Dictionary = {}
@@ -77,23 +61,31 @@ func _ready() -> void:
 	add_to_group(SaveManager.OWNER_GROUP)
 	config = TaskManager.get_config_section("fishing")
 	_spots = Sources.new()
-	_dock_ui = get_node_or_null(dock_ui_path)
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
-	if _dock_ui != null:
-		if _dock_ui.has_method("register_fishing_controller"): _dock_ui.call("register_fishing_controller", self)
-		if _dock_ui.has_signal("tool_requested"): _dock_ui.connect("tool_requested", _on_tool_requested)
+	_tool = ZoneTool.new()
+	_tool.name = "ZoneTool"
+	_tool.tool_id = TOOL_ID
+	_tool.here_words = "A fishing spot is here"
+	_tool.max_extent = int(config.get("max_zone_extent", 16))
+	_tool.fill = COLOR_VALID
+	_tool.edge = COLOR_VALID_EDGE
+	_tool.cell_reason = spot_reason
+	_tool.zone_at = func(cell: Vector3i) -> int: return int(_cell_to_zone.get(cell, -1))
+	_tool.cells_chosen = _on_cells_chosen
+	_tool.zone_clicked = _open_window
+	_tool.narrow = _same_water
+	_tool.active_changed.connect(func(on: bool) -> void: tool_active_changed.emit(on))
+	add_child(_tool)
+	var dock := get_node_or_null(dock_ui_path) as DockUI
+	if dock != null:
+		dock.register_tool(self, [TOOL_ID])
+		dock.tool_requested.connect(_tool.on_tool_requested)
 	var slice := get_node_or_null(slice_controller_path)
-	if slice != null and slice.has_signal("slice_changed"): slice.connect("slice_changed", _on_slice_changed)
-	_material = StandardMaterial3D.new()
-	_material.vertex_color_use_as_albedo = true
-	_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if slice != null and slice.has_signal("slice_changed"): slice.connect("slice_changed", _tool.set_slice)
 	_build_window()
 
 
 func _process(delta: float) -> void:
-	if _active: _update_hover()
 	_refresh_left -= delta
 	if _refresh_left > 0.0: return
 	_refresh_left = REFRESH_SECONDS
@@ -101,81 +93,35 @@ func _process(delta: float) -> void:
 	if _window_zone > 0 and _window != null and _window.visible: _panel.show_zone(zone_data(_window_zone))
 
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventMouse: _pointer = event.position
-	if not _dragging: return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		if get_viewport().gui_get_hovered_control() == null:
-			_update_hover()
-			_on_left_release(event.position)
-		else:
-			_end_drag()
-		get_viewport().set_input_as_handled()
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and _dragging: _end_drag()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not _active:
-		# A zone stays click-selectable with the tool off, so its window (and Remove) is
-		# always reachable, as Storage's is.
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT \
-				and try_select_zone_at_screen(event.position):
-			get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		deactivate()
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			_update_hover()
-			_on_left_press(event.position)
-			get_viewport().set_input_as_handled()
-		elif _dragging:
-			_on_left_release(event.position)
-			get_viewport().set_input_as_handled()
-
-
-# ── The tool ──────────────────────────────────────────────────────────────────
+# ── The tool (ZoneTool) ───────────────────────────────────────────────────────
 
 func is_active() -> bool:
-	return _active
+	return _tool.active
 
 
 func activate() -> void:
-	if _active or not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)): return
-	_active = true
-	_ensure_preview_mesh()
-	tool_active_changed.emit(true)
+	_tool.activate()
 
 
 func deactivate() -> void:
-	if not _active: return
-	_active = false
-	_end_drag()
-	tool_active_changed.emit(false)
+	_tool.deactivate()
 
 
-func _on_tool_requested(tool_id: String) -> void:
-	if tool_id == TOOL_ID:
-		if _active: deactivate()
-		else: activate()
-	elif _active:
-		deactivate()
+## A click on one of our zones opens its window. ObjectExplorerController asks every click tool
+## this by name before it selects the bare ground under the pointer, so the name must stay.
+func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
+	return _tool.select_zone_at(screen_pos)
 
 
 ## What the tool bar shows (doc 23, "The tool bar"): the cells a drag takes, or why the cell
 ## under the pointer can't be fished from.
 func tool_bar_state() -> Dictionary:
 	var state := {"tool": TOOL_ID}
-	if _dragging:
-		state.selection = {"count": "%d spot%s" % [_preview.size(), "" if _preview.size() == 1 else "s"],
-			"detail": "Each spot takes one fisher", "at": _pointer}
-	elif _hover != NOWHERE and not _hover_reason.is_empty() and not _cell_to_zone.has(_hover):
-		state.selection = {"count": "Can't fish here", "detail": _hover_reason, "short": true, "at": _pointer}
+	if _tool.dragging:
+		state.selection = {"count": "%d spot%s" % [_tool.preview.size(), "" if _tool.preview.size() == 1 else "s"],
+			"detail": "Each spot takes one fisher", "at": _tool.pointer}
+	elif _tool.hover != NOWHERE and not _tool.hover_reason.is_empty() and not _cell_to_zone.has(_tool.hover):
+		state.selection = {"count": "Can't fish here", "detail": _tool.hover_reason, "short": true, "at": _tool.pointer}
 	return state
 
 
@@ -195,99 +141,38 @@ func inspect_order(receipt: Dictionary) -> void:
 	if order_is_pending(receipt): _open_window(int(receipt.zone_id))
 
 
-func _on_left_press(screen_pos: Vector2) -> void:
-	if _cell_to_zone.has(_hover):
-		_open_window(int(_cell_to_zone[_hover]))
-		return
-	if not _hover_reason.is_empty() or _hover == NOWHERE: return
-	_dragging = true
-	_anchor = _hover
-	_drag_start = screen_pos
-	_rebuild_preview()
-
-
-func _on_left_release(screen_pos: Vector2) -> void:
-	_dragging = false
-	if screen_pos.distance_to(_drag_start) < DRAG_THRESHOLD_PX:
-		var single: Array[Vector3i] = []
-		if spot_reason(_anchor).is_empty(): single.append(_anchor)
-		_preview = single
-	if not _preview.is_empty():
-		var zone_id := create_zone(_preview.duplicate())
-		if zone_id > 0:
-			order_created.emit({"zone_id": zone_id, "message": "Fishing zone · %d spot%s" % [_preview.size(), "" if _preview.size() == 1 else "s"]})
-	_end_drag()
-
-
-func _end_drag() -> void:
-	_dragging = false
-	_preview.clear()
-	if _preview_mesh != null: _preview_mesh.visible = false
-
-
-func _update_hover() -> void:
-	var hit := _surface_cell_for(get_viewport().get_mouse_position() if _pointer == Vector2.INF else _pointer)
-	if hit.is_empty():
-		_hover = NOWHERE
-		_hover_reason = ""
-		if not _dragging and _preview_mesh != null: _preview_mesh.visible = false
-		return
-	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z))
-	if _dragging: cell.y = _anchor.y   # the marquee lives on the anchor's plane
-	if cell == _hover and _preview_mesh != null and _preview_mesh.visible: return
-	_hover = cell
-	_hover_reason = spot_reason(cell)
-	_rebuild_preview()
-
-
-func _rebuild_preview() -> void:
-	_ensure_preview_mesh()
-	if _dragging:
-		_preview = _marquee_cells(_anchor, _hover)
-		_draw_cells(_preview_mesh, _preview, COLOR_VALID, COLOR_VALID_EDGE, _anchor.y)
-	else:
-		var valid := _hover_reason.is_empty() and not _cell_to_zone.has(_hover)
-		var cells: Array[Vector3i] = [_hover]
-		_draw_cells(_preview_mesh, cells, COLOR_VALID if valid else COLOR_INVALID, COLOR_VALID_EDGE if valid else COLOR_INVALID, _hover.y)
-	_preview_mesh.visible = _hover.x >= 0
-
-
-## The flat rectangle between the anchor and the pointer, its fishable cells only.
-func _marquee_cells(anchor: Vector3i, current: Vector3i) -> Array[Vector3i]:
-	var extent := int(config.get("max_zone_extent", 16))
-	var low := Vector2i(mini(anchor.x, current.x), mini(anchor.z, current.z))
-	var high := Vector2i(maxi(anchor.x, current.x), maxi(anchor.z, current.z))
-	if anchor.x == low.x: high.x = mini(high.x, low.x + extent - 1)
-	else: low.x = maxi(low.x, high.x - extent + 1)
-	if anchor.z == low.y: high.y = mini(high.y, low.y + extent - 1)
-	else: low.y = maxi(low.y, high.y - extent + 1)
-	var water := water_of_spot(anchor)
-	var cells: Array[Vector3i] = []
-	for x in range(low.x, high.x + 1):
-		for z in range(low.y, high.y + 1):
-			var cell := Vector3i(x, anchor.y, z)
-			if spot_reason(cell).is_empty() and water_of_spot(cell) == water: cells.append(cell)
-	return cells
-
-
 # ── Spots and water ───────────────────────────────────────────────────────────
+
+## A drag or a click was let go over these cells (ZoneTool): they become a zone.
+func _on_cells_chosen(cells: Array[Vector3i]) -> void:
+	var zone_id := create_zone(cells)
+	if zone_id > 0:
+		order_created.emit({"zone_id": zone_id, "message": "Fishing zone · %d spot%s" % [cells.size(), "" if cells.size() == 1 else "s"]})
+
+
+## A drag keeps the spots on the water it began at.
+func _same_water(anchor: Vector3i, cells: Array[Vector3i]) -> Array[Vector3i]:
+	var water := water_of_spot(anchor)
+	var kept: Array[Vector3i] = []
+	for cell: Vector3i in cells:
+		if water_of_spot(cell) == water: kept.append(cell)
+	return kept
+
 
 ## Why a floor cell can't be a fishing spot, or "" when it can: a dwarf can stand on it, and a
 ## generated water lies in front, deep enough, at its feet or below.
 func spot_reason(cell: Vector3i) -> String:
-	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldData.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
-			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldData.WORLD_SIZE_Z - WORLD_EDGE_MARGIN or cell.y <= 3:
-		return "Too near the world's edge"
+	if ZoneTool.near_edge(cell): return "Too near the world's edge"
 	if _cell_to_zone.has(cell): return "Already a fishing spot"
 	# A cave not yet found is rock to every tool (Hard Rule 11).
 	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP): return "Nobody has found this place"
 	var column := Vector2i(cell.x, cell.z)
-	if WorldGenerator.lake_columns.has(column) or WorldGenerator.tarn_columns.has(column) or WaterManager.depth_at(cell + Vector3i.UP) > 0.0:
+	# Standing water only. A film thinner than that is damp ground, which blocks no placement
+	# (doc 33): a river held back wets its banks, and a fisher still stands on them.
+	if WorldGenerator.lake_columns.has(column) or WorldGenerator.tarn_columns.has(column) or WaterManager.has_standing_water(cell + Vector3i.UP):
 		return "Fishers stand on the shore, not in the water"
-	var stockpiles := get_tree().get_first_node_in_group("stockpile_controller")
-	if stockpiles != null and stockpiles.is_zone_cell(cell): return "A storage zone is here"
-	var farming := get_tree().get_first_node_in_group("farming_system")
-	if farming != null and farming.is_zone_cell(cell): return "A field is here"
+	var taken := _tool.taken_by_another(cell)
+	if not taken.is_empty(): return taken
 	var furniture := get_tree().get_first_node_in_group("furniture_controller")
 	if furniture != null and furniture.has_method("blocks_zone_cell") and bool(furniture.call("blocks_zone_cell", cell)):
 		return "Furniture stands here"
@@ -425,7 +310,7 @@ func water_item(water: String) -> String:
 
 
 func water_name(water: String) -> String:
-	return String(config.get("waters", {}).get(water, {}).get("name", "Water"))
+	return String(config.get("waters", {}).get(water, {}).get("display_name", "Water"))
 
 
 ## Fish of a water's kind the colony keeps now, stored or lying loose.
@@ -462,12 +347,7 @@ func create_zone(cells: Array[Vector3i], requested_id := -1, keep := -1, restori
 	for cell: Vector3i in kept:
 		_cell_to_zone[cell] = zone_id
 		_add_spot(zone_id, cell)
-	var overlay := MeshInstance3D.new()
-	overlay.name = "FishingZone_%d" % zone_id
-	add_child(overlay)
-	_draw_cells(overlay, kept, COLOR_ZONE, COLOR_ZONE_EDGE, kept[0].y)
-	overlay.visible = kept[0].y <= _slice_y
-	_overlays[zone_id] = overlay
+	_tool.show_zone(zone_id, kept, COLOR_ZONE, COLOR_ZONE_EDGE)
 	refresh_work()
 	return zone_id
 
@@ -478,9 +358,7 @@ func remove_zone(zone_id: int) -> void:
 		_spots.retire(cell, true)   # a fisher at work stops; nothing is lost (Hard Rule 12)
 		_cell_to_zone.erase(cell)
 	_zones.erase(zone_id)
-	if _overlays.has(zone_id):
-		(_overlays[zone_id] as Node).queue_free()
-		_overlays.erase(zone_id)
+	_tool.hide_zone(zone_id)
 	if _window_zone == zone_id: _close_window()
 
 
@@ -503,7 +381,7 @@ func _add_spot(zone_id: int, cell: Vector3i) -> void:
 	spot.roll = _big_roll(spot)
 	spot.complete_callback = _land.bind(spot)
 	spot.float_callback = _float_point.bind(spot)
-	spot.feedback_visible_callback = func() -> bool: return spot.origin.y <= _slice_y
+	spot.feedback_visible_callback = func() -> bool: return spot.origin.y <= _tool.slice_y
 	spot.big_callback = func(dwarf_id: int) -> bool: return big_catch(spot, TaskManager.get_agent(dwarf_id))
 	spot.rate_callback = func(dwarf_id: int) -> float: return patience(dwarf_id, String(_zones.get(spot.zone_id, {}).get("water", "")))
 	_spots.add(cell, spot)
@@ -648,8 +526,8 @@ func zone_data(zone_id: int) -> Dictionary:
 		"item": item, "fish_name": String(definition.get("display_name", "Fish")),
 		"trait": String(config.get("waters", {}).get(water, {}).get("trait", "")),
 		"keeps_days": float(definition.get("food", {}).get("keeps_days", 0.0)),
-		"picture": Inventory.thumbnail_path(item), "stock": int(stock(water)), "maximum": maximum(water),
-		"word": stock_word(water), "regrowth": float(config.get("regrowth_per_day", 0.03)) * maximum(water),
+		"picture": Pictures.item(item), "stock": int(stock(water)), "maximum": maximum(water),
+		"word": stock_word(water), "fished_out": fished_out(water), "regrowth": float(config.get("regrowth_per_day", 0.03)) * maximum(water),
 		"fished_out_below": ceili(float(config.get("fished_out_share", 0.1)) * maximum(water)),
 		"keep": int(zone.keep), "kept": kept_fish(water), "wants": wants_fish(zone_id),
 		"spots": zone.cells.size(), "fishers": fishers, "no_fisher": not has_fisher()}
@@ -704,15 +582,6 @@ func _build_window() -> void:
 		if id == WINDOW_ID and not shown: _window_zone = -1)
 
 
-func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
-	var hit := _surface_cell_for(screen_pos)
-	if hit.is_empty(): return false
-	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z))
-	if not _cell_to_zone.has(cell): return false
-	_open_window(int(_cell_to_zone[cell]))
-	return true
-
-
 func open_zone_window(zone_id: int) -> void:
 	_open_window(zone_id)
 
@@ -737,54 +606,3 @@ func _settle_window() -> void:
 func _close_window() -> void:
 	_window_zone = -1
 	if _window_manager != null: _window_manager.close(WINDOW_ID)
-
-
-# ── Drawing and picking ───────────────────────────────────────────────────────
-
-func _ensure_preview_mesh() -> void:
-	if _preview_mesh != null: return
-	_preview_mesh = MeshInstance3D.new()
-	_preview_mesh.name = "FishingPreview"
-	add_child(_preview_mesh)
-
-
-## Flat quads over the cells' floor, with a strip along the outside edges.
-func _draw_cells(target: MeshInstance3D, cells: Array[Vector3i], fill: Color, edge: Color, plane_y: int) -> void:
-	var mesh := ImmediateMesh.new()
-	if not cells.is_empty():
-		var y := float(plane_y) + OVERLAY_LIFT
-		var cell_set := {}
-		for cell: Vector3i in cells: cell_set[cell] = true
-		mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-		for cell: Vector3i in cells:
-			var x := float(cell.x)
-			var z := float(cell.z)
-			_quad(mesh, x, z, 1.0, 1.0, y, fill)
-			if not cell_set.has(cell + Vector3i(-1, 0, 0)): _quad(mesh, x, z, EDGE_INSET, 1.0, y + .005, edge)
-			if not cell_set.has(cell + Vector3i(1, 0, 0)): _quad(mesh, x + 1.0 - EDGE_INSET, z, EDGE_INSET, 1.0, y + .005, edge)
-			if not cell_set.has(cell + Vector3i(0, 0, -1)): _quad(mesh, x, z, 1.0, EDGE_INSET, y + .005, edge)
-			if not cell_set.has(cell + Vector3i(0, 0, 1)): _quad(mesh, x, z + 1.0 - EDGE_INSET, 1.0, EDGE_INSET, y + .005, edge)
-		mesh.surface_end()
-	target.mesh = mesh
-	target.material_override = _material
-
-
-func _quad(mesh: ImmediateMesh, x: float, z: float, w: float, d: float, y: float, color: Color) -> void:
-	for corner: Vector2 in [Vector2(x, z), Vector2(x + w, z), Vector2(x + w, z + d), Vector2(x, z), Vector2(x + w, z + d), Vector2(x, z + d)]:
-		mesh.surface_set_color(color)
-		mesh.surface_add_vertex(Vector3(corner.x, y, corner.y))
-
-
-## The first slice-visible solid block under a screen point, as the slice shows it (a cave not
-## yet found is rock): the floor cell, NavGrid's convention.
-func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
-	var camera := get_viewport().get_camera_3d()
-	if camera == null: return {}
-	return Picking.terrain_hit(camera.project_ray_origin(screen_pos), camera.project_ray_normal(screen_pos).normalized(),
-		_slice_y, RAY_MAX, Picking.concealed_block)
-
-
-func _on_slice_changed(new_slice_y: int) -> void:
-	_slice_y = new_slice_y
-	for zone_id: int in _overlays:
-		(_overlays[zone_id] as Node3D).visible = int((_zones[zone_id].cells as Array)[0].y) <= _slice_y

@@ -13,7 +13,7 @@ extends MarginContainer
 signal stamp_requested
 
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Stamper = preload("res://scripts/systems/ItemStamperController.gd")
 const RECENT_PATH := "user://item_stamper.cfg"
 const INK := UITheme.CATALOG_INK
@@ -254,8 +254,8 @@ static func group_of(tags: Array, groups: Array) -> String:
 
 
 static func _picture_of(key: String) -> Texture2D:
-	for path: String in [Inventory.thumbnail_path(key), "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)]:
-		if ResourceLoader.exists(path): return load(path)
+	var path := Pictures.of(key)   # a packed piece shows its furniture's picture
+	if ResourceLoader.exists(path): return load(path)
 	return null
 
 

@@ -10,7 +10,7 @@ signal cancelled
 
 const SettlementName = preload("res://scripts/components/SettlementName.gd")
 const NOTE := "Suggested from the world's seed. You can rename it later in Colony."
-const MUTED := Color("aeb5ad")
+const MUTED := UITheme.MUTED
 # Text sizes come from the type scale (doc 23, "Type").
 const LARGE := UITheme.TYPE_LARGE
 const MEDIUM := UITheme.TYPE_MEDIUM
@@ -128,7 +128,7 @@ func _submit() -> void:
 
 
 func _on_field_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and (event as InputEventKey).keycode == KEY_ESCAPE:
+	if event.is_action_pressed("ui_cancel"):
 		_field.accept_event()
 		cancelled.emit()
 

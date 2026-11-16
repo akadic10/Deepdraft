@@ -45,7 +45,7 @@ func _run() -> void:
 		var model: Node3D = load("res://assets/models/furniture/"+id+".glb").instantiate()
 		check(model != null,"packed imported model: "+id)
 		model.free()
-		check(ResourceLoader.exists("res://assets/ui/furniture/"+id+".png"),"packed thumbnail: "+id)
+		check(ResourceLoader.exists(preload("res://scripts/components/Pictures.gd").furniture(key)),"packed thumbnail: "+id)
 	# Normal arrival waits for a player-placed settlement flag. Seed a private
 	# test squad through the existing development entry point while paused.
 	get_first_node_in_group("dwarf_director").spawn_squad_at_camera()

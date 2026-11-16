@@ -16,15 +16,16 @@ extends MarginContainer
 ## Presentation only: RoomManager owns rooms, their types (room_kinds.json), temperature
 ## and appeal. A selection overlay never represents the room's illumination.
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
 const Appeal = preload("res://scripts/components/RoomAppeal.gd")
 const TypesPage = preload("res://scripts/ui/RoomTypesPage.gd")
 ## A row's mark: none, a tick when its goal is met, or "!" when it is not.
 enum Mark { NONE, MET, UNMET }
-const HAY := Color("e2c06a")
-const MUTED := Color("aeb5ad")
-const MOSS := Color("8fbf5a")
-const RUST := Color("d3856e")
+const HAY := UITheme.HAY
+const MUTED := UITheme.MUTED
+const MOSS := UITheme.MOSS
+const RUST := UITheme.RUST
 # Text sizes come from the type scale (doc 23, "Type").
 const LARGE := UITheme.TYPE_LARGE
 const MEDIUM := UITheme.TYPE_MEDIUM
@@ -308,7 +309,7 @@ func _show_needs(room: Dictionary, own: Dictionary, kind: Dictionary, counts: Di
 	_set_row(_need_rows.walls, "Walls", "Sealed", "", Mark.MET)   # a room is a sealed space
 	_short.visible = own.is_empty() and not missing.is_empty()
 	if _short.visible:
-		var noun := String(kind.get("shows", "")).trim_prefix("What makes it ")
+		var noun := String(kind.get("noun", ""))
 		var steps: String = kinds.steps_words(room, kind)
 		_short.text = "One step from %s: %s." % [noun, steps] if missing.size() == 1 else "%s to make it %s." % [kinds.capital(steps), noun]
 
@@ -383,8 +384,9 @@ func _show_comfort(room: Dictionary, pieces: Dictionary, kind: Dictionary) -> vo
 	var heat := int(room.get("heat_units", 0))
 	var bonus := float(room.get("heat_bonus_c", 0.0))
 	var temperature := float(room.get("temp_c", 0.0))
+	var feels := RoomManager.comfort(temperature)
 	var comfort := RoomManager.comfort_label(temperature)
-	var cosy := comfort == "Comfortable"
+	var cosy := feels == "comfortable"
 	var sources := 0
 	for key: String in pieces:
 		if not ContentRegistry.furniture_def(key).get("heat_source", {}).is_empty(): sources += int(pieces[key])
@@ -395,7 +397,7 @@ func _show_comfort(room: Dictionary, pieces: Dictionary, kind: Dictionary) -> vo
 		if heat > 0: _set_row(_comfort.heating, "Heating", "+%.1f °C" % bonus, source_words, Mark.MET)
 		else: _set_row(_comfort.heating, "Heating", "None", "" if cosy else "Add a hearth", Mark.MET if cosy else Mark.UNMET)
 		var goal := ""
-		if comfort == "Hot": goal = "%d °C or less" % roundi(float(config.comfortable_max_c))
+		if feels == "hot": goal = "%d °C or less" % roundi(float(config.comfortable_max_c))
 		elif not cosy: goal = "%d °C or more" % roundi(float(config.comfortable_min_c))
 		_set_row(_comfort.temperature, "Temperature", "%.1f °C · %s" % [temperature, comfort], goal, Mark.MET if cosy else Mark.UNMET)
 	else:
@@ -443,7 +445,7 @@ func _show_furniture(pieces: Dictionary) -> void:
 	var items := []
 	for key: String in keys:
 		var name := String(ContentRegistry.furniture_def(key).get("display_name", key.get_slice(":", 2).capitalize()))
-		items.append({"id": key, "picture": _texture("res://assets/ui/furniture/%s.png" % key.get_slice(":", 2)),
+		items.append({"id": key, "picture": _texture(Pictures.furniture(key)),
 			"count": int(pieces[key]), "tooltip": "%s × %d" % [name, int(pieces[key])]})
 	_furniture.show_groups([{"id": "furniture", "items": items}])
 	_furniture.visible = not items.is_empty()
@@ -461,7 +463,7 @@ func _show_appeal(room: Dictionary, appeal: Dictionary) -> void:
 		for part: Dictionary in parts:
 			var key := String(part.key)
 			var picture: Texture2D = UIRegistry.get_room_symbol(key) if key in ["loose", "stocked"] \
-				else _texture("res://assets/ui/furniture/%s.png" % key.get_slice(":", 2))
+				else _texture(Pictures.furniture(key))
 			_appeal_rows.append(_part_row(_appeal_parts, picture))
 	for i in range(parts.size()):
 		var part: Dictionary = parts[i]
@@ -779,7 +781,7 @@ class AppealScale extends Control:
 			draw_rect(Rect2(i * segment + 2.0, 4.0, segment - 4.0, bar - 4.0), tint.darkened(0.1))
 			draw_string(font, Vector2(i * segment, bar + 6.0 + font.get_ascent(font_size)), String(words[i].word),
 				HORIZONTAL_ALIGNMENT_CENTER, segment, font_size, tint)
-		if not is_nan(felt): draw_rect(Rect2(place(felt) - 3.0, 0.0, 6.0, bar + 2.0), Color("e2c06a"))
+		if not is_nan(felt): draw_rect(Rect2(place(felt) - 3.0, 0.0, 6.0, bar + 2.0), HAY)
 		var x := place(score)
 		draw_rect(Rect2(x - 3.0, 0.0, 6.0, bar + 2.0), UITheme.CARD_TITLE)
 		draw_rect(Rect2(x - 3.0, 0.0, 6.0, bar + 2.0), UITheme.CARD_TITLE_OUTLINE, false, 1.0)

@@ -6,6 +6,7 @@ extends Node3D
 const KEY := "base:furniture:crude_ladder"
 const BuildSource = preload("res://scripts/components/LadderBuildComponent.gd")
 const RemoveSource = preload("res://scripts/components/LadderRemovalComponent.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 var definition: Dictionary
 var routes: Dictionary = {}
 var work := preload("res://scripts/components/WorkSourceTable.gd").new() # route id -> section source
@@ -307,7 +308,7 @@ func get_explorer_data(id: Variant) -> Dictionary:
 		actions.append({"id":"pause", "text":"Cancel dismantling", "icon":cancel_icon} if route.mode == "remove" else {"id":"remove", "text":"Dismantle and recover sections"})
 	# The compact panel (doc 260): the ladder's picture and its state with progress.
 	var progress := " · %d / %d blocks" % [route.built, route.height] if route.mode in ["build", "paused"] else ""
-	return {"title":"Rough wooden ladder", "family":"settlement", "picture":"res://assets/ui/furniture/crude_ladder.png",
+	return {"title":"Rough wooden ladder", "family":"settlement", "picture":Pictures.furniture(KEY),
 		"status":{"text":status[route.mode] + progress, "tone":{"build":"fine", "ready":"fine", "paused":"waiting", "remove":"waiting", "damaged":"blocked"}[route.mode]},
 		"rows":[["Status",status[route.mode]],
 		["Height", "%d / %d blocks installed" % [route.built, route.height]], ["Sections", "%d installed · %d total" % [sections(route.built), sections(route.height)]]] + _material_rows(route),

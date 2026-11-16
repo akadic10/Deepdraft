@@ -7,11 +7,12 @@
     "",
     "Fields:",
     "  display_name  — human-readable name shown in UI and tooltips",
-    "  plural_name   — the name for several, where it is not display_name plus s (Events lines)",
+    "  plural_name   — the name for several (Events lines, crafting counts: '4 copper nails');",
+    "                  without one the display name stands for several too ('2 soil')",
     "  description   — one-sentence flavour text shown in the inspect panel",
     "  model         — path to the 1:16 voxel .glb model (res:// path)",
-    "  crate_capacity — opted-in crate packaging capacity (24: produce, seeds, cuttings and",
-    "                  log torches); absent means one unit",
+    "  crate_capacity — opted-in crate packaging capacity (24: produce, seeds, cuttings, log",
+    "                  torches and copper nails); absent means one unit",
     "  crate_models  — low / half / full models for counts 1-8 / 9-16 / 17-24",
     "                  One crate occupies one ground cell or furniture slot. Loose drops",
     "                  use the same crate; packaging is automatic and costs no resources.",
@@ -30,6 +31,7 @@
   "__comment_stone": "Raw stone blocks — heavy, common, used for construction",
   "base:item:rough_stone": {
     "display_name": "Rough stone",
+    "plural_name": "rough stones",
     "description": "A rough-hewn chunk of mountain stone. Dwarves use it to wall up and backfill unwanted openings.",
     "model": "res://assets/models/items/stone/rough_stone.glb",
     "carry_cost": 1,
@@ -244,17 +246,36 @@
       "stockpile_ore"
     ]
   },
-  "__comment_metal": "Smelted metal (doc 297): copper bars from the basic smelter, stored as Metal (stockpile_metal). Copper fittings were removed on 2026-11-13 (doc 306): what would have taken fittings takes bars.",
+  "__comment_metal": "Smelted metal (doc 297): copper bars from the basic smelter, stored as Metal (stockpile_metal). Copper fittings were removed on 2026-11-13 (doc 306): what would have taken fittings takes bars. Copper nails (doc 313; owner, 2026-11-16) are hammered from a bar on the anvil stone, twelve to a bar, and kept 24 to a crate as produce is; the Carpenter's plank furniture takes them.",
   "base:item:copper_bar": {
     "display_name": "Copper bar",
     "plural_name": "copper bars",
-    "description": "A rough bar of copper cast in a stone mould at the basic smelter. Blacksmiths hammer it into the trades' tools, and learn their own trade on it before iron.",
+    "description": "A rough bar of copper cast in a stone mould at the basic smelter. Blacksmiths hammer it into the trades' tools and into nails, and learn their own trade on it before iron.",
     "model": "res://assets/models/items/metal/copper_bar.glb",
     "carry_cost": 1,
     "weight_class": "heavy",
     "material_tags": [
       "metal",
       "copper_bar",
+      "stockpile_metal"
+    ]
+  },
+  "base:item:copper_nail": {
+    "display_name": "Copper nail",
+    "plural_name": "copper nails",
+    "description": "A square nail with a hammered head, cut from a copper bar on the anvil stone. Carpenters fix their plank furniture with them. Nails are kept 24 to a crate.",
+    "model": "res://assets/models/items/crates/copper_nail_low.glb",
+    "crate_capacity": 24,
+    "crate_models": [
+      "res://assets/models/items/crates/copper_nail_low.glb",
+      "res://assets/models/items/crates/copper_nail_half.glb",
+      "res://assets/models/items/crates/copper_nail_full.glb"
+    ],
+    "carry_cost": 4,
+    "weight_class": "heavy",
+    "material_tags": [
+      "metal",
+      "copper_nail",
       "stockpile_metal"
     ]
   },
@@ -1420,7 +1441,7 @@
   "__comment_furniture": "Furniture items - the carryable forms of placeable furniture. Fetched by FETCH_BUILD leases and restocked on uninstall. All packed furniture shares packed_furniture.glb, an 8x8x8-voxel wooden shipping crate (one world block); the ghost says which piece it becomes. The log torch alone is kept as fruit is, 24 to a crate of its own (crate_capacity, owner 2026-11-15): a plan takes one torch out of a crate, and its sticks show their wood (material_palette).",
   "base:item:bench": {
     "display_name": "Plank bench (packed)",
-    "description": "Two boards pegged onto two plank ends, with a stretcher between them. Packed in a wooden crate.",
+    "description": "Two boards nailed onto two plank ends, with a stretcher between them. Packed in a wooden crate.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1780,7 +1801,7 @@
   },
   "base:item:tool_rack": {
     "display_name": "Tool rack (packed)",
-    "description": "A sawn board and its pegs, packed for installation against a wall.",
+    "description": "A sawn board, its pegs and its nails, packed for installation against a wall.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",
@@ -1844,7 +1865,7 @@
   },
   "base:item:dining_table": {
     "display_name": "Plank dining table (packed)",
-    "description": "Four broad boards pegged across two plank ends. Place the table and add stools separately.",
+    "description": "Four broad boards nailed across two plank ends. Place the table and add stools separately.",
     "model": "res://assets/models/furniture/packed_furniture.glb",
     "carry_cost": 4,
     "weight_class": "heavy",

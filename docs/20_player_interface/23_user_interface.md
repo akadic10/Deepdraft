@@ -790,7 +790,7 @@ discovered cave air show the real material on the faces they open. Ordinary obje
 mining-zone and storage-zone inspectors take precedence; active tools keep their inputs.
 Mining the block away, covering its face or slicing it out of view closes the panel.
 Inspecting is read-only: it discovers nothing and adds nothing to the save.
-- **Names** come from each block's `inspection` entry (`name`, `category`,
+- **Names** come from each block's `inspection` entry (`display_name`, `category`,
   `description`) in `data/terrain/terrain_blocks.json`, read through BlockRegistry; a
   block without one cannot be inspected. Built stone shows the rock it was laid as, and
   a built log its wood and the way it lies ("Pine log", "Upright oak log").
@@ -1272,7 +1272,7 @@ commands, and the Orders pictures already match their markers in the world. Menu
 directly, and Colony and Events their own pages. Place
 and Inventory have no category pictures, as their categories are their group headings. An open group stays highlighted, including while a submenu is
 open. Only one action menu opens at a time; a second click or Escape closes it,
-and submenus have a Back button. Active tools retain their existing Escape handling.
+and submenus have a Back button. A tool that is on ends first (Esc's order, under the game menu).
 
 **Sizes, states and menus** (`DockUI`, `DockIconButton`, `OrdersShelf`):
 - **The dock's icons** are square and one size: 72 px from 1200 px across, 56 px below,
@@ -1568,6 +1568,10 @@ journal, over one column with the journal under the rows (2026-10-25).
     dwarves already think when the journal first sees them is not news, so a load writes
     nothing. Each thought has a few lines in `data/colony/journal_lines.json`, keyed by
     the thought's id; the dwarf, the day and the thought choose one.
+  - **Kept as codes** (doc 13, "Codes and words"): a line holds its topic (the thought's
+    id, or `found_love:<thing>` and its like for a taste), its tone, who shares it, the
+    speaker and their name, and the taste a room's thought names. It holds no sentence:
+    `lines()` words the thought and picks the speaker's line each time the page reads it.
 - **Before the flag.** "No settlement yet", "Plant the settlement flag to found it. Your
   dwarves arrive with it." and Found the settlement, which closes the page and starts the
   flag tool. There are no entries, rows or mood until then.
@@ -1675,17 +1679,21 @@ carry no pictures.
 ### Scene Wiring
 
 DockUI is not a service locator. Each node that talks to the dock holds a
-`dock_ui_path` (or `dock_path`) export wired in `debug_world.tscn`. Tool
-controllers call the dock's `register_*_controller(self)` and connect to
-`tool_requested`. The dock keeps those references only to drive its own UI:
-button pressed states, the Orders shelf, the Place, Inventory and Crafting windows,
-and the time and Slice HUD. It never hands one controller to another:
+`dock_ui_path` (or `dock_path`) export wired in `debug_world.tscn`. A tool makes itself
+known with `register_tool(self, shelf_ids)` and connects to `tool_requested`: the dock then
+follows its on and off, binds its Orders tiles, shows it on the tool bar and lets Esc end it.
+A tool has `is_active()`, `deactivate()` and the signal `tool_active_changed`. The tools the
+dock also builds a window for keep their own `register_*_controller(self)` (Place, Crafting,
+Blueprints, the flag, Storage, Rooms, the surface orders), which call `register_tool`. A tool
+that starts on its own, such as Move from a piece's card, says so with
+`announce_tool(tool_id)`, and the others step aside. The dock keeps those references only to
+drive its own UI: button pressed states, the Orders shelf, the Place, Inventory and Crafting
+windows, and the time and Slice HUD. It never hands one controller to another:
 
 - `TreeFellingController` reaches the mining owner through its own `mining_path`.
 - `CraftingManager` registers with the dock through `dock_ui_path`.
 - `DwarfDirector` drops the active tool through `dock_ui_path` when it inspects a
-  dwarf. It also passes the dock to its Professions panel, whose Esc defers to an
-  open dock menu.
+  dwarf (`announce_tool("")`).
 - `FurniturePlacementController` opens Crafting from a workbench through
   `dock_ui_path`.
 
@@ -1742,12 +1750,26 @@ until restoration is complete.
 colony is saved, loaded, started anew and left.
 - **Opening.** The dock's Menu button (the brass cog) opens it, and so does Esc once
   nothing in the scene used the key.
-- **Esc's order.** A drag in progress ends, an open dock menu closes, the active tool
-  ends, a window's own Esc closes it, and the selection clears. Each of these handlers
-  marks the key used, and only when it acts. Then the game menu's turn comes, last of
-  all, because it is an autoload: it closes the front window still open
-  (`UIWindowManager.close_front()`), and with none left it opens. Inside the menu, Esc
-  steps back: a question, then a page (Load or Settings), then the menu itself.
+- **Esc's order.** One place decides it, `DockUI.cancel()` (2026-11-16, doc 312). The first
+  of these that has something to finish does it, and the key is used up:
+  1. an open tool-bar menu;
+  2. the Professions page, unless a dock menu is open;
+  3. the tool that is on: its own smaller step if it has one (the settlement's naming is
+     dropped and the flag tool stays on), else the tool ends, a drag in progress with it;
+  4. the selection: a character sheet open over Colony dwarves, else what is selected;
+  5. the dock's own windows and menus: Crafting, Colony's inventory, an open Orders shelf,
+     Place, the action menu, Colony dwarves.
+
+  When none has anything, the game menu's turn comes, last of all, because it is an
+  autoload: it closes the front window still open (`UIWindowManager.close_front()`), and
+  with none left it opens. Inside the menu, Esc steps back: a question, then a page (Load or
+  Settings), then the menu itself.
+- **Esc is an input action,** Godot's own `ui_cancel`. The action leaves key repeat out, so
+  a held key finishes one thing. No tool, window or menu reads the key itself: a tool makes
+  itself known to the dock (`register_tool`, see "Scene Wiring") and offers `deactivate()`,
+  and `cancel_step()` when it has a smaller step. Only a focused name field takes Esc for
+  itself (the founding card's and Colony's), as text fields do. The lint's `hand-key` rule
+  refuses a key read by its constant.
 - **While open.** The world dims, the menu takes every click and every key but its own
   navigation, and the game pauses with a clock hold, as loading does. In the Save as… name
   field a Ctrl chord reaches the field only when it edits text (copy, paste, undo, select all);
@@ -1844,7 +1866,9 @@ colony is saved, loaded, started anew and left.
       lower".
     - The list is data (`data/ui/controls.json`, read through UIRegistry). An entry names
       input actions, whose keys come from the input map, so the list shows the keys the
-      game uses; fixed keys and the mouse are named as they are.
+      game uses. Several actions in a list show their keys side by side, as Move's four
+      do. Esc is read from the input map too (`ui_cancel`) and written "Esc". The mouse
+      and the words "Arrow keys" (each move action's second key) are named as they are.
     - Lines never break after a number or a slash ("1 level", "1 / 4 levels").
   - **Along the foot:** Back, "Esc goes back to the menu", and Restore defaults, which
     resets the open tab only. Controls has nothing to restore, so it has no Restore
@@ -2651,7 +2675,7 @@ system family tile (doc 259):
 
 Keys the player may one day choose are input actions in `project.godot`'s `[input]`,
 matched by the key's place on the keyboard, so they sit in the same place on every layout
-(2026-10-25):
+(2026-10-25; the camera's and the tools' keys since 2026-11-16):
 
 | Key | Action | Effect |
 |---|---|---|
@@ -2662,17 +2686,33 @@ matched by the key's place on the keyboard, so they sit in the same place on eve
 | X | `view_xray` | X-ray on or off |
 | `\`, `]` / `[`, `Ctrl+]` / `Ctrl+[` | `slice_toggle`, `slice_cell_up` / `_down`, `slice_single_up` / `_down` | Slice, and its steps (see "The Slice Tool") |
 | Ctrl + Z | `tool_undo` | Take back the newest order, with or without a tool on (see "The tool bar") |
+| W A S D, the arrows | `camera_forward`, `camera_left`, `camera_back`, `camera_right` | Move the camera; each action holds its letter and its arrow (doc 21) |
+| Shift (held) | `camera_slow` | Move slowly |
+| R | `tool_rotate` | Turn the piece or blueprint to place, or a lying log (Shift + R turns a blueprint back) |
+| Q / E | `tool_material_previous` / `tool_material_next` | Step through Build's materials |
+| Tab | `tool_shape_next` | Shapes' next shape (Shift + Tab back) |
+| F | `tool_toggle` | The tool's switch: fill a shape, Build's Replace, or a copy's floor |
 
 - **Each key does what its button does.** `TimeSliceHUD` handles Space, 1, 2, V, T and X;
   `SliceController` handles Slice's keys; `ToolBar` handles Ctrl + Z. They match exactly, so Ctrl + X is not X-ray.
+- **The camera's keys are held, the tools' are pressed.** `Camera._handle_pan` asks each
+  frame whether its actions are down. The tool that is on reads its own
+  (`ConstructionController`, `BlueprintController`, `FurniturePlacementController`). Build
+  and the blueprint tool refuse Ctrl, Alt and Meta chords and leave Shift free, since Shift
+  steps back.
 - **Space is heard first** (`_input`), before a focused button can take it as a press, so
   it never presses again the last button clicked. A text field keeps it, and it does
   nothing while the clock is held: the game menu, loading.
 - **The others come last** (`_unhandled_key_input`): a text field or a window's own keys
   take them first, and the game menu holds every key while it is open.
 - **Hover cards name them:** the buttons' `key_action`s in `data/ui/time_slice.json`.
-- **Fixed in code:** the camera's keys and mouse (doc 21), Esc's order (the game menu,
-  above), R to turn a piece, and the tools' Shift, Alt and Ctrl. The tool bar names them.
+- **Esc** is Godot's own `ui_cancel` action; what it finishes is decided in one place (the
+  game menu, above, "Esc's order").
+- **Fixed in code:** the mouse (doc 21), and the tools' Shift, Alt and Ctrl with the wheel or
+  a drag.
+- **Still named in words:** the tool bar's hints (`data/ui/tool_bar.json`), its hover
+  cards (each tool's `tool_bar_state`) and a few tooltips say "R", "Q / E", "Tab" and "F"
+  as text. A changed key has to be changed there too.
 - **Settings' Controls tab** lists them all (the Settings page, above).
 
 ### Panels (opened by `open_panel`)
@@ -2724,9 +2764,10 @@ checks every character in the UI's words.
 ## Stockpile Zone System
 
 > **Current implementation.** Ground zones are built from `StockpileZoneComponent` (work
-> source posting HAUL leases), `StockpileDesignationController` (marquee tool, per-zone
-> overlay, zone window with Remove; zones stay click-selectable with the tool off, as mining
-> zones do), the `StockpileManager` autoload (zone registry and aggregates) and the loose-item
+> source posting HAUL leases), `StockpileDesignationController` (the zones, their window with
+> Remove, and which cells a zone takes), the shared zone tool `ZoneTool` (the drag, the preview
+> and the zones on the ground; see "The zone tool" below), the `StockpileManager` autoload
+> (zone registry and aggregates) and the loose-item
 > index on `ItemDropManager`. Filters are live (see Storage inspection above). Item
 > definitions come from `ContentRegistry`, read through `ItemDropManager.get_item_def()`;
 > there is no separate ItemRegistry autoload.
@@ -2743,6 +2784,39 @@ A **stockpile zone** is a player-designated rectangular region of floor tiles th
 2. A `StockpileZoneComponent` is created covering those tiles. A new zone accepts every
    category (`StockpileZoneComponent.DEFAULT_FILTER_TAGS`).
 3. Clicking the zone opens its storage window, whose Filter tab edits the rules.
+
+Over a cell it refuses, the tool bar says "Can't store here" and why, as Fishing and Farming
+do (since 2026-11-16): "Too near the world's edge", "Storage can't stand in water",
+"Furniture stands here", "Nobody has found this place", "A field is here", "A fishing spot is
+here", "A dwarf can't stand here" (`StockpileDesignationController.cell_reason`).
+
+### The zone tool
+
+Storage, Fishing and Farming zones are drawn with one tool, `scripts/components/ZoneTool.gd`
+(doc 312, 2026-11-16). Each of the three systems adds one as a child and tells it only what
+is its own.
+- **What the tool does:**
+  - With the tool on, a drag paints a flat rectangle on the plane of the cell it began on,
+    at most `max_extent` cells a side (16), and keeps the cells its owner takes: what the
+    preview shows is what the zone gets. A short click takes that one cell.
+  - A click on a zone opens its window, with the tool on or off, so Remove is always in
+    reach.
+  - A drag let go over a window is dropped, and so is one when the game loses focus.
+  - It draws the owner's zones on the ground (`show_zone`, `hide_zone`) and hides those
+    above the slice.
+  - Right mouse stays the camera's, and Esc is the dock's.
+- **What its owner says:** why a cell can't be taken, or "" (`cell_reason`); which zone
+  stands on a cell (`zone_at`); what a finished drag means (`cells_chosen`) and what a click
+  on a zone means (`zone_clicked`). Fishing also narrows a drag to the water it began at
+  (`narrow`).
+- **What every zone refuses** is asked in one place: `ZoneTool.near_edge(cell)` (the world's
+  edge and the bedrock), and `taken_by_another(cell)`, which asks every other zone tool
+  whether it covers the cell and answers in that zone's words ("A field is here"). A new kind
+  of zone needs no line in the others.
+- **The owner's tool-bar line** reads the tool's `dragging`, `preview`, `hover`,
+  `hover_reason`, `pointer` and `drag_rect()`.
+- **A new zone-type tool** uses this one. Do not copy a neighbour's (CLAUDE.md, "Code: one
+  job, one way").
 
 ### Filter model
 
@@ -2873,7 +2947,7 @@ signal stockpile_changed(zone: StockpileZone, item_uri: String, delta: int)
 Live 2026-10-31 (doc 289). **Zones → Fishing** marks spots along a shore for Rangers to fish
 from (`FishingSystem`; the rules are in doc 42, "Fishing"). The owner chose (2026-10-31) a zone
 painted on the shore, beside Storage, over a placed jetty piece or an Orders tool with a count.
-- **The tool** works as Storage's: Esc exits, and a drag paints a flat rectangle on the anchor's
+- **The tool** is the shared zone tool (above, "The zone tool"): a drag paints a flat rectangle on the anchor's
   plane, at most 16 × 16 (`max_zone_extent`), in teal, apart from storage's blue and mining's
   yellow. It keeps only the cells that can be spots on the anchor's water. While dragging, the
   tool bar's tag counts them ("5 spots · Each spot takes one fisher"); over a cell it refuses it
@@ -2900,7 +2974,7 @@ painted on the shore, beside Storage, over a placed jetty piece or an Orders too
 
 Live 2026-11-14 (doc 309). **Zones → Farming** lays out a field for Farmers to work
 (`FarmingSystem`; the rules are in doc 42, "Fields").
-- **The tool** works as Storage's and Fishing's: Esc exits, and a drag paints a flat rectangle
+- **The tool** is the shared zone tool (above, "The zone tool"): a drag paints a flat rectangle
   on the anchor's plane, at most 16 × 16 (`max_zone_extent`), in leaf green, apart from
   storage's blue, mining's yellow and fishing's teal. It keeps only the cells a field can
   take. While dragging, the tool bar's tag counts them ("24 tiles · A Farmer hoes and sows
@@ -2939,6 +3013,21 @@ Live 2026-11-14 (doc 309). **Zones → Farming** lays out a field for Farmers to
 arrivals, caverns found, colony news and warnings. Each entry has its kind, its words
 (and a second line for what to do), its picture, the colony's time, and where Locate
 goes: a cell, or the dwarves concerned.
+- **Kept as codes** (doc 13, "Codes and words"): an entry holds a line code and the
+  fields its sentence takes, never the sentence: `food_rotted` with
+  `{"count": 24, "item": "base:item:blueberry", "where": "stockpile:1"}`.
+  - A caller posts `EventLog.post(kind, line, fields, options)` or
+    `raise(key, line, fields, options)`. Fields are numbers, proper names (a dwarf, the
+    settlement) and ids: an item, a crop, a profession, a season, an arrival, a map edge,
+    a place (`ground`, `storage`, `stockpile:<number>`, `piece:<furniture id>`).
+  - The words are in `event_log.json`'s `lines`: `text`, an optional `detail` (the second
+    line) and an optional `past`, each a whole sentence with `{named}` fields, or its
+    forms by `{count}` (`one`, `other`). `places` words a place code.
+  - EventLog is the one place that turns an entry into words. The copies it hands to the
+    toasts and the Events window carry the built `text` and `detail`; the save holds the
+    code and fields. The line codes are `cavern_found`, `flood`, `season_came`,
+    `food_short`, `promoted`, `arrived`, `founded`, `founded_with`, `food_rotted`,
+    `food_going_bad` and `crop_late`.
 - **What lands:**
   - arrivals, from WorldEventDirector once a group has finished arriving ("3 deer have
     arrived from the east."), with the species' head and the place inland where the
@@ -2960,9 +3049,9 @@ goes: a cell, or the dwarves concerned.
     plain warning entries, not pinned.
 - **Warnings stay pinned** by their key until resolved: the food warning once no dwarf
   is short, rising water once it has not spilled for `flood_hold_hours` (3 in-game
-  hours). Raising a standing warning again updates its words and place without a new
-  toast. A resolved warning stays in its day, in its past words when it was raised with
-  them (`past`: "2 dwarves could not find reachable food.", "Rising water spilled onto
+  hours). Raising a standing warning again updates its line, fields and place without a
+  new toast. A resolved warning stays in its day, in its line's past words when the line
+  has them (`past`: "2 dwarves could not find reachable food.", "Rising water spilled onto
   dry ground.").
 - **Kept:** `keep_days` (10) of entries, and pinned warnings however old, at most 200. The
   log is saved with the colony (the `events` section) and cleared by New game. Nothing
@@ -2971,8 +3060,8 @@ goes: a cell, or the dwarves concerned.
   settlement flag's status, slice hints and DEV messages stay toasts
   (`DockUI.show_persistence_status()`).
 - `data/events/event_log.json` holds the days kept, the toast limit and times, the
-  checks, and each kind's picture. An arrival names its species' picture in
-  `arrivals.json`.
+  checks, each kind's picture, and every entry's words (`lines` and `places`). An arrival
+  names its species' picture and its animals' names in `arrivals.json`.
 
 **The Events window** (`scripts/ui/EventsPanel.gd`, registered by DockUI as `events`) is
 the log as a window with the others: people family, opening where windows open (24, 76)
@@ -3080,7 +3169,7 @@ dimmed while the career is planned. The career map is the Professions window
   compared for one career, as an open character sheet follows the selection
   (`DwarfDirector.on_explorer_selected`, `DwarfProfessionPanel.follow`).
 - **Closing.** The window closes when its dwarf leaves the roster or Colony Dwarves
-  closes. Esc closes it unless a dock menu is open, and Back to colony returns to the
+  closes. Esc closes it unless a dock menu is open (Esc's order, the game menu), and Back to colony returns to the
   dwarf in Colony Dwarves. The rules behind it are in doc 41, Profession System.
 
 ### Equipment and promotion feedback — live (2026-10-09)

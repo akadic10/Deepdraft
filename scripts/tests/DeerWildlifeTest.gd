@@ -61,6 +61,19 @@ func _run() -> void:
 	var data: Dictionary = wildlife.get_explorer_data(deer)
 	_expect(data.rows.back() == ["Herd","2 deer"],"inspector reports saved herd membership")
 	_expect(String(data.badge.get("value", "")) == "40" and ["Health", "Healthy · 40 hit points"] in data.rows, "a deer has 40 hit points on its badge (doc 45)")
+	# Codes and words: the animal holds a code, and only the inspector words it.
+	var doing: String = deer.activity
+	deer.activity = "seeking_shelter"
+	var worded: Dictionary = wildlife.get_explorer_data(deer)
+	_expect(["Activity", "Seeking shelter"] in worded.rows and String(worded.status.text) == "Seeking shelter · 2 deer",
+		"the inspector shows an activity's words, not its code: %s" % [worded.status.text])
+	deer.arrival = {"event": "test", "route": [], "status": "journey_interrupted"}
+	worded = wildlife.get_explorer_data(deer)
+	_expect(["Arrival", "Journey interrupted"] in worded.rows and String(worded.status.text) == "Journey interrupted · 2 deer",
+		"and an arrival's status the same way: %s" % [worded.status.text])
+	deer.arrival = {}
+	deer.activity = doing
+	_expect(_unworded_codes().is_empty(), "every activity and arrival code the animals use has its words: %s" % [_unworded_codes()])
 	var snapshot: Dictionary = wildlife.serialize_state()
 	wildlife.advance(10,[])
 	_expect(snapshot == wildlife.serialize_state(),"pause freezes both species")
@@ -72,7 +85,7 @@ func _run() -> void:
 	deer.fatigue = 0
 	deer.timer = 0
 	wildlife.advance(.01,[])
-	_expect(deer.activity == "Grazing" and deer.head.rotation.x > 1 and deer.neck.rotation.x < -2,"neck/head joints form grazing pose")
+	_expect(deer.activity == "grazing" and deer.head.rotation.x > 1 and deer.neck.rotation.x < -2,"neck/head joints form grazing pose")
 	for phase in [0.0,PI/10.0,3.0*PI/10.0]:
 		deer.pose_time = phase
 		deer._pose()
@@ -84,26 +97,26 @@ func _run() -> void:
 	for i in range(80): wildlife.advance(.1,[])
 	_expect(deer.hunger < .2 and world.get_block(40,20,40) == grass,"gentle grazing satisfies hunger without terrain or crop damage")
 	deer.restore_state(snapshot.deer[0])
-	deer.activity = "Grazing"
+	deer.activity = "grazing"
 	deer.hunger = .7
 	deer.timer = 4
 	var obstruction: int = root.get_node("PlacedEntityRegistry").register_box(Vector3i(40,21,39),Vector3i(2,4,1))
 	_expect(not deer.can_graze(),"grazing reach refuses a wall beyond the standing footprint")
 	wildlife.advance(.01,[])
-	_expect(deer.activity != "Grazing" and deer.hunger >= .7,"new obstruction interrupts grazing without granting a meal")
+	_expect(deer.activity != "grazing" and deer.hunger >= .7,"new obstruction interrupts grazing without granting a meal")
 	root.get_node("PlacedEntityRegistry").unregister(obstruction)
 	deer.restore_state(snapshot.deer[0])
 	deer.hunger = .1
 	deer.fatigue = .8
 	deer.timer = 0
 	wildlife.advance(.01,[])
-	_expect(deer.activity == "Sleeping" and deer.visual.scale == Vector3.ONE,"deer rests with folded legs and a full-size body")
+	_expect(deer.activity == "sleeping" and deer.visual.scale == Vector3.ONE,"deer rests with folded legs and a full-size body")
 	var rest_box: AABB = wildlife.get_explorer_bounds(deer)
 	_expect(rest_box.position.y >= 20.99 and rest_box.position.z >= 39.99 and rest_box.end.z <= 42.01,"resting deer stays above ground inside its footprint: %s" % rest_box)
 	for i in range(100): wildlife.advance(.1,[])
 	_expect(deer.fatigue < .8,"sleep restores fatigue")
 	wildlife.advance(.01,[deer.position+Vector3(-5,0,0)])
-	_expect(deer.activity == "Fleeing" and deer.hop_seconds < .4,"danger wakes deer into a fast stride")
+	_expect(deer.activity == "fleeing" and deer.hop_seconds < .4,"danger wakes deer into a fast stride")
 	_expect(2.0/float(wildlife.deer_definition.navigation.flee_hop_seconds) > 1.0/float(wildlife.definition.navigation.flee_hop_seconds),"deer flee faster than rabbits")
 	_navigation_checks()
 	# Separate herd steering from urgent needs and confirm it cannot consume rabbit RNG.
@@ -139,6 +152,27 @@ func _run() -> void:
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("DEER_WILDLIFE_OK")
 	quit(0 if failures.is_empty() else 1)
+
+## The codes the animal scripts name for an activity or an arrival's status that
+## animal_words.json has no words for. A script's mark is what a line naming an arrival's
+## status holds; any other line naming `activity` names activities.
+func _unworded_codes() -> Array:
+	var marks := {"entities/GrazerAgent": "status", "entities/DeerAgent": "status", "entities/RabbitAgent": "status",
+		"entities/WolfAgent": "status", "entities/DuckAgent": "status", "components/DuckPopulation": "duck.arrival"}
+	# A quoted code that is neither a dictionary's key nor the name a saved state is read by.
+	var literal := RegEx.create_from_string("(?<!get\\()\"([a-z][a-z0-9_]*)\"(?!\\s*:)")
+	var missing: Array = []
+	var found_any := {"activity": 0, "arrival": 0}
+	for script: String in marks:
+		for line: String in FileAccess.get_file_as_string("res://scripts/%s.gd" % script).split("\n"):
+			if line.strip_edges().begins_with("#"): continue
+			var table := "arrival" if line.contains(String(marks[script])) else "activity" if line.contains("activity") else ""
+			if table.is_empty(): continue
+			for found: RegExMatch in literal.search_all(line):
+				found_any[table] += 1
+				if not (wildlife._words[table] as Dictionary).has(found.get_string(1)): missing.append("%s names %s '%s'" % [script, table, found.get_string(1)])
+	if int(found_any.activity) < 20 or int(found_any.arrival) < 4: missing.append("the scripts were not read: %s" % [found_any])
+	return missing
 
 func _navigation_checks() -> void:
 	var from := Vector3i(60,21,60)

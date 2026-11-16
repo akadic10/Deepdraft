@@ -69,7 +69,7 @@ func _run() -> void:
 	rabbit.fatigue = 0
 	rabbit.timer = 0
 	wildlife.advance(.01,[])
-	_expect(rabbit.activity == "Grazing" and events.is_empty(),"starting a graze waits for its first nibble")
+	_expect(rabbit.activity == "grazing" and events.is_empty(),"starting a graze waits for its first nibble")
 	wildlife.advance(.4,[])
 	_expect(events.is_empty(),"no premature grazing cue")
 	wildlife.advance(.1,[])
@@ -98,10 +98,10 @@ func _run() -> void:
 	_expect(feedback.play_animal("rabbit_graze",rabbit),"visible active grazer can play")
 	wildlife.advance(.01,[rabbit.position + Vector3(2,0,0)])
 	feedback._process(.01)
-	_expect(rabbit.activity == "Fleeing" and feedback._voices[0].remaining == 0,"flight immediately stops a nibble")
-	rabbit.activity = "Sleeping"
+	_expect(rabbit.activity == "fleeing" and feedback._voices[0].remaining == 0,"flight immediately stops a nibble")
+	rabbit.activity = "sleeping"
 	_expect(not feedback.play_animal("rabbit_graze",rabbit),"sleeping rabbit cannot make eating sounds")
-	rabbit.activity = "Grazing"
+	rabbit.activity = "grazing"
 	feedback.clear_transients()
 	feedback.play_animal("rabbit_graze",rabbit)
 	wildlife.apply_slice(20)
@@ -145,7 +145,7 @@ func _run() -> void:
 	feedback.clear_transients()
 	for i in range(3):
 		var other = wildlife.add_rabbit("rabbit:audio:%d" % i,Vector3i(41+i,21,40),200+i)
-		other.activity = "Grazing"
+		other.activity = "grazing"
 		var accepted: bool = feedback.play_animal("rabbit_graze",other)
 		_expect(accepted == (i < 2),"grazing pool is capped at two voices")
 		await _wait_real(.22)

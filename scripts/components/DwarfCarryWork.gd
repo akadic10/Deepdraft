@@ -323,7 +323,7 @@ func _begin_item_pickup(item: Node3D, phase: int) -> void:
 	_handling_yaw_to = atan2(toward.x, toward.z)
 	_handling_elapsed = 0.0
 	_handling_lifted = false
-	_handling_duration = maxf(.05, float(TaskManager.get_config_section("hauling").get("pickup_time_s", .75)))
+	_handling_duration = maxf(.05, float(TaskManager.get_config_section("hauling").get("pickup_time_seconds", .75)))
 	task_phase = phase
 	rig.carry_pose.pickup(0.0, item, _handling_start, rig.carried_entries, false)
 
@@ -366,7 +366,7 @@ func _begin_item_lower(contact: Vector3, phase: int) -> void:
 	var toward := Vector2(contact.x - agent.global_position.x, contact.z - agent.global_position.z)
 	_handling_yaw_to = atan2(toward.x, toward.y) if toward.length() > .25 else agent.rotation.y
 	_handling_elapsed = 0.0
-	_handling_duration = maxf(.05, float(TaskManager.get_config_section("hauling").get("deposit_time_s", .65)))
+	_handling_duration = maxf(.05, float(TaskManager.get_config_section("hauling").get("deposit_time_seconds", .65)))
 	task_phase = phase
 	rig.carry_pose.lower(0.0, rig.carried_entries, agent.to_local(_handling_target))
 

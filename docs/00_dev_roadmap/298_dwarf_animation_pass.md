@@ -275,7 +275,7 @@ actor's position are unchanged.
   are 0.56 apart, and the actor stands in the ladder's own cell, so hands on the rails were inside the
   head. The body now climbs 0.55 behind the rails (0.15 with a wall behind), and the hands reach over the
   head onto the rails, never above the ladder's top. Near the top they hold it as the body rises.
-- **Mining pace (owner: yes to slowing it).** `execution.visible_swing_s` is 0.9. Hardness alone sets a
+- **Mining pace (owner: yes to slowing it).** `execution.visible_swing_seconds` is 0.9. Hardness alone sets a
   block's dig time, as before, and swings divide it evenly: rock (hardness 3) goes from 3 swings of 0.5 s
   to 2 of 0.75 s. Practice and Strength still shorten a swing. Replacing a block digs on the same pace.
 
@@ -288,7 +288,7 @@ actor's position are unchanged.
   1.6 blocks ahead. For a moment after a sharp turn it walks a little sideways. The last block of an
   arrival is exempt, as it has its own turn.
 - **Sitting and getting up.** The feet step to the seat, then the body lowers leaning into it; getting up
-  is the reverse. `seat_transition_s` goes from 0.5 to 0.9 s. A dwarf called away, or leaving a meal, leans
+  is the reverse. `seat_transition_seconds` goes from 0.5 to 0.9 s. A dwarf called away, or leaving a meal, leans
   into the crossfade when it rises (`DwarfBodyRig._lean_up`).
 - **Knees.** Stool, chair and bench hands move from 0.81 to 0.44 ahead, so they stop short of the toes.
   Table seats keep their hands on the table.

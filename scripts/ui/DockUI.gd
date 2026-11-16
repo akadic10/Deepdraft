@@ -65,12 +65,13 @@ var _founding_card: Control
 var _founding_window: UIWindow
 var _craft_panel: Control
 var _craft_window: UIWindow
-var _mining_controller: Node = null
 var _construction_controller: Node = null
 var _room_controller: Node = null
 var _orders: Control
 var _tool_bar: Control   # the bar every tool shows (doc 23, "The tool bar")
 var _bar_tools: Array[Node] = []   # tools registered before the bar exists
+var _tools: Array[Node] = []       # every registered tool: Esc finishes the one that is on
+var _shelf_binds: Array = []       # [tool id, tool] registered before the Orders shelf exists
 var _toast_layer: CanvasLayer = null
 var _toasts: Control = null
 var _counts: Node = null   # the live counts on Colony and Place (doc 23, "Counts")
@@ -108,7 +109,8 @@ func _ready() -> void:
 	_root.add_child(_orders)
 	_orders.tool_requested.connect(_request_order_tool)
 	_orders.shelf_visibility_changed.connect(_refresh_active_buttons)
-	if _mining_controller != null: _orders.bind_controller("mine_precision", _mining_controller)
+	for bind: Array in _shelf_binds: _orders.bind_controller(String(bind[0]), bind[1])
+	_shelf_binds.clear()
 	_orders.fit_above_dock(_dock_panel.get_global_rect())
 	_tool_bar = preload("res://scripts/ui/ToolBar.gd").new()
 	_tool_bar.name = "ToolBar"
@@ -472,41 +474,52 @@ func _close_action_panel() -> void:
 	_refresh_active_buttons()
 
 
+## Esc is decided here and nowhere else in the world scene (doc 23, "Esc"). The action leaves
+## key repeat out, so a held key finishes one thing.
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
-			and _craft_window != null and _craft_window.visible:
+	if event.is_action_pressed("ui_cancel") and cancel(): get_viewport().set_input_as_handled()
+
+
+## What Esc finishes: the first of these that has something, and no more.
+##   1. an open tool-bar menu;
+##   2. the Professions page, which lies over Colony dwarves;
+##   3. the tool that is on: its own smaller step if it has one (the settlement's naming),
+##      else the tool ends;
+##   4. the selection: a sheet over Colony dwarves, else what is selected;
+##   5. the dock's own windows and menus, in the order below.
+## False when none has anything: GameMenu then closes the front window, or opens the menu.
+func cancel() -> bool:
+	if _tool_bar != null and _tool_bar.close_menu(): return true
+	if _window_manager != null and _window_manager.is_open("professions") and not is_action_menu_open():
+		_window_manager.close("professions")
+		return true
+	for tool: Node in _tools:
+		if not is_instance_valid(tool) or not tool.is_active(): continue
+		if not (tool.has_method("cancel_step") and tool.cancel_step()): tool.deactivate()
+		return true
+	var director := get_tree().get_first_node_in_group("dwarf_director")
+	if director != null and director.end_walk_test(): return true
+	var explorer := get_tree().get_first_node_in_group("object_explorer")
+	if explorer != null and explorer.cancel_selection(): return true
+	if _craft_window != null and _craft_window.visible:
 		_window_manager.close("craft")
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
-			and _inventory_window != null and _inventory_window.visible:
+		return true
+	if _inventory_window != null and _inventory_window.visible:
 		_window_manager.close("inventory")
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE and _orders != null:
-		if not _orders.active_tool_id().is_empty():
-			_request_order_tool("")
-			get_viewport().set_input_as_handled()
-			return
-		if _orders.is_open():
-			_orders.set_open(false)
-			get_viewport().set_input_as_handled()
-			return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
-			and _place_window != null and _place_window.visible:
-		# First Escape finishes the active tool; second closes the catalog.
-		if _furniture_controller != null and _furniture_controller.is_active(): return
+		return true
+	if _orders != null and _orders.is_open():
+		_orders.set_open(false)
+		return true
+	if _place_window != null and _place_window.visible:
 		_window_manager.close("place")
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE and _panel_container.visible:
+		return true
+	if _panel_container.visible:
 		_close_action_panel()
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE \
-			and _window_manager != null and _window_manager.is_open("dwarves"):
+		return true
+	if _window_manager != null and _window_manager.is_open("dwarves"):
 		_window_manager.close("dwarves")
-		get_viewport().set_input_as_handled()
+		return true
+	return false
 
 
 func _build_time_slice_hud() -> void:
@@ -981,6 +994,28 @@ func _target_canvas_visible(target: String) -> bool:
 	return false
 
 
+# ── Tools ─────────────────────────────────────────────────────────────────────
+
+## A tool makes itself known (doc 23, "The tool bar"): the dock follows its on and off, the
+## Orders shelf binds its tiles (`shelf_ids`), the tool bar reads its state, and Esc ends it
+## while it is on (cancel()). A tool has is_active(), deactivate() and tool_active_changed; it
+## listens to tool_requested to step aside for another. The register_* functions below are for
+## the tools the dock also builds a window for.
+func register_tool(controller: Node, shelf_ids: Array = []) -> void:
+	if not _tools.has(controller): _tools.append(controller)
+	_connect_tool_active(controller)
+	for id: String in shelf_ids:
+		if _orders != null: _orders.bind_controller(id, controller)
+		else: _shelf_binds.append([id, controller])
+	_bind_tool(controller)
+
+
+## A tool that starts on its own (Place from a window, a DEV order) says so here, and the other
+## tools step aside. "" asks every tool to stop.
+func announce_tool(tool_id: String) -> void:
+	tool_requested.emit(tool_id)
+
+
 # ── Slice tool integration (doc 11 Phase 2) ───────────────────────────────────
 # The SliceController owns the tool state and its palette window; the dock's
 # `slice` entry only toggles it. Registration happens from SliceController._ready
@@ -1034,8 +1069,7 @@ func _toggle_slice_tool() -> void:
 ## toggles the settlement-flag placement tool.
 func register_flag_controller(controller: Node) -> void:
 	_flag_controller = controller
-	_connect_tool_active(controller)
-	_bind_tool(controller)
+	register_tool(controller)
 	_bind_settlement()
 
 
@@ -1080,35 +1114,18 @@ func _open_colony_entry(target: String) -> void:
 	_refresh_active_buttons()
 
 
-## Push-registration from StockpileDesignationController (doc 18 Phase 1) —
-## the Storage zone panel's actions route here.
+## Push-registration from StockpileDesignationController (doc 18 Phase 1): Colony's Inspect
+## storage asks it for a zone's window.
 func register_stockpile_controller(controller: Node) -> void:
 	_stockpile_controller = controller
-	_connect_tool_active(controller)
-	if _orders != null: _orders.bind_controller("storage_zone", controller)
-	_bind_tool(controller)
-
-
-## Push-registration from FishingSystem (doc 289): Zones → Fishing toggles its tool.
-func register_fishing_controller(controller: Node) -> void:
-	_connect_tool_active(controller)
-	if _orders != null: _orders.bind_controller("fishing_zone", controller)
-	_bind_tool(controller)
-
-
-## Push-registration from FarmingSystem (doc 309): Zones → Farming toggles its tool.
-func register_farming_controller(controller: Node) -> void:
-	_connect_tool_active(controller)
-	if _orders != null: _orders.bind_controller("farming_zone", controller)
-	_bind_tool(controller)
+	register_tool(controller, ["storage_zone"])
 
 
 func register_furniture_controller(controller: Node) -> void:
 	_furniture_controller = controller
 	if _counts != null: _counts.furniture = controller
 	if _inventory_panel != null: _inventory_panel.bind_controller(controller)
-	_connect_tool_active(controller)
-	_bind_tool(controller)
+	register_tool(controller)
 	if _window_manager == null or _place_catalog != null: return
 	_place_catalog = FurniturePlacePanel.new()
 	_place_window = _window_manager.register_window("place", "Place an item", "", _place_catalog,
@@ -1124,8 +1141,7 @@ func register_furniture_controller(controller: Node) -> void:
 ## the tool, so the dock's other tools step aside, as Place does.
 func register_item_stamper(controller: Node) -> void:
 	if _window_manager == null or _stamper_panel != null or not UIRegistry.dev_tools_enabled: return
-	_connect_tool_active(controller)
-	_bind_tool(controller)
+	register_tool(controller)
 	_stamper_panel = preload("res://scripts/ui/ItemStamperPanel.gd").new()
 	var stamper_window: UIWindow = _window_manager.register_window("item_stamper", "Stamp an item", "", _stamper_panel,
 		{"persistent": false, "default_pos": Vector2(24, 76), "family": "dev", "flush": true})
@@ -1265,27 +1281,16 @@ func _refresh_events_badge() -> void:
 	_button_by_target.events.show_count(count, "blocked" if warned else "waiting", note)
 
 
-## Push-registration from MiningDesignationController — gives the dock's
-## 'mine' entry live pressed-state (the tool previously had none at all).
-func register_mining_controller(controller: Node) -> void:
-	_mining_controller = controller
-	_connect_tool_active(controller)
-	if _orders != null: _orders.bind_controller("mine_precision", controller)
-	_bind_tool(controller)
-
-
 func register_construction_controller(controller: Node) -> void:
 	_construction_controller = controller
-	_connect_tool_active(controller)
-	_bind_tool(controller)
+	register_tool(controller)
 
 
 ## Copy and placing blueprints (doc 273): the Blueprints window, whose Place starts placing
 ## (announced, so the dock's other tools step aside), and which opens on what Copy keeps.
 func register_blueprint_controller(controller: Node) -> void:
 	_blueprint_controller = controller
-	_connect_tool_active(controller)
-	_bind_tool(controller)
+	register_tool(controller)
 	if _window_manager == null or _blueprint_panel != null: return
 	_blueprint_panel = preload("res://scripts/ui/BlueprintLibraryPanel.gd").new()
 	var window: UIWindow = _window_manager.register_window("blueprints", "Blueprints", "", _blueprint_panel,
@@ -1307,21 +1312,13 @@ func register_blueprint_controller(controller: Node) -> void:
 ## self-toggles. Registration exists for the pressed-state readback only.
 func register_room_controller(controller: Node) -> void:
 	_room_controller = controller
-	_connect_tool_active(controller)
-	_bind_tool(controller)
+	register_tool(controller)
 
 
 ## Push-registration from TreeFellingController — binds the shared surface
 ## orders (chop, clear, harvest, cancel) to the Orders shelf.
 func register_chop_controller(controller: Node) -> void:
-	_connect_tool_active(controller)
-	if _orders != null:
-		_orders.bind_controller("chop", controller)
-		_orders.bind_controller("clear_stones", controller)
-		_orders.bind_controller("harvest_plants", controller)
-		_orders.bind_controller("clear_shrubs", controller)
-		_orders.bind_controller("cancel_orders", controller)
-	_bind_tool(controller)
+	register_tool(controller, ["chop", "clear_stones", "harvest_plants", "clear_shrubs", "cancel_orders"])
 
 
 func _request_order_tool(tool_id: String) -> void:

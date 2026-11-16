@@ -78,12 +78,10 @@ var _window_accum: float = 0.0
 
 
 func _ready() -> void:
-	var dock := get_node_or_null(dock_ui_path)
+	var dock := get_node_or_null(dock_ui_path) as DockUI
 	if dock != null:
-		if dock.has_method("register_room_controller"):
-			dock.call("register_room_controller", self)
-		if dock.has_signal("tool_requested"):
-			dock.connect("tool_requested", _on_tool_requested)
+		dock.register_room_controller(self)
+		dock.tool_requested.connect(_on_tool_requested)
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null:
 		if slice_controller.has_signal("slice_changed"):
@@ -121,11 +119,6 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active:
-		return
-	if event is InputEventKey and (event as InputEventKey).pressed \
-			and (event as InputEventKey).keycode == KEY_ESCAPE:
-		deactivate()
-		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton

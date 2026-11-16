@@ -19,6 +19,7 @@ func _run() -> void:
 func _craft_place_move() -> void:
 	_carpenter_bench_at(Vector3i(44,20,42))
 	drops.spawn_drop(PINE_PLANK,4,Vector3i(42,21,40))
+	drops.spawn_drop("base:item:copper_nail", 4, Vector3i(43,21,40))   # a nail to each plank (doc 313)
 	var order: int=crafting.queue_order(LOG_TABLE_RECIPE,1)
 	_expect(order>=0 and await _completed(order),"a Carpenter makes a plank table from four actual planks at the carpenter's bench")
 	_expect(_count(PINE_PLANK)==0 and _count(LOG_TABLE_ITEM)==1,"four planks become one packed table")

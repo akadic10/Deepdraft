@@ -184,7 +184,7 @@
           "label": "Blacksmith",
           "icon": "res://assets/ui/icons/blacksmith.png",
           "family": "settlement",
-          "tooltip": "Copper bars and the tools that open the other trades. Iron, weapons and armor come later.",
+          "tooltip": "Copper bars, nails and the tools that open the other trades. Iron, weapons and armor come later.",
           "action": "open_crafting",
           "target": "blacksmith"
         },
@@ -511,7 +511,7 @@
       "icon": "res://assets/ui/icons/appeal.png"
     },
     "loose": {
-      "icon": "res://assets/ui/items/base_item_rough_stone.png"
+      "icon": "res://assets/ui/items/rough_stone.png"
     },
     "stocked": {
       "icon": "res://assets/ui/icons/storage_zone.png"

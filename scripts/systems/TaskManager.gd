@@ -60,9 +60,9 @@ var _max_probes_per_wake: int:
 var _probe_node_cap: int:
 	get: return _scheduler.probe_node_cap
 	set(value): _scheduler.probe_node_cap = value
-var _heartbeat_s: float = 0.5
-var _backoff_base_s: float = 2.0
-var _backoff_max_s: float = 30.0
+var _heartbeat_seconds: float = 0.5
+var _backoff_base_seconds: float = 2.0
+var _backoff_max_seconds: float = 30.0
 var _unreachable_threshold: int = 3
 var _static_priorities: Dictionary = {}   # type name -> int
 
@@ -106,14 +106,15 @@ func _ready() -> void:
 	add_to_group("save_state_owner")
 	WorldData.chunk_dirtied.connect(_on_chunk_dirtied, CONNECT_DEFERRED)
 	print("TaskManager: ready (budget %d us, %d probes/wake, heartbeat %.2f s)." % [
-		_budget_usec, _max_probes_per_wake, _heartbeat_s])
+		_budget_usec, _max_probes_per_wake, _heartbeat_seconds])
 
 
 func _process(delta: float) -> void:
-	if SaveManager.is_loading() or WorldClock.paused or WorldClock.speed <= 0.0: return
-	advance_supervision(delta * WorldClock.speed)
+	var seconds := WorldClock.game_seconds(delta)
+	if SaveManager.is_loading() or seconds <= 0.0: return
+	advance_supervision(seconds)
 	_heartbeat_accum += delta
-	if _heartbeat_accum >= _heartbeat_s:
+	if _heartbeat_accum >= _heartbeat_seconds:
 		_heartbeat_accum = 0.0
 		_wake_dirty = true
 	if _wake_dirty:
@@ -422,15 +423,15 @@ func static_priority(type: int) -> int:
 
 
 func backoff_max_seconds() -> float:
-	return _backoff_max_s
+	return _backoff_max_seconds
 
 
 ## Exponential retry backoff; fires task_unreachable at the configured threshold.
 func apply_backoff(task: Task, now: int) -> void:
-	if task.wait_reason.is_empty() or task.wait_reason == "Waiting for assessment": task.wait_reason = "No proven route for eligible workers"
+	if task.wait_reason.is_empty() or task.wait_reason == Task.NOT_ASSESSED: task.wait_reason = "No proven route for eligible workers"
 	journal.transition(task.order_locator,"waiting",task.wait_reason)
 	task.blocked_count += 1
-	var delay_s: float = minf(pow(_backoff_base_s, float(task.blocked_count)), _backoff_max_s)
+	var delay_s: float = minf(pow(_backoff_base_seconds, float(task.blocked_count)), _backoff_max_seconds)
 	task.retry_at = now + int(delay_s * 1000.0)
 	_blocked_count += 1
 	if task.blocked_count == _unreachable_threshold:
@@ -558,9 +559,9 @@ func _load_config() -> void:
 	_budget_usec = int(s.get("scheduler_budget_usec", _budget_usec))
 	_max_probes_per_wake = int(s.get("max_probes_per_wake", _max_probes_per_wake))
 	_probe_node_cap = int(s.get("probe_node_cap", _probe_node_cap))
-	_heartbeat_s = float(s.get("heartbeat_interval_s", _heartbeat_s))
-	_backoff_base_s = float(s.get("backoff_base_s", _backoff_base_s))
-	_backoff_max_s = float(s.get("backoff_max_s", _backoff_max_s))
+	_heartbeat_seconds = float(s.get("heartbeat_interval_seconds", _heartbeat_seconds))
+	_backoff_base_seconds = float(s.get("backoff_base_seconds", _backoff_base_seconds))
+	_backoff_max_seconds = float(s.get("backoff_max_seconds", _backoff_max_seconds))
 	_unreachable_threshold = int(s.get("unreachable_signal_threshold", _unreachable_threshold))
 	_static_priorities = d.get("static_priorities", {})
 

@@ -6,8 +6,8 @@ extends VBoxContainer
 ## - A plain room is told the steps from it to each type.
 ## - A line under the list says a room takes the first type it fits, in the list's order.
 ## It builds again only when what it says changes. Presentation only.
-const HAY := Color("e2c06a")
-const MUTED := Color("aeb5ad")
+const HAY := UITheme.HAY
+const MUTED := UITheme.MUTED
 
 ## The window's sizes for the screen (RoomInspectorPanel.SIZES): tile, name, goal, tag, gap.
 var sizes: Dictionary = {}

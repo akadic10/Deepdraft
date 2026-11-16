@@ -148,3 +148,8 @@ func work_task_released(_task: Task, dwarf_id: int) -> void:
 
 func work_source_retired() -> void:
 	pass
+
+
+## The dwarf that holds this source, for TaskManager's self-check (WorkSourceAdapter).
+func claimed_workers() -> Array:
+	return [reserved_by] if reserved_by >= 0 else []

@@ -207,6 +207,8 @@ func ensure_claim() -> void:
 func claimed_item() -> Node3D: return _claim
 ## Dwarves fetching an item for this plan.
 func fetching_workers() -> Array: return _fetches.keys()
+## The dwarves that hold this source, for TaskManager's self-check (WorkSourceAdapter).
+func claimed_workers() -> Array: return fetching_workers()
 ## True when the item is this plan's claim or a fetching dwarf's reservation.
 func holds_item(item: Node3D) -> bool: return _claim == item or item in _fetches.values()
 

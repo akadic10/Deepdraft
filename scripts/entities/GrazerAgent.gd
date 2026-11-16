@@ -13,7 +13,10 @@ var home := Vector3i.ZERO
 var target := Vector3i.ZERO
 var hunger := 0.0
 var fatigue := 0.0
-var activity := "Idle"
+## What the animal is doing, by its code ("grazing", "seeking_shelter"): logic, saves and tests
+## read the code, and WildlifeManager.words_of("activity", code) has the words shown for it
+## (data/animals/animal_words.json). `arrival.status` is a code the same way ("settled").
+var activity := "idle"
 var timer := 0.0
 var calm_left := 0.0
 var hop_progress := 1.0
@@ -64,7 +67,7 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 	hunger = clampf(hunger + hours * float(behavior.hunger_per_hour), 0, 1)
 	fatigue = clampf(fatigue + hours * float(behavior.fatigue_per_hour), 0, 1)
 	pose_time += seconds
-	if not arrival.is_empty() and activity == "Arrival blocked": arrival.blocked = float(arrival.blocked)+seconds
+	if not arrival.is_empty() and activity == "arrival_blocked": arrival.blocked = float(arrival.blocked)+seconds
 	var nearest := Vector3.ZERO
 	var distance := INF
 	for threat: Vector3 in threats:
@@ -76,8 +79,8 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 		calm_left = float(behavior.calm_seconds)
 	else:
 		calm_left = maxf(0, calm_left - seconds)
-	if calm_left > 0 and activity != "Fleeing":
-		activity = "Fleeing"
+	if calm_left > 0 and activity != "fleeing":
+		activity = "fleeing"
 		timer = 0
 		# An interrupted graze grants no meal, and a nap ends immediately.
 		if hop_progress < 1: hop_seconds = _hop_duration(float(definition.navigation.flee_hop_seconds))
@@ -96,18 +99,18 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 			if hop_progress >= 1: cell = target
 		_pose()
 		return
-	if activity == "Sleeping" and calm_left <= 0:
+	if activity == "sleeping" and calm_left <= 0:
 		fatigue = maxf(0, fatigue - hours * (float(behavior.sleep_recovery_per_hour) + float(behavior.fatigue_per_hour)))
 		if fatigue > float(behavior.wake_threshold) and hunger < float(behavior.wake_hunger_threshold):
 			_pose()
 			return
-		activity = "Idle"
+		activity = "idle"
 		timer = 0
 	timer = maxf(0, timer - seconds)
 	if timer > 0:
 		_pose()
 		return
-	if activity == "Grazing" and calm_left <= 0 and can_graze():
+	if activity == "grazing" and calm_left <= 0 and can_graze():
 		hunger = maxf(0, hunger - float(behavior.meal_relief))
 	_decide(nearest, distance)
 	_pose()
@@ -133,7 +136,7 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 	for next in Navigation.neighbors(cell, int(definition.navigation.clearance), footprint):
 		if _can_enter(next): choices.append(next)
 	if calm_left > 0:
-		activity = "Fleeing"
+		activity = "fleeing"
 		var escape := cell
 		var best := position.distance_squared_to(threat) if threat_distance < INF else -INF
 		for next in choices:
@@ -145,12 +148,12 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 		else: timer = 0.2
 		return
 	if hunger >= float(behavior.hungry_threshold) and can_graze():
-		activity = "Grazing"
+		activity = "grazing"
 		timer = float(behavior.graze_seconds)
 		return
 	if fatigue >= float(behavior.sleep_threshold) and (_rest_time() or fatigue >= float(behavior.exhausted_threshold)):
 		# Prefer nearby cover once; then settle. No inaccessible den/path dependency.
-		if activity != "Seeking shelter":
+		if activity != "seeking_shelter":
 			var sheltered := cell
 			var cover := _cover(cell)
 			for next in choices:
@@ -158,13 +161,13 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 					cover = _cover(next)
 					sheltered = next
 			if sheltered != cell:
-				activity = "Seeking shelter"
+				activity = "seeking_shelter"
 				_hop(sheltered)
 				return
-		activity = "Sleeping"
+		activity = "sleeping"
 		return
 	if _continue_arrival(): return
-	activity = "Foraging" if hunger >= float(behavior.hungry_threshold) else "Exploring"
+	activity = "foraging" if hunger >= float(behavior.hungry_threshold) else "exploring"
 	var destination := cell
 	var best_score := -INF
 	for next in choices:
@@ -172,12 +175,12 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 		var score := rng.randf() * 2.0
 		score += _movement_score(next)
 		if home_distance > float(definition.navigation.home_radius): score -= home_distance
-		if activity == "Foraging" and _forage_at(next): score += 4
+		if activity == "foraging" and _forage_at(next): score += 4
 		if score > best_score:
 			best_score = score
 			destination = next
 	if destination != cell: _hop(destination)
-	else: activity = "Alert" if hunger >= float(behavior.hungry_threshold) else "Idle"
+	else: activity = "alert" if hunger >= float(behavior.hungry_threshold) else "idle"
 	timer = rng.randf_range(float(behavior.idle_seconds[0]), float(behavior.idle_seconds[1]))
 
 func _can_enter(_cell: Vector3i) -> bool:
@@ -185,9 +188,9 @@ func _can_enter(_cell: Vector3i) -> bool:
 
 func begin_arrival(event_id: String, route: Array, blocked_seconds: float) -> void:
 	arrival = {"event": event_id, "route": route.duplicate(true), "cursor": 1,
-		"blocked": 0.0, "max_blocked": blocked_seconds, "status": "Travelling inland"}
+		"blocked": 0.0, "max_blocked": blocked_seconds, "status": "travelling_inland"}
 	home = SaveManager.unpack_v3i(route.back())
-	activity = "Arriving"
+	activity = "arriving"
 	timer = 0
 
 func _continue_arrival() -> bool:
@@ -201,22 +204,22 @@ func _continue_arrival() -> bool:
 	arrival.cursor = cursor
 	if cursor >= route.size():
 		arrival.route = []
-		arrival.status = "Settled"
+		arrival.status = "settled"
 		return false
 	var next := SaveManager.unpack_v3i(route[cursor])
 	if not Navigation.can_hop(cell, next, int(definition.navigation.clearance), footprint):
 		next = Navigation.approach(cell, Navigation.centre(next, footprint), int(definition.navigation.clearance), footprint, 64, .1)
 	if next != cell and _can_enter(next):
-		activity = "Arriving"
+		activity = "arriving"
 		arrival.blocked = 0.0
 		_hop(next)
 		timer = 0
 		return true
 	if float(arrival.blocked) >= float(arrival.max_blocked):
 		arrival.route = []
-		arrival.status = "Journey interrupted"
+		arrival.status = "journey_interrupted"
 		return false # Remain here safely; ordinary wandering still favours home.
-	activity = "Arrival blocked"
+	activity = "arrival_blocked"
 	timer = 1.0
 	return true
 
@@ -269,7 +272,7 @@ func _support(seconds: float) -> bool:
 			if position.y <= float(lower.y):
 				cell = lower
 				target = cell
-			activity = "Falling"
+			activity = "falling"
 			timer = 0
 			return false
 	# A new building may occupy a wildlife cell: move only to an open neighbour.
@@ -279,10 +282,10 @@ func _support(seconds: float) -> bool:
 			cell = next
 			target = cell
 			position = Navigation.centre(cell, footprint)
-			activity = "Alert"
+			activity = "alert"
 			timer = 0
 			return false
-	activity = "Alert"
+	activity = "alert"
 	return false
 
 func _pose() -> void:
@@ -323,7 +326,7 @@ func restore_state(state: Dictionary) -> void:
 	rotation.y = float(state.get("yaw", 0))
 	hunger = clampf(float(state.get("hunger", 0)), 0, 1)
 	fatigue = clampf(float(state.get("fatigue", 0)), 0, 1)
-	activity = String(state.get("activity", "Idle"))
+	activity = String(state.get("activity", "idle"))
 	timer = maxf(0, float(state.get("timer", 0)))
 	calm_left = maxf(0, float(state.get("calm_left", 0)))
 	hop_progress = clampf(float(state.get("hop_progress", 1)), 0, 1)

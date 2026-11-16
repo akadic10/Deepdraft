@@ -88,11 +88,17 @@ const RAISED_SKIRT := Color("1c2423")
 const RAISED_HOVER := Color("3d4a47")
 const INSET_FACE := Color("1b2221")
 const BOARD_FACE := Color("e3cb9b")
+# For words and rules on the dark slab in every window: quiet notes, hay headings and waits, moss gains, rust losses, row rules.
+const MUTED := Color("aeb5ad")
+const HAY := Color("e2c06a")
+const MOSS := Color("8fbf5a")
+const RUST := Color("d3856e")
+const RULE := Color("27312f")
 # Status tags by tone: moss when fine, hay when waiting, rust when blocked. Each holds the
 # face, lit top, skirt, outline and ink.
 const TAG_TONES := {
-	"fine": [Color("8fbf5a"), Color("a8d377"), Color("6f9a43"), Color("2a3a17"), Color("1d2a0e")],
-	"waiting": [Color("e2c06a"), Color("f0d58f"), Color("bf9c45"), Color("3d2e10"), Color("2a1d08")],
+	"fine": [MOSS, Color("a8d377"), Color("6f9a43"), Color("2a3a17"), Color("1d2a0e")],
+	"waiting": [HAY, Color("f0d58f"), Color("bf9c45"), Color("3d2e10"), Color("2a1d08")],
 	"blocked": [Color("c8664a"), Color("da8166"), Color("9f4b33"), Color("3a160c"), Color("fff1e8")],
 }
 

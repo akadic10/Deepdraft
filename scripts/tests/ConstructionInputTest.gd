@@ -208,7 +208,7 @@ func _check_replace() -> void:
 	var stone: int = world.get_terrain_block(copper.x,copper.y,copper.z)
 	world.set_block(copper.x,copper.y,copper.z,blocks.get_id("base:terrain:ore:copper"))
 	var key := InputEventKey.new()
-	key.keycode = KEY_F; key.pressed = true
+	key.keycode = KEY_F; key.physical_keycode = KEY_F; key.pressed = true
 	root.push_input(key,true)
 	_expect(builder._replace and explorer._click_tool_active(),"F switches Build to Replace, and the explorer leaves its clicks to it")
 	var a := camera.unproject_position(Vector3(43.5,22.5,43))

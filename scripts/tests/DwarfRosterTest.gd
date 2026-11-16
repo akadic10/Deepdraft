@@ -71,7 +71,7 @@ func _run() -> void:
 	await _settle()
 	_expect(roster._rows.size() == 5 and roster._filters.working.button.text == "Working  1" and roster._filters.resting.button.text == "Resting  1", "filters show actual workforce counts")
 	_expect(roster._rows[worker].activity.text == "Hauling" and "12" in roster._rows[worker].note.text, "row reports real hauling and crate contents")
-	_expect(roster._rows[worker].cargo_icon.texture.resource_path.ends_with("base_item_oak_acorn.png"), "cargo uses existing model thumbnail")
+	_expect(roster._rows[worker].cargo_icon.texture.resource_path == preload("res://scripts/components/Pictures.gd").item("base:item:oak_acorn"), "cargo uses existing model thumbnail")
 	# The profession's picture on a tile the portrait's size; the bar to the next level only
 	# where the profession earns levels, but its room on every row (doc 23).
 	var assets: Node = root.get_node("DwarfAssets")

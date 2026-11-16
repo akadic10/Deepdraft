@@ -7,7 +7,7 @@
   "furniture_key": "base:furniture:food_shelf",
   "furniture_category": "storage",
   "display_name": "Food shelf",
-  "description": "Two plank shelves pegged between two plank ends, the upper one shallower. It keeps six crates of food off the floor, three to a deck.",
+  "description": "Two plank shelves nailed between two plank ends, the upper one shallower. It keeps six crates of food off the floor, three to a deck.",
   "model": "res://assets/models/furniture/food_shelf.glb",
   "item_key": "base:item:food_shelf",
   "placement": "floor",

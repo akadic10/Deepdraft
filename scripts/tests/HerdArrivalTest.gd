@@ -76,7 +76,7 @@ func _run() -> void:
 	var herd: String = wildlife.animals[0].herd_id
 	for animal in wildlife.animals:
 		_check(animal.herd_id == herd and animal.herd_members == 4, "all arrivals stay in one loose herd")
-		_check(animal.arrival.status == "Settled", "each deer reaches its own inland destination")
+		_check(animal.arrival.status == "settled", "each deer reaches its own inland destination")
 	# Kills only add local pressure: no schedule accelerates or enlarges.
 	var before: Dictionary = _json(events.schedules)
 	for animal in wildlife.animals.duplicate(): wildlife.remove_animal(animal, "player_hunt")
@@ -192,10 +192,10 @@ func _test_wolves() -> void:
 	_check(wildlife.animals_of_species("wolf").size() == 2, "two wolves enter once, within food and population limits")
 	_tick(700)
 	for member in wildlife.animals_of_species("wolf"):
-		_check(member.arrival.status == "Settled", "wolf reaches its inland home")
+		_check(member.arrival.status == "settled", "wolf reaches its inland home")
 		member.hunger = .95
 		member.fatigue = 0
-		member.activity = "Idle"
+		member.activity = "idle"
 		_check(member.wants_hunt(), "settled wolf returns to normal hunger-gated hunting")
 	# Pending members must recheck food instead of relying on an old decision.
 	wildlife.restore_state(animal_save)

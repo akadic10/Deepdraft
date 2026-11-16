@@ -14,9 +14,9 @@
     "  probe_node_cap          - A* expansions per search slice (currently 1200).",
     "                            Unfinished searches resume on the next wake; only",
     "                            a failed full search applies unreachable backoff.",
-    "  heartbeat_interval_s    - slow safety-net poll; normal operation is",
+    "  heartbeat_interval_seconds - slow safety-net poll; normal operation is",
     "                            event-driven wakes (task added, dwarf idle, ...).",
-    "  backoff_base_s / backoff_max_s - unreachable-task retry curve:",
+    "  backoff_base_seconds / backoff_max_seconds - unreachable-task retry curve:",
     "                            min(backoff_base^blocked_count, backoff_max).",
     "  unreachable_signal_threshold - consecutive blocked probes before",
     "                            task_unreachable fires (doc 31: 3).",
@@ -71,9 +71,9 @@
     "scheduler_budget_usec": 1000,
     "max_probes_per_wake": 8,
     "probe_node_cap": 1200,
-    "heartbeat_interval_s": 0.5,
-    "backoff_base_s": 2.0,
-    "backoff_max_s": 30.0,
+    "heartbeat_interval_seconds": 0.5,
+    "backoff_base_seconds": 2.0,
+    "backoff_max_seconds": 30.0,
     "unreachable_signal_threshold": 3
   },
   "supervision": {
@@ -89,13 +89,13 @@
     "ingredient_planning_node_cap": 32,
     "trip_extra_budget_usec": 1000
   },
-  "__comment_fishing": "Fishing (doc 289). waters: each generated water a zone can fish, its catch and name, in the order a cast cell is matched (the lake, the tarn, the spring cave's pool, then the river). Its stock is stock_per_cell fish for each cell of it: the lake's and tarn's surface columns (lake 12,000-27,000, so 150-330 perch; a tarn about 900, so 60 char), the river's columns (2,000-3,200, so 60-95 trout) and the spring cave's water cells (31-37, so about 20 cave fish). It regrows regrowth_per_day of that maximum a day, continuously. Below fished_out_share of its maximum a water is Fished out and its zones post no work. A catch takes catch_hours of game time on a full water in spring, divided by season_speed, up to low_stock_factor times as long near Fished out, give or take catch_spread (seeded); Wisdom speeds it (stats.json). A zone keeps keep_default fish in store unless changed, by keep_step up to keep_max. A spot needs water at least min_depth deep within reach blocks of it, from its feet down to bank_drop blocks below them.",
+  "__comment_fishing": "Fishing (doc 289). waters: each generated water a zone can fish, its catch (item) and display_name, in the order a cast cell is matched (the lake, the tarn, the spring cave's pool, then the river). Its stock is stock_per_cell fish for each cell of it: the lake's and tarn's surface columns (lake 12,000-27,000, so 150-330 perch; a tarn about 900, so 60 char), the river's columns (2,000-3,200, so 60-95 trout) and the spring cave's water cells (31-37, so about 20 cave fish). It regrows regrowth_per_day of that maximum a day, continuously. Below fished_out_share of its maximum a water is Fished out and its zones post no work. A catch takes catch_hours of game time on a full water in spring, divided by season_speed, up to low_stock_factor times as long near Fished out, give or take catch_spread (seeded); Wisdom speeds it (stats.json). A zone keeps keep_default fish in store unless changed, by keep_step up to keep_max. A spot needs water at least min_depth deep within reach blocks of it, from its feet down to bank_drop blocks below them.",
   "fishing": {
     "waters": {
-      "lake": {"name": "Lowland lake", "item": "base:item:perch", "stock_per_cell": 0.012, "trait": "The lake holds the most fish."},
-      "tarn": {"name": "Mountain tarn", "item": "base:item:char", "stock_per_cell": 0.067, "trait": "Char keep a day longer."},
-      "spring_cave": {"name": "Spring cave pool", "item": "base:item:cave_fish", "stock_per_cell": 0.6, "seasonless": true, "trait": "They bite all year: the cave has no seasons."},
-      "river": {"name": "River", "item": "base:item:trout", "stock_per_cell": 0.03, "big_bonus": 0.1, "trait": "Trout are often big."}
+      "lake": {"display_name": "Lowland lake", "item": "base:item:perch", "stock_per_cell": 0.012, "trait": "The lake holds the most fish."},
+      "tarn": {"display_name": "Mountain tarn", "item": "base:item:char", "stock_per_cell": 0.067, "trait": "Char keep a day longer."},
+      "spring_cave": {"display_name": "Spring cave pool", "item": "base:item:cave_fish", "stock_per_cell": 0.6, "seasonless": true, "trait": "They bite all year: the cave has no seasons."},
+      "river": {"display_name": "River", "item": "base:item:trout", "stock_per_cell": 0.03, "big_bonus": 0.1, "trait": "Trout are often big."}
     },
     "season_speed": {"spring": 1.0, "summer": 0.85, "autumn": 1.0, "winter": 0.5},
     "bank_drop": 4,
@@ -146,26 +146,26 @@
     "UPROOT_SHRUB": 50,
     "HARVEST_TREE": 50
   },
-  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in items.json: stone, ore and raw timber 1, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
-  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
+  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in items.json: stone, ore and raw timber 1, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_seconds / deposit_time_seconds: handling duration at normal clock speed.",
+  "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_seconds, with no separate build wait. Ladders and plants own their animated assembly/planting duration. uninstall_time_seconds remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
   "furniture": {
-    "uninstall_time_s": 2.0,
+    "uninstall_time_seconds": 2.0,
     "wall_reach_up_blocks": 5
   },
   "__comment_idle": "Interruptible leisure while available for work. Seconds follow simulation speed. Walks stay on clear same-level ground near the last work/spawn position; no ladders or long-distance roaming. Chairs remain separately built furniture.",
   "idle": {
-    "start_delay_min_s": 2.5,
-    "start_delay_max_s": 5.0,
-    "pause_min_s": 8.0,
-    "pause_max_s": 18.0,
+    "start_delay_min_seconds": 2.5,
+    "start_delay_max_seconds": 5.0,
+    "pause_min_seconds": 8.0,
+    "pause_max_seconds": 18.0,
     "walk_radius": 5,
     "home_radius": 9,
     "seat_radius": 9,
     "seat_focus_radius": 6,
     "seat_chance": 0.6,
-    "sit_min_s": 18.0,
-    "sit_max_s": 35.0,
-    "seat_transition_s": 0.9,
+    "sit_min_seconds": 18.0,
+    "sit_max_seconds": 35.0,
+    "seat_transition_seconds": 0.9,
     "spacing": 2.4,
     "candidate_attempts": 12
   },
@@ -175,7 +175,7 @@
     "foot_lift": 0.22
   },
   "health": {
-    "__comment": "Dwarf health (doc 41), read by DwarfHealth. Whole hit points: base_hit_points at Average in `stat`, per_step more or less for each step above or below. Healing is a share of the maximum each game hour, asleep or awake. Words by the share left: Healthy at hurt_below and above, Hurt down to badly_hurt_below, Badly hurt under it, which also brings the Injured thought (injured_mood_penalty). Nothing hurts a dwarf yet, and health never drops below `minimum` points; dev_hurt is what DEV: hurt a dwarf takes.",
+    "__comment": "Dwarf health (doc 41), read by DwarfHealth. Whole hit points: base_hit_points at Average in `stat`, per_step more or less for each step above or below. Healing is a share of the maximum each game hour, asleep or awake. Levels by the share left, each with its word in `words`: healthy at hurt_below and above, hurt down to badly_hurt_below, badly_hurt under it, which also brings the Injured thought (injured_mood_penalty). Nothing hurts a dwarf yet, and health never drops below `minimum` points; dev_hurt is what DEV: hurt a dwarf takes.",
     "stat": "base:stat:toughness",
     "base_hit_points": 100,
     "per_step": 15,
@@ -185,7 +185,8 @@
     "badly_hurt_below": 0.5,
     "injured_mood_penalty": 0.08,
     "minimum": 1,
-    "dev_hurt": 30
+    "dev_hurt": 30,
+    "words": {"healthy": "Healthy", "hurt": "Hurt", "badly_hurt": "Badly hurt"}
   },
   "rest": {
     "search_radius": 8,
@@ -265,8 +266,8 @@
     "fruit_probe_nodes": 128,
     "fruit_route_cells": 512,
     "fruit_candidate_limit": 16,
-    "pickup_time_s": 0.75,
-    "deposit_time_s": 0.65
+    "pickup_time_seconds": 0.75,
+    "deposit_time_seconds": 0.65
   },
   "recreation": {
     "search_radius": 24.0,

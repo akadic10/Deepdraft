@@ -50,21 +50,31 @@ func felt(appeal: Dictionary) -> Dictionary:
 
 ## How a taste reads in a sentence: "loves the log bed", "dislikes pine".
 func describe(id: String) -> String:
-	var verb := String(VERBS.get(tastes.get(id, ""), "knows"))
-	return "%s %s" % [verb, thing_name(id)] if is_material(id) else "%s the %s" % [verb, thing_name(id)]
+	return said(String(tastes.get(id, "")), id)
+
+
+## The same from the feeling itself ("love", "like" or "dislike") with no dwarf at hand: a
+## journal line and a room's thought are kept as codes and worded when they are read.
+static func said(feeling: String, id: String) -> String:
+	var verb := String(VERBS.get(feeling, "knows"))
+	return "%s %s" % [verb, named(id)] if is_material(id) else "%s the %s" % [verb, named(id)]
 
 
 ## A thing's name in a sentence: a design's in lower case ("log stool"), a wood's ("pine").
-func thing_name(id: String) -> String:
-	return display_name(id).to_lower()
+static func named(id: String) -> String:
+	return shown_name(id).to_lower()
 
 
 ## A thing's name on its own: "Log bed", "Juniper".
 func display_name(id: String) -> String:
+	return shown_name(id)
+
+
+static func shown_name(id: String) -> String:
 	if is_material(id): return CraftMaterials.material_name(id)
 	return String(ContentRegistry.furniture_def(id).get("display_name", id.get_slice(":", 2).capitalize()))
 
 
 ## A wood (any craft material) rather than a furniture design.
-func is_material(id: String) -> bool:
+static func is_material(id: String) -> bool:
 	return CraftMaterials.definitions.has(id)

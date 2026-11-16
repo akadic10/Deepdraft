@@ -13,9 +13,9 @@
     "base:furniture:bench": {"picture": "res://assets/ui/furniture/bench.png"},
     "base:furniture:dining_table": {"picture": "res://assets/ui/furniture/dining_table.png"},
     "base:furniture:board_game_table": {"picture": "res://assets/ui/furniture/board_game_table.png"},
-    "base:material:pine": {"picture": "res://assets/ui/items/base_item_pine_log.png"},
-    "base:material:oak": {"picture": "res://assets/ui/items/base_item_oak_log.png"},
-    "base:material:juniper": {"picture": "res://assets/ui/items/base_item_juniper_log.png"},
-    "base:material:applewood": {"picture": "res://assets/ui/items/base_item_apple_log.png"}
+    "base:material:pine": {"picture": "res://assets/ui/items/pine_log.png"},
+    "base:material:oak": {"picture": "res://assets/ui/items/oak_log.png"},
+    "base:material:juniper": {"picture": "res://assets/ui/items/juniper_log.png"},
+    "base:material:applewood": {"picture": "res://assets/ui/items/apple_log.png"}
   }
 }

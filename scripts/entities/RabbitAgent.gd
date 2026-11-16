@@ -23,5 +23,5 @@ func _pose() -> void:
 	visual.position.y = sin(hop_progress * PI) * float(definition.navigation.hop_height) if hop_progress < 1 else 0.0
 	_squash_stretch(hop_progress)
 	# Rest is expressed by the head and ears; only the visual root squashes.
-	head.rotation.x = -0.48 + sin(pose_time * 7) * 0.05 if activity == "Grazing" else -0.16 if activity == "Sleeping" else 0.0
-	ears.rotation.x = 0.9 if activity == "Sleeping" else sin(pose_time * 1.4) * 0.045
+	head.rotation.x = -0.48 + sin(pose_time * 7) * 0.05 if activity == "grazing" else -0.16 if activity == "sleeping" else 0.0
+	ears.rotation.x = 0.9 if activity == "sleeping" else sin(pose_time * 1.4) * 0.045

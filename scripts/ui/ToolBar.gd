@@ -331,14 +331,12 @@ func _view_newest() -> void:
 	newest.owner.inspect_order(newest.receipt)
 
 
-## An open menu closes on Esc before the tool hears it, and on a press anywhere off the menu and
-## the bar; that press still reaches the world.
+## An open menu closes on a press anywhere off the menu and the bar; that press still reaches
+## the world. Esc closes it too, before the tool hears it: that is the dock's first step
+## (DockUI.cancel, through close_menu()).
 func _input(event: InputEvent) -> void:
 	if _menu == null: return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		_close_menu()
-		get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT] \
+	if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT] \
 			and not _menu.get_global_rect().has_point(event.position) and not _bar.get_global_rect().has_point(event.position):
 		_close_menu()
 
@@ -447,8 +445,8 @@ func _stepper(setting: Dictionary) -> VBoxContainer:
 	row.name = "Row"
 	row.add_theme_constant_override("separation", 4)
 	column.add_child(row)
-	for part: String in ["Less", "Value", "More"]:
-		if part == "Value":
+	for delta: int in [-1, 0, 1]:   # the Less button, the value, the More button
+		if delta == 0:
 			var value := _label(true, UITheme.CARD_TITLE)
 			value.name = "Value"
 			value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -456,10 +454,9 @@ func _stepper(setting: Dictionary) -> VBoxContainer:
 			value.add_theme_font_size_override("font_size", int(_size.value))
 			row.add_child(value)
 			continue
-		var step := _button("−" if part == "Less" else "+", false)
-		step.name = part
+		var step := _button("−" if delta < 0 else "+", false)
+		step.name = "Less" if delta < 0 else "More"
 		step.custom_minimum_size = Vector2.ONE * float(_size.step)
-		var delta := -1 if part == "Less" else 1
 		var id := String(setting.id)
 		step.pressed.connect(func():
 			if not is_instance_valid(_active): return
@@ -602,6 +599,13 @@ func _show_menu(choices: Array) -> void:
 	_menu.position = at
 	_menu_line.points = PackedVector2Array([Vector2(picture.get_center().x, bar.position.y), Vector2(picture.get_center().x, at.y + _menu.size.y)])
 	_menu_line.show()
+
+
+## Esc's first step (DockUI.cancel): an open menu closes. False when none was open.
+func close_menu() -> bool:
+	if _menu == null: return false
+	_close_menu()
+	return true
 
 
 ## Closes the open menu; `forget` also forgets which one was open.

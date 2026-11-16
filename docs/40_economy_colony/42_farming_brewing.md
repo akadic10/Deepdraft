@@ -178,7 +178,9 @@ Play. The tool and the field's window are in doc 23, "Fields".
   the valley (doc 34), so a frost rule would take every autumn crop.
 - **What stands there stays.** A cell that holds a bush, a wildflower, a stone, a tree or
   furniture may be part of a field and is left alone: a tile under furniture, a trunk or a stone,
-  within a plant's planting area or under water is neither hoed nor sown. A field counts these
+  within a plant's planting area or under standing water is neither hoed nor sown. Damp ground
+  under a film thinner than that is worked as any other, and can be laid out as a field (since
+  2026-11-16; the rule had counted any water at all). A field counts these
   afresh on the game hour and when something is placed (`FarmingSystem._survey`).
 - **Tilled soil** is a block of its own, `base:terrain:soil:tilled`. Its kind is `dirt`, so it
   takes water from a ditch, shows damp and drops Soil as dirt does. A Farmer hoes grass or dirt
@@ -260,7 +262,11 @@ in Play. The zone's tool and window are in doc 23, "Fishing Zones".
 - **A spot** is a shore cell a dwarf can stand on (Hard Rule 4) with water straight out from it
   within `reach` blocks, at least `min_depth` deep, from the fisher's feet down to `bank_drop`
   blocks below them (rivers run in channels), and never through ground. A cell over the lake or
-  a tarn, or with water on it, is refused, as are storage zones and furniture.
+  a tarn, or under standing water, is refused, as are storage zones and furniture. Damp ground is
+  ground: a film thinner than standing water (doc 33) refuses no spot, so the banks of a river
+  that is held back and wets them can still be fished from. Until 2026-11-16 the rule counted
+  any water at all, and in the owner's colony, where a stone crossing held the river back, every
+  bank cell read "Fishers stand on the shore, not in the water".
 - **The waters** (`fishing.waters`): the lowland lake gives perch, the river trout, a mountain
   tarn char and the spring cave's pool pale cave fish. A cast cell belongs to the lake, then the
   tarn, the pool, then the river, so where two meet the first wins, and a zone keeps to one

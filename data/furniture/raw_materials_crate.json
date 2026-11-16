@@ -7,7 +7,7 @@
   "furniture_key": "base:furniture:raw_materials_crate",
   "furniture_category": "storage",
   "display_name": "Raw materials crate",
-  "description": "A plank bin, open on top: a sawn post at each corner and two boards a side, pegged. It keeps twelve raw goods, rough stone, ore, coal or soil, three to each quarter.",
+  "description": "A plank bin, open on top: a sawn post at each corner and two boards a side, nailed. It keeps twelve raw goods, rough stone, ore, coal or soil, three to each quarter.",
   "model": "res://assets/models/furniture/raw_materials_crate.glb",
   "item_key": "base:item:raw_materials_crate",
   "placement": "floor",

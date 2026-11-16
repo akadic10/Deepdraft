@@ -42,7 +42,7 @@ func _run() -> void:
 	for i in range(NAMES.size()):
 		var resource: Dictionary = blocks.get_resource_def("base:terrain:gem:" + NAMES[i])
 		var key: String = resource.drops[0].item
-		_expect(ResourceLoader.exists("res://assets/ui/items/" + key.replace(":", "_") + ".png"), key + " has an inventory thumbnail")
+		_expect(ResourceLoader.exists(preload("res://scripts/components/Pictures.gd").item(key)), key + " has an inventory thumbnail")
 		var cell := Vector3i(24 + (i % 3) * 3, 20, 24 + (i / 3) * 3)
 		items.spawn_drop(key, 1, cell + Vector3i.UP)
 		var node: Node3D = items.get_children().back()

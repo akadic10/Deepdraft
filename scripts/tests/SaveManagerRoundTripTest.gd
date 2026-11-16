@@ -281,8 +281,11 @@ func _verify_snapshot_validation() -> String:
 			var malformed := parsed.duplicate(true)
 			malformed.scene[section] = invalid
 			cases.append({"name": "malformed scene." + section, "snapshot": malformed})
-	var journal_line := {"day": 1, "topic": "chilly", "text": "Chilly sleep", "tone": "complaint", "dwarves": [9], "speaker": 9, "name": "Urist", "words": ""}
+	var journal_line := {"day": 1, "topic": "chilly", "tone": "complaint", "dwarves": [9], "speaker": 9, "name": "Urist", "fields": {}}
 	for change in [
+		[["scene","journal","lines"],[journal_line.merged({"topic": "no_such_thought"}, true)]],
+		[["scene","journal","lines"],[journal_line.merged({"fields": {"taste": "base:material:pine"}}, true)]],
+		[["scene","journal","lines"],[journal_line.merged({"fields": {"taste": "base:material:pine", "feeling": "adores"}}, true)]],
 		[["scene","journal","lines"],[journal_line.merged({"tone": "boast"}, true)]],
 		[["scene","journal","lines"],[journal_line.merged({"dwarves": [7]}, true)]],
 		[["scene","journal","lines"],[journal_line, journal_line]],
@@ -297,7 +300,9 @@ func _verify_snapshot_validation() -> String:
 		[["scene","events","next_id"],0],
 		[["scene","events","entries",0,"kind"],"rumour"],
 		[["scene","events","entries",0,"id"],999999],
-		[["scene","events","entries",0,"past"],"Past words on an entry that is no standing warning."],
+		[["scene","events","entries",0,"line"],"no_such_line"],
+		[["scene","events","entries",0,"fields"],"Cavern discovered. Bring light to explore it."],
+		[["scene","events","entries",0,"fields"],{"item": "base:item:no_such_food"}],
 		[["scene","terrain","edits",0,"block"],"base:terrain:unknown"],
 		[["scene","construction","orders",0,"materials"],{"base:item:rough_stone":{"":2}}],
 		[["scene","construction","orders",0,"materials"],{"base:item:rough_stone":{"":-1}}],
@@ -391,7 +396,9 @@ func _verify_snapshot_validation() -> String:
 		["scene","dwarves","roster",0,"mood","hot_memory_hours"],
 		["scene","wildlife","deer_initialized"],
 		["scene","wildlife","wolf_initialized"],
-		["scene","journal","lines",0,"words"],
+		["scene","journal","lines",0,"fields"],
+		["scene","events","entries",0,"line"],
+		["scene","events","entries",0,"fields"],
 	]:
 		var stripped := parsed.duplicate(true)
 		var parent: Variant = stripped
@@ -740,8 +747,8 @@ func _build_nonempty_colony_state() -> String:
 	if not root.get_node("InteriorTracker").is_cave_discovered(0): return "cave discovery fixture failed"
 	flag.call("_place_flag", flag_cell, false)
 	# A journal line, so the journal's records are validated and restored as well.
-	root.get_node("ColonyJournal").restore_state({"lines": [{"day": 1, "topic": "chilly", "text": "Chilly sleep", "tone": "complaint",
-		"dwarves": [7, 9], "speaker": 9, "name": "Urist", "words": "Woke with frost in my beard. A hearth would not go amiss."}]})
+	root.get_node("ColonyJournal").restore_state({"lines": [{"day": 1, "topic": "chilly", "tone": "complaint",
+		"dwarves": [7, 9], "speaker": 9, "name": "Urist", "fields": {}}]})
 	stockpiles.call("restore_state", {
 		"zones": [{
 			"id": 201,
@@ -884,12 +891,12 @@ func _build_nonempty_colony_state() -> String:
 	var rabbit: Node3D = wildlife.animals[0]
 	rabbit.hunger = 0.61
 	rabbit.fatigue = 0.73
-	rabbit.activity = "Sleeping"
+	rabbit.activity = "sleeping"
 	rabbit._pose()
 	var deer: Array = wildlife.animals_of_species("deer")
 	if deer.size() < 12: return "seeded deer herds missing"
 	deer[0].hunger = 0.67
-	deer[0].activity = "Grazing"
+	deer[0].activity = "grazing"
 	deer[0].timer = 3.5
 	deer[0]._pose()
 	var wolves: Array = wildlife.animals_of_species("wolf")
@@ -967,7 +974,8 @@ func _build_nonempty_colony_state() -> String:
 		if int(group.issued) == int(group.count): events._finish(settings, state, "arrived")
 	# The event log (doc 23): an entry with a place and a pinned warning round-trip.
 	var event_log := root.get_node("EventLog")
-	if event_log.post("discovery", "Cavern discovered. Bring light to explore it.", {"place": Vector3i(40, 20, 40)}) <= 0 			or event_log.raise("save_fixture", "A save fixture warning stays pinned.", {"dwarves": [1]}) <= 0:
+	if event_log.post("discovery", "cavern_found", {}, {"place": Vector3i(40, 20, 40)}) <= 0 \
+			or event_log.raise("save_fixture", "food_short", {"count": 1}, {"dwarves": [1]}) <= 0:
 		return "event log fixture was not recorded"
 	return ""
 

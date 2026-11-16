@@ -64,6 +64,13 @@ func is_walk_test_active() -> bool:
 	return _walk_test
 
 
+## Esc's step for the DEV walk test (DockUI.cancel): ends it, and says whether it was on.
+func end_walk_test() -> bool:
+	if not _walk_test: return false
+	_set_walk_test(false)
+	return true
+
+
 ## Stable birth order and live node identity, excluding removed actors.
 func get_roster() -> Array[DwarfAgent]:
 	var result: Array[DwarfAgent] = []
@@ -80,7 +87,7 @@ func inspect_dwarf(agent: Variant) -> bool:
 	if not _inspectable(agent): return false
 	var explorer := get_tree().get_first_node_in_group("object_explorer")
 	if explorer == null: return false
-	if _dock_ui != null: _dock_ui.tool_requested.emit("")
+	if _dock_ui != null: _dock_ui.announce_tool("")
 	_set_walk_test(false)
 	return explorer.select_object(self, agent)
 
@@ -159,11 +166,6 @@ func clear_explorer_selection(id: Variant) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _walk_test:
-		return
-	if event is InputEventKey and (event as InputEventKey).pressed \
-			and (event as InputEventKey).keycode == KEY_ESCAPE:
-		_set_walk_test(false)
-		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton

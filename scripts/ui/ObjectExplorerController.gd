@@ -80,23 +80,25 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _click_tool_active():
 		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		# Colony dwarves owns its close action while it hosts the selected dwarf; a
-		# character sheet open over it closes first.
-		if is_instance_valid(_dwarf_host) and _object_id is DwarfAgent:
-			if _sheet_open:
-				_manager.close(WINDOW_ID)
-				get_viewport().set_input_as_handled()
-			return
-		if _provider != null:
-			clear_selection()
-			get_viewport().set_input_as_handled()
-		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if select_at_screen(event.position):
 			get_viewport().set_input_as_handled()
 		else:
 			clear_selection() # Let empty-ground clicks continue to zone inspectors.
+
+
+## Esc's step for the selection (DockUI.cancel), and whether there was anything to do. Colony
+## dwarves owns its close while it hosts the selected dwarf, so only a character sheet open
+## over it closes here; otherwise what is selected is let go.
+func cancel_selection() -> bool:
+	if _click_tool_active(): return false
+	if is_instance_valid(_dwarf_host) and _object_id is DwarfAgent:
+		if not _sheet_open: return false
+		_manager.close(WINDOW_ID)
+		return true
+	if _provider == null: return false
+	clear_selection()
+	return true
 
 
 func _click_tool_active() -> bool:

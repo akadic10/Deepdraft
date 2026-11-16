@@ -119,6 +119,18 @@ and aerial arrivals. Flight checks query nearby tree canopies from
 SurfaceFloraSpawner as well as terrain and placed obstacles. No additional
 global classes or autoloads are registered.
 
+**What an animal is doing is a code.** An animal's `activity` (`grazing`,
+`seeking_shelter`) and its arrival's `status` (`settled`) are codes, not the words shown.
+The agents, the sound profiles (`required_activity` in `work_feedback.json`), saves and
+tests all read the code.
+- `WildlifeManager.words_of()` is the one place that turns a code into words, for the
+  inspector's Activity and Arrival rows and the compact panel's line.
+- The words are in `data/animals/animal_words.json`, one table for activities and one for
+  arrivals. The manager reads it by name and leaves it out of the species files.
+- A new activity needs its line there. A code with no words is reported as an error and
+  shown as the code, and `DeerWildlifeTest` fails on any code the animal scripts name
+  without words.
+
 `AnimalNavigation` reads live WorldData chunks with generated-data fallback and
 PlacedEntityRegistry occupancy. Rabbits require a 1×1 footprint with two empty
 cells, use cardinal local hops and cannot use ladders, water or cliffs. Step-up
@@ -196,7 +208,9 @@ section names its sounds and meal cue fractions.
 
 Save priority 65 restores the entire population after dwarves and before the
 camera/slice. Identity, current/home/target cells, position, yaw, appetite,
-fatigue, activity, timers, hop progress and pose phase survive. Each rabbit's
+fatigue, activity, timers, hop progress and pose phase survive. The activity and an
+arrival's status are saved as their codes; SaveSnapshotValidator refuses a save that
+holds the shown words instead (`state_code`). Each rabbit's
 64-bit RNG state is stored as text to avoid JSON numeric precision loss. Saving
 is observational. An initialized empty population is not reseeded on load;
 it can receive future scheduled arrivals. The `wildlife` owner and all current
@@ -318,7 +332,8 @@ Tuning is in `data/world_events/arrivals.json`.
   `blocked_seconds` (30) blocked in total the journey is interrupted and ordinary
   wandering resumes toward its home; a failed journey never teleports or removes the
   animal. The compact panel's status reads Travelling inland, Settled or Journey
-  interrupted.
+  interrupted (the codes `travelling_inland`, `settled` and `journey_interrupted`; a duck
+  flying in is `flying_inland`).
 
 Player hunting will be the Ranger's work (doc 292, which renamed the Hunter when it took
 fishing); there are no trapping

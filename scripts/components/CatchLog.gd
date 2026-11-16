@@ -5,7 +5,7 @@ extends RefCounted
 ##   {"caught": {fish item: catches}, "big": catches, "dried": dried fish,
 ##    "day": the day of "today", "today": its catches, "best": the best day's catches, "best_day": it}
 ## Days are whole elapsed_days(). A big fish is one catch worth two fish.
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 
 
 ## One catch of `item`, big or not, on `day`.
@@ -39,7 +39,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		var item := String(water.get("item", ""))
 		var count := int(caught.get(item, 0))
 		total += count
-		fish.append({"item": item, "count": count, "picture": Inventory.thumbnail_path(item), "order": fish.size(),
+		fish.append({"item": item, "count": count, "picture": Pictures.item(item), "order": fish.size(),
 			"name": String(ContentRegistry.item_def(item).get("display_name", "Fish"))})
 	# The Ranger's own catch first, then the waters' order.
 	fish.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.count > b.count if a.count != b.count else a.order < b.order)

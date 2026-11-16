@@ -14,6 +14,7 @@ extends MarginContainer
 signal place_requested(furniture_key: String)
 
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
 const ICONS := "res://assets/ui/icons/"
 const INK := UITheme.CATALOG_INK
@@ -198,7 +199,7 @@ func _build_recipes() -> Control:
 	later.add_theme_constant_override("separation", 4)
 	_later.add_child(later)
 	_later_heading = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
-	UITheme.format_label(_later_heading, true, MEDIUM.small, Color("e2c06a"))
+	UITheme.format_label(_later_heading, true, MEDIUM.small, UITheme.HAY)
 	later.add_child(_later_heading)
 	_later_words = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
 	later.add_child(_later_words)
@@ -315,7 +316,7 @@ func _build_queue() -> Control:
 	hanging.add_theme_constant_override("separation", 4)
 	_hanging.add_child(hanging)
 	_hanging_heading = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
-	UITheme.format_label(_hanging_heading, true, MEDIUM.small, Color("e2c06a"))
+	UITheme.format_label(_hanging_heading, true, MEDIUM.small, UITheme.HAY)
 	hanging.add_child(_hanging_heading)
 	_hanging_words = _text("", MEDIUM.small, UITheme.HEARTH_MUTED)
 	hanging.add_child(_hanging_words)
@@ -404,7 +405,7 @@ func _draft(key: String) -> Array:
 
 func _matches_search(recipe: Dictionary) -> bool:
 	var query := _search.text.strip_edges().to_lower()
-	return query.is_empty() or (String(recipe.name) + " " + String(recipe.get("category", ""))).to_lower().contains(query)
+	return query.is_empty() or (String(recipe.display_name) + " " + String(recipe.get("category", ""))).to_lower().contains(query)
 
 
 func _queue_selected() -> void:
@@ -468,10 +469,10 @@ func refresh() -> void:
 
 func _show_header(section: Dictionary, planned: bool) -> void:
 	var rudimentary := section_id == "rudimentary"
-	_heading.text = "%s · Worker" % section.name if rudimentary else ("%s · %s" % [section.name, section.get("status_label", "Planned")] if planned else String(section.name))
+	_heading.text = "%s · Worker" % section.display_name if rudimentary else ("%s · %s" % [section.display_name, section.get("status_label", "Planned")] if planned else String(section.display_name))
 	# A page nobody in the colony can craft from says so (owner, 2026-11-13).
 	var page_need: Dictionary = controller.section_need(section_id)
-	if not page_need.is_empty(): _heading.text = "%s · %s" % [section.name, page_need.tag]
+	if not page_need.is_empty(): _heading.text = "%s · %s" % [section.display_name, page_need.tag]
 	_subtitle.text = "Every Worker can craft. No promotion needed." if rudimentary else String(section.get("description", ""))
 	_subtitle.tooltip_text = String(section.get("hint", ""))
 	if _crafter_tiles.has(section_id): _section_icon.texture = (_crafter_tiles[section_id] as Button).icon
@@ -514,7 +515,7 @@ func _show_recipes(planned: bool, totals: Dictionary) -> void:
 		var reason: String = controller.recipe_waiting_reason(recipe, _typed(_draft(id)), totals)
 		by_category[category].items.append({"id": id, "picture": _recipe_picture(recipe), "mark": "" if reason.is_empty() else "missing",
 			"dim": not reason.is_empty(), "selected": id == selected,
-			"tooltip": "%s\n%s" % [recipe.name, "Ready to make" if reason.is_empty() else reason]})
+			"tooltip": "%s\n%s" % [recipe.display_name, "Ready to make" if reason.is_empty() else reason]})
 	_recipes.show_groups(groups)
 	_recipes.visible = not planned
 	_no_results.visible = not planned and not _has_matches
@@ -529,14 +530,14 @@ func _show_recipes(planned: bool, totals: Dictionary) -> void:
 
 func _show_planned(section: Dictionary) -> void:
 	_planned.text = "PLANNED\n\n" + "\n\n".join(section.get("preview", []))
-	_title.text = "%s · %s" % [section.name, section.get("status_label", "Planned")]
+	_title.text = "%s · %s" % [section.display_name, section.get("status_label", "Planned")]
 	_description.text = "%s\n\n%s" % [section.get("description", ""), section.get("requirements", "")]
 	_description.text = _description.text.strip_edges()
 
 
 func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	var allowed: Array = _draft(selected)
-	_title.text = String(recipe.name)
+	_title.text = String(recipe.display_name)
 	_picture.texture = _recipe_picture(recipe)
 	_chips.time.label.text = "%d s" % roundi(float(recipe.work_seconds))
 	_chips.makes.label.text = "Makes %d" % int(recipe.output_count)
@@ -559,10 +560,10 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	var extras: Array = []
 	for key: String in extra_counts:
 		var available := int(totals.get(key, {}).get("available", 0))
-		heading += " · %d %s" % [int(extra_counts[key]), controller.ingredient_label(key)]
+		heading += " · " + controller.goods_words(key, int(extra_counts[key]))
 		extras.append({"id": "extra:" + key, "picture": _item_picture(key), "count": available,
 			"mark": "on" if available >= int(extra_counts[key]) else "missing",
-			"tooltip": "%d %s · %d available" % [int(extra_counts[key]), controller.ingredient_label(key), available]})
+			"tooltip": "%s · %d available" % [controller.goods_words(key, int(extra_counts[key])), available]})
 	# The goods it takes one choice of (doc 306): a coal or two logs under the copper, a haft in any
 	# wood. One tile stands for the choice: what the next batch takes, or the first choice marked
 	# missing when the colony can supply none, so the board grows no taller than with a fixed good.
@@ -586,7 +587,7 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	var lines: Array[String] = ["%d %s · %d allowed %s available" % [int(recipe.ingredient_count), kind, controller.ingredient_available(recipe, totals, allowed), words.units]]
 	if int(recipe.ingredient_count) > 1: lines.append(String(words.same))
 	for key: String in extra_counts:
-		lines.append("%d %s · %d available" % [int(extra_counts[key]), controller.ingredient_label(key), int(totals.get(key, {}).get("available", 0))])
+		lines.append("%s · %d available" % [controller.goods_words(key, int(extra_counts[key])), int(totals.get(key, {}).get("available", 0))])
 	lines.append_array(choice_lines)
 	lines.append(String(words.pick))
 	_requirements.text = "\n".join(lines)
@@ -635,7 +636,7 @@ func _show_order_choices(recipe: Dictionary) -> void:
 			row.choose.add_theme_color_override(look, UITheme.CARD_TITLE if chosen else UITheme.HEARTH_MUTED)
 		row.count.text = str(entry[2])
 	var output_count := make_count * int(recipe.output_count)
-	var output_name := String(recipe.name).to_lower() if output_count == 1 else String(recipe.get("output_plural", recipe.name))
+	var output_name := String(recipe.display_name).to_lower() if output_count == 1 else String(recipe.get("output_plural", recipe.display_name))
 	_queue_button.tooltip_text = ("Queue %d %s. Orders are made from the top down, each in its turn at the workbench; an order waits while materials or a workbench are missing." % [output_count, output_name]) if not maintain \
 		else "Keep %d in stock: %ss make more from the allowed %s, in batches of %d, whenever stock falls short. Installed and reserved items do not count." % [keep_count, controller.crafter_name(recipe), controller.ingredient_words(recipe).noun, int(recipe.output_count)]
 	_queue_button.disabled = _draft(selected).is_empty() or controller.orders.size() >= controller.max_orders
@@ -673,12 +674,12 @@ func _refresh_orders(totals: Dictionary) -> void:
 		var row: Dictionary = _rows[order.id]
 		_queue_list.move_child(row.root, ids.find(order.id) + 1)
 		var units := int(order.quantity) * int(order.recipe.output_count)
-		row.title.text = ("%s = %d" % [order.recipe.name, order.quantity]) if order.maintain else ("%s ×%d" % [order.recipe.name, units])
+		row.title.text = ("%s = %d" % [order.recipe.display_name, order.quantity]) if order.maintain else ("%s ×%d" % [order.recipe.display_name, units])
 		row.title.tooltip_text = ("Keep %d spare" % order.quantity) if order.maintain else ("%d batch%s · %d remaining" % [order.quantity, "" if order.quantity == 1 else "es", units])
 		row.picture.texture = _recipe_picture(order.recipe)
-		var status: String = controller.status(order, totals)
-		var tone := "blocked" if order.paused else ("waiting" if status.begins_with("Waiting") or status.begins_with("Choose") or status.begins_with("Needs") else "fine")
-		row.status.text = status
+		var line: Dictionary = controller.status_line(order, totals)
+		var tone := "blocked" if order.paused else String(line.tone)
+		row.status.text = String(line.text)
 		row.status.add_theme_color_override("font_color", UITheme.tag_ink(tone))
 		row.tag.add_theme_stylebox_override("panel", UITheme.cell_style("tag_" + tone, 2))
 		_update_wood_menu(row.wood, order.allowed_ingredients, totals, order.recipe)
@@ -1001,14 +1002,14 @@ func _recipe_picture(recipe: Dictionary) -> Texture2D:
 	var id := String(recipe.id)
 	if not _textures.has(id):
 		var furniture_key := String(recipe.get("furniture", ""))
-		var path := Inventory.thumbnail_path(String(recipe.output)) if furniture_key.is_empty() else "res://assets/ui/furniture/%s.png" % furniture_key.get_slice(":", 2)
+		var path := Pictures.item(String(recipe.output)) if furniture_key.is_empty() else Pictures.furniture(furniture_key)
 		_textures[id] = load(path) if ResourceLoader.exists(path) else load(ICONS + "craft.png")
 	return _textures[id]
 
 
 func _item_picture(key: String) -> Texture2D:
 	if not _textures.has(key):
-		var path := Inventory.thumbnail_path(key)
+		var path := Pictures.item(key)
 		_textures[key] = load(path) if ResourceLoader.exists(path) else load(ICONS + "stocks.png")
 	return _textures[key]
 

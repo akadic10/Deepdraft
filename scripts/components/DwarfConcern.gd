@@ -19,7 +19,7 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 	var health = agent.get_health()
 	if health != null and health.badly_hurt():
 		var points: Dictionary = health.describe()
-		return _issue("health","Badly hurt","%d of %d hit points" % [points.points, points.maximum],"Health comes back slowly, faster while asleep.")
+		return _issue("health",health.word(),"%d of %d hit points" % [points.points, points.maximum],"Health comes back slowly, faster while asleep.")
 	if food != null and food.hungry() and food.shortage: return _food_concern(food)
 	if agent.get_mood() != null and agent.get_mood().unhappy():
 		var thought: Dictionary = agent.get_mood().strongest_negative_thought()
@@ -34,7 +34,7 @@ static func _food_concern(food: RefCounted) -> Dictionary:
 	if food.state in ["walking","pickup"]:
 		return _issue("food",title,"Collecting food","A portion has been found. This dwarf is fetching it.")
 	if food.shortage:
-		return _issue("food",title,"No reachable food","Harvest berries or make stored food accessible.")
+		return _issue("food",title,"No reachable food",EventLog.advice("food_short"))
 	return _issue("food",title,"Needs a meal","Keep harvested food accessible. This dwarf will look for a portion.")
 
 

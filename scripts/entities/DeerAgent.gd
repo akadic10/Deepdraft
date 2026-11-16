@@ -57,20 +57,20 @@ func can_graze() -> bool:
 	return super.can_graze() and Navigation.standable(cell+forward,int(definition.navigation.clearance),footprint)
 
 func advance(seconds: float, hours: float, threats: Array) -> void:
-	if seconds > 0 and activity == "Grazing" and not can_graze():
-		activity = "Idle"
+	if seconds > 0 and activity == "grazing" and not can_graze():
+		activity = "idle"
 		timer = 0
 	super.advance(seconds,hours,threats)
 
 func _pose() -> void:
-	var sleeping := activity == "Sleeping"
+	var sleeping := activity == "sleeping"
 	var moving := hop_progress < 1
 	visual.position.y = float(definition.visual_pose.rest_y) if sleeping else sin(hop_progress*PI)*float(definition.navigation.hop_height) if moving else 0.0
 	_squash_stretch(hop_progress if moving and not sleeping else 1.0)
 	# Lower the neck, counter-rotate the head: muzzle reaches grass while the
 	# antlers stay above it. Rest folds the legs without shrinking the torso.
-	neck.rotation.x = -2.3 if activity == "Grazing" else .15 if sleeping else 0.0
-	head.rotation.x = 1.5 + sin(pose_time*5)*.035 if activity == "Grazing" else -.35 if sleeping else 0.0
+	neck.rotation.x = -2.3 if activity == "grazing" else .15 if sleeping else 0.0
+	head.rotation.x = 1.5 + sin(pose_time*5)*.035 if activity == "grazing" else -.35 if sleeping else 0.0
 	ears.rotation.x = .32 if sleeping else sin(pose_time*1.1)*.04
 	for i in range(legs.size()):
 		var leg := legs[i]

@@ -3,6 +3,10 @@ extends RefCounted
 ## Later ingredients use the same read-only pickup/delivery proof as the first.
 ## The batch keeps its staged physical goods and bench while this bounded step
 ## searches; interruption returns them through WorkerCraftOrder.cancel_fetch.
+## A loose crate that holds several counts, as it does for the first ingredient
+## (CraftingManager.advance_worker_quote): one unit leaves it at pickup. Until doc 313
+## this step saw only single goods, so a later ingredient lying in a fuller crate (the
+## game table's nails after its stone) was "unreachable" until the order was planned again.
 static func advance(order: RefCounted, worker: DwarfAgent, context: Dictionary, deadline: int) -> int:
 	var from := worker.current_cell()
 	if context.is_empty() or not preload("FurnitureFetchPlanner.gd").dependencies_current(context):
@@ -11,7 +15,7 @@ static func advance(order: RefCounted, worker: DwarfAgent, context: Dictionary, 
 		context["keys"] = order.next_ingredient_keys()
 	if context.stage=="quote":
 		var keys: Array[String] = context.keys
-		if not order.manager.items.advance_material_quote(keys,from,context.loose,deadline,context.excluded): return NavGrid.ProbeResult.SEARCHING
+		if not order.manager.items.advance_material_quote(keys,from,context.loose,deadline,context.excluded,-1,"","",false): return NavGrid.ProbeResult.SEARCHING
 		if not StockpileManager.advance_material_quote(keys,from,context.stored,deadline,context.excluded): return NavGrid.ProbeResult.SEARCHING
 		var quote: Dictionary = context.loose.best
 		if quote.is_empty() or (not context.stored.best.is_empty() and context.stored.best.distance<quote.distance): quote = context.stored.best

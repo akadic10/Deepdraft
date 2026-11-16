@@ -6,6 +6,7 @@ extends VBoxContainer
 ## dwarf is and the ways into more, the character sheet first. ObjectExplorer retains
 ## ownership of world selection.
 const Inspection = preload("res://scripts/components/DwarfInspection.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const Card = preload("res://scripts/ui/DwarfDetailsCard.gd")
 const REFRESH_SECONDS := 0.35
@@ -127,9 +128,8 @@ func _ready() -> void:
 	_body.add_child(table)
 	var modes := HBoxContainer.new()
 	table.add_child(modes)
-	for title: String in ["Overview", "Work"]:
-		var mode := UITheme.make_button(title, "", Vector2(92, 30))
-		var work_mode := title == "Work"
+	for work_mode: bool in [false, true]:
+		var mode := UITheme.make_button("Work" if work_mode else "Overview", "", Vector2(92, 30))
 		mode.pressed.connect(set_work_view.bind(work_mode))
 		modes.add_child(mode)
 		_view_buttons.append(mode)
@@ -445,9 +445,7 @@ func _render_visible_portraits() -> void:
 
 
 func _cargo_texture(key: String) -> Texture2D:
-	var path := "res://assets/ui/items/%s.png" % key.replace(":", "_")
-	if not ResourceLoader.exists(path):
-		path = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)
+	var path := Pictures.of(key)   # a packed piece shows its furniture's picture
 	if not ResourceLoader.exists(path): path = "res://assets/ui/icons/stocks.png"
 	return _texture(path)
 

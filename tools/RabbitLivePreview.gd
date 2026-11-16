@@ -93,12 +93,12 @@ func _run() -> void:
 	rabbit.position = Navigation.centre(rabbit.cell,rabbit.footprint)
 	rig.focus_world_position(rabbit.position + Vector3.UP * 0.7, 12)
 	for i in range(80): await process_frame
-	rabbit.activity = "Eating" if species == "wolf" else "Grazing"
+	rabbit.activity = "eating" if species == "wolf" else "grazing"
 	rabbit.hunger = 0.6
 	rabbit._pose()
 	explorer._refresh_selected()
 	await _shot("rabbit_grazing")
-	rabbit.activity = "Sleeping"
+	rabbit.activity = "sleeping"
 	rabbit.hunger = 0.2
 	rabbit.fatigue = 0.6
 	rabbit._pose()
@@ -110,7 +110,7 @@ func _run() -> void:
 	_check(not rig.is_following(rabbit), "camera can stop following")
 	# Native model study on its real ground, plus a dwarf for scale.
 	explorer.clear_selection()
-	rabbit.activity = "Idle"
+	rabbit.activity = "idle"
 	rabbit._pose()
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	var dwarf: Node3D = factory.spawn(factory.generate(918,{}),918)
@@ -140,10 +140,10 @@ func _run() -> void:
 			view.global_position = rabbit.position + Vector3(5,2.8,-4)
 			view.look_at(rabbit.position + Vector3(0,.8,0))
 		await _shot(species+"_standing_profile")
-		rabbit.activity = "Eating" if species == "wolf" else "Grazing"
+		rabbit.activity = "eating" if species == "wolf" else "grazing"
 		rabbit._pose()
 		await _shot(species+"_feeding_profile")
-		rabbit.activity = "Sleeping"
+		rabbit.activity = "sleeping"
 		rabbit._pose()
 		await _shot(species+"_rest_profile")
 	print(species.to_upper()+"_LIVE_PREVIEW_OK" if failures.is_empty() else species.to_upper()+"_LIVE_PREVIEW_FAILED")

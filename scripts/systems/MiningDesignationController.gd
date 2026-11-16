@@ -10,7 +10,7 @@ const CONFIG_PATH := "res://data/terrain/mining_config.json"
 const WORLD_SIZE_X := WorldData.WORLD_SIZE_X
 const WORLD_SIZE_Y := WorldData.WORLD_SIZE_Y
 const WORLD_SIZE_Z := WorldData.WORLD_SIZE_Z
-const BEDROCK_MAX_Y := 3
+const BEDROCK_MAX_Y := WorldGenerator.BEDROCK_MAX_Y
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const TERRAIN_GRID_MIN_RADIUS := 72
 const TERRAIN_GRID_MAX_RADIUS := 168
@@ -104,10 +104,9 @@ func _ready() -> void:
 	_zone_ui.dev_mine_pressed.connect(_dev_mine_selected_zone)
 	_zone_ui.closed.connect(func() -> void: _set_selected_zone(-1))
 
-	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
+	if _dock_ui != null:
 		_dock_ui.tool_requested.connect(_on_tool_requested)
-	if _dock_ui != null and _dock_ui.has_method("register_mining_controller"):
-		_dock_ui.call("register_mining_controller", self)
+		_dock_ui.register_tool(self, ["mine_precision"])
 
 	# VisibleVolume contract (doc 11 Phase 3): all overlay rebuilds triggered by
 	# visibility changes go through this one signal — never per-consumer polling.
@@ -169,12 +168,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		var key := event as InputEventKey
-		if key.pressed and key.keycode == KEY_ESCAPE and _state != ToolState.INACTIVE:
-			_deactivate_tool()
-			get_viewport().set_input_as_handled()
-		return
+	if event is InputEventKey: return   # Esc is the dock's (DockUI.cancel)
 
 	if event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
@@ -237,13 +231,13 @@ func _on_tool_requested(tool_id: String) -> void:
 		# Another click-tool is activating — close this one (the doc 16 tool-
 		# exclusion wart, fixed 2026-07-06 after two active tools ate one click).
 		if _state != ToolState.INACTIVE:
-			_deactivate_tool()
+			deactivate()
 		return
 	# TOGGLE, matching every other click-tool: a second press of the dock
 	# button turns the tool off. (Previously the only exit was Esc, and the
 	# button re-activated a tool that was already active.)
 	if _state != ToolState.INACTIVE:
-		_deactivate_tool()
+		deactivate()
 		return
 	_state = ToolState.HOVER
 	_overlay.show_preview_lines()
@@ -339,8 +333,8 @@ func _load_config() -> void:
 	var zone_cfg: Dictionary = root.get("zone", {})
 	_work.max_workers = int(zone_cfg.get("max_workers", FALLBACK_ZONE_MAX_WORKERS))
 	var exec_cfg: Dictionary = root.get("execution", {})
-	_work.swing_base_time = float(exec_cfg.get("swing_base_time_s", FALLBACK_SWING_BASE_TIME))
-	_work.visible_swing = float(exec_cfg.get("visible_swing_s", _work.visible_swing))
+	_work.swing_base_time = float(exec_cfg.get("swing_base_time_seconds", FALLBACK_SWING_BASE_TIME))
+	_work.visible_swing = float(exec_cfg.get("visible_swing_seconds", _work.visible_swing))
 	_reach_up = int(exec_cfg.get("reach_up_blocks", _reach_up))
 	_reach_down = int(exec_cfg.get("reach_down_blocks", _reach_down))
 
@@ -569,7 +563,7 @@ func set_tool_setting(id: String, value: Variant) -> void:
 	_update_hover_preview(true)
 
 
-## The tool bar's Done, as Esc.
+## The tool bar's Done, and Esc through the dock (DockUI.cancel).
 func deactivate() -> void:
 	if _state != ToolState.INACTIVE: _deactivate_tool()
 

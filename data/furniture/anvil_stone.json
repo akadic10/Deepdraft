@@ -8,7 +8,7 @@
   "furniture_key": "base:furniture:anvil_stone",
   "furniture_category": "workshops",
   "display_name": "Anvil stone",
-  "description": "One great stone with its top split off level: the Blacksmith's anvil. Copper bars are hammered into the other trades' tools on its flat face, also while a smelter melts. Occupies a 2 by 1 space; the Blacksmith stands beside its flat end.",
+  "description": "One great stone with its top split off level: the Blacksmith's anvil. Copper bars are hammered into the other trades' tools and into nails on its flat face, also while a smelter melts. Occupies a 2 by 1 space; the Blacksmith stands beside its flat end.",
   "model": "res://assets/models/furniture/anvil_stone.glb",
   "item_key": "base:item:anvil_stone",
   "placement": "floor",

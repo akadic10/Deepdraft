@@ -142,6 +142,9 @@ Who applies it:
     and no cloth. Fine joinery waits for the iron saw.
   - **Made from planks,** which a Carpenter saws from logs (doc 44). Everything a Worker makes
     at camp stays Tier 1.
+  - **Nailed in words, pegged in the drawing** (doc 313, 2026-11-16). A plank piece takes a
+    copper nail to each plank and its description says nailed. The models were not redrawn: a
+    knot-dark peg stands where a nail is, and no nail head is drawn in copper.
   - **Piece by piece.** A Carpenter's piece keeps its Tier 1 look until its plank look is
     drawn and picked; doc 308 has the list and the order. The first (the owner's picks,
     2026-11-13) are the Plank Dining Table, the Plank bench, the Tool Rack, the Finished Goods

@@ -30,6 +30,7 @@ func _run() -> void:
 	_click(screen)
 	_expect(flora._tree_changes.has(oak_id), "normal viewport click designates tree")
 	_expect(flora._felling_markers.has(oak_id), "designation has a visible marker")
+	_expect(flora.get_explorer_data(oak_id).status.tone == "waiting", "a marked tree's line waits in amber: %s" % [flora.get_explorer_data(oak_id).status])
 	var source = flora.work.sources.get(oak_id)
 	if source == null:
 		push_error("Cannot continue: click did not create a felling source")

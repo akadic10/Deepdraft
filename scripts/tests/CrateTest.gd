@@ -50,6 +50,7 @@ func _run() -> void:
 	tasks.work_policy_changed()
 	furniture._install(CARPENTER_BENCH, furniture.get_defs()[CARPENTER_BENCH], Vector3i(44, 20, 41), 0, "base:material:pine")
 	drops.spawn_drop(PINE_PLANK, 4, Vector3i(42, 21, 40))
+	drops.spawn_drop("base:item:copper_nail", 4, Vector3i(43, 21, 40))   # a nail to each plank (doc 313)
 	var id: int = crafting.queue_order(CRATE_RECIPE, 1)
 	_expect(await _completed(id) and _count(CRATE_ITEM) == 1 and _count(PINE_PLANK) == 0, "four planks make one packed crate")
 	# With no crate yet, stones go to ground storage.

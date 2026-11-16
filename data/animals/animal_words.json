@@ -1,0 +1,35 @@
+{
+  "__comment": "The words shown for what an animal is doing and for where its arrival stands (doc 45), read by WildlifeManager.words_of. Animals, saves and tests name these by the code on the left; only the inspector shows the words. Not a species file: WildlifeManager leaves it out of the species it reads from this folder.",
+  "activity": {
+    "idle": "Idle",
+    "alert": "Alert",
+    "exploring": "Exploring",
+    "foraging": "Foraging",
+    "grazing": "Grazing",
+    "sleeping": "Sleeping",
+    "seeking_shelter": "Seeking shelter",
+    "fleeing": "Fleeing",
+    "falling": "Falling",
+    "arriving": "Arriving",
+    "arrival_blocked": "Arrival blocked",
+    "hunting": "Hunting",
+    "eating": "Eating",
+    "searching": "Searching",
+    "prowling": "Prowling",
+    "resting": "Resting",
+    "preening": "Preening",
+    "walking": "Walking",
+    "swimming": "Swimming",
+    "seeking_safe_water": "Seeking safe water",
+    "taking_off": "Taking off",
+    "flying": "Flying",
+    "seeking_landing": "Seeking a landing",
+    "landing": "Landing"
+  },
+  "arrival": {
+    "travelling_inland": "Travelling inland",
+    "flying_inland": "Flying inland",
+    "settled": "Settled",
+    "journey_interrupted": "Journey interrupted"
+  }
+}

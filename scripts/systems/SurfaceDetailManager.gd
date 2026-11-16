@@ -4,6 +4,7 @@ extends Node3D
 ## Logical occupancy is installed
 ## for the whole layout before visual spawning, and never depends on the camera.
 const Placement = preload("res://scripts/components/SurfaceDetailPlacement.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const ClearingSource = preload("res://scripts/components/TreeFellingComponent.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const Lighting = preload("res://scripts/components/UndergroundLighting.gd")
@@ -301,14 +302,23 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	var plant := _is_decorative_plant(String(id))
 	var status := "Marked for gathering" if marked and gathering else "Marked for clearing" if marked else "Available" if gathering else "Standing"
 	if plant: status = "Marked for clearing" if marked else "Partial work kept" if float(state.get("work_seconds",0)) > 0 else "Not marked"
+	# An order's tone is settled with its words: amber while it waits, red while no route
+	# reaches it, plain once work is under way.
+	var tone := "waiting" if marked else "fine"
 	var source: RefCounted = work.get_source(id)
 	if source != null:
 		var task := TaskManager.get_task(int(source.get("lease_id")))
 		if task != null:
-			if task.retry_at > Time.get_ticks_msec(): status = "Awaiting reachable route"
+			if task.retry_at > Time.get_ticks_msec():
+				status = "Awaiting reachable route"
+				if marked: tone = "blocked"
 			elif task.status == Task.Status.ASSIGNED: status = "Worker approaching"
-			elif task.status == Task.Status.IN_PROGRESS: status = "Gathering stones" if gathering else "Breaking stone"
-			if plant and task.status == Task.Status.IN_PROGRESS: status = definition.clearing_activity
+			elif task.status == Task.Status.IN_PROGRESS:
+				status = "Gathering stones" if gathering else "Breaking stone"
+				tone = "fine"
+			if plant and task.status == Task.Status.IN_PROGRESS:
+				status = definition.clearing_activity
+				tone = "fine"
 	if float(state.get("work_seconds", 0)) > 0:
 		status += " · %d%%" % mini(99, floori(float(state.work_seconds) / float(definition.clearing.work_seconds) * 100))
 	if plant:
@@ -316,25 +326,24 @@ func get_explorer_data(id: Variant) -> Dictionary:
 			["Appearance", definition.seasonal_labels[WorldClock.season]], ["Clearing", status]],
 			"details": definition.description,
 			"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel clearing" if marked else definition.clear_label}]},
-			id, status if marked else String(definition.seasonal_labels[WorldClock.season]), marked)
+			id, status if marked else String(definition.seasonal_labels[WorldClock.season]), tone)
 	var item := String(definition.clearing.item)
 	return _compact({"title": definition.display_name, "rows": [
 		["Clearing", status], ["Yield", "%d × Rough stone" % int(definition.clearing.count)]],
 		"details": "Walkable loose stones. A worker can gather this clump. Construction displaces it without a yield. Partial work is kept if cancelled." if gathering else "Blocks movement and construction. A worker can break it from an open side. Partial work is kept if cancelled.",
 		"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel gathering" if marked and gathering else "Cancel clearing" if marked else "Gather stones" if gathering else "Clear boulder",
 			"icon": "res://assets/ui/icons/cancel.png" if marked else "res://assets/ui/icons/clear_stones.png"}],
-		"badge": {"icon": "res://assets/ui/items/%s.png" % item.replace(":", "_"), "value": str(int(definition.clearing.count)),
+		"badge": {"icon": Pictures.item(item), "value": str(int(definition.clearing.count)),
 			"tooltip": "Clearing yields %d rough stone" % int(definition.clearing.count)}},
-		id, status, marked)
+		id, status, tone)
 
 
 ## The compact panel's fields (doc 260): the object itself as a live portrait, and one
-## status line in its tone (an order waits in amber, a blocked one is red).
-func _compact(data: Dictionary, id: String, status: String, ordered: bool) -> Dictionary:
+## status line in its tone (an order waits in amber, a blocked one is red). The caller settles
+## the tone where it settles the words.
+func _compact(data: Dictionary, id: String, status: String, tone: String) -> Dictionary:
 	data.family = "work"
 	data.portrait = _records[id].node
-	var tone := "fine"
-	if ordered: tone = "blocked" if status.begins_with("Awaiting") else "waiting" if status.begins_with("Marked") or status.contains("approaching") else "fine"
 	data.status = {"text": status, "tone": tone}
 	return data
 
@@ -665,20 +674,26 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 			"details": "Grown from one cutting. Berries, Move and Uproot become available at maturity. Clearing recovers one cutting; construction removes it without a drop. Winter preserves the plant and pauses growth.",
 			"actions": [{"id":"cancel" if marked_young else "clear", "text":"Cancel clearing" if marked_young else "Clear plant"},
 				{"id":"dev_mature", "text":"DEV: Grow to maturity", "variant":"dev"}]},
-			id, "Marked for clearing" if marked_young else "Dormant · growth paused" if dormant else "Growing · %d%%" % floori(fraction * 100), marked_young)
+			id, "Marked for clearing" if marked_young else "Dormant · growth paused" if dormant else "Growing · %d%%" % floori(fraction * 100), "waiting" if marked_young else "fine")
 	var ripe := Shrub.available(definition, state)
 	var marked := bool(state.get("designated", false))
 	var harvest := String(state.get("action", "clear")) == "harvest"
 	var uproot := String(state.get("action", "")) == "uproot"
 	var status := "Ready to harvest" if ripe else "Regrowing · %.1f game days remaining" % Shrub.regrow_remaining(definition,state) if WorldClock.season in definition.harvest.seasons else "Out of season · regrowth paused"
+	var tone := "fine"
 	if marked:
 		status = "Marked for harvest" if harvest else "Marked for uprooting" if uproot else "Marked for clearing"
+		tone = "waiting"
 		var source: RefCounted = work.get_source(id)
 		var task := TaskManager.get_task(int(source.get("lease_id"))) if source != null else null
 		if task != null:
-			if task.retry_at > Time.get_ticks_msec(): status = "Awaiting reachable route"
+			if task.retry_at > Time.get_ticks_msec():
+				status = "Awaiting reachable route"
+				tone = "blocked"
 			elif task.status == Task.Status.ASSIGNED: status = "Worker approaching"
-			elif task.status == Task.Status.IN_PROGRESS: status = "Harvesting berries" if harvest else "Uprooting shrub" if uproot else "Clearing plant"
+			elif task.status == Task.Status.IN_PROGRESS:
+				status = "Harvesting berries" if harvest else "Uprooting shrub" if uproot else "Clearing plant"
+				tone = "fine"
 		var duration := float(definition.harvest.work_seconds if harvest else definition.transplant.uproot_seconds if uproot else definition.clearing.work_seconds)
 		if float(state.get("work_seconds", 0)) > 0: status += " · %d%%" % mini(99, floori(float(state.work_seconds) / duration * 100))
 	var actions: Array = []
@@ -700,9 +715,9 @@ func _shrub_explorer(id: String, definition: Dictionary, state: Dictionary) -> D
 	var data := _compact({"title": definition.display_name, "rows": [
 		["Crop", status], ["Harvest", "%d berries · %s" % [int(definition.harvest.count), " / ".join(seasons)]]],
 		"details": "Berries regrow after %.1f planted days in season. Regrowth pauses out of season and while packed. Move and Uproot preserve its crop and progress; neither grants berries or a cutting. Clearing removes it permanently.\n\nPossible clearing yield: " % float(definition.harvest.regrow_days) + ", ".join(clearing_yields) + ".\nPlant cuttings through Place › Plants. Construction removes plants without a drop.",
-		"actions": actions}, id, status, marked)
+		"actions": actions}, id, status, tone)
 	if ripe and not marked:
-		data.badge = {"icon": "res://assets/ui/items/%s.png" % String(definition.harvest.item).replace(":", "_"),
+		data.badge = {"icon": Pictures.item(String(definition.harvest.item)),
 			"value": str(int(definition.harvest.count)), "tooltip": "%d berries ready to pick" % int(definition.harvest.count)}
 	return data
 
@@ -1076,7 +1091,7 @@ func _flower_explorer(id: String, definition: Dictionary, state: Dictionary) -> 
 		status = ("Uprooting" if uproot else "Clearing") + " · %d%%" % floori(float(state.get("work_seconds", 0)) / duration * 100)
 	return _compact({"title": definition.transplant.variants[int(_records[id].variant)].display_name,
 		"rows":[["Appearance", definition.seasonal_labels[WorldClock.season]], ["Bloom", "Blooming" if flower_blooming(id) else "Out of bloom"], ["Order", status]],
-		"details": definition.description, "actions": actions}, id, status if marked else "Blooming" if flower_blooming(id) else "Out of bloom", marked)
+		"details": definition.description, "actions": actions}, id, status if marked else "Blooming" if flower_blooming(id) else "Out of bloom", "fine")
 
 
 ## Future hive forage reads living, planted clumps at their current locations.

@@ -1,5 +1,5 @@
 {
-  "__comment": "The colony's journal (doc 23), read by ColonyJournal: how many days of lines it keeps, how often (real seconds) it looks at the dwarves' thoughts, and how many game hours a memory's age must fall back by to count as the thought coming again. lines holds what a dwarf says when a thought begins, a few per thought, keyed by the thought's id in DwarfMood.thoughts(), and when a dwarf finds a taste (found_love, found_like, found_dislike; {thing} is the thing's name). The dwarf's id, the day and the topic choose one, so a journal reads the same after a load.",
+  "__comment": "The colony's journal (doc 23), read by ColonyJournal: how many days of lines it keeps, how often (real seconds) it looks at the dwarves' thoughts, and how many game hours a memory's age must fall back by to count as the thought coming again. lines holds what a dwarf says when a thought begins, a few per thought, keyed by the thought's id in DwarfMood.thoughts(), and when a dwarf finds a taste (found_love, found_like, found_dislike; {thing} is the thing's name). The dwarf's id, the day and the topic choose one, so a journal reads the same after a load. A journal line is saved as codes (its topic, the speaker, the day), never as these words: ColonyJournal picks and fills the line again each time it is read.",
   "keep_days": 10,
   "check_seconds": 1.0,
   "renewed_hours": 0.5,

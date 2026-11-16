@@ -96,11 +96,11 @@ func _tool_test() -> void:
 		and not options.dirt.has("menu") and options.wood.menu.size()==2 and options.wood.menu[0].options.size()==2 and options.wood.menu[1].options.size()==4,
 		"Stone's menu holds native stone; Wood's its two logs, then the four woods")
 	var key := InputEventKey.new()
-	key.keycode = KEY_E
+	key.keycode = KEY_E; key.physical_keycode = KEY_E
 	key.pressed = true
 	construction._unhandled_input(key)
 	_expect(construction._material=="dirt" and construction._kind=="dirt","E steps to the next material")
-	key.keycode = KEY_Q
+	key.keycode = KEY_Q; key.physical_keycode = KEY_Q
 	construction._unhandled_input(key)
 	construction._unhandled_input(key)
 	_expect(construction._material=="wood" and construction._kind=="log_upright","Q steps back, round to the last: wood, on its first log")
@@ -115,9 +115,18 @@ func _tool_test() -> void:
 	var a := Vector3i(60,21,40)
 	var single := _cells([a])
 	_expect(construction._directions(single,a,a)[a]=="x","a click lays a log along x at first")
-	key.keycode = KEY_R
+	key.keycode = KEY_R; key.physical_keycode = KEY_R
 	construction._unhandled_input(key)
 	_expect(construction._directions(single,a,a)[a]=="z","R turns it")
+	# The key comes from the input map (doc 23 "Keys"): another key bound to the action turns it too.
+	var bound := InputEventKey.new()
+	bound.physical_keycode = KEY_G
+	InputMap.action_add_event(&"tool_rotate", bound)
+	key.keycode = KEY_G; key.physical_keycode = KEY_G
+	construction._unhandled_input(key)
+	_expect(construction._directions(single,a,a)[a]=="x","a key bound to tool_rotate in the input map turns it too")
+	construction._unhandled_input(key)   # and back, for the checks below
+	InputMap.action_erase_event(&"tool_rotate", bound)
 	var row := _cells([a,a+Vector3i(1,0,0),a+Vector3i(2,0,0)])
 	_expect(construction._directions(row,a,a+Vector3i(2,0,1)).values().all(func(way: String) -> bool: return way=="x"),"a drag lays logs along its longer side")
 	construction.set_tool_setting("type","log_upright")

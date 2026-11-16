@@ -42,9 +42,9 @@ func _run() -> void:
 	storage_window.position = Vector2(500, 40)
 	await _settle()
 	# With a designation tool armed, UI mouse events must still stay in the UI.
-	storage._active = true
-	storage._hover_valid = true
-	storage._hover_cell = Vector3i(54,20,44)
+	storage._tool.active = true
+	storage._tool.hover = Vector3i(54,20,44)
+	storage._tool.hover_reason = ""
 	for window: UIWindow in [mine_window, storage_window]:
 		var before := window.position
 		_drag_title(window, Vector2(100, 30))
@@ -54,9 +54,9 @@ func _run() -> void:
 		_expect(manager.get_child(-1) == window, "drag brings the window to front")
 		var recorded: Dictionary = manager._layout[window.window_id]
 		_expect(Vector2(recorded.x, recorded.y) == window.position, "drag position is recorded")
-	_expect(probe.clicks == 0 and not storage._dragging and storage._zones.size() == 2,
+	_expect(probe.clicks == 0 and not storage._tool.dragging and storage._zones.size() == 2,
 		"window dragging cannot start a world designation")
-	storage._active = false
+	storage._tool.active = false
 
 	# Live mining information must neither steal focus nor move either window.
 	storage._open_zone_window(502)

@@ -281,7 +281,7 @@
         "near_radius": 3.0, "far_radius": 18.0,
         "zoom_reference": 16.0, "zoom_exponent": 1.6, "max_zoom": 56.0,
         "level_db": -7.0, "cooldown_seconds": 0.3, "max_voices": 2,
-        "pause_with_simulation": true, "required_activity": "Eating"
+        "pause_with_simulation": true, "required_activity": "eating"
       },
       "deer_select": {
         "near_radius": 4.0, "far_radius": 28.0,
@@ -293,7 +293,7 @@
         "near_radius": 3.0, "far_radius": 18.0,
         "zoom_reference": 16.0, "zoom_exponent": 1.6, "max_zoom": 56.0,
         "level_db": -7.0, "cooldown_seconds": 0.25, "max_voices": 2,
-        "pause_with_simulation": true, "required_activity": "Grazing"
+        "pause_with_simulation": true, "required_activity": "grazing"
       },
       "rabbit_select": {
         "near_radius": 3.0, "far_radius": 24.0,
@@ -305,7 +305,7 @@
         "near_radius": 2.0, "far_radius": 14.0,
         "zoom_reference": 14.0, "zoom_exponent": 1.6, "max_zoom": 56.0,
         "level_db": -7.0, "cooldown_seconds": 0.2, "max_voices": 2,
-        "pause_with_simulation": true, "required_activity": "Grazing"
+        "pause_with_simulation": true, "required_activity": "grazing"
       }
     },
     "mining_soil": [

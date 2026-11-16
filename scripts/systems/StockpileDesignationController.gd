@@ -1,30 +1,11 @@
 class_name StockpileDesignationController
 extends Node3D
 
-## Stockpile zone designation tool (doc 18 Phase 1). The player toggles the
-## tool (dock 'storage_zone' panel → Draw Zone), hovers a validity-tinted
-## ghost tile, and click-drags a flat rectangle on walkable floor. Confirmed
-## zones render a per-zone ground overlay (never merged — the doc 43
-## adjacency lesson) and persist until removed via the zone window.
-##
-## Tool input contract (doc 21): ESC exits the mode; right-mouse stays camera
-## orbit and is never consumed. The tool stays active after each confirm for
-## repeated painting (the mining-tool pattern). Clicking an EXISTING zone cell
-## (no drag) while the tool is active opens its compact zone window.
-##
-## Drag rules (doc 18 Phase 1):
-##   - The anchor cell fixes the zone's floor Y — the marquee is FLAT; hover
-##     cells clamp to the anchor plane (the mining drag-height-lock lesson).
-##   - Per-cell validity: walkable floor (NavGrid — solid + 3-air clearance +
-##     no entity), exactly at anchor Y, dry, in bounds. Invalid cells drop out
-##     of the preview; confirm designates exactly the valid subset (WYSIWYG).
-##   - No grid snapping; max extent per drag is MAX_ZONE_EXTENT.
-##
-## Raycasting: ObjectPicking.terrain_hit against the live block grid, so zones
-## can be drawn inside mined interiors (doc 22b).
-##
-## Slice rule (doc 11 Phase 5): zone overlays hide when their floor is above
-## the cut, same hook as flora/dwarves/drops.
+## Storage zones (doc 18): the Zones menu's Storage tool, the zones it paints, and their window.
+## The tool is the one every zone shares (ZoneTool.gd): a drag paints a flat rectangle on the
+## plane of the cell it began on, a click on a zone opens its window, and Esc is the dock's.
+## Zones never merge (the doc 43 adjacency lesson) and stay until removed from their window.
+## A zone takes floor a dwarf can stand on (`cell_reason`), and hides above the slice.
 
 @export var camera_path: NodePath
 @export var dock_ui_path: NodePath
@@ -33,20 +14,11 @@ extends Node3D
 
 const TOOL_ID := "storage_zone"
 const ZONE_WINDOW_ID := "storage_zone_info"
-const MAX_ZONE_EXTENT := 16          # max cells per axis in one drag
-const WORLD_EDGE_MARGIN := 2
-const RAY_MAX := 700.0
-const SLICE_OFF_Y := SliceController.MAX_SLICE_Y
-const Picking = preload("res://scripts/components/ObjectPicking.gd")
-const OVERLAY_LIFT := 1.04           # overlay quad height above the floor top
-const DRAG_THRESHOLD_PX := 6.0       # below this, a click = zone select (doc 22)
-
+const ZoneTool = preload("res://scripts/components/ZoneTool.gd")
 const COLOR_VALID := Color(0.25, 0.65, 0.90, 0.30)     # fill, blue-cyan (mining zones own yellow)
 const COLOR_VALID_EDGE := Color(0.35, 0.80, 1.00, 0.85)
-const COLOR_INVALID := Color(1.00, 0.30, 0.25, 0.35)
 const COLOR_ZONE := Color(0.25, 0.65, 0.90, 0.22)      # confirmed zone fill
 const COLOR_ZONE_EDGE := Color(0.35, 0.80, 1.00, 0.60)
-const EDGE_INSET := 0.08             # perimeter strip width (blocks)
 
 var _lost_floors := {}   # zone cells whose floor block was removed this frame
 
@@ -57,24 +29,10 @@ signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
 
 var _dock_ui: Node = null
-var _pointer_screen := Vector2.INF
-
-var _active: bool = false
-var _dragging: bool = false
-var _anchor_cell: Vector3i = Vector3i(-1, -1, -1)
-var _drag_start_px: Vector2 = Vector2.ZERO
-var _hover_cell: Vector3i = Vector3i(-1, -1, -1)
-var _hover_valid: bool = false
-var _preview_cells: Array[Vector3i] = []
-
-var _slice_y: int = SLICE_OFF_Y
+var _tool: ZoneTool                  # the drag, its preview and the zones on the ground
 var _next_zone_id: int = 1
 var _zones: Dictionary = {}          # zone_id -> StockpileZoneComponent
-var _zone_overlays: Dictionary = {}  # zone_id -> MeshInstance3D
 var _cell_to_zone: Dictionary = {}   # Vector3i -> zone_id (click lookup)
-
-var _preview_mesh: MeshInstance3D = null
-var _overlay_material: StandardMaterial3D = null
 
 var _window_manager: UIWindowManager = null
 var _window_panel: UIWindow = null
@@ -90,23 +48,29 @@ func _ready() -> void:
 	# (its edits were lost).
 	StockpileManager.container_removed.connect(func(container: StorageComponent) -> void:
 		if _storage_panel != null and _storage_panel.storage == container: _close_zone_window())
-	_dock_ui = get_node_or_null(dock_ui_path)
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
-	if _dock_ui != null:
-		if _dock_ui.has_method("register_stockpile_controller"):
-			_dock_ui.call("register_stockpile_controller", self)
-		if _dock_ui.has_signal("tool_requested"):
-			_dock_ui.connect("tool_requested", _on_tool_requested)
+	_tool = ZoneTool.new()
+	_tool.name = "ZoneTool"
+	_tool.tool_id = TOOL_ID
+	_tool.here_words = "A storage zone is here"
+	_tool.fill = COLOR_VALID
+	_tool.edge = COLOR_VALID_EDGE
+	_tool.cell_reason = cell_reason
+	_tool.zone_at = func(cell: Vector3i) -> int: return int(_cell_to_zone.get(cell, -1))
+	_tool.cells_chosen = _confirm_zone
+	_tool.zone_clicked = _open_zone_window
+	_tool.active_changed.connect(func(on: bool) -> void: tool_active_changed.emit(on))
+	add_child(_tool)
+	var dock := get_node_or_null(dock_ui_path) as DockUI
+	_dock_ui = dock
+	if dock != null:
+		dock.register_stockpile_controller(self)
+		dock.tool_requested.connect(_tool.on_tool_requested)
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
-		slice_controller.connect("slice_changed", _on_slice_changed)
+		slice_controller.connect("slice_changed", _tool.set_slice)
 	SkyController.hearthblock_lighting_changed.connect(_on_hearthblock_lighting_changed)
 	WorldData.block_changed.connect(_on_block_changed)
-	_overlay_material = StandardMaterial3D.new()
-	_overlay_material.vertex_color_use_as_albedo = true
-	_overlay_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_overlay_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_overlay_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_build_window()
 
 
@@ -133,241 +97,56 @@ func _drop_lost_floors() -> void:
 			StockpileManager.remove_zone_cells(zone, lost)
 			for cell: Vector3i in lost: _cell_to_zone.erase(cell)
 			var colors := _zone_colors()
-			_draw_cells(_zone_overlays[zone_id], zone.tile_cells, colors[0], colors[1], zone.floor_y)
+			_tool.show_zone(zone_id, zone.tile_cells, colors[0], colors[1])
 		var drops: ItemDropManager = ItemDropManager.find(get_tree())
 		if drops != null: drops.settle_cells(lost)
 
 
 func _process(_delta: float) -> void:
 	if not _lost_floors.is_empty(): _drop_lost_floors()
-	if not _active:
-		return
-	_update_hover()
 
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventMouse: _pointer_screen = event.position
-	if not _dragging: return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		if get_viewport().gui_get_hovered_control() == null:
-			_update_hover()
-			_on_left_release(event.position)
-		else:
-			_dragging = false
-			_preview_cells.clear()
-			if _preview_mesh != null: _preview_mesh.hide()
-		get_viewport().set_input_as_handled()
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and _dragging:
-		_dragging = false
-		_preview_cells.clear()
-		if _preview_mesh != null: _preview_mesh.hide()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not _active:
-		# Mining parity (defect, Alen 2026-07-11: a stocked zone was unremovable
-		# with the tool off): zones stay click-selectable while the tool is
-		# INACTIVE, exactly like MiningDesignationController's inactive branch —
-		# the zone window (and its Remove button) must always be reachable.
-		if event is InputEventMouseButton:
-			var mb_inactive := event as InputEventMouseButton
-			if mb_inactive.pressed and mb_inactive.button_index == MOUSE_BUTTON_LEFT \
-					and try_select_zone_at_screen(mb_inactive.position):
-				get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and (event as InputEventKey).pressed \
-			and (event as InputEventKey).keycode == KEY_ESCAPE:
-		deactivate()
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventMouseButton:
-		var mb := event as InputEventMouseButton
-		if mb.button_index != MOUSE_BUTTON_LEFT:
-			return
-		if mb.pressed:
-			_update_hover()
-			_on_left_press(mb.position)
-			get_viewport().set_input_as_handled()
-		elif _dragging:
-			_on_left_release(mb.position)
-			get_viewport().set_input_as_handled()
-
-
-# ── Tool state ────────────────────────────────────────────────────────────────
+# ── The tool (ZoneTool) ───────────────────────────────────────────────────────
 
 func is_active() -> bool:
-	return _active
-
-
-func toggle_active() -> void:
-	if _active:
-		deactivate()
-	else:
-		activate()
+	return _tool.active
 
 
 func activate() -> void:
-	if _active:
-		return
-	if not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)):
-		push_warning("StockpileDesignationController: maps not ready.")
-		return
-	_active = true
-	_ensure_preview_mesh()
-	tool_active_changed.emit(true)
+	_tool.activate()
 
 
 func deactivate() -> void:
-	if not _active:
-		return
-	_active = false
-	_dragging = false
-	_preview_cells.clear()
-	if _preview_mesh != null:
-		_preview_mesh.visible = false
-	tool_active_changed.emit(false)
+	_tool.deactivate()
 
 
-func _on_tool_requested(tool_id: String) -> void:
-	# One active tool at a time: our id toggles us; any other id closes us.
-	if tool_id == TOOL_ID:
-		toggle_active()
-	elif _active:
-		deactivate()
+# ── Which cells a zone takes ──────────────────────────────────────────────────
+
+## A click on one of our zones opens its window. ObjectExplorerController asks every click tool
+## this by name before it selects the bare ground under the pointer, so the name must stay.
+func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
+	return _tool.select_zone_at(screen_pos)
 
 
-# ── Input flow ────────────────────────────────────────────────────────────────
-
-func _on_left_press(screen_pos: Vector2) -> void:
-	if not _hover_valid:
-		# Clicking an existing zone opens its window even on invalid hover
-		# (a stocked zone cell is not a valid NEW cell, but is selectable).
-		if _cell_to_zone.has(_hover_cell):
-			_open_zone_window(int(_cell_to_zone[_hover_cell]))
-		return
-	if _cell_to_zone.has(_hover_cell):
-		_open_zone_window(int(_cell_to_zone[_hover_cell]))
-		return
-	_dragging = true
-	_anchor_cell = _hover_cell
-	_drag_start_px = screen_pos
-	_rebuild_preview()
-
-
-func _on_left_release(screen_pos: Vector2) -> void:
-	_dragging = false
-	# Short click on empty valid ground = 1×1 zone (DRAG_THRESHOLD, doc 22).
-	# NOTE: built explicitly, never via ternary — `[x] if c else []` yields a
-	# plain Array and crashes assigning to Array[Vector3i] (runtime-only error;
-	# the 2026-07-06 flag-click crash).
-	if screen_pos.distance_to(_drag_start_px) < DRAG_THRESHOLD_PX:
-		var single: Array[Vector3i] = []
-		if _is_valid_cell(_anchor_cell, _anchor_cell.y):
-			single.append(_anchor_cell)
-		_preview_cells = single
-	if not _preview_cells.is_empty():
-		_confirm_zone(_preview_cells.duplicate())
-	_preview_cells.clear()
-	if _preview_mesh != null:
-		_preview_mesh.visible = false
-
-
-func _update_hover() -> void:
-	var hit := _mouse_surface_cell()
-	if hit.is_empty():
-		_hover_cell = Vector3i(-1, -1, -1)
-		_hover_valid = false
-		if not _dragging and _preview_mesh != null:
-			_preview_mesh.visible = false
-		return
-	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
-	if _dragging:
-		# Drag height lock: the marquee lives on the anchor plane.
-		cell.y = _anchor_cell.y
-	if cell == _hover_cell and _preview_mesh != null and _preview_mesh.visible:
-		return
-	_hover_cell = cell
-	_hover_valid = _is_valid_cell(cell, cell.y) and not _cell_to_zone.has(cell)
-	_rebuild_preview()
-
-
-# ── Preview ───────────────────────────────────────────────────────────────────
-
-func _rebuild_preview() -> void:
-	_ensure_preview_mesh()
-	if _dragging:
-		_preview_cells = _marquee_valid_cells(_anchor_cell, _hover_cell)
-		_draw_cells(_preview_mesh, _preview_cells, COLOR_VALID, COLOR_VALID_EDGE, _anchor_cell.y)
-	else:
-		var color_fill := COLOR_VALID if _hover_valid else COLOR_INVALID
-		var color_edge := COLOR_VALID_EDGE if _hover_valid else COLOR_INVALID
-		var cells: Array[Vector3i] = [_hover_cell]
-		_draw_cells(_preview_mesh, cells, color_fill, color_edge, _hover_cell.y)
-	_preview_mesh.visible = _hover_cell.x >= 0
-
-
-## The extent-clamped marquee rectangle as (min_x, min_z, max_x, max_z).
-func _marquee_rect(anchor: Vector3i, current: Vector3i) -> Vector4i:
-	var min_x := mini(anchor.x, current.x)
-	var max_x := maxi(anchor.x, current.x)
-	var min_z := mini(anchor.z, current.z)
-	var max_z := maxi(anchor.z, current.z)
-	# Clamp extent, growing away from the anchor.
-	max_x = mini(max_x, min_x + MAX_ZONE_EXTENT - 1) if anchor.x == min_x else max_x
-	min_x = maxi(min_x, max_x - MAX_ZONE_EXTENT + 1) if anchor.x == max_x else min_x
-	max_z = mini(max_z, min_z + MAX_ZONE_EXTENT - 1) if anchor.z == min_z else max_z
-	min_z = maxi(min_z, max_z - MAX_ZONE_EXTENT + 1) if anchor.z == max_z else min_z
-	return Vector4i(min_x, min_z, max_x, max_z)
-
-
-## The flat rectangle between anchor and current, valid cells only (WYSIWYG).
-func _marquee_valid_cells(anchor: Vector3i, current: Vector3i) -> Array[Vector3i]:
-	var rect := _marquee_rect(anchor, current)
-	var cells: Array[Vector3i] = []
-	for x: int in range(rect.x, rect.z + 1):
-		for z: int in range(rect.y, rect.w + 1):
-			var cell := Vector3i(x, anchor.y, z)
-			if _cell_to_zone.has(cell):
-				continue   # zones never merge or overlap (doc 43 lesson)
-			if _is_valid_cell(cell, anchor.y):
-				cells.append(cell)
-	return cells
-
-
-# ── Validity ──────────────────────────────────────────────────────────────────
-
-## A designatable stockpile cell: in bounds (with margin), above bedrock, dry,
-## the visible surface at exactly the marquee plane, and NavGrid-walkable
-## (solid floor + 3-air clearance + no entity footprint).
-func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
-	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldData.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
-			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldData.WORLD_SIZE_Z - WORLD_EDGE_MARGIN:
-		return false
-	if cell.y <= 3 or cell.y != plane_y:
-		return false
+## Why a floor cell can't hold storage, or "" when it can: clear of the world's edge and of
+## water, with no furniture on it, in a place the colony has found, in no other zone, and
+## ground a dwarf can stand on (NavGrid: solid floor, 3 clear blocks, nothing in the way).
+func cell_reason(cell: Vector3i) -> String:
+	if ZoneTool.near_edge(cell): return "Too near the world's edge"
+	if _cell_to_zone.has(cell): return "Already a storage zone"
 	var col := Vector2i(cell.x, cell.z)
-	if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col):
-		return false
-	# Zones never overlap furniture ghosts or installed pieces (doc 19 Phase 2;
-	# installed occupancy already fails is_walkable, ghosts are non-solid so
-	# they need the explicit check).
+	if WorldGenerator.lake_columns.has(col) or WorldGenerator.tarn_columns.has(col): return "Storage can't stand in water"
+	# Zones never overlap furniture plans or installed pieces (doc 19 Phase 2). An installed
+	# piece already fails is_walkable; a plan is not solid, so it needs its own check.
 	var furniture := get_tree().get_first_node_in_group("furniture_controller")
-	if furniture != null and furniture.has_method("blocks_zone_cell") \
-			and bool(furniture.call("blocks_zone_cell", cell)):
-		return false
+	if furniture != null and furniture.has_method("blocks_zone_cell") and bool(furniture.call("blocks_zone_cell", cell)):
+		return "Furniture stands here"
 	# A cave not yet found is rock to every tool: no stockpile stands in it (Hard Rule 11).
-	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP):
-		return false
-	var fishing := get_tree().get_first_node_in_group("fishing_system")
-	if fishing != null and fishing.is_zone_cell(cell):
-		return false   # a fishing spot is a zone too (doc 289)
-	var farming := get_tree().get_first_node_in_group("farming_system")
-	if farming != null and farming.is_zone_cell(cell):
-		return false   # and so is a field's tile (doc 309)
-	return NavGrid.is_walkable(cell)
+	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP): return "Nobody has found this place"
+	var taken := _tool.taken_by_another(cell)
+	if not taken.is_empty(): return taken
+	if not NavGrid.is_walkable(cell): return "A dwarf can't stand here"
+	return ""
 
 
 # ── Zone lifecycle ────────────────────────────────────────────────────────────
@@ -378,17 +157,18 @@ func _confirm_zone(cells: Array[Vector3i]) -> void:
 		"message": "Stockpile created · %d cells" % cells.size()})
 
 
-## What the tool bar shows (doc 23, "The tool bar"): while a zone is dragged, its cells
-## and its size, never making the player count blocks (Alen's playtest note, 2026-07-06).
+## What the tool bar shows (doc 23, "The tool bar"): while a zone is dragged, its cells and its
+## size, never making the player count blocks (Alen's playtest note, 2026-07-06); otherwise why
+## the cell under the pointer can't hold storage, as the other zone tools say it.
 func tool_bar_state() -> Dictionary:
 	var state := {"tool": TOOL_ID}
-	if _dragging:
-		var rect := _marquee_rect(_anchor_cell, _hover_cell)
-		var w := rect.z - rect.x + 1
-		var d := rect.w - rect.y + 1
-		var blocked := w * d - _preview_cells.size()
-		state.selection = {"count": "%d cell%s" % [_preview_cells.size(), "" if _preview_cells.size() == 1 else "s"],
-			"detail": "%d × %d%s" % [w, d, ", %d blocked" % blocked if blocked > 0 else ""], "at": _pointer_screen}
+	if _tool.dragging:
+		var size := _tool.drag_rect().size
+		var blocked := size.x * size.y - _tool.preview.size()
+		state.selection = {"count": "%d cell%s" % [_tool.preview.size(), "" if _tool.preview.size() == 1 else "s"],
+			"detail": "%d × %d%s" % [size.x, size.y, ", %d blocked" % blocked if blocked > 0 else ""], "at": _tool.pointer}
+	elif _tool.hover != ZoneTool.NOWHERE and not _tool.hover_reason.is_empty() and not _cell_to_zone.has(_tool.hover):
+		state.selection = {"count": "Can't store here", "detail": _tool.hover_reason, "short": true, "at": _tool.pointer}
 	return state
 
 
@@ -408,7 +188,7 @@ func inspect_order(receipt: Dictionary) -> void:
 
 
 func inspect_storage(zone: StockpileZoneComponent) -> bool:
-	if zone == null or _zones.get(zone.zone_id) != zone or zone.floor_y > _slice_y: return false
+	if zone == null or _zones.get(zone.zone_id) != zone or zone.floor_y > _tool.slice_y: return false
 	_open_zone_window(zone.zone_id)
 	return true
 
@@ -420,13 +200,8 @@ func _create_zone(cells: Array[Vector3i], requested_id: int = -1) -> StockpileZo
 	_zones[zone_id] = zone
 	for cell: Vector3i in cells:
 		_cell_to_zone[cell] = zone_id
-	var overlay := MeshInstance3D.new()
-	overlay.name = "StockpileZone_%d" % zone_id
-	add_child(overlay)
 	var colors := _zone_colors()
-	_draw_cells(overlay, cells, colors[0], colors[1], zone.floor_y)
-	overlay.visible = zone.floor_y <= _slice_y
-	_zone_overlays[zone_id] = overlay
+	_tool.show_zone(zone_id, cells, colors[0], colors[1])
 	StockpileManager.register_zone(zone)   # work source goes live (doc 18 Phase 3)
 	print("StockpileDesignationController: zone %d created (%d cells at Y %d)." % [
 		zone_id, cells.size(), zone.floor_y])
@@ -442,15 +217,13 @@ func remove_zone(zone_id: int) -> void:
 	for cell: Vector3i in zone.tile_cells:
 		_cell_to_zone.erase(cell)
 	_zones.erase(zone_id)
-	if _zone_overlays.has(zone_id):
-		(_zone_overlays[zone_id] as MeshInstance3D).queue_free()
-		_zone_overlays.erase(zone_id)
+	_tool.hide_zone(zone_id)
 	if _window_zone_id == zone_id:
 		_close_zone_window()
 
 
 ## Cross-system lookup (doc 19 Phase 2): the furniture tool must not place
-## on zone cells. Mirrored by our own _is_valid_cell rejecting furniture.
+## on zone cells. Mirrored by our own cell_reason refusing furniture.
 func is_zone_cell(cell: Vector3i) -> bool:
 	return _cell_to_zone.has(cell)
 
@@ -547,14 +320,7 @@ func restore_state(state: Dictionary) -> void:
 				drop_manager.restore_stored_item(item_key, cell, count, String(saved_stack.get("instance_id", "")), bool(saved_stack.get("disallowed", false)), String(saved_stack.get("material_id", "")), spoil)
 
 
-# ── Rendering helpers ─────────────────────────────────────────────────────────
-
-func _ensure_preview_mesh() -> void:
-	if _preview_mesh != null:
-		return
-	_preview_mesh = MeshInstance3D.new()
-	_preview_mesh.name = "StockpilePreview"
-	add_child(_preview_mesh)
+# ── Zone colours ──────────────────────────────────────────────────────────────
 
 
 ## Confirmed zones read as a quiet burlap mat with a rope-coloured border under
@@ -575,76 +341,7 @@ func _zone_colors() -> Array[Color]:
 func _on_hearthblock_lighting_changed(_lit: bool) -> void:
 	var colors := _zone_colors()
 	for zone_id: int in _zones:
-		if not _zone_overlays.has(zone_id): continue
-		var zone: StockpileZoneComponent = _zones[zone_id]
-		_draw_cells(_zone_overlays[zone_id], zone.tile_cells, colors[0], colors[1], zone.floor_y)
-
-
-## Builds flat quads (fill + perimeter strips) for `cells` into `target`.
-func _draw_cells(target: MeshInstance3D, cells: Array[Vector3i], fill: Color, edge: Color, plane_y: int) -> void:
-	var mesh := ImmediateMesh.new()
-	if not cells.is_empty():
-		var y := float(plane_y) + OVERLAY_LIFT
-		var cell_set: Dictionary = {}
-		for cell: Vector3i in cells:
-			cell_set[cell] = true
-		mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-		for cell: Vector3i in cells:
-			_emit_quad(mesh, float(cell.x), float(cell.z), 1.0, 1.0, y, fill)
-			# Perimeter strips where a neighbour is outside the set.
-			var fx := float(cell.x)
-			var fz := float(cell.z)
-			if not cell_set.has(cell + Vector3i(-1, 0, 0)):
-				_emit_quad(mesh, fx, fz, EDGE_INSET, 1.0, y + 0.005, edge)
-			if not cell_set.has(cell + Vector3i(1, 0, 0)):
-				_emit_quad(mesh, fx + 1.0 - EDGE_INSET, fz, EDGE_INSET, 1.0, y + 0.005, edge)
-			if not cell_set.has(cell + Vector3i(0, 0, -1)):
-				_emit_quad(mesh, fx, fz, 1.0, EDGE_INSET, y + 0.005, edge)
-			if not cell_set.has(cell + Vector3i(0, 0, 1)):
-				_emit_quad(mesh, fx, fz + 1.0 - EDGE_INSET, 1.0, EDGE_INSET, y + 0.005, edge)
-		mesh.surface_end()
-	target.mesh = mesh
-	target.material_override = _overlay_material
-
-
-func _emit_quad(mesh: ImmediateMesh, x: float, z: float, w: float, d: float, y: float, color: Color) -> void:
-	mesh.surface_set_color(color)
-	mesh.surface_add_vertex(Vector3(x, y, z))
-	mesh.surface_add_vertex(Vector3(x + w, y, z))
-	mesh.surface_add_vertex(Vector3(x + w, y, z + d))
-	mesh.surface_set_color(color)
-	mesh.surface_add_vertex(Vector3(x, y, z))
-	mesh.surface_add_vertex(Vector3(x + w, y, z + d))
-	mesh.surface_add_vertex(Vector3(x, y, z + d))
-
-
-# ── Raycasting (the flag-tool height-field march) ─────────────────────────────
-
-func _mouse_surface_cell() -> Dictionary:
-	return _surface_cell_for(get_viewport().get_mouse_position() if _pointer_screen == Vector2.INF else _pointer_screen)
-
-
-## The first slice-visible solid block under the screen point, as the slice shows
-## it (ObjectPicking.terrain_hit with concealed_block: a cave not yet found is
-## rock): the floor cell itself, NavGrid's convention.
-func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
-	var camera := get_viewport().get_camera_3d()
-	if camera == null:
-		return {}
-	return Picking.terrain_hit(camera.project_ray_origin(screen_pos),
-		camera.project_ray_normal(screen_pos).normalized(), _slice_y, RAY_MAX, Picking.concealed_block)
-
-
-# ── Slice culling (doc 11 Phase 5 hook) ───────────────────────────────────────
-
-func _on_slice_changed(new_slice_y: int) -> void:
-	if new_slice_y == _slice_y:
-		return
-	_slice_y = new_slice_y
-	for zone_id: int in _zone_overlays:
-		var zone: StockpileZoneComponent = _zones.get(zone_id)
-		if zone != null:
-			(_zone_overlays[zone_id] as MeshInstance3D).visible = zone.floor_y <= _slice_y
+		_tool.show_zone(zone_id, (_zones[zone_id] as StockpileZoneComponent).tile_cells, colors[0], colors[1])
 
 
 # ── Storage inspector ────────────────────────────────────────────────────────
@@ -671,20 +368,6 @@ func _on_zone_window_state_changed(id: String, shown: bool) -> void:
 	if id == ZONE_WINDOW_ID and not shown:
 		_window_zone_id = -1
 		_storage_panel.clear_subject()
-
-
-## Zone click-select at an arbitrary screen position — usable while the tool
-## is INACTIVE (the mining controller's try_select_zone_at_screen pattern).
-## Returns true if a zone window was opened (caller consumes the click).
-func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
-	var hit := _surface_cell_for(screen_pos)
-	if hit.is_empty():
-		return false
-	var cell := Vector3i(int(hit["x"]), int(hit["y"]), int(hit["z"]))
-	if not _cell_to_zone.has(cell):
-		return false
-	_open_zone_window(int(_cell_to_zone[cell]))
-	return true
 
 
 func _open_zone_window(zone_id: int) -> void:

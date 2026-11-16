@@ -9,7 +9,7 @@ extends VBoxContainer
 ## - A store holding no such food says how long blueberries would keep there instead (the
 ##   Temperature view's keeping_food); a store that takes no food shows nothing.
 ## The window refreshes it after each spoilage pass. Presentation only.
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 ## The window's sizes for the screen (StorageInspectorPanel.SIZES): heading, hint, exact,
 ## heading_width, bar and gap.
 var sizes: Dictionary = {}
@@ -73,7 +73,7 @@ func _row(drops: ItemDropManager, row: Dictionary) -> HBoxContainer:
 	line.tooltip_text = "%d of %d %s: %s here." % [int(row.count), int(row.total), plural, row.text] if int(row.count) < int(row.total) \
 		else "%d %s: %s here." % [int(row.count), plural if int(row.count) > 1 else name.to_lower(), row.text]
 	var picture := TextureRect.new()
-	var path := Inventory.thumbnail_path(String(row.key))
+	var path := Pictures.item(String(row.key))
 	if ResourceLoader.exists(path): picture.texture = load(path)
 	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

@@ -27,10 +27,11 @@ func _run() -> void:
 			_expect(tile!=null and tile.icon!=null and tile.text.is_empty(),"illustrated recipe tile: "+key)
 		var campfire: Button = panel._recipes.get_tile(PREFIX+"campfire")
 		_expect(campfire.has_node("Selected") and panel._picture.texture==campfire.icon and panel._title.text=="Campfire","the chosen recipe is ringed and shown on the board")
+		_expect(panel._heading.text.begins_with("Rudimentary · "),"the page's heading names its section: "+panel._heading.text)
 		_expect(campfire.has_node("Mark") and panel._recipes.get_tile(PREFIX+"crude_workbench").has_node("Mark"),"with no timber in the colony every recipe is missing something")
 		_expect(panel._chips.time.label.text=="10 s" and panel._chips.makes.label.text=="Makes 1","badges give the work time and the yield")
 		_expect(panel._flavour.text=="\"Stones in a ring, logs in the middle, stories all around.\"","the recipe's flavour line shows")
-		_expect(panel._ingredients_heading.text=="INGREDIENTS · 1 timber · 1 Rough stone" and panel._woods.get_tile(PINE)!=null
+		_expect(panel._ingredients_heading.text=="INGREDIENTS · 1 timber · 1 rough stone" and panel._woods.get_tile(PINE)!=null
 			and panel._woods.get_tile("extra:base:item:rough_stone")!=null,"ingredients are pictures: the woods, then the stone")
 		_expect(_tag_texts().has("Needs a crude workbench") and _tag_texts().has("✓ Any Worker"),"tags say what the recipe needs")
 		campfire.grab_focus()
@@ -46,7 +47,7 @@ func _run() -> void:
 		await _expect_rings_show(viewport)
 		dock.open_crafting(PREFIX+"hearth")
 		await _frames(4)
-		_expect(panel._requirements.text.contains("4 Rough stone") and panel._requirements.text.count("Rough stone")==1,"hearth groups repeated stone ingredients into one count")
+		_expect(panel._requirements.text.contains("4 rough stones") and panel._requirements.text.count("rough stone")==1,"hearth groups repeated stone ingredients into one count")
 		await _capture_browser("hearth_%d" % viewport.x)
 		panel.select_recipe(PREFIX+"stone_hammer")
 		await _frames(2)
@@ -130,6 +131,7 @@ func _run() -> void:
 		_click(panel._crafter_tiles.farmer.get_global_rect().get_center())
 		await _frames(6)
 		_expect(panel.section_id=="farmer" and not panel._tabs.visible and not panel._queue_button.is_visible_in_tree() and panel._planned.visible,"planned professions remain preview-only")
+		_expect(panel._title.text=="Farmer · Planned" and panel._heading.text.begins_with("Farmer · "),"a planned page is titled with its section's name: %s / %s"%[panel._title.text,panel._heading.text])
 		_click(panel._crafter_tiles.rudimentary.get_global_rect().get_center())
 		await _frames(6)
 		_expect(panel.selected==TORCH_RECIPE and _visible_recipes().size()==_rudimentary().size(),"returning restores selection and clears search")
@@ -156,7 +158,7 @@ func _expect_boards_fit(viewport: Vector2i) -> void:
 		panel.select_recipe(key)
 		await _frames(2)
 		var room: float = panel._card_scroll.size.y
-		_expect(not panel._card_scroll.get_v_scroll_bar().visible and panel._card.size.y<=room+0.5,"%s: the %s board shows whole (needs %d px, has %d)" % [viewport,key,int(panel._card.get_combined_minimum_size().y),int(room)])
+		_expect(not panel._card_scroll.get_v_scroll_bar().visible and panel._card.size.y<=room+0.5,"%s: the %s board shows whole (needs %d px, has %d; its words take %d lines and its ingredients %d)" % [viewport,key,int(panel._card.get_combined_minimum_size().y),int(room),panel._description.get_line_count(),panel._requirements.get_line_count()])
 		_expect(panel._description.text.count(String(crafting.recipes[key].description))==1,"the board gives its description once: "+key)
 
 ## The chosen recipe's hay ring shows whole, on both live pages: the list leaves the ring

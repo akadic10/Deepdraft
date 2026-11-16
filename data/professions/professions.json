@@ -238,7 +238,7 @@
       },
       "hat": "res://assets/models/characters/dwarves/hats/hat_blacksmith.glb",
       "display_name": "Blacksmith",
-      "description": "Melts copper ore at the basic smelter, casts copper bars and hammers them on the anvil stone into the tools that open the other trades: the Miner's pick, the Carpenter's saw, the Stonemason's chisel and the Farmer's hoe. Iron, weapons and armor wait for the Smelter and the Forge. The colony's only metalworking profession.",
+      "description": "Melts copper ore at the basic smelter, casts copper bars and hammers them on the anvil stone into the tools that open the other trades: the Miner's pick, the Carpenter's saw, the Stonemason's chisel and the Farmer's hoe, and into the Carpenter's nails. Iron, weapons and armor wait for the Smelter and the Forge. The colony's only metalworking profession.",
       "promotes_from": "base:profession:worker",
       "stats": ["base:stat:strength", "base:stat:wits"],
       "work_first": ["COLLECT", "CRAFT"],
@@ -249,7 +249,7 @@
       "craft_sound": "hammer",
       "work_speed_bonus_per_level": 0.05,
       "experience": {
-        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Blacksmith's own page: copper bars and the trades' tools are the practice.", "master": "Master Blacksmith", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
+        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Blacksmith's own page: copper bars, nails and the trades' tools are the practice.", "master": "Master Blacksmith", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
         "thresholds": {"level_2": 10, "level_3": 50, "level_4": 150, "level_5": 400},
         "speed_text": "%d%% less work time crafting",
         "rewards": [{"level": 1, "text": "Smithing focus"}, {"level": 2, "text": "Ready for iron when the Smelter comes"}]

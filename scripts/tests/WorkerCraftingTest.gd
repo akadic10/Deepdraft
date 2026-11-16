@@ -112,6 +112,7 @@ func _run() -> void:
 	_expect(await _phase(worker.TaskPhase.FETCH_WORKING),"placed bench enables torch work")
 	order = crafting.get_order(id)
 	_expect(inspection.describe(worker).destination=="Pine crude workbench\n"+inspection.location(order.work_cell),"workshop recipe inspector shows the claimed stump's actual work position")
+	_expect(inspection.describe(worker).activity=="Crafting log torch","the inspector names the recipe being made: %s"%inspection.describe(worker).activity)
 	worker._process(.8)
 	if "--capture" in OS.get_cmdline_user_args():
 		await _frames(3)

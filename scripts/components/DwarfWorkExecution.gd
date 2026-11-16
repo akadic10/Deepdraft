@@ -140,7 +140,7 @@ func walk_finished(success: bool) -> void:
 		task_phase = DwarfAgent.TaskPhase.NONE
 		if success:
 			task_phase = DwarfAgent.TaskPhase.UNINSTALL_WORKING
-			exec_timer = _furniture_time("uninstall_time_s")
+			exec_timer = _furniture_time("uninstall_time_seconds")
 		else:
 			_finish_uninstall_state()
 			agent.current_task_id = -1
@@ -380,7 +380,7 @@ func _uninstall_begin() -> void:
 		return
 	if target == agent.current_cell():
 		task_phase = DwarfAgent.TaskPhase.UNINSTALL_WORKING
-		exec_timer = _furniture_time("uninstall_time_s")
+		exec_timer = _furniture_time("uninstall_time_seconds")
 	elif agent.walk_to(target):
 		task_phase = DwarfAgent.TaskPhase.UNINSTALL_MOVING
 	else:

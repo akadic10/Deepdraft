@@ -66,6 +66,10 @@ func _build() -> void:
 	rig = load("res://scripts/systems/Camera.gd").new()
 	scene.add_child(rig)
 	rig.set_process(false)
+	# The arrivals' names are WorldEventDirector's: Events words an arrival through it.
+	var director: Node = load("res://scripts/systems/WorldEventDirector.gd").new()
+	scene.add_child(director)
+	director.set_process(false)
 	guntris = _dwarf(901, "Guntris", Vector3(10.5, 21.0, 10.5))
 	ildgra = _dwarf(902, "Ildgra", Vector3(20.5, 21.0, 30.5))
 	await _settle()
@@ -104,27 +108,28 @@ func _test_dates() -> void:
 func _fill() -> void:
 	events.clear_runtime_state()
 	_at(5, 22, 35)
-	ids.carpenter = events.post("colony", "Ildgra is now a Carpenter.", {"picture": ICONS + "carpenter.png", "dwarves": [902]})
+	ids.carpenter = events.post("colony", "promoted", {"name": "Ildgra", "profession": "base:profession:carpenter"},
+		{"picture": ICONS + "carpenter.png", "dwarves": [902]})
 	_at(6, 0, 35)
-	ids.rabbit = events.post("arrival", "A rabbit has arrived from the south.", {"picture": ICONS + "rabbit.png", "place": Vector3i(40, 21, 12)})
+	ids.rabbit = events.post("arrival", "arrived", {"count": 1, "event": "rabbit_arrival", "edge": "south"},
+		{"picture": ICONS + "rabbit.png", "place": Vector3i(40, 21, 12)})
 	_at(6, 21, 35)
-	ids.hungry = events.raise("food", "3 dwarves cannot find reachable food.", {"detail": FOOD_DETAIL, "dwarves": [901, 902],
-		"past": "3 dwarves could not find reachable food."})
+	ids.hungry = events.raise("food", "food_short", {"count": 3}, {"dwarves": [901, 902]})
 	_at(6, 22, 35)
 	events.resolve("food")
 	events.mark_seen()
 	_at(7, 15, 23)
-	ids.miner = events.post("colony", "Guntris is now a Miner.", {"picture": ICONS + "miner.png", "dwarves": [901]})
+	ids.miner = events.post("colony", "promoted", {"name": "Guntris", "profession": "base:profession:miner"},
+		{"picture": ICONS + "miner.png", "dwarves": [901]})
 	_at(7, 17, 59)
-	ids.cavern = events.post("discovery", "Cavern discovered. Bring light to explore it.", {"place": Vector3i(30, 12, 30)})
+	ids.cavern = events.post("discovery", "cavern_found", {}, {"place": Vector3i(30, 12, 30)})
 	_at(7, 19, 23)
-	ids.food = events.raise("food", "2 dwarves cannot find reachable food.", {"detail": FOOD_DETAIL, "dwarves": [901, 902],
-		"past": "2 dwarves could not find reachable food."})
+	ids.food = events.raise("food", "food_short", {"count": 2}, {"dwarves": [901, 902]})
 	_at(7, 20, 17)
-	ids.flood = events.raise("flood", "Rising water is spilling onto dry ground.", {"place": Vector3i(50, 20, 44), "hold_hours": 3.0,
-		"past": "Rising water spilled onto dry ground."})
+	ids.flood = events.raise("flood", "flood", {}, {"place": Vector3i(50, 20, 44), "hold_hours": 3.0})
 	_at(7, 20, 26)
-	ids.deer = events.post("arrival", "3 deer have arrived from the east.", {"picture": ICONS + "deer.png", "place": Vector3i(80, 21, 40)})
+	ids.deer = events.post("arrival", "arrived", {"count": 3, "event": "deer_arrival", "edge": "east"},
+		{"picture": ICONS + "deer.png", "place": Vector3i(80, 21, 40)})
 	_at(7, 20, 30)
 
 
@@ -187,7 +192,7 @@ func _test_locate() -> void:
 
 
 func _test_while_open() -> void:
-	var winter: int = events.post("colony", "Winter has come.")
+	var winter: int = events.post("colony", "season_came", {"season": "winter"})
 	await _settle()
 	_expect(_words(_view(winter)) == ["Winter has come.", "20:30", "New"] and _locate(_view(winter)) == null,
 		"news landing while Events is open shows at once, New, without Locate when it has no place")
@@ -215,15 +220,15 @@ func _test_bell() -> void:
 	manager.close("events")
 	await _settle()
 	_expect(bell.count_text == "", "an empty log leaves the bell plain")
-	for index in range(3): events.post("colony", "News %d." % index)
+	for index in range(3): events.post("colony", "season_came", {"season": "spring"})
 	_expect(bell.count_text == "3" and bell.count_tone == "waiting", "new entries count in hay")
-	events.raise("test", "Something needs attention.")
+	events.raise("test", "flood")
 	_expect(bell.count_text == "4" and bell.count_tone == "blocked", "a standing warning turns the count rust")
 	events.mark_seen()
 	_expect(bell.count_text == "!" and bell.count_tone == "blocked", "a standing warning shows ! once everything is read")
 	events.resolve("test")
 	_expect(bell.count_text == "", "nothing new and nothing standing: no count")
-	for index in range(120): events.post("colony", "More news %d." % index)
+	for index in range(120): events.post("colony", "season_came", {"season": "spring"})
 	_expect(bell.count_text == "99+", "a long count is capped")
 	var chip: Rect2 = bell.count_rect()
 	_expect(chip.position.y < 0.0 and chip.end.x > bell.size.x and is_equal_approx(chip.size.y, roundf(bell.size.x * 0.42)),
@@ -233,7 +238,8 @@ func _test_bell() -> void:
 func _test_sizes() -> void:
 	_fill()
 	for index in range(30):
-		events.post("arrival", "%d rabbits have arrived from the west." % (index + 2), {"picture": ICONS + "rabbit.png", "place": Vector3i(index, 21, 5)})
+		events.post("arrival", "arrived", {"count": index + 2, "event": "rabbit_arrival", "edge": "west"},
+			{"picture": ICONS + "rabbit.png", "place": Vector3i(index, 21, 5)})
 	if not manager.is_open("events"): manager.open("events")
 	for size: Vector2i in [Vector2i(960, 540), Vector2i(1280, 720), Vector2i(2560, 1440)]:
 		root.size = size

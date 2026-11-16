@@ -4,6 +4,11 @@ extends Node3D
 ## Simulation changes feed a disposable index; no whole-world scan each second.
 const TILE_SIZE := 16
 const CHECK_INTERVAL := 16
+## Damp ground lies this far over a block's top. It is solid, so it hides whatever is drawn
+## under it: a tool's highlight of a block lies at HIGHLIGHT_OUTSET or more. (Replace's blue
+## plan once lay at 0.004, and did not show on damp ground: owner, 2026-11-16.)
+const LIFT := 0.012
+const HIGHLIGHT_OUTSET := LIFT + 0.004
 var terrain: Node3D
 var material: ShaderMaterial
 var _moisture: RefCounted
@@ -222,7 +227,7 @@ func _append_cell(cell: Vector3i) -> void:
 		color = Color("#AB8661").lerp(Color("#378FCE"),amount).srgb_to_linear()
 	var x := cell.x
 	var z := cell.z
-	var y := cell.y+1.012
+	var y := cell.y+1.0+LIFT
 	ChunkMesher.add_quad(_verts,_norms,_colors,_indices,Vector3(x,y,z),Vector3(x,y,z+1),Vector3(x+1,y,z+1),Vector3(x+1,y,z),Vector3.UP,color)
 
 func _finish_tile() -> void:

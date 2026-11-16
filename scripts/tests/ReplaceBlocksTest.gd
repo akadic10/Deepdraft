@@ -35,6 +35,7 @@ func _run() -> void:
 	await _swap_test()
 	await _log_test()
 	await _sweep_test()
+	_highlight_test()
 	_save_replace_test()
 	_tool_test()
 	_panel_test()
@@ -153,6 +154,39 @@ func _sweep_test() -> void:
 	_put(a,"base:terrain:rock:rock01")
 	_put(b,"base:terrain:rock:rock01")
 
+## A replaced block's highlights lie over the damp ground (owner, 2026-11-16: near water the
+## blue plan did not show on the wetter blocks). MoistureRenderer lays damp ground LIFT over a
+## block's top, solid, so it hid the highlights drawn under it. The plan, the drag's preview and
+## the blocks a Ctrl + drag takes out now all lie higher.
+func _highlight_test() -> void:
+	var damp: float = load("res://scripts/components/MoistureRenderer.gd").LIFT
+	var cell := Vector3i(46,20,44)
+	_put(cell,COPPER)
+	var id: int = construction.create_order(_cells([cell]),-1,false,"dirt","",{},{},"",true)
+	construction._rebuild_visuals()
+	var over := func(node: MeshInstance3D) -> float:
+		return node.mesh.get_aabb().end.y-float(cell.y)-1.0 if node.mesh != null else -1.0
+	_expect(over.call(construction._plans) > damp,
+		"a replace plan's blue lies over the damp ground: %.3f over the block's top, damp ground at %.3f" % [over.call(construction._plans),damp])
+	construction._replace = true
+	construction._preview_cells = _cells([cell])
+	construction._show_preview()
+	_expect(over.call(construction._preview) > damp,
+		"the drag's green lies over the damp ground: %.3f, damp ground at %.3f" % [over.call(construction._preview),damp])
+	construction._replace = false
+	construction._preview_cells.clear()
+	construction._show_preview()
+	construction._anchor = cell
+	construction._hover = cell
+	construction._update_erase()
+	_expect(over.call(construction._erase) > damp,
+		"the Ctrl + drag's orange lies over the damp ground: %.3f, damp ground at %.3f" % [over.call(construction._erase),damp])
+	construction._anchor = construction.INVALID
+	construction._hover = construction.INVALID
+	construction._update_erase()
+	construction.cancel_order(id)
+	_put(cell,"base:terrain:rock:rock01")
+
 func _save_replace_test() -> void:
 	var cell := Vector3i(50,20,40)
 	_put(cell,COPPER)
@@ -172,7 +206,7 @@ func _tool_test() -> void:
 	var toggle: Array = state.get("toggles",[]).filter(func(each: Dictionary) -> bool: return each.id=="replace")
 	_expect(toggle.size()==1 and not toggle[0].on and not state.has("name"),"Build opens building, with Replace off")
 	var key := InputEventKey.new()
-	key.keycode = KEY_F
+	key.keycode = KEY_F; key.physical_keycode = KEY_F
 	key.pressed = true
 	construction._unhandled_input(key)
 	state = construction.tool_bar_state()
@@ -196,8 +230,23 @@ func _panel_test() -> void:
 	_expect(not ids.has("replace:stone") and ids.has("replace:dirt"),"rock is not offered stone: %s" % [ids])
 	var provider: Node = load("res://scripts/ui/TerrainExplorerProvider.gd").new()
 	scene.add_child(provider)
+	# The block's panel (doc 23, "Names"): its inspection entry's name and kind, with Replace's list.
+	var open := OpenRenderer.new()
+	scene.add_child(open)
+	provider.renderer = open
+	var card: Dictionary = provider.get_explorer_data({"x":copper.x,"y":copper.y,"z":copper.z,"normal":Vector3i.UP})
+	_expect(card.get("title","")=="Copper ore" and card.get("rows",[[]])[0]==["Type","Ore deposit"] and card.get("actions",[]).size()==1,
+		"the block panel names the block from its inspection entry and offers Replace: %s" % [card])
+	open.queue_free()
 	provider.perform_explorer_action({"x":copper.x,"y":copper.y,"z":copper.z,"normal":Vector3i.UP},"replace:dirt")
 	var planned: Array = construction.orders.values().filter(func(order) -> bool: return order.cells.has(copper))
 	_expect(planned.size()==1 and planned[0].replace and planned[0].construction_kind=="dirt","the panel's choice plans the block's replacement with dirt")
 	for order in planned: construction.cancel_order(order.ghost_id)
 	provider.queue_free()
+
+
+## The renderer as the block panel reads it: nothing cut away, every open face revealed.
+class OpenRenderer extends Node:
+	var slice_y := 127
+	func is_visually_cut(_cell: Vector3i) -> bool: return false
+	func is_revealed_air(_cell: Vector3i) -> bool: return true

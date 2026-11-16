@@ -16,7 +16,7 @@ each axis (0.0625 Godot units).
 | `tools/hearthblock/art/proposal.mjs` | The approved proposal models, verbatim, and the shared `Vox` cell vocabulary and palette |
 | `tools/hearthblock/art/tier1.mjs` | Tier 1 · Axe-Hewn furniture, hearth and flag |
 | `tools/hearthblock/art/tier2.mjs` | Tier 2 · the Carpenter's plank pieces (doc 308): `plankTable()`, `plankBench()`, `plankGameTable()`, `plankPallet()`, `plankToolRack()`, `plankCrate()`, `plankFoodShelf()`, the frame the two tables share (`plankFrame()`) and the sawn-board helpers every plank piece uses (`board`, `sawnEndX`/`sawnEndZ`, `strokesX`/`strokesZ`, `faceStrokes`, `peg`, `hookPegs`, `binSide`, `binPost`) |
-| `tools/voxel_assets/hearthblock_goods.py` | Stockpile goods, drawn in Python: mined goods, logs, planks (`plank()`, doc 308), crates (produce, seeds, cuttings, and the log torches' own, `torches()`, doc 62), the copper bar, and the tool goods (`starter()`: the Ranger's kit, the stone hammer and the Blacksmith's copper pick, saw, chisel and hoe, doc 306) |
+| `tools/voxel_assets/hearthblock_goods.py` | Stockpile goods, drawn in Python: mined goods, logs, planks (`plank()`, doc 308), crates (produce, seeds, cuttings, the log torches' own, `torches()`, and the copper nails' own, `nails()`, doc 62), the copper bar, and the tool goods (`starter()`: the Ranger's kit, the stone hammer and the Blacksmith's copper pick, saw, chisel and hoe, doc 306) |
 | `tools/hearthblock/art/dwarves.mjs` | Every dwarf part: heads, eyes, body, mittens and cuffs, boots, hair, beards, brows, scars, trade hats, work tools |
 | `tools/hearthblock/art/wildlife.mjs` | Rabbit, deer, wolf and ducks |
 | `tools/hearthblock/art/icons.mjs` | UI icon models; the `icons` family in `build.py` is staged only, and `tools/GenerateUiIcons.gd` renders it to PNGs (see UI icons below) |
@@ -286,5 +286,6 @@ anything dwarves use rather than work at, are wood, warm against the stone. Ston
 iron are for industrial anchors (anvil, trade counter, workshop bodies) and monuments.
 One exception (owner, 2026-11-01): the Stonemason's stone stool (doc 293).
 Within a tier, Tier 1 pieces stay axe-hewn (split, notched, lashed, no iron). Tier 2 is the
-Carpenter's: planks and pegs, sawn but plain (doc 64, "Furniture tiers"; doc 308). Fine
+Carpenter's: planks and pegs, sawn but plain (doc 64, "Furniture tiers"; doc 308); the game's
+words call its joints nailed since doc 313, and the pegs stand where the nails are. Fine
 joinery and blankets wait for later.

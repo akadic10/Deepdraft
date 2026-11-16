@@ -55,14 +55,14 @@ func _run() -> void:
 ## With the slice at y 16, through the cave, every placement pointer stops on the cut.
 func _pointer_test() -> void:
 	var furniture_slice: int = furniture._slice_y
-	var stock_slice: int = stock._slice_y
+	var stock_slice: int = stock._tool.slice_y
 	furniture._slice_y = 16
-	stock._slice_y = 16
+	stock._tool.slice_y = 16
 	var point := camera.unproject_position(Vector3(45.5,17,41.5))
 	var hit: Dictionary = furniture.surface_cell_for(point)
 	_expect(not hit.is_empty() and Vector3i(hit.x,hit.y,hit.z)==Vector3i(45,16,41) and hit.normal==Vector3i.UP,
 		"furniture, construction and Copy aim at the cut, not into the cave: %s" % hit)
-	var zone_hit: Dictionary = stock._surface_cell_for(point)
+	var zone_hit: Dictionary = stock._tool.surface_cell_for(point)
 	_expect(not zone_hit.is_empty() and Vector3i(zone_hit.x,zone_hit.y,zone_hit.z)==Vector3i(45,16,41),"storage aims at the cut: %s" % zone_hit)
 	# The cave's water reads as its rock too.
 	world.set_block(45,16,41,blocks.get_id("base:terrain:water:source"))
@@ -78,7 +78,7 @@ func _pointer_test() -> void:
 	_expect(not hit.is_empty() and int(hit.y)<16,"once found, the pointer goes into the cave: %s" % hit)
 	tracker._discovered_caves.erase(CAVE)
 	furniture._slice_y = furniture_slice
-	stock._slice_y = stock_slice
+	stock._tool.slice_y = stock_slice
 
 
 ## Construction refuses the cave's air as it refuses rock, so its reason gives nothing away;
@@ -90,11 +90,11 @@ func _rules_test() -> void:
 	_expect(rock_reason=="Mine existing terrain before building" and builder.build_reason(air)==rock_reason,
 		"construction refuses a hidden cave as it refuses rock: %s" % builder.build_reason(air))
 	_expect(not furniture._rules.is_valid_cell(floor),"furniture refuses a hidden cave's floor")
-	_expect(not stock._is_valid_cell(floor,floor.y),"storage refuses a hidden cave's floor")
+	_expect(not stock.cell_reason(floor).is_empty(),"storage refuses a hidden cave's floor")
 	tracker._discovered_caves[CAVE] = true
 	_expect(builder.build_reason(air).is_empty(),"a found cave can be built in: %s" % builder.build_reason(air))
 	_expect(furniture._rules.is_valid_cell(floor),"a found cave's floor takes furniture")
-	_expect(stock._is_valid_cell(floor,floor.y),"a found cave's floor takes storage")
+	_expect(stock.cell_reason(floor).is_empty(),"a found cave's floor takes storage")
 	tracker._discovered_caves.erase(CAVE)
 
 

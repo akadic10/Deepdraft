@@ -55,7 +55,7 @@ func get_explorer_data(hit: Dictionary) -> Dictionary:
 	var def := BlockRegistry.get_def(BlockRegistry.get_key(block))
 	var info: Dictionary = def.get("inspection",{})
 	if info.is_empty(): return {}
-	var title: String = info.name
+	var title: String = info.display_name
 	var face := "Floor" if normal==Vector3i.UP else ("Ceiling" if normal==Vector3i.DOWN else "Wall")
 	# The compact panel (doc 260): what the face is and where; no picture for terrain.
 	var surface := "Slice surface" if cut_face else "%s %s" % [String(info.category), face.to_lower()]

@@ -666,7 +666,9 @@ func _check_key_list(page, frame_size: Vector2) -> void:
 	var shown := {"Pause or resume": "Space", "Normal speed": "1", "Fast speed": "2", "Appeal": "V", "Temperature": "T", "X-ray": "X",
 		"Slice": "\\", "Raise / lower 4 levels": "] / [", "Raise / lower 1 level": "Ctrl + ] / Ctrl + [",
 		"Over the tower: 1 / 4 levels": "Wheel / Ctrl + Wheel", "Move": "W A S D or Arrow keys",
-		"Mining width, or a door gap": "Shift + Wheel", "Take blocks out of building plans": "Ctrl + Drag", "Finish the tool": "Esc", "Close the front window, or open the menu": "Esc"}
+		"Mining width, or a door gap": "Shift + Wheel", "Take blocks out of building plans": "Ctrl + Drag", "Finish the tool": "Esc", "Close the front window, or open the menu": "Esc",
+		"Move slowly (hold)": "Shift", "Turn the piece or blueprint to place": "R", "Build's material": "Q / E", "Shapes' shape": "Tab",
+		"Fill a shape, or take a copy's floor too": "F"}
 	for label: String in shown:
 		_expect(page.shown_keys(label) == shown[label], "the key list shows %s for %s, not %s" % [shown[label], label, page.shown_keys(label)])
 	var inset: Rect2 = page._scroll.get_global_rect()
@@ -686,11 +688,24 @@ func _check_key_list(page, frame_size: Vector2) -> void:
 	for row: Dictionary in [page._key_rows[first - 1], page._key_rows[page._key_rows.size() - 1]]:
 		_expect(inset.encloses((row.keys as Control).get_global_rect()), "scrolling brings %s into view" % row.text)
 	page._scroll.scroll_vertical = 0
+	var listed := {}   # every input action the key list names: one alone, or several in a list
 	for group: Array in root.get_node("UIRegistry").get_controls().columns:
 		for block: Dictionary in group:
 			for entry: Dictionary in block.entries:
-				for action: String in entry.get("actions", []):
-					_expect(InputMap.has_action(action) and not preload("res://scripts/ui/DockIconButton.gd").key_text(action).is_empty(), action + " is an input action with a key")
+				for named: Variant in entry.get("actions", []):
+					for action: String in (named if named is Array else [named]):
+						listed[action] = true
+						_expect(InputMap.has_action(action) and not preload("res://scripts/ui/DockIconButton.gd").key_text(action).is_empty(), action + " is an input action with a key")
+	# The camera's and the tools' keys are input actions (doc 23 "Keys"), and the list names
+	# every one, so the page misses none and types none by hand.
+	for action: StringName in InputMap.get_actions():
+		if String(action).begins_with("camera_") or String(action).begins_with("tool_"):
+			_expect(listed.has(String(action)), "the key list names %s" % action)
+	# Move's "Arrow keys" are words: they stand for each move action's second key.
+	var arrows := {"camera_forward": KEY_UP, "camera_back": KEY_DOWN, "camera_left": KEY_LEFT, "camera_right": KEY_RIGHT}
+	for action: String in arrows:
+		var events: Array = InputMap.action_get_events(action) if InputMap.has_action(action) else []
+		_expect(events.size() == 2 and (events[1] as InputEventKey).physical_keycode == arrows[action], "%s has its arrow key as its second key" % action)
 	if "--capture" in OS.get_cmdline_user_args():
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png("res://tmp/controls_20261025/test_%d.png" % root.size.x)

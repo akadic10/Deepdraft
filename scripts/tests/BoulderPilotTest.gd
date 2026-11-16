@@ -74,6 +74,7 @@ func _run() -> void:
 	var lease: int = source.lease_id
 	details.designate_clearing(DETAIL_ID)
 	_expect(source.lease_id == lease, "repeated designation does not duplicate jobs")
+	_expect(details.get_explorer_data(DETAIL_ID).status.tone == "waiting", "a marked boulder's line waits in amber: %s" % [details.get_explorer_data(DETAIL_ID).status])
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	worker = factory.spawn(factory.generate(101, {}), 101)
 	scene.add_child(worker)

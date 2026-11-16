@@ -11,6 +11,7 @@ func _run() -> void:
 	furniture._install(carpenter_bench,furniture.get_defs()[carpenter_bench],Vector3i(45,20,37),0,"base:material:pine")
 	drops.spawn_drop(PINE,3,Vector3i(42,21,42))
 	drops.spawn_drop("base:item:pine_plank",2,Vector3i(42,21,43))
+	drops.spawn_drop("base:item:copper_nail", 2, Vector3i(43,21,43))   # a nail to each plank (doc 313)
 	for name in ["door_2", "door_3", "door_4", "bench"]:
 		worker.profession = "base:profession:carpenter" if name=="bench" else "base:profession:worker"
 		tasks.work_policy_changed()

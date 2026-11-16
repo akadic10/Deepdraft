@@ -103,7 +103,7 @@ func _run() -> void:
 	route = events.schedules.rabbit_arrival.active.route.duplicate(true)
 	wildlife.advance(.1, [])
 	wildlife.advance(.1, [])
-	_check(rabbit.activity == "Arriving" and rabbit.hop_progress > 0 and rabbit.hop_progress < 1, "arrival walks inland with partial movement")
+	_check(rabbit.activity == "arriving" and rabbit.hop_progress > 0 and rabbit.hop_progress < 1, "arrival walks inland with partial movement")
 	var animal_save: Dictionary = _json(wildlife.serialize_state())
 	var event_save: Dictionary = _json(events.serialize_state())
 	clock_node.set_paused(true)
@@ -125,7 +125,7 @@ func _run() -> void:
 	_check(wildlife.animals.size() == 3 and events.schedules.rabbit_arrival.active.is_empty(), "three members enter once, spaced over time")
 	for i in range(400): wildlife.advance(.1, [])
 	for animal in wildlife.animals:
-		_check(animal.arrival.status == "Settled" and animal.home == _cell(route.size()-1), "arrival reaches inland home and resumes ordinary behavior")
+		_check(animal.arrival.status == "settled" and animal.home == _cell(route.size()-1), "arrival reaches inland home and resumes ordinary behavior")
 	# A consumed first member stays gone while the rest of a saved group enters.
 	wildlife.restore_state(animal_save)
 	events.restore_state(event_save)

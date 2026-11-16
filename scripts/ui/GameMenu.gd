@@ -148,7 +148,7 @@ func close() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not _open or not event is InputEventKey or not event.pressed: return
-	if (event as InputEventKey).keycode == KEY_ESCAPE:
+	if event.is_action("ui_cancel"):
 		if not event.echo: _back()
 		get_viewport().set_input_as_handled()
 	elif not _navigates(event) and not _types(event as InputEventKey):
@@ -157,8 +157,7 @@ func _input(event: InputEvent) -> void:
 
 ## Esc that no scene node used: the front window closes first, then the menu opens.
 func _unhandled_input(event: InputEvent) -> void:
-	if _open or not event is InputEventKey or not event.pressed or event.echo: return
-	if (event as InputEventKey).keycode != KEY_ESCAPE: return
+	if _open or not event.is_action_pressed("ui_cancel"): return
 	var windows := get_tree().get_first_node_in_group("ui_window_manager")
 	if windows != null and windows.close_front():
 		get_viewport().set_input_as_handled()

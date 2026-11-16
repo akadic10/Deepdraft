@@ -9,9 +9,10 @@ extends Node3D
 ## stand in a field are picked by its Farmers with no order. Fields save as the `farming`
 ## section; the crops are ContentRegistry's.
 ##
-## The tool behaves as Fishing's and Storage's do: Esc exits, a drag paints a flat rectangle on
-## the anchor's plane, a click on a field opens its window (with the tool off too), and right
-## mouse stays the camera's.
+## The tool is the one every zone shares (ZoneTool.gd): a drag paints a flat rectangle on the
+## anchor's plane, a click on a field opens its window (with the tool off too), right mouse
+## stays the camera's and Esc is the dock's. This script says which cells can be tilled
+## (`tile_reason`) and makes the field.
 
 @export var dock_ui_path: NodePath
 @export var slice_controller_path: NodePath
@@ -19,17 +20,12 @@ extends Node3D
 
 const TOOL_ID := "farming_zone"
 const WINDOW_ID := "farm_field_info"
-const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const Work = preload("res://scripts/components/FarmFieldWork.gd")
 const Sources = preload("res://scripts/components/WorkSourceTable.gd")
 const Visuals = preload("res://scripts/components/FarmFieldVisuals.gd")
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const FieldPanel = preload("res://scripts/ui/FarmFieldPanel.gd")
-const WORLD_EDGE_MARGIN := 2
-const RAY_MAX := 700.0
-const OVERLAY_LIFT := 1.04
-const EDGE_INSET := 0.08
-const DRAG_THRESHOLD_PX := 6.0
+const ZoneTool = preload("res://scripts/components/ZoneTool.gd")
 const REFRESH_SECONDS := 1.0
 const UNREACHED_MSEC := 30000   # a tile nobody can stand beside is left alone this long
 const NOWHERE := Vector3i(-1, -1, -1)
@@ -45,7 +41,6 @@ const JOB_SECONDS := {"harvest": "harvest_seconds", "clear": "clear_seconds", "s
 # Leaf green, so a field never reads as storage (blue), mining (yellow) or fishing (teal).
 const COLOR_VALID := Color(0.56, 0.80, 0.30, 0.30)
 const COLOR_VALID_EDGE := Color(0.72, 0.94, 0.42, 0.85)
-const COLOR_INVALID := Color(1.00, 0.30, 0.25, 0.35)
 const COLOR_ZONE := Color(0.56, 0.80, 0.30, 0.07)
 const COLOR_ZONE_EDGE := Color(0.72, 0.94, 0.42, 0.60)
 
@@ -53,22 +48,11 @@ signal tool_active_changed(active: bool)
 signal order_created(receipt: Dictionary)
 
 var config: Dictionary = {}
-var _dock_ui: Node
 var _window_manager: UIWindowManager
 var _window: UIWindow
 var _panel: Control
 var _window_zone := -1
-var _active := false
-var _dragging := false
-var _anchor := NOWHERE
-var _drag_start := Vector2.ZERO
-var _hover := NOWHERE
-var _hover_reason := ""
-var _preview: Array[Vector3i] = []
-var _pointer := Vector2.INF
-var _slice_y: int = SliceController.MAX_SLICE_Y
-var _material: StandardMaterial3D
-var _preview_mesh: MeshInstance3D
+var _tool: ZoneTool                  # the drag, its preview and the fields on the ground
 var _next_id := 1
 ## Field id -> {"id", "cells": Array[Vector3i], "plan": {season: crop
 ## key or ""}, "tiles": {cell: tile}, "roofed": {cell: true}, "taken": {cell: true}, "stale": bool,
@@ -77,7 +61,6 @@ var _next_id := 1
 ## "work" and "job" (work seconds done on the tile's job, kept across a release)}. Only tiles
 ## that hold a plant or work begun have one; a tile's ground is the block itself.
 var _zones: Dictionary = {}
-var _overlays: Dictionary = {}       # field id -> MeshInstance3D
 var _cell_to_zone: Dictionary = {}   # floor cell -> field id
 var _work: RefCounted                # WorkSourceTable keyed by Vector2i(field id, place)
 var _visuals: Node3D                 # FarmFieldVisuals
@@ -101,11 +84,24 @@ func _ready() -> void:
 	_visuals = Visuals.new()
 	_visuals.name = "FieldPlants"
 	add_child(_visuals)
-	_dock_ui = get_node_or_null(dock_ui_path)
 	_window_manager = get_node_or_null(window_manager_path) as UIWindowManager
-	if _dock_ui != null:
-		if _dock_ui.has_method("register_farming_controller"): _dock_ui.call("register_farming_controller", self)
-		if _dock_ui.has_signal("tool_requested"): _dock_ui.connect("tool_requested", _on_tool_requested)
+	_tool = ZoneTool.new()
+	_tool.name = "ZoneTool"
+	_tool.tool_id = TOOL_ID
+	_tool.here_words = "A field is here"
+	_tool.max_extent = int(config.get("max_zone_extent", 16))
+	_tool.fill = COLOR_VALID
+	_tool.edge = COLOR_VALID_EDGE
+	_tool.cell_reason = tile_reason
+	_tool.zone_at = func(cell: Vector3i) -> int: return int(_cell_to_zone.get(cell, -1))
+	_tool.cells_chosen = _on_cells_chosen
+	_tool.zone_clicked = _open_window
+	_tool.active_changed.connect(func(on: bool) -> void: tool_active_changed.emit(on))
+	add_child(_tool)
+	var dock := get_node_or_null(dock_ui_path) as DockUI
+	if dock != null:
+		dock.register_tool(self, [TOOL_ID])
+		dock.tool_requested.connect(_tool.on_tool_requested)
 	var slice := get_node_or_null(slice_controller_path)
 	if slice != null and slice.has_signal("slice_changed"): slice.connect("slice_changed", _on_slice_changed)
 	WorldClock.hour_changed.connect(_on_hour)
@@ -114,16 +110,10 @@ func _ready() -> void:
 	WorldData.block_changed.connect(_on_block_changed)
 	PlacedEntityRegistry.occupancy_changed.connect(_on_occupancy_changed)
 	TaskManager.task_completed.connect(_on_task_completed)
-	_material = StandardMaterial3D.new()
-	_material.vertex_color_use_as_albedo = true
-	_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_build_window()
 
 
 func _process(delta: float) -> void:
-	if _active: _update_hover()
 	_refresh_left -= delta
 	if _refresh_left > 0.0: return
 	_refresh_left = REFRESH_SECONDS
@@ -131,81 +121,35 @@ func _process(delta: float) -> void:
 	if _window_zone > 0 and _window != null and _window.visible: _panel.show_field(zone_data(_window_zone))
 
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventMouse: _pointer = event.position
-	if not _dragging: return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		if get_viewport().gui_get_hovered_control() == null:
-			_update_hover()
-			_on_left_release(event.position)
-		else:
-			_end_drag()
-		get_viewport().set_input_as_handled()
-
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and _dragging: _end_drag()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if not _active:
-		# A field stays click-selectable with the tool off, so its window (and Remove) is
-		# always reachable, as Storage's is.
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT \
-				and try_select_zone_at_screen(event.position):
-			get_viewport().set_input_as_handled()
-		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		deactivate()
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed:
-			_update_hover()
-			_on_left_press(event.position)
-			get_viewport().set_input_as_handled()
-		elif _dragging:
-			_on_left_release(event.position)
-			get_viewport().set_input_as_handled()
-
-
-# ── The tool ──────────────────────────────────────────────────────────────────
+# ── The tool (ZoneTool) ───────────────────────────────────────────────────────
 
 func is_active() -> bool:
-	return _active
+	return _tool.active
 
 
 func activate() -> void:
-	if _active or not bool(WorldGenerator.get_streaming_stats().get("maps_ready", false)): return
-	_active = true
-	_ensure_preview_mesh()
-	tool_active_changed.emit(true)
+	_tool.activate()
 
 
 func deactivate() -> void:
-	if not _active: return
-	_active = false
-	_end_drag()
-	tool_active_changed.emit(false)
+	_tool.deactivate()
 
 
-func _on_tool_requested(tool_id: String) -> void:
-	if tool_id == TOOL_ID:
-		if _active: deactivate()
-		else: activate()
-	elif _active:
-		deactivate()
+## A click on one of our zones opens its window. ObjectExplorerController asks every click tool
+## this by name before it selects the bare ground under the pointer, so the name must stay.
+func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
+	return _tool.select_zone_at(screen_pos)
 
 
 ## What the tool bar shows (doc 23, "The tool bar"): the tiles a drag takes, or why the cell
 ## under the pointer can't be farmed.
 func tool_bar_state() -> Dictionary:
 	var state := {"tool": TOOL_ID}
-	if _dragging:
-		state.selection = {"count": "%d tile%s" % [_preview.size(), "" if _preview.size() == 1 else "s"],
-			"detail": "A Farmer hoes and sows them", "at": _pointer}
-	elif _hover != NOWHERE and not _hover_reason.is_empty() and not _cell_to_zone.has(_hover):
-		state.selection = {"count": "Can't farm here", "detail": _hover_reason, "short": true, "at": _pointer}
+	if _tool.dragging:
+		state.selection = {"count": "%d tile%s" % [_tool.preview.size(), "" if _tool.preview.size() == 1 else "s"],
+			"detail": "A Farmer hoes and sows them", "at": _tool.pointer}
+	elif _tool.hover != NOWHERE and not _tool.hover_reason.is_empty() and not _cell_to_zone.has(_tool.hover):
+		state.selection = {"count": "Can't farm here", "detail": _tool.hover_reason, "short": true, "at": _tool.pointer}
 	return state
 
 
@@ -225,98 +169,28 @@ func inspect_order(receipt: Dictionary) -> void:
 	if order_is_pending(receipt): _open_window(int(receipt.zone_id))
 
 
-func _on_left_press(screen_pos: Vector2) -> void:
-	if _cell_to_zone.has(_hover):
-		_open_window(int(_cell_to_zone[_hover]))
-		return
-	if not _hover_reason.is_empty() or _hover == NOWHERE: return
-	_dragging = true
-	_anchor = _hover
-	_drag_start = screen_pos
-	_rebuild_preview()
-
-
-func _on_left_release(screen_pos: Vector2) -> void:
-	_dragging = false
-	if screen_pos.distance_to(_drag_start) < DRAG_THRESHOLD_PX:
-		var single: Array[Vector3i] = []
-		if tile_reason(_anchor).is_empty(): single.append(_anchor)
-		_preview = single
-	if not _preview.is_empty():
-		var zone_id := create_zone(_preview.duplicate())
-		if zone_id > 0:
-			order_created.emit({"zone_id": zone_id, "message": "Field · %d tile%s" % [_preview.size(), "" if _preview.size() == 1 else "s"]})
-	_end_drag()
-
-
-func _end_drag() -> void:
-	_dragging = false
-	_preview.clear()
-	if _preview_mesh != null: _preview_mesh.visible = false
-
-
-func _update_hover() -> void:
-	var hit := _surface_cell_for(get_viewport().get_mouse_position() if _pointer == Vector2.INF else _pointer)
-	if hit.is_empty():
-		_hover = NOWHERE
-		_hover_reason = ""
-		if not _dragging and _preview_mesh != null: _preview_mesh.visible = false
-		return
-	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z))
-	if _dragging: cell.y = _anchor.y   # the marquee lives on the anchor's plane
-	if cell == _hover and _preview_mesh != null and _preview_mesh.visible: return
-	_hover = cell
-	_hover_reason = tile_reason(cell)
-	_rebuild_preview()
-
-
-func _rebuild_preview() -> void:
-	_ensure_preview_mesh()
-	if _dragging:
-		_preview = _marquee_cells(_anchor, _hover)
-		_draw_cells(_preview_mesh, _preview, COLOR_VALID, COLOR_VALID_EDGE, _anchor.y)
-	else:
-		var valid := _hover_reason.is_empty() and not _cell_to_zone.has(_hover)
-		var cells: Array[Vector3i] = [_hover]
-		_draw_cells(_preview_mesh, cells, COLOR_VALID if valid else COLOR_INVALID, COLOR_VALID_EDGE if valid else COLOR_INVALID, _hover.y)
-	_preview_mesh.visible = _hover.x >= 0
-
-
-## The flat rectangle between the anchor and the pointer, its farmable cells only.
-func _marquee_cells(anchor: Vector3i, current: Vector3i) -> Array[Vector3i]:
-	var extent := int(config.get("max_zone_extent", 16))
-	var low := Vector2i(mini(anchor.x, current.x), mini(anchor.z, current.z))
-	var high := Vector2i(maxi(anchor.x, current.x), maxi(anchor.z, current.z))
-	if anchor.x == low.x: high.x = mini(high.x, low.x + extent - 1)
-	else: low.x = maxi(low.x, high.x - extent + 1)
-	if anchor.z == low.y: high.y = mini(high.y, low.y + extent - 1)
-	else: low.y = maxi(low.y, high.y - extent + 1)
-	var cells: Array[Vector3i] = []
-	for x in range(low.x, high.x + 1):
-		for z in range(low.y, high.y + 1):
-			var cell := Vector3i(x, anchor.y, z)
-			if tile_reason(cell).is_empty(): cells.append(cell)
-	return cells
-
-
 # ── Ground ────────────────────────────────────────────────────────────────────
+
+## A drag or a click was let go over these cells (ZoneTool): they become a field.
+func _on_cells_chosen(cells: Array[Vector3i]) -> void:
+	var zone_id := create_zone(cells)
+	if zone_id > 0:
+		order_created.emit({"zone_id": zone_id, "message": "Field · %d tile%s" % [cells.size(), "" if cells.size() == 1 else "s"]})
+
 
 ## Why a floor cell can't be part of a field, or "" when it can: grass, dirt or tilled soil under
 ## the open sky, in no other zone. A cell that holds a bush, a tree or a stone may join: it is
 ## left alone, and a bush or fruit tree on it is picked.
 func tile_reason(cell: Vector3i) -> String:
-	if cell.x < WORLD_EDGE_MARGIN or cell.x >= WorldData.WORLD_SIZE_X - WORLD_EDGE_MARGIN \
-			or cell.z < WORLD_EDGE_MARGIN or cell.z >= WorldData.WORLD_SIZE_Z - WORLD_EDGE_MARGIN or cell.y <= 3:
-		return "Too near the world's edge"
+	if ZoneTool.near_edge(cell): return "Too near the world's edge"
 	if _cell_to_zone.has(cell): return "Already a field"
 	# A cave not yet found is rock to every tool (Hard Rule 11).
 	if InteriorTracker.is_hidden_cave(cell + Vector3i.UP): return "Nobody has found this place"
-	var stockpiles := get_tree().get_first_node_in_group("stockpile_controller")
-	if stockpiles != null and stockpiles.is_zone_cell(cell): return "A storage zone is here"
-	var fishing := get_tree().get_first_node_in_group("fishing_system")
-	if fishing != null and fishing.is_zone_cell(cell): return "A fishing spot is here"
+	var taken := _tool.taken_by_another(cell)
+	if not taken.is_empty(): return taken
 	if ground_of(cell).is_empty(): return "Fields need grass or dirt"
-	if WaterManager.depth_at(cell + Vector3i.UP) > 0.0: return "This ground is under water"
+	# Standing water only: a film thinner than that is damp ground (doc 33), the best ground a field has.
+	if WaterManager.has_standing_water(cell + Vector3i.UP): return "This ground is under water"
 	if not _open_sky(cell): return "Fields need the open sky"
 	return ""
 
@@ -373,12 +247,7 @@ func create_zone(cells: Array[Vector3i], requested_id := -1, plan: Dictionary = 
 		if not _open_sky(cell): zone.roofed[cell] = true
 		_show_tile(zone, cell)
 	for place in range(maxi(1, int(config.get("max_farmers_per_field", 2)))): _add_place(zone_id, place)
-	var overlay := MeshInstance3D.new()
-	overlay.name = "Field_%d" % zone_id
-	add_child(overlay)
-	_draw_cells(overlay, kept, COLOR_ZONE, COLOR_ZONE_EDGE, kept[0].y)
-	overlay.visible = kept[0].y <= _slice_y
-	_overlays[zone_id] = overlay
+	_tool.show_zone(zone_id, kept, COLOR_ZONE, COLOR_ZONE_EDGE)
 	if not restoring:
 		_pick_standing()
 		_refresh_zone(zone_id)
@@ -409,9 +278,7 @@ func remove_zone(zone_id: int) -> void:
 		_unreached.erase(cell)
 		_ground.erase(cell)
 	_zones.erase(zone_id)
-	if _overlays.has(zone_id):
-		(_overlays[zone_id] as Node).queue_free()
-		_overlays.erase(zone_id)
+	_tool.hide_zone(zone_id)
 	if _window_zone == zone_id: _close_window()
 	_claim_pickers()
 
@@ -445,7 +312,7 @@ func _add_place(zone_id: int, index: int) -> void:
 	place.allows_callback = func(agent: DwarfAgent) -> bool: return level_of(agent) >= int(_zones.get(zone_id, {}).get("level", ANY_LEVEL))
 	place.progress_callback = _note_progress
 	place.complete_callback = _complete
-	place.feedback_visible_callback = func() -> bool: return place.origin.y <= _slice_y
+	place.feedback_visible_callback = func() -> bool: return place.origin.y <= _tool.slice_y
 	_work.add(Vector2i(zone_id, index), place)
 
 
@@ -786,9 +653,8 @@ func _on_season(season: String) -> void:
 			for key: String in late:
 				var crop := ContentRegistry.crop(key)
 				var tiles := int(late[key])
-				EventLog.post("warning", "%d tile%s of %s in Field %d %s not ripe when %s came." % [tiles, "" if tiles == 1 else "s",
-					String(crop.plural_name), zone_id, "was" if tiles == 1 else "were", season],
-					{"detail": "A Farmer will hoe them under.", "place": (zone.cells as Array)[0], "picture": Inventory.thumbnail_path(String(crop.item))})
+				EventLog.post("warning", "crop_late", {"count": tiles, "crop": key, "field": zone_id, "season": season},
+					{"place": (zone.cells as Array)[0], "picture": Pictures.item(String(crop.item))})
 	refresh_work()
 
 
@@ -832,7 +698,7 @@ func _survey(zone: Dictionary) -> void:
 	for cell: Vector3i in zone.cells:
 		low = Vector3i(mini(low.x, cell.x), cell.y, mini(low.z, cell.z))
 		high = Vector3i(maxi(high.x, cell.x), cell.y, maxi(high.z, cell.z))
-		if PlacedEntityRegistry.occupies(cell + Vector3i.UP) or WaterManager.depth_at(cell + Vector3i.UP) > 0.0: taken[cell] = true
+		if PlacedEntityRegistry.occupies(cell + Vector3i.UP) or WaterManager.has_standing_water(cell + Vector3i.UP): taken[cell] = true
 	if details != null:
 		var seen := {}
 		for x in range(low.x - 2, high.x + 3):
@@ -941,12 +807,12 @@ func zone_data(zone_id: int) -> Dictionary:
 			if not season in entry.sow_seasons: continue
 			var needs := int(entry.get("farmer_level", 1))
 			var keeps := float(ContentRegistry.item_def(String(entry.item)).get("food", {}).get("keeps_days", 0.0))
-			choices.append({"crop": candidate, "name": String(entry.display_name), "picture": Inventory.thumbnail_path(String(entry.item)),
+			choices.append({"crop": candidate, "name": String(entry.display_name), "picture": Pictures.item(String(entry.item)),
 				"locked": "" if best >= needs else ("Needs a level %d Farmer" % needs if best > 0 or needs > 1 else "Needs a Farmer"),
 				"words": "%d days · %d a tile · keeps %d days%s" % [roundi(float(entry.grow_days)), int(entry.tile_yield), roundi(keeps),
 					" · needs damp soil" if bool(entry.get("needs_damp", false)) else ""], "idea": String(entry.get("idea", ""))})
 		plan.append({"season": season, "now": season == WorldClock.season, "crop": key, "name": String(crop.get("display_name", "Rest")),
-			"picture": Inventory.thumbnail_path(String(crop.item)) if not key.is_empty() else "", "note": note,
+			"picture": Pictures.item(String(crop.item)) if not key.is_empty() else "", "note": note,
 			"locked": "" if key.is_empty() or best >= int(crop.get("farmer_level", 1)) else "Needs a level %d Farmer" % int(crop.get("farmer_level", 1)),
 			"choices": choices})
 	var counts := {"tiles": zone.cells.size(), "tilled": 0, "sown": 0, "ripe": 0, "damp": 0, "alone": 0}
@@ -989,15 +855,6 @@ func _build_window() -> void:
 	_window.keep_body_on_screen = true
 	_window_manager.window_state_changed.connect(func(id: String, shown: bool):
 		if id == WINDOW_ID and not shown: _window_zone = -1)
-
-
-func try_select_zone_at_screen(screen_pos: Vector2) -> bool:
-	var hit := _surface_cell_for(screen_pos)
-	if hit.is_empty(): return false
-	var cell := Vector3i(int(hit.x), int(hit.y), int(hit.z))
-	if not _cell_to_zone.has(cell): return false
-	_open_window(int(_cell_to_zone[cell]))
-	return true
 
 
 func open_zone_window(zone_id: int) -> void:
@@ -1083,53 +940,6 @@ func restore_state(state: Dictionary) -> void:
 			_show_tile(zone, cell)
 
 
-# ── Drawing and picking ───────────────────────────────────────────────────────
-
-func _ensure_preview_mesh() -> void:
-	if _preview_mesh != null: return
-	_preview_mesh = MeshInstance3D.new()
-	_preview_mesh.name = "FieldPreview"
-	add_child(_preview_mesh)
-
-
-## Flat quads over the cells' floor, with a strip along the outside edges.
-func _draw_cells(target: MeshInstance3D, cells: Array[Vector3i], fill: Color, edge: Color, plane_y: int) -> void:
-	var mesh := ImmediateMesh.new()
-	if not cells.is_empty():
-		var y := float(plane_y) + OVERLAY_LIFT
-		var cell_set := {}
-		for cell: Vector3i in cells: cell_set[cell] = true
-		mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
-		for cell: Vector3i in cells:
-			var x := float(cell.x)
-			var z := float(cell.z)
-			_quad(mesh, x, z, 1.0, 1.0, y, fill)
-			if not cell_set.has(cell + Vector3i(-1, 0, 0)): _quad(mesh, x, z, EDGE_INSET, 1.0, y + .005, edge)
-			if not cell_set.has(cell + Vector3i(1, 0, 0)): _quad(mesh, x + 1.0 - EDGE_INSET, z, EDGE_INSET, 1.0, y + .005, edge)
-			if not cell_set.has(cell + Vector3i(0, 0, -1)): _quad(mesh, x, z, 1.0, EDGE_INSET, y + .005, edge)
-			if not cell_set.has(cell + Vector3i(0, 0, 1)): _quad(mesh, x, z + 1.0 - EDGE_INSET, 1.0, EDGE_INSET, y + .005, edge)
-		mesh.surface_end()
-	target.mesh = mesh
-	target.material_override = _material
-
-
-func _quad(mesh: ImmediateMesh, x: float, z: float, w: float, d: float, y: float, color: Color) -> void:
-	for corner: Vector2 in [Vector2(x, z), Vector2(x + w, z), Vector2(x + w, z + d), Vector2(x, z), Vector2(x + w, z + d), Vector2(x, z + d)]:
-		mesh.surface_set_color(color)
-		mesh.surface_add_vertex(Vector3(corner.x, y, corner.y))
-
-
-## The first slice-visible solid block under a screen point, as the slice shows it (a cave not
-## yet found is rock): the floor cell, NavGrid's convention.
-func _surface_cell_for(screen_pos: Vector2) -> Dictionary:
-	var camera := get_viewport().get_camera_3d()
-	if camera == null: return {}
-	return Picking.terrain_hit(camera.project_ray_origin(screen_pos), camera.project_ray_normal(screen_pos).normalized(),
-		_slice_y, RAY_MAX, Picking.concealed_block)
-
-
 func _on_slice_changed(new_slice_y: int) -> void:
-	_slice_y = new_slice_y
+	_tool.set_slice(new_slice_y)
 	_visuals.apply_slice(new_slice_y)
-	for zone_id: int in _overlays:
-		(_overlays[zone_id] as Node3D).visible = int((_zones[zone_id].cells as Array)[0].y) <= _slice_y

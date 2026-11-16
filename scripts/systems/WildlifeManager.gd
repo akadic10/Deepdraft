@@ -8,8 +8,11 @@ const Duck = preload("res://scripts/entities/DuckAgent.gd")
 const Navigation = preload("res://scripts/components/AnimalNavigation.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const ArrivalPlanner = preload("res://scripts/components/EdgeArrivalPlanner.gd")
+const Wording = preload("res://scripts/components/Wording.gd")
 ## One "<species>.json" per animal; each species also has its own agent script.
 const ANIMAL_DIR := "res://data/animals/"
+## The words for what an animal is doing and where its arrival stands, by their codes.
+const WORDS_PATH := "res://data/animals/animal_words.json"
 
 @export var slice_controller_path: NodePath
 @export var camera_path: NodePath
@@ -28,6 +31,7 @@ var _duck_models: Dictionary = {}
 var _wolf_models: Dictionary = {}
 var _deer_models: Dictionary = {}
 var _models: Dictionary = {}
+var _words: Dictionary = {}
 var _picking := Picking.new()
 var _slice_y := SliceController.MAX_SLICE_Y
 var _camera: Node3D
@@ -41,9 +45,11 @@ func _ready() -> void:
 	add_to_group("object_explorer_provider")
 	add_to_group(SaveManager.OWNER_GROUP)
 	const JsonData = preload("res://scripts/registries/JsonData.gd")
+	_words = JsonData.read_dict(WORDS_PATH)
 	var by_species := {}
 	for file_name in DirAccess.get_files_at(ANIMAL_DIR):
-		if file_name.ends_with(".json"): by_species[file_name.get_basename()] = JsonData.read_dict(ANIMAL_DIR + file_name)
+		if file_name.ends_with(".json") and file_name != WORDS_PATH.get_file():
+			by_species[file_name.get_basename()] = JsonData.read_dict(ANIMAL_DIR + file_name)
 	definition = by_species.get("rabbit", {})
 	deer_definition = by_species.get("deer", {})
 	wolf_definition = by_species.get("wolf", {})
@@ -88,7 +94,7 @@ func advance(delta: float, threats: Array) -> void:
 		if animal is Duck: _update_flock_context(animal)
 		if animal is Wolf: _update_wolf_target(animal)
 		var animal_definition: Dictionary = animal.definition
-		var feeding_activity := "Eating" if animal is Wolf else "Grazing"
+		var feeding_activity := "eating" if animal is Wolf else "grazing"
 		var was_grazing: bool = animal.activity == feeding_activity
 		var previous_timer: float = animal.timer
 		animal.advance(delta * WorldClock.speed, delta * WorldClock.game_hours_per_real_second(), threats if animal is Wolf else prey_threats)
@@ -345,7 +351,7 @@ func _update_wolf_target(wolf: Node3D) -> void:
 	else: wolf.retry_hours = float(wolf_definition.hunting.retry_hours)
 
 func _try_capture(wolf: Node3D) -> bool:
-	if WorldClock.paused or WorldClock.speed <= 0 or wolf.activity != "Hunting" or wolf.hop_progress < 1 or not wolf.wants_hunt(): return false
+	if WorldClock.paused or WorldClock.speed <= 0 or wolf.activity != "hunting" or wolf.hop_progress < 1 or not wolf.wants_hunt(): return false
 	var prey: Node3D = wolf.prey
 	if not _eligible_prey(prey) or prey.animal_id != wolf.hunt_target_id: return false
 	if not Navigation.contact_clear(wolf.position,prey.position,float(wolf_definition.hunting.capture_radius)): return false
@@ -513,32 +519,35 @@ func get_explorer_bounds(id: Variant) -> AABB:
 func get_explorer_data(id: Variant) -> Dictionary:
 	if not _inspectable(id): return {}
 	var data: Dictionary = id.definition
-	var rows: Array = [["Activity", id.activity], ["Appetite", "Looking for a nibble" if id.hunger >= float(data.behavior.hungry_threshold) else "Content"],
+	var doing := words_of("activity", String(id.activity))
+	var arriving := words_of("arrival", String(id.arrival.status)) if not id.arrival.is_empty() else ""
+	var rows: Array = [["Activity", doing], ["Appetite", "Looking for a nibble" if id.hunger >= float(data.behavior.hungry_threshold) else "Content"],
 		["Rest", "Sleepy" if id.fatigue >= float(data.behavior.sleep_threshold) else "Rested"], ["Diet", "Ground vegetation"]]
-	if not id.arrival.is_empty(): rows.append(["Arrival", id.arrival.status])
+	if not id.arrival.is_empty(): rows.append(["Arrival", arriving])
+	var company := ""   # the species' own row that the compact panel's line repeats
 	if id is Deer:
 		var count := 0
 		for other in animals:
 			if other is Deer and other.herd_id == id.herd_id: count += 1
-		rows.append(["Herd", "%d deer" % count if not id.herd_id.is_empty() else "Solitary"])
+		company = "%d deer" % count if not id.herd_id.is_empty() else "Solitary"
+		rows.append(["Herd", company])
 	if id is Wolf:
 		rows[3] = ["Diet","Rabbits and deer"]
-		rows.append(["Hunting","Settling in" if not id.arrival.is_empty() and not id.arrival.route.is_empty() else "Satisfied after a meal" if id.satisfied_hours > 0 else "Pursuing prey" if not id.hunt_target_id.is_empty() else "Resting between attempts" if id.retry_hours > 0 else "Ready when hungry"])
+		company = "Settling in" if not id.arrival.is_empty() and not id.arrival.route.is_empty() else "Satisfied after a meal" if id.satisfied_hours > 0 else "Pursuing prey" if not id.hunt_target_id.is_empty() else "Resting between attempts" if id.retry_hours > 0 else "Ready when hungry"
+		rows.append(["Hunting", company])
 	if id is Duck:
 		rows[3] = ["Diet","Water plants and shore forage"]
 		rows.append(["Plumage",String(id.sex).capitalize()])
 		var count := 0
 		for other in animals:
 			if other is Duck and other.flock_id==id.flock_id: count += 1
-		rows.append(["Flock","%d ducks" % count])
+		company = "%d ducks" % count
+		rows.append(["Flock", company])
 	# The compact panel (doc 260): the animal itself, and what it is doing or where its
 	# arrival stands. Follow stays lit while the camera follows.
 	var following := is_following(id)
-	var line := String(id.arrival.status if not id.arrival.is_empty() else id.activity)
-	for row: Array in rows:
-		match String(row[0]):
-			"Herd", "Flock": line += " · %s" % String(row[1]).to_lower()
-			"Hunting": line += " · %s" % String(row[1]).to_lower()
+	var line := arriving if not id.arrival.is_empty() else doing
+	if not company.is_empty(): line += " · %s" % company.to_lower()
 	# Hit points (doc 45): the heart on the panel's badge. Nothing hurts an animal yet; the
 	# Ranger's blows will wear them down once hunting comes.
 	var hit_points := int(data.get("hit_points", 0))
@@ -550,6 +559,12 @@ func get_explorer_data(id: Variant) -> Dictionary:
 		"status": {"text": line, "tone": "fine"}, "badge": badge,
 		"rows": rows, "details": data.description,
 		"actions": [{"id":"stop_follow" if following else "follow", "text":"Stop following" if following else "Follow", "active": following}, {"id":"locate", "text":"Locate"}]}
+
+## The words shown for a code (doc 45): what an animal is doing ("activity": "grazing" is
+## "Grazing") or where its "arrival" stands. Animals, saves and tests hold the code; this is
+## the one place that words it, from animal_words.json.
+func words_of(table: String, code: String) -> String:
+	return Wording.of(_words.get(table, {}), code)
 
 func is_following(id: Variant) -> bool:
 	return is_instance_valid(_camera) and _camera.is_following(id)

@@ -15,6 +15,7 @@ signal locate_requested(item_key: String, storage_only: bool)
 
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const INK := UITheme.CATALOG_INK
 const INK_SOFT := UITheme.CATALOG_MUTED
 const FALLBACK := "res://assets/ui/icons/stocks.png"
@@ -371,7 +372,7 @@ func _good(key: String) -> Dictionary:
 func _entry(key: String) -> Dictionary:
 	if _entries.has(key): return _entries[key]
 	var definition := items.get_item_def(key)
-	var entry := {"label": String(definition.get("display_name", key)), "category": "other", "description": String(definition.get("description", "")), "texture": Inventory.thumbnail_path(key)}
+	var entry := {"label": String(definition.get("display_name", key)), "category": "other", "description": String(definition.get("description", "")), "texture": Pictures.item(key)}
 	for group: Dictionary in _categories:
 		for tag: String in group.get("tags", []):
 			if tag in definition.get("material_tags", []): entry.category = group.id; break
@@ -383,7 +384,7 @@ func _entry(key: String) -> Dictionary:
 			if furniture_def.get("item_key", "") != key or furniture_def.has("tree_species"): continue
 			entry.label = design.label
 			entry.category = UIRegistry.get_inventory_catalog().get("furniture_categories", {}).get(design.category, "furniture")
-			entry.texture = "res://assets/ui/furniture/%s.png" % String(design.key).get_slice(":", 2)
+			entry.texture = Pictures.furniture(String(design.key))
 			break
 	if int(definition.get("crate_capacity", 1)) > 1:
 		entry.description += " Counts show contents, not the number of crates."
@@ -422,7 +423,7 @@ func _show_materials(key: String, row: Dictionary) -> void:
 		var ingredients: Array = material.get("ingredients", [])
 		if id.is_empty() or (not ingredients.is_empty() and String(ingredients[0]) == key): continue
 		var name := CraftMaterials.material_name(id)
-		var picture: Texture2D = _picture_at(Inventory.thumbnail_path(String(ingredients[0]))) if not ingredients.is_empty() else null
+		var picture: Texture2D = _picture_at(Pictures.item(String(ingredients[0]))) if not ingredients.is_empty() else null
 		made.append({"id": id, "picture": picture, "text": "" if picture != null else name, "count": int(variants[id]),
 			"caption": name if _size != SIZES.small else "", "tooltip": "%s · %d" % [name, int(variants[id])]})
 	_made_heading.visible = not made.is_empty()

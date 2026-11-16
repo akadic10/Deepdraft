@@ -133,6 +133,11 @@ func puller_ids() -> Array:
 	return _pulls.keys()
 
 
+## The dwarves that hold this source, for TaskManager's self-check (WorkSourceAdapter).
+func claimed_workers() -> Array:
+	return puller_ids()
+
+
 func delivery_contact(stand: Vector3i) -> Vector3:
 	return Vector3(stand.x + .5, stand.y + 1.0, stand.z + .5)
 
@@ -300,9 +305,10 @@ func discard_unclaimed(_slot: Variant) -> int:
 	return 0
 
 
-## Where its goods are, as Events says it: "in Stockpile 1", "on the food shelf".
-func place_words() -> String:
-	return "in storage"
+## Where its goods are, as a code Events words (EventLog, event_log.json's places): "storage",
+## "stockpile:1" ("in Stockpile 1"), "piece:base:furniture:food_shelf" ("on the food shelf").
+func place_code() -> String:
+	return "storage"
 
 
 ## The node a slot's goods show on, if any. `stored` is ItemDropManager.stored_nodes(), which the

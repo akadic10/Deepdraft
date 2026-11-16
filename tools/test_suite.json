@@ -20,7 +20,7 @@
     "construction": ["Construction*", "BuildMaterialsTest", "ReplaceBlocksTest", "LogJointsTest", "ShapeToolTest", "BlueprintTest", "HiddenCavePlacementTest", "LogCrossingTest", "GridFenceTest", "DryStoneTest", "WallMountHeightTest", "TimberBatchTest"],
     "furniture": ["Furniture*", "FireLightingTest", "DevInstantBuildTest", "PackedAppealTest", "LogDiningTableTest", "LogFurnitureTest", "LogStoolTest", "SettlementFlagMoveTest", "CampfirePlacementTest", "MiningFurnitureAccessTest", "SlicedTorchLightTest", "DoorHitPointsTest", "StoneStoolTest", "ToolRackTest", "CrateTest", "FinishedGoodsPalletTest", "FoodShelfTest", "TorchCrateTest", "WorkshopWindowTest"],
     "rooms": ["Bed*", "HearthRoomTest", "RoomRebuildSchedulingTest", "ZoneWindowTest", "RoomAppealTest", "RoomTypesTest", "AppealViewTest", "ClimateTest", "TemperatureViewTest"],
-    "crafting": ["Craft*", "WorkerCrafting*", "ProfessionCraftingTest", "ToolPromotionTest", "EquipmentFeedbackTest", "CarpenterTest", "StonemasonTest", "StoneStoolTest", "ToolRackTest", "CrateTest", "FinishedGoodsPalletTest", "FoodShelfTest", "BasicSmelterTest", "AnvilStoneTest", "ProfessionPathTest", "PlankTest", "WorkshopWindowTest"],
+    "crafting": ["Craft*", "WorkerCrafting*", "ProfessionCraftingTest", "ToolPromotionTest", "EquipmentFeedbackTest", "CarpenterTest", "StonemasonTest", "StoneStoolTest", "ToolRackTest", "CrateTest", "FinishedGoodsPalletTest", "FoodShelfTest", "BasicSmelterTest", "AnvilStoneTest", "CopperNailTest", "ProfessionPathTest", "PlankTest", "WorkshopWindowTest"],
     "dwarves": ["Dwarf*", "RudimentaryRecreationTest", "RecreationSoloTest", "TastesTest", "FoodSpoilageTest"],
     "flora": ["Tree*", "Shrub*", "JuniperHarvestTest", "AppleHarvestTest", "FlowerPilotTest", "ReedPilotTest", "BoulderPilotTest", "PlantHabitatTransplantTest", "SurfaceWorkSelectionTest", "SurfaceVegetationArtTest", "SeasonalRefreshTest", "SurfaceDetailLayoutTest", "DevRemoveObjectsTest"],
     "wildlife": ["Deer*", "Duck*", "Rabbit*", "Wolf*", "HerdArrivalTest", "Arrival*", "AnimalNavigationCacheTest", "WildlifeArtTest"],
@@ -30,7 +30,7 @@
     "world": ["World*", "TerrainPickingTest", "CameraDeepSliceTest", "CaveGenerationTest", "ResourceProgressionTest", "TerrainEditBatchTest", "FinalTerrainStateTest", "VoxelPresentationTest", "EnvironmentDetailsTest", "SurfaceDetailLayoutTest"],
     "saves": ["SaveManagerRoundTripTest", "ContentRegistryTest", "StartupSaveTest", "WeatherPersistenceTest", "SkySceneLifecycleTest", "WorldTerrainStartupTest", "GameMenuTest", "EventLogTest", "ColonyJournalTest", "TitleScreenTest"],
     "storage": ["StorageFilterTest", "ItemPermissionTest", "ProduceCrateTest", "ColonyInventoryTest", "FoodSpoilageTest", "StoragePriorityTest", "ToolRackTest", "CrateTest", "FinishedGoodsPalletTest", "FoodShelfTest", "TorchCrateTest"],
-    "ui": ["CameraDeepSliceTest", "CompactPanelTest", "CraftingBrowserTest", "ColonyInventoryTest", "DwarfInspectorTest", "DwarfRosterTest", "ObjectExplorerTest", "RemainingMenusTest", "TimeSliceHUDTest", "StorageFilterTest", "ItemPermissionTest", "ZoneWindowTest", "OverviewSnapshotTest", "WorldLoadingScreenTest", "SkyDialTest", "DevToolsSwitchTest", "UiIconDataTest", "WindowStyleTest", "GameMenuTest", "VideoSettingsTest", "EventLogTest", "EventsPanelTest", "SettlementPanelTest", "SettlementNamingTest", "ColonyJournalTest", "AppealViewTest", "TemperatureViewTest", "TastesTest", "TitleScreenTest", "ItemStamperTest", "DevRemoveObjectsTest", "ToolBarTest", "TypeTest", "XrayToolVolumeTest"],
+    "ui": ["WordingTest", "CameraDeepSliceTest", "CompactPanelTest", "CraftingBrowserTest", "ColonyInventoryTest", "DwarfInspectorTest", "DwarfRosterTest", "ObjectExplorerTest", "RemainingMenusTest", "TimeSliceHUDTest", "StorageFilterTest", "ItemPermissionTest", "ZoneWindowTest", "OverviewSnapshotTest", "WorldLoadingScreenTest", "SkyDialTest", "DevToolsSwitchTest", "UiIconDataTest", "WindowStyleTest", "GameMenuTest", "VideoSettingsTest", "EventLogTest", "EventsPanelTest", "SettlementPanelTest", "SettlementNamingTest", "ColonyJournalTest", "AppealViewTest", "TemperatureViewTest", "TastesTest", "TitleScreenTest", "ItemStamperTest", "DevRemoveObjectsTest", "ToolBarTest", "TypeTest", "XrayToolVolumeTest"],
     "audio": ["*Audio*"],
     "sky": ["Sky*", "DioramaSkyTest", "LightingBufferDisposalTest", "WeatherPersistenceTest", "WeatherPrecipitationTest", "StormLightningTest"],
     "art": ["*ArtTest", "VoxelPresentationTest"]
@@ -43,6 +43,7 @@
   },
   "expected_errors": {
     "WorldGenerationFailureTest": ["WorldGenerator: generation failed: test layout failure"],
+    "WordingTest": ["Wording: no words for 'missing'."],
     "JsonDataTest": ["JSON data: missing file user://json_data_test/", "JSON data: parse error in user://json_data_test/", "JSON data: user://json_data_test/"]
   },
   "phases": {

@@ -38,7 +38,7 @@ func _run() -> void:
 			"the %s plank is a plank, stored as Planks, and no fire's fuel: %s" % [wood[0], tags])
 		_expect(materials.from_ingredient(plank) == String(wood[2]) and materials.from_ingredient(log) == String(wood[2]),
 			"the %s plank gives what is made from it its wood, as its log does" % wood[0])
-		_expect(ResourceLoader.exists(String(drops.get_item_def(plank).model)) and ResourceLoader.exists("res://assets/ui/items/base_item_%s_plank.png" % wood[0]),
+		_expect(ResourceLoader.exists(String(drops.get_item_def(plank).model)) and ResourceLoader.exists(preload("res://scripts/components/Pictures.gd").item(plank)),
 			"the %s plank has its model and its menu picture" % wood[0])
 	# A nightly fire burns timber, and a plank is not timber: a camp never burns its boards.
 	var timber: Array = []
@@ -101,7 +101,9 @@ func _run() -> void:
 		_expect(String(made.ingredient_tag) == "plank" and int(made.ingredient_count) == int(costs[piece][0])
 			and is_equal_approx(float(defs["base:furniture:" + piece].appeal.design), float(costs[piece][1])),
 			"%s takes %d planks and carries one more point of appeal than its log form: %s" % [piece, costs[piece][0], defs["base:furniture:" + piece].appeal])
-	_expect(Array(crafting.recipes[RECIPE + "board_game_table"].get("additional_ingredients", [])) == ["base:item:rough_stone"], "the game table still takes a Rough stone for its counters")
+	var game_extras: Array = Array(crafting.recipes[RECIPE + "board_game_table"].get("additional_ingredients", []))
+	_expect(game_extras.count("base:item:rough_stone") == 1 and game_extras.count("base:item:copper_nail") == 4 and game_extras.size() == 5,
+		"the game table still takes a Rough stone for its counters, and four nails for its planks (doc 313): %s" % [game_extras])
 	for piece: String in ["log_fence", "log_gate", "carpenter_bench"]:
 		_expect(String(crafting.recipes[RECIPE + piece].ingredient_tag) == "timber", "%s is still made from logs" % piece)
 	_expect(crafting.ingredient_label(oak_plank) == "Oak" and crafting.ingredient_label(WOOD + "apple_plank") == "Applewood", "a plank's wood is named as a log's is: %s" % crafting.ingredient_label(oak_plank))
@@ -109,6 +111,7 @@ func _run() -> void:
 	for i in range(30): await _tick()
 	var waiting: String = crafting.status(crafting.get_order(pine_table), inventory_script.snapshot(drops, furniture))
 	_expect(waiting == "Waiting for 4 pine planks" and _count(PINE) == 1, "a pine plank table waits for pine planks, whatever logs and oak planks lie about: %s" % waiting)
+	drops.spawn_drop("base:item:copper_nail", 4, Vector3i(43, 21, 40))   # a nail to each plank (doc 313; CopperNailTest)
 	var oak_table: int = crafting.queue_order(RECIPE + "dining_table", 1, false, [oak_plank])
 	_expect(await _completed(oak_table), "the Carpenter makes a table from the four oak planks")
 	var tables: Array = drops._loose.keys().filter(func(node: Node3D) -> bool: return drops.item_key_of(node) == "base:item:dining_table")

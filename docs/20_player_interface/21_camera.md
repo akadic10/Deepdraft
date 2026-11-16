@@ -75,6 +75,12 @@ Both work families share the same attenuation and voice budget. Tuning lives in
 | Mouse wheel | Zoom toward the point under the cursor |
 | Screen edge | Optional edge-scroll (off by default) |
 
+The move keys and Shift are input actions in `project.godot`'s `[input]`: `camera_forward`
+(W, Up), `camera_back` (S, Down), `camera_left` (A, Left), `camera_right` (D, Right) and
+`camera_slow` (Shift). `Camera._handle_pan` asks `Input.is_action_pressed` for them, and
+Settings' Controls tab shows their keys from the input map (doc 23 "Keys"). The mouse
+buttons stay in `camera_settings.json`.
+
 While dragging, a glyph cursor shows the mode (✋ grab-pan, 🗘 orbit) and the OS cursor hides. It is only hidden, never warped or captured: Wayland refuses both. The glyphs come from the symbol font shipped with the game, in light ink with a dark outline (doc 23, "Type").
 
 ### Dwarf inspection: Locate and Follow (2026-10-05)
@@ -157,7 +163,8 @@ Every notch is geometric in both modes; the old fixed-step fallback and its `zoo
 key were removed in doc 258.
 
 ### `input_mappings` / `cursors`
-`rotate_action` = right-mouse, `drag_action` = middle-mouse, move keys = WASD + arrows, zoom = wheel.
+`rotate_action` = right-mouse, `drag_action` = middle-mouse, zoom = wheel. The move keys and
+Shift are not here: they are the `camera_*` input actions (see Controls).
 `cursors`: `enabled` true, `orbit` 🗘, `drag` ✋, `size` 28, `hide_system_cursor` true.
 
 ## Zoom (cursor-targeted)
@@ -238,6 +245,11 @@ Right-mouse and the wheel are shared with tools; the resolved contract (see `Min
 - Wheel input over UI panels is consumed by the GUI before reaching either tool
   or camera; scrolling a panel must not resize the brush or zoom the world.
 - Middle-mouse (grab-pan) is camera-only — tools should avoid it.
+- **A tool's keyboard keys are input actions** (2026-11-16): `tool_rotate`, `tool_toggle`,
+  `tool_material_previous`, `tool_material_next` and `tool_shape_next` (doc 23 "Keys"). A
+  tool asks `event.is_action(...)`; a new key goes into `project.godot`'s `[input]` and
+  `data/ui/controls.json`, not into the code as a key constant. The wheel's and a drag's
+  Shift, Alt and Ctrl stay as modifiers.
 
 **2026-10-06 fix:** removed the old tool-wide zoom-suppression flag/API. Mining
 was setting it throughout activation even though brush resizing already required

@@ -1,7 +1,8 @@
 extends SceneTree
 
-## The colony's event log (doc 23): entries and their pictures, warnings raised, updated
-## and resolved (rising water by its hold), the unseen count, pruning, the save section,
+## The colony's event log (doc 23): entries and their pictures, kept as a line code and
+## fields and worded when read (one and several, a warning's past words), warnings raised,
+## updated and resolved (rising water by its hold), the unseen count, pruning, the save section,
 ## the sources that need no world (caverns, rising water, the seasons, a finished
 ## arrival through WorldEventDirector), and the Hearthblock toasts. Promotions are
 ## checked in EquipmentFeedbackTest, the food warning in DwarfDiningTest and the full
@@ -39,12 +40,15 @@ func _test_entries() -> void:
 	var added: Array = []
 	var record := func(entry: Dictionary): added.append(entry)
 	events.entry_added.connect(record)
-	var first: int = events.post("discovery", "Cavern discovered. Bring light to explore it.", {"place": Vector3i(10, 20, 30)})
-	var second: int = events.post("colony", "Autumn has come.")
-	var third: int = events.post("arrival", "3 deer have arrived from the east.", {"picture": "res://assets/ui/icons/deer.png", "dwarves": [4]})
+	var first: int = events.post("discovery", "cavern_found", {}, {"place": Vector3i(10, 20, 30)})
+	var second: int = events.post("colony", "season_came", {"season": "autumn"})
+	var third: int = events.post("arrival", "arrived", {"count": 3, "event": "deer_arrival", "edge": "east"},
+		{"picture": "res://assets/ui/icons/deer.png", "dwarves": [4]})
 	_expect(first == 1 and second == 2 and third == 3, "entries are numbered in order")
 	var listed: Array = events.entries()
 	_expect(listed.size() == 3 and listed[0].id == 3 and listed[2].id == 1, "entries come newest first")
+	_expect(listed[2].line == "cavern_found" and listed[1].line == "season_came" and listed[1].fields == {"season": "autumn"}
+		and listed[1].text == "Autumn has come.", "an entry is kept as its line and fields, and read in words: %s" % [listed[1]])
 	_expect(listed[2].picture == "res://assets/ui/icons/cavern.png" and listed[2].place == [10, 20, 30],
 		"a discovery takes its kind's picture and keeps its place")
 	_expect(listed[1].picture == "res://assets/ui/icons/colony.png" and listed[1].detail == "" and not listed[1].has("place"),
@@ -57,12 +61,13 @@ func _test_entries() -> void:
 	_expect(events.unseen() == 3 and events.last_seen() == 0, "three entries are unseen")
 	events.mark_seen()
 	_expect(events.unseen() == 0 and events.last_seen() == 3, "mark_seen clears the unseen count")
-	events.post("colony", "Ildgra is now a Carpenter.")
-	_expect(events.unseen() == 1, "a new entry is unseen again")
+	events.post("colony", "promoted", {"name": "Ildgra", "profession": "base:profession:carpenter"})
+	_expect(events.unseen() == 1 and events.entries()[0].text == "Ildgra is now a Carpenter.",
+		"a new entry is unseen again, and a profession's id reads as its name: %s" % events.entries()[0].text)
 	# Nothing lands while a save loads: the load restores the saved log instead.
 	var saves := root.get_node("SaveManager")
 	saves._loading = true
-	_expect(events.post("colony", "Ignored.") == 0 and events.raise("ignored", "Ignored.") == 0 and events.entries().size() == 4,
+	_expect(events.post("colony", "season_came", {"season": "winter"}) == 0 and events.raise("ignored", "flood") == 0 and events.entries().size() == 4,
 		"posting and raising wait while a save loads")
 	saves._loading = false
 	events.entry_added.disconnect(record)
@@ -76,39 +81,42 @@ func _test_warnings() -> void:
 	var count_changed := func(): changes[0] += 1
 	events.entry_added.connect(count_added)
 	events.changed.connect(count_changed)
-	var id: int = events.raise("food", "1 dwarf cannot find reachable food.", {"detail": FOOD_DETAIL, "dwarves": [2]})
+	var id: int = events.raise("food", "food_short", {"count": 1}, {"dwarves": [2]})
 	_expect(added[0] == 1 and events.warning("food").id == id and events.warning("food").kind == "warning",
 		"raising a warning adds one entry")
 	_expect(String(events.warning("food").picture).ends_with("/warning.png"), "a warning takes the warning sign")
 	changes[0] = 0
-	events.raise("food", "1 dwarf cannot find reachable food.", {"detail": FOOD_DETAIL, "dwarves": [2]})
+	_expect(events.warning("food").text == "1 dwarf cannot find reachable food." and events.warning("food").detail == FOOD_DETAIL,
+		"one dwarf takes the words for one, with the line's second line: %s" % events.warning("food").text)
+	events.raise("food", "food_short", {"count": 1}, {"dwarves": [2]})
 	_expect(added[0] == 1 and changes[0] == 0, "raising it again unchanged is quiet")
-	events.raise("food", "2 dwarves cannot find reachable food.", {"detail": FOOD_DETAIL, "dwarves": [2, 5]})
-	_expect(added[0] == 1 and changes[0] == 1 and events.warning("food").id == id and events.warning("food").dwarves == [2, 5],
-		"a changed warning updates in place, without a new toast")
+	events.raise("food", "food_short", {"count": 2}, {"dwarves": [2, 5]})
+	_expect(added[0] == 1 and changes[0] == 1 and events.warning("food").id == id and events.warning("food").dwarves == [2, 5]
+		and events.warning("food").fields == {"count": 2} and events.warning("food").text == "2 dwarves cannot find reachable food.",
+		"a changed warning updates in place, without a new toast, and two dwarves take the words for several")
 	events.resolve("food")
 	_expect(events.warning("food").is_empty() and events.entries()[0].has("resolved"), "a resolved warning stays as an entry")
-	_expect(events.raise("food", "1 dwarf cannot find reachable food.") != id and added[0] == 2, "a new shortage is a new warning")
+	_expect(events.raise("food", "food_short", {"count": 1}) != id and added[0] == 2, "a new shortage is a new warning")
 	events.resolve("food")
-	# Pinned warnings, newest first, and their past words once resolved.
-	var first: int = events.raise("first", "The first thing is wrong.", {"past": "The first thing was wrong."})
-	var second: int = events.raise("second", "The second thing is wrong.")
+	# Pinned warnings, newest first, and their line's past words once resolved.
+	var first: int = events.raise("first", "flood")
+	var second: int = events.raise("second", "cavern_found")   # a line with no past words
 	_expect(events.pinned().map(func(entry: Dictionary) -> int: return entry.id) == [second, first], "pinned() lists the standing warnings, newest first")
-	events.raise("first", "The first thing is still wrong.", {"past": "The first thing stayed wrong."})
+	events.raise("first", "food_short", {"count": 3})   # its line and fields change while it stands
 	events.resolve("first")
 	var settled: Dictionary = events.entries().filter(func(entry: Dictionary) -> bool: return entry.id == first)[0]
-	_expect(settled.text == "The first thing stayed wrong." and not settled.has("past") and events.pinned().size() == 1,
-		"a resolved warning takes its past words")
+	_expect(settled.line == "food_short" and settled.text == "3 dwarves could not find reachable food." and events.pinned().size() == 1,
+		"a resolved warning reads in its line's past words: %s" % settled.text)
 	events.resolve("second")
-	_expect(events.entries()[0].text == "The second thing is wrong.", "a warning without past words keeps its words")
+	_expect(events.entries()[0].text == "Cavern discovered. Bring light to explore it.", "a line without past words keeps its words")
 	events.check_food()
 	_expect(events.warning("food").is_empty(), "with no hungry dwarves the food check raises nothing")
 	# A held warning resolves itself once it has not been raised again for its hold.
-	events.raise("flood", "Rising water is spilling onto dry ground.", {"place": Vector3i(5, 20, 7), "hold_hours": 3.0})
+	events.raise("flood", "flood", {}, {"place": Vector3i(5, 20, 7), "hold_hours": 3.0})
 	clock.advance_hours(2.0)
 	events._expire_held()
 	_expect(not events.warning("flood").is_empty(), "rising water stays pinned within its hold")
-	events.raise("flood", "Rising water is spilling onto dry ground.", {"place": Vector3i(6, 20, 7), "hold_hours": 3.0})
+	events.raise("flood", "flood", {}, {"place": Vector3i(6, 20, 7), "hold_hours": 3.0})
 	clock.advance_hours(2.5)
 	events._expire_held()
 	_expect(not events.warning("flood").is_empty() and events.warning("flood").place == [6, 20, 7],
@@ -126,16 +134,18 @@ func _test_sources() -> void:
 	var cells: Array[Vector3i] = [Vector3i(10, 20, 10), Vector3i(12, 20, 10), Vector3i(14, 20, 10), Vector3i(30, 20, 10)]
 	root.get_node("InteriorTracker").cavern_found.emit(cells)
 	var cavern: Dictionary = events.entries()[0]
-	_expect(cavern.kind == "discovery" and cavern.text == "Cavern discovered. Bring light to explore it." and cavern.place == [14, 20, 10],
+	_expect(cavern.kind == "discovery" and cavern.line == "cavern_found" and cavern.place == [14, 20, 10],
 		"a cavern found by mining lands in Events")
 	# Rising water raises its held warning where it spills.
 	root.get_node("WaterManager").flood_warning.emit(Vector3i(8, 22, 9))
-	_expect(events.warning("flood").get("place", []) == [8, 22, 9] and events.warning("flood").has("hold"), "rising water raises a held warning")
+	_expect(events.warning("flood").get("place", []) == [8, 22, 9] and events.warning("flood").has("hold")
+		and events.warning("flood").text == "Rising water is spilling onto dry ground.", "rising water raises a held warning")
 	events.resolve("flood")
 	_expect(events.entries()[0].text == "Rising water spilled onto dry ground.", "settled water is told in the past")
 	# A new season is colony news; the clock being restored is not.
 	clock.advance_season()
-	_expect(events.entries()[0].text == "Winter has come." and events.entries()[0].kind == "colony", "a new season is colony news")
+	_expect(events.entries()[0].line == "season_came" and events.entries()[0].fields == {"season": "winter"}
+		and events.entries()[0].text == "Winter has come." and events.entries()[0].kind == "colony", "a new season is colony news")
 	var before: int = events.entries().size()
 	clock.restore_state({"year": 1, "season": "autumn", "day": 7, "hour": 20.0, "speed": 1.0, "paused": true})
 	_expect(events.entries().size() == before, "restoring the clock is not news")
@@ -148,9 +158,13 @@ func _test_sources() -> void:
 		if event.id == "deer_arrival": deer = event
 	director._finish(deer, {"active": {"id": "deer_arrival:test", "issued": 3, "edge": "east", "route": [[100, 20, 5], [80, 21, 40]]}}, "arrived")
 	var arrival: Dictionary = events.entries()[0]
-	_expect(arrival.kind == "arrival" and arrival.text == "3 deer have arrived from the east."
+	_expect(arrival.kind == "arrival" and arrival.line == "arrived" and arrival.fields == {"count": 3, "event": "deer_arrival", "edge": "east"}
+		and arrival.text == "3 deer have arrived from the east."
 		and arrival.picture == "res://assets/ui/icons/deer.png" and arrival.place == [80, 21, 40],
-		"a finished arrival lands in Events with the species' picture")
+		"a finished arrival lands in Events with the species' picture: %s" % [arrival])
+	events.post("arrival", "arrived", {"count": 1, "event": "wolf_arrival", "edge": "north"})
+	_expect(events.entries()[0].text == "A wolf has arrived from the north.", "one animal takes the words for one: %s" % events.entries()[0].text)
+	arrival = events.entries()[0]
 	director._finish(deer, {"active": {"id": "deer_arrival:none", "issued": 0, "edge": "", "route": []}}, "expired")
 	_expect(events.entries()[0].id == arrival.id, "a group that never arrived is not news")
 	root.remove_child(director)
@@ -159,43 +173,59 @@ func _test_sources() -> void:
 
 func _test_pruning() -> void:
 	events.clear_runtime_state()
-	events.post("colony", "An old entry.")
-	events.raise("old_warning", "An old warning still stands.")
+	events.post("colony", "season_came", {"season": "spring"})   # the old entry
+	events.raise("old_warning", "flood")
 	clock.advance_hours(24.0 * 11.0)
-	events.post("colony", "A new entry.")
-	var texts: Array = events.entries().map(func(entry: Dictionary) -> String: return entry.text)
-	_expect(not "An old entry." in texts and "An old warning still stands." in texts and "A new entry." in texts,
-		"entries older than keep_days go; warnings still standing stay")
+	events.post("colony", "season_came", {"season": "winter"})
+	var kept: Array = events.entries().map(func(entry: Dictionary) -> String: return "%s %s" % [entry.line, entry.fields.get("season", "")])
+	_expect(kept == ["season_came winter", "flood "], "entries older than keep_days go; warnings still standing stay: %s" % [kept])
 	events.clear_runtime_state()
-	for index in range(events.MAX_ENTRIES + 5): events.post("colony", "Entry %d." % index)
-	_expect(events.entries().size() == events.MAX_ENTRIES and events.entries()[-1].text == "Entry 5.",
+	for index in range(events.MAX_ENTRIES + 5): events.post("colony", "promoted", {"name": "Dwarf %d" % index, "profession": "base:profession:miner"})
+	_expect(events.entries().size() == events.MAX_ENTRIES and events.entries()[-1].fields.name == "Dwarf 5",
 		"the log keeps at most MAX_ENTRIES, dropping the oldest")
 
 
 func _test_saving() -> void:
 	events.clear_runtime_state()
-	events.post("discovery", "Cavern discovered. Bring light to explore it.", {"place": Vector3i(3, 20, 4)})
-	events.raise("flood", "Rising water is spilling onto dry ground.", {"place": Vector3i(5, 20, 6), "hold_hours": 3.0,
-		"past": "Rising water spilled onto dry ground."})
-	events.raise("food", "1 dwarf cannot find reachable food.", {"detail": FOOD_DETAIL, "dwarves": [7]})
+	events.post("discovery", "cavern_found", {}, {"place": Vector3i(3, 20, 4)})
+	events.raise("flood", "flood", {}, {"place": Vector3i(5, 20, 6), "hold_hours": 3.0})
+	events.raise("food", "food_short", {"count": 1}, {"dwarves": [7]})
 	events.resolve("food")
 	events.mark_seen()
-	events.post("colony", "Winter has come.")
+	events.post("warning", "food_rotted", {"count": 2, "item": "base:item:carrot", "where": "stockpile:3"})
+	var read_before: Array = events.entries().map(func(entry: Dictionary) -> Array: return [entry.text, entry.detail])
 	var saved: Dictionary = events.serialize_state()
+	var coded: bool = saved.entries.all(func(entry: Dictionary) -> bool: return entry.has("line") and entry.has("fields") and not (entry.has("text") or entry.has("detail") or entry.has("past")))
+	_expect(coded and saved.entries[-1].line == "food_rotted" and saved.entries[-1].fields == {"count": 2, "item": "base:item:carrot", "where": "stockpile:3"},
+		"the log is saved as lines and fields, with no sentence: %s" % [saved.entries[-1]])
 	var parsed: Dictionary = JSON.parse_string(JSON.stringify(saved))
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
 	var catalogs: Dictionary = root.get_node("SaveManager")._capture_catalogs()
 	_expect(validator._validate(parsed, validator.SCENE.events, "events", catalogs).is_empty(), "the saved log validates")
+	# A line or an item the game does not have cannot be worded again: the save is refused.
+	var other_line: Dictionary = parsed.duplicate(true)
+	other_line.entries[0].line = "no_such_line"
+	var other_item: Dictionary = parsed.duplicate(true)
+	other_item.entries[-1].fields.item = "base:item:no_such_food"
+	_expect(not validator._validate(other_line, validator.SCENE.events, "events", catalogs).is_empty()
+		and not validator._validate(other_item, validator.SCENE.events, "events", catalogs).is_empty(),
+		"a saved entry naming a line or an item the game does not have is refused")
 	events.clear_runtime_state()
 	_expect(events.entries().is_empty() and events.unseen() == 0, "a new world starts with an empty log")
 	events.restore_state(parsed)
 	_expect(_same(events.serialize_state(), saved), "the log round-trips through JSON")
-	_expect(typeof(events.entries()[0].id) == TYPE_INT and typeof(events.warning("flood").place[0]) == TYPE_INT,
-		"ids and cells come back as whole numbers")
+	_expect(typeof(events.entries()[0].id) == TYPE_INT and typeof(events.warning("flood").place[0]) == TYPE_INT
+		and typeof(events.entries()[0].fields.count) == TYPE_INT, "ids, cells and counts come back as whole numbers")
+	var read_after: Array = events.entries().map(func(entry: Dictionary) -> Array: return [entry.text, entry.detail])
+	_expect(read_after == read_before and read_after[0] == ["2 carrots rotted in Stockpile 3.", ""]
+		and read_after[1] == ["1 dwarf could not find reachable food.", FOOD_DETAIL],
+		"after a load every entry reads as it did, a resolved warning in the past: %s" % [read_after])
 	_expect(events.unseen() == 1 and events.warning("flood").place == [5, 20, 6] and events.warning("food").is_empty(),
 		"the unseen count, the pinned warning and the resolved one come back")
-	_expect(events.warning("flood").get("past", "") == "Rising water spilled onto dry ground.", "a standing warning keeps its past words")
-	_expect(events.post("colony", "Spring has come.") == int(saved.next_id), "numbering continues after a load")
+	events.resolve("flood")
+	_expect(events.entries().filter(func(entry: Dictionary) -> bool: return entry.line == "flood")[0].text == "Rising water spilled onto dry ground.",
+		"a warning that stood through a load still reads in the past once resolved")
+	_expect(events.post("colony", "season_came", {"season": "spring"}) == int(saved.next_id), "numbering continues after a load")
 
 
 func _test_toasts() -> void:
@@ -214,8 +244,8 @@ func _test_toasts() -> void:
 	await process_frame
 	_expect(toasts.size_key == "large", "toasts take the large size at 1440 px")
 	var people: Color = root.get_node("UIRegistry").get_icon_family_color("people")
-	events.post("arrival", "3 deer have arrived from the east.", {"picture": "res://assets/ui/icons/deer.png"})
-	events.raise("food", "2 dwarves cannot find reachable food.", {"detail": FOOD_DETAIL})
+	events.post("arrival", "arrived", {"count": 3, "event": "deer_arrival", "edge": "east"}, {"picture": "res://assets/ui/icons/deer.png"})
+	events.raise("food", "food_short", {"count": 2})
 	await process_frame
 	_expect(toasts.get_child_count() == 2 and _words(toasts.get_child(0)) == ["2 dwarves cannot find reachable food.", FOOD_DETAIL],
 		"events toast, newest on top, a warning with its second line")

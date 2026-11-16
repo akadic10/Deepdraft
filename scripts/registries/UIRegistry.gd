@@ -324,9 +324,10 @@ func _load_controls() -> void:
 	for column: Array in _controls.get("columns", []):
 		for group: Dictionary in column:
 			for entry: Dictionary in group.get("entries", []):
-				for action: String in entry.get("actions", []):
-					if not InputMap.has_action(action):
-						push_warning("UIRegistry: the key list names '%s', which is not an input action." % action)
+				for named: Variant in entry.get("actions", []):   # one action, or a list shown side by side
+					for action: String in (named if named is Array else [named]):
+						if not InputMap.has_action(action):
+							push_warning("UIRegistry: the key list names '%s', which is not an input action." % action)
 
 
 ## The title screen (doc 23): its art, the game's name and the line under it.

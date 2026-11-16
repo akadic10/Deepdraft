@@ -213,6 +213,12 @@ pictures, times and places.
 - It is a `save_state_owner` like TaskManager and WaterManager: the `events` section
   (priority 90). SaveManager clears it with the other runtime state before a load or
   New game, and it takes no entries while a save loads.
+- An entry is a line code and its fields, never a sentence (doc 23 "Toasts and the event
+  log"). `post(kind, line, fields, options)` and `raise(key, line, fields, options)` take
+  them, the words are in `event_log.json`'s `lines`, and EventLog words each copy it hands
+  out (`text`, `detail`). A save naming a line, an item, a crop or a profession the game
+  does not have is refused (`SaveManager._capture_catalogs()` gives the validator
+  `event_lines`).
 - `entry_added` feeds the toasts (`ToastStack`); `changed` refreshes the Events window
   (`EventsPanel`) and the dock bell's count. `pinned()` lists the standing warnings and
   `last_seen()` the newest entry already seen.
@@ -231,6 +237,11 @@ colony's journal: what the dwarves said, a line per topic a day, shown on Colony
 - It is a `save_state_owner`: the `journal` section (priority 90), at most 200 lines, one
   per topic a day, each spoken by one of its dwarves. SaveManager clears it with the other
   runtime state before a load or New game.
+- A line is kept as codes, never a sentence: its topic, tone, dwarves, speaker and name,
+  and `fields` for the taste a room's thought names (`taste`, `feeling`). `lines()` words
+  each copy: `text` from `DwarfMood.thought_text(id, fields)` or the found taste
+  (`DwarfTastes.said(feeling, thing)`), and `words`, the speaker's line. A save naming a
+  thought the journal has no lines for is refused (`journal_lines` in the catalogs).
 - `lines()` gives the lines newest first; `changed` fires when one opens or gains a dwarf.
 - `note_taste(agent, thing, kind)` adds the line for a taste found that day (doc 41
   "Tastes"), its topic `found_<kind>:<thing>`.
@@ -248,7 +259,8 @@ orders; its recipes come from `ContentRegistry`. It depends on the scene's items
 registers transient work sources with TaskManager. See `44_crafting_workshops.md`.
 
 `WildlifeManager` (updated 2026-10-10) follows the same scene-owner lifetime: sole loader
-of the species files in `data/animals/` (rabbit, deer, wolf, duck; it scans the folder), seeded populations,
+of the species files in `data/animals/` (rabbit, deer, wolf, duck; it scans the folder, leaving out
+`animal_words.json`, the words for the animals' activity and arrival codes), seeded populations,
 inspector provider and save section `wildlife` (priority 65). RabbitAgent and
 DeerAgent receive their definitions and share GrazerAgent's gentle needs and
 state machine. AnimalNavigation checks species footprints/clearance (rabbit
@@ -386,14 +398,106 @@ From the owner's review of the data files: the Copper Pull Saw sat in `resources
     surface palettes.
   - The lint's `naming` rule checks the depth with every gate.
 - **A piece's files carry the last part of its id:** `data/furniture/torch.json`,
-  `assets/models/furniture/torch.glb`, `assets/ui/furniture/torch.png`. An item's picture is
-  its whole key with underscores: `assets/ui/items/base_item_pine_log.png`
-  (`ColonyInventory.thumbnail_path`). Models are named in the art pipeline (`piece=` in
+  `assets/models/furniture/torch.glb`, `assets/ui/furniture/torch.png`. An item's picture
+  does too: `assets/ui/items/pine_log.png`. One script turns an id into its picture's path,
+  `scripts/components/Pictures.gd`: `item`, `furniture`, and `of` for goods that may be a packed
+  piece (the item's own picture, or else the furniture's). Nothing else names the two picture
+  folders, and the tools that draw the pictures name their files through it. Models are named
+  in the art pipeline (`piece=` in
   `tools/hearthblock/art/write_data.py`, the profiles in `tools/art_data/`) and embed their
   name, so a renamed model is installed again through `build.py`, not moved.
 - **Renaming an id ends older saves.** Saves store ids (Hard Rule 3), and no migration is
   written during development (CLAUDE.md, "Saves").
 - **Shown names** follow doc 23, "Names are sentence case".
+
+#### Codes and words (owner, 2026-11-16)
+
+From the owner's review of `BlueprintLibrary.gd`: English sentences in code "will make
+translations harder later". The owner took the recommendation that came of it: no table of ids
+for every text now, and codes wherever the game itself depends on a message. The rules since:
+- **A state or a reason is a code,** lower case with underscores, wherever logic, a save or a
+  test tells two messages apart: an animal's `grazing`, a dwarf's `badly_hurt`, a blueprint
+  file's `unknown_material`. Logic never compares, searches or trims the words the player
+  reads. Rewording or translating a sentence then changes nothing but the sentence.
+- **One place turns a code into words,** and the words live in the feature's own JSON, beside
+  its other data: `"refusals"` in `data/construction/blueprints.json`, `health.words` in
+  `task_config.json`, `"lines"` in `data/events/event_log.json`. There is no global text file.
+- **A sentence is whole, with named fields:** `"{file}: it is too large: a blueprint is at
+  most {across} × {tall} × {deep}"`. It is never glued together from parts. A sentence that
+  changes with a count gives its forms, `{"one": "{count} dwarf …", "other": "{count} dwarves
+  …"}`, and `Wording.fill` (`scripts/components/Wording.gd`) picks one and puts the fields in.
+  `Wording.of(table, code, fields)` says a code from a table of them and reports a code that
+  has no words.
+- **A function that can refuse returns a code with its fields,** as `BlueprintLibrary.parse`
+  does: `{"error": "unknown_material", "material": "marble"}`. Its caller, a test included,
+  goes by the code; `refusal_words()` says it.
+- **A status line's tone is settled where its words are settled,** in the same branch, and
+  handed on with them (`{"text", "tone"}`). Nothing reads a colour back from a sentence.
+- **Saves keep codes, not sentences.** A field in a save is a number, a proper name (a
+  dwarf's, the settlement's) or an id; the event log and the journal build their sentences
+  when they are read.
+- **Messages for us stay as they are:** `push_error`, `push_warning` and `print` text is
+  English, inline, and searched for in the code when reading a log.
+- **Captions that are only shown** ("Rename", "Cancel clearing") stay in code. They move when
+  a translation is planned, and that will use Godot's own translation system (`tr`, `tr_n`),
+  joined at `Wording.fill`, not a lookup of our own.
+- **Kept in order by the lint:** `wording-compare` fails on new logic that reads wording, and
+  `glued-plural` on a word or an ending chosen in code by whether a count is one. The plural
+  lines that existed on 2026-11-16 are recorded as known and are fixed when their files are
+  next changed.
+
+#### One job, one way (owner, 2026-11-16)
+
+After the wording review the owner asked for "a code review to find other inconsistent or
+not best practice approaches", and then said to proceed with what it recommended (doc 312).
+Most of what it found had one cause: a new feature copied its nearest neighbour, because
+there was no shared part to use and nothing failed when it did. The rules since:
+- **Share the part; do not copy the neighbour.** When a feature needs what another already
+  has (a tool's drag, a path rule, a panel's helper), that part moves into a script both
+  use. `scripts/components/ZoneTool.gd` is the pattern: Storage, Fishing and Farming zones
+  are drawn by it, and each system says only what is its own (doc 23, "The zone tool").
+- **A fact is typed once.**
+  - The world's size, a chunk's edge and the top bedrock row are in
+    `scripts/systems/WorldSize.gd`; `WorldData` and `WorldGenerator` hand them on.
+  - Where a thing's picture is: `scripts/components/Pictures.gd` ("Naming ids and files").
+  - A panel colour is a `UITheme` constant, and a panel gives it a short name of its own
+    (`const HAY := UITheme.HAY`).
+  - How far a flat layer lies over a block's top: the damp ground's height is
+    `MoistureRenderer.LIFT`, and a highlight's is measured from it (doc 24, "Damp-ground
+    scheduling"). Two such numbers typed apart hid Replace's plan on damp ground.
+  - A wording lives in one place ("Codes and words").
+- **An object answers for itself.** Shared code does not ask an object what it is (`is X`,
+  or its script's file name) to choose what to do. The object answers a small function,
+  as a work source answers `claimed_workers()` (doc 31), and a new kind is covered without
+  a line elsewhere.
+- **A name in text must exist.** A method, signal or group reached by its name in text
+  (`has_method("x")`, `.call("x")`, `connect("x", …)`, `get_first_node_in_group("x")`) is
+  checked by the lint, since a typo or a rename fails nowhere else. Where it can be typed,
+  type it: a scene system that others look up offers `static func find(tree)`, with its
+  group's name in one constant, as `ItemDropManager` does. Add one when such a system is
+  next changed; there is no sweep.
+- **A tool registers one way** (`DockUI.register_tool`), and **Esc is decided in one
+  place** (`DockUI.cancel()`): doc 23, "Scene Wiring" and "Esc's order".
+- **A key is an input action.** Code asks the input map (`event.is_action(...)`,
+  `Input.is_action_pressed(...)`) and never a key's constant, so the Controls page and the
+  game cannot disagree (doc 23, "Keys"). Shift, Ctrl and Alt held with the mouse stay as
+  they are.
+- **Game time has one source.** Simulation counts `WorldClock.game_seconds(delta)` (or
+  `game_hours_per_real_second()`), which is 0 while paused and follows the speed. It does
+  not multiply by `WorldClock.speed` itself. Real time (`Time.get_ticks_msec`) is for work
+  budgets, the interface, and the scheduler's route waits (doc 31).
+- **In data,** a time in seconds ends in `_seconds`, and the name shown for a record is
+  `display_name`. `label` and `title` are an interface's button and heading words.
+- **Reading a save:** the save check refuses a save with a required field missing, so
+  restore code reads such a field directly, with no fallback. A fallback would hide a
+  field the check has stopped requiring.
+- **An item's facts** (its key, its count) are read through `ItemDropManager`'s functions
+  outside that script (`item_key_of`, `quantity_of`), not from the node's metadata. A fact
+  that another script needs gets a function there first.
+- **Kept in order by the lint:** `unknown-name` (a name in text that nothing defines),
+  `picture-path` (a picture folder named outside `Pictures.gd`) and `hand-key` (a key read
+  by its constant). All three found nothing on the day they were added. What is older and
+  not yet brought in line is listed in doc 312 and moves when its file is next changed.
 
 ### `CraftMaterials` *(roadmap 118 — crafted materials and appeal)*
 
@@ -679,8 +783,9 @@ floor's bonus, the score and its word, and `appeal_at(cell)` does the same for t
 around a cell ({} outside rooms). The preloaded component `RoomAppeal` adds it up from
 FurniturePlacementController's installed pieces, ItemDropManager's loose goods and
 StockpileManager's stocked cells, with CraftMaterials' piece values. `appeal_step(score)`
-gives the word's entry in `data/rooms/appeal.json` and `appeal_word_ids()` the lower-case
-words a save may name; SaveManager passes those to the save validator as `appeal_words`.
+gives the word's entry in `data/rooms/appeal.json` and `appeal_word_ids()` the entries' ids
+(`horrid`, `plain`, `pleasant`, `beautiful`), which a save may name and a dwarf's mood
+remembers; SaveManager passes those to the save validator as `appeal_words`.
 `all_room_appeals()` scores every room in one pass for the Appeal view (doc 23 "The
 Appeal view"), with each room's counted nodes. `AppealViewController` registers with
 DockUI (`register_appeal_view`, its button in TimeSliceHUD before X-ray's), opens rooms
@@ -719,7 +824,8 @@ Blueprints (doc 23 "Copy and Blueprints", doc 273): the starters in
 `data/construction/blueprints.json` and the player's own, one JSON file each in
 `user://blueprints/`, outside the saves. It owns that folder's JSON: `blueprints()`,
 `get_blueprint(id)`, `save(name, size, blocks)`, `rename(id, name)` (the file moves with it),
-`delete(id)`, `rescan()` and `refused()` (each unreadable file with why), `open_folder()`, and
+`delete(id)`, `rescan()` and `refused()` (each unreadable file with why, as a refusal code and
+its fields; `refusal_words()` says one, from the file's `"refusals"`), `open_folder()`, and
 `picture(id)`, rendered once in a SubViewport and kept as a PNG beside the file (not in a
 headless run). `parse(data, fallback_name)` checks every file, since a shared file may come
 from anyone: format 1 only, a size of at most 32 × 16 × 32, construction kinds it knows,
@@ -954,8 +1060,8 @@ first; equal priorities have no dependency on each other):
 | 70 | `worker_crafting` | `CraftingManager` | Orders, quantities/mode, pause state, partial work, allowed ingredients, and each batch drying on a workshop (`batches`: its rack, fish and the hour it was hung) |
 | 70 | `camera` | `Camera` | Target position, zoom, pitch, orbit |
 | 80 | `slice` | `SliceController` | Active/seeded state, current plane, last manual plane |
-| 90 | `events` | `EventLog` | The event log's entries (at most 200), pinned warnings, the next id and the last seen |
-| 90 | `journal` | `ColonyJournal` | The journal's lines (at most 200): day, topic, the thought's words, complaint or praise, the dwarves sharing it, the speaker, their name and words |
+| 90 | `events` | `EventLog` | The event log's entries (at most 200), each a line code and its fields with no sentence, pinned warnings, the next id and the last seen |
+| 90 | `journal` | `ColonyJournal` | The journal's lines (at most 200), as codes with no sentence: day, topic, complaint or praise, the dwarves sharing it, the speaker, their name, and the taste a room's thought names |
 
 `clock` and `weather` sit beside `scene` at the top level and are owned by
 `WorldClock` and `WeatherManager`. `colony_name` beside them is a copy of the flag's name

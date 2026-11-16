@@ -19,10 +19,10 @@ extends MarginContainer
 ## categories' pictures are UIRegistry's (storage_filters.json).
 signal action_requested(action_id: String)
 
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
-const HAY := Color("e2c06a")
-const MUTED := Color("aeb5ad")
+const HAY := UITheme.HAY
+const MUTED := UITheme.MUTED
 # Text sizes come from the type scale (doc 23, "Type").
 const LARGE := UITheme.TYPE_LARGE
 const MEDIUM := UITheme.TYPE_MEDIUM
@@ -355,7 +355,7 @@ func _show_filter() -> void:
 				"tooltip": "%s · %s\nClick the picture to %s. Click its name for its exact goods." % [entry.label,
 					{"on": "all stored here", "some": "some stored here", "off": "not stored here"}[state],
 					"stop storing it" if state == "on" else "store all of it"]})
-		var group_state := "All" if states.all(func(state: String): return state == "on") else ("None" if states.all(func(state: String): return state == "off") else "Some")
+		var group_state := "all" if states.all(func(state: String): return state == "on") else ("none" if states.all(func(state: String): return state == "off") else "some")
 		_rows[String(group.id)].show_groups([{"id": group.id, "title": group.label, "state": group_state, "items": items}])
 	# The open category's exact goods sit under its group's row.
 	var open_entry := _category_entry(category)
@@ -531,9 +531,7 @@ func _item_name(key: String) -> String:
 
 
 func _item_texture(key: String) -> Texture2D:
-	var path := Inventory.thumbnail_path(key)
-	if not ResourceLoader.exists(path):
-		path = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)   # packed furniture
+	var path := Pictures.of(key)   # a packed piece shows its furniture's picture
 	return _texture(path if ResourceLoader.exists(path) else "res://assets/ui/icons/stocks.png")
 
 

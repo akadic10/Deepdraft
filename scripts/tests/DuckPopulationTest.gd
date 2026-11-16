@@ -63,7 +63,7 @@ func _run() -> void:
 		for i in 3000:
 			duck.advance(.05,0,[])
 			if duck.mode!="air": break
-		check(duck.mode=="water" and duck.arrival.status=="Settled","arrival flies continuously to water")
+		check(duck.mode=="water" and duck.arrival.status=="settled","arrival flies continuously to water")
 		wildlife.remove_animal(duck,"test")
 	if failures.is_empty(): print("DUCK_POPULATION_OK")
 	quit(0 if failures.is_empty() else 1)

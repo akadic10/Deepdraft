@@ -66,6 +66,7 @@ func _run() -> void:
 	_expect(field == 1 and farming.is_zone_cell(cells[0]) and not farming.create_zone(cells) > 0, "a field, and no tile in two fields")
 	_expect(farming.zone_data(field).plan.map(func(row): return row.crop) == [RADISH, CARROT, TURNIP, ""], "a new field plans radish, carrot and turnip, and rests in winter")
 	_expect(farming.tile_reason(cells[0]) == "Already a field", "a tile of a field is refused to another")
+	_check_wet_ground(field, cells)
 	# With no Farmer a field waits.
 	farming.refresh_work()
 	_expect(_leases(field) == 0 and bool(farming.zone_data(field).no_farmer), "with no Farmer the field posts no work")
@@ -129,8 +130,10 @@ func _run() -> void:
 	_clock("autumn", 1, 8.0)
 	clock_node.season_changed.emit("autumn")
 	_expect(farming.tile_job(field, cells[0]).job == "harvest" and farming.tile_job(field, cells[1]).job == "clear", "in autumn a ripe carrot is still pulled and an unripe one hoed under")
-	var told: Array = root.get_node("EventLog").entries().slice(log_before).map(func(entry): return String(entry.text))
-	_expect("11 tiles of carrots in Field 1 were not ripe when autumn came." in told, "Events says what did not ripen: %s" % [told])
+	var told: Array = root.get_node("EventLog").entries().filter(func(entry): return entry.line == "crop_late")
+	_expect(told.size() == 1 and told[0].fields == {"count": 11, "crop": CARROT, "field": field, "season": "autumn"}
+		and told[0].text == "11 tiles of carrots in Field 1 were not ripe when autumn came." and told[0].detail == "A Farmer will hoe them under."
+		and root.get_node("EventLog").entries().size() > log_before, "Events says what did not ripen: %s" % [told])
 	_expect(await _until(func(): return _sown(field, TURNIP) == 12), "the field changes over to turnips")
 	_expect(_count(CARROTS) == 39, "the one ripe tile was pulled at the changeover, not lost: %d" % _count(CARROTS))
 	# Winter: nothing grows, and nothing is sown.
@@ -217,6 +220,35 @@ func _plans_and_levels(field: int, cells: Array[Vector3i]) -> void:
 
 
 ## Damp soil, a crop that grows nowhere else, and a crop picked again and again through winter.
+## Water on a field's ground (doc 33: a film thinner than standing water is damp ground and
+## blocks no placement). Open grass under a film can be a field and a field's tile under one is
+## still worked; under standing water the grass is refused and the tile is left alone. Found in
+## the owner's colony, 2026-11-16, where a stone crossing held the river back and a film a
+## fiftieth of a block deep lay over its banks: the rule counted any water at all. The fixture
+## has no water of its own, so this borrows a still one and puts things back.
+func _check_wet_ground(field: int, cells: Array[Vector3i]) -> void:
+	var water := root.get_node("WaterManager")
+	var kept := [water.flow, water.initialized, water.is_processing()]
+	water.flow = load("res://scripts/components/WaterFlow.gd").new()
+	water.flow.spans_at = func(_column: Vector2i): return [Vector2i(21, 128)]
+	water.initialized = true
+	water.set_process(false)
+	var open := Vector3i(36, 20, 36)
+	var zone: Dictionary = farming._zones[field]
+	for film: bool in [true, false]:
+		for cell: Vector3i in [open, cells[1]]: water.flow.seed_column(cell + Vector3i.UP, .02 if film else .25, false)
+		farming._survey(zone)
+		var reason: String = farming.tile_reason(open)
+		_expect(water.depth_at(open + Vector3i.UP) > 0.0 and water.has_standing_water(open + Vector3i.UP) != film
+			and reason == ("" if film else "This ground is under water") and zone.taken.has(cells[1]) != film,
+			"%s: open grass reads '%s', and the field's own tile is %s" % ["under a film thinner than standing water" if film else "under standing water",
+			reason, "left alone" if zone.taken.has(cells[1]) else "still worked"])
+	water.flow = kept[0]
+	water.initialized = kept[1]
+	water.set_process(kept[2])
+	farming._survey(zone)
+
+
 func _water_and_regrowth(field: int, cells: Array[Vector3i]) -> void:
 	var weather: Node = root.get_node("WeatherManager")
 	weather.set_weather("base:weather:clear")
@@ -366,7 +398,7 @@ func _drag() -> void:
 	_mouse_motion(from)
 	_mouse_button(from, true)
 	_mouse_motion(to)
-	farming._update_hover()   # the tool follows the pointer each frame; this fixture runs no frames
+	farming._tool.update_hover()   # the tool follows the pointer each frame; this fixture runs no frames
 	_expect(farming.tool_bar_state().get("selection", {}).get("count", "") == "6 tiles", "the tool bar counts the tiles a drag takes: %s" % [farming.tool_bar_state()])
 	_mouse_button(to, false)
 	await process_frame

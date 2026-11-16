@@ -48,13 +48,13 @@ func _run() -> void:
 			var models: Dictionary=wildlife.get("_models" if species=="rabbit" else "_"+species+"_models")
 			actor.configure(definition,"gallery:"+str(slot),Vector3i(40,21,40),155,models)
 			actor.position=Vector3.ZERO
-			actor.activity="Sleeping" if slot in [7,8] else "Eating" if slot==6 and species=="wolf" else "Grazing" if slot==6 else "Wandering" if slot in [4,5] else "Idle"
+			actor.activity="sleeping" if slot in [7,8] else "eating" if slot==6 and species=="wolf" else "grazing" if slot==6 else "exploring" if slot in [4,5] else "idle"
 			actor.hop_progress=.25 if slot==4 else .75 if slot==5 else 1.0
 			actor.pose_time=float(slot)*.3
 			if species=="duck":
 				actor.sex=kind.split("_")[1]; actor.mode="land"
 				if slot>=9:
-					actor.mode="air"; actor.activity="Flying"; actor.flight_index=2
+					actor.mode="air"; actor.activity="flying"; actor.flight_index=2
 					actor.flight=PackedVector3Array([Vector3.ZERO,Vector3.ZERO,Vector3.ZERO,Vector3.ZERO,Vector3.ZERO])
 			actor._pose()
 			Shadows.configure(actor)
@@ -79,7 +79,7 @@ func _run() -> void:
 			camera.size=maxf(bounds.size.y,bounds.size.length()*.74)*1.18
 			if slot==11 and species!="duck": camera.size*=2.5
 			camera.current=true
-			var title:=Label.new(); title.text=actor.activity+" / "+["¾ front","side","rear","front","stride A","stride B","feeding","rest","rest side","pose","pose","RTS"][slot]
+			var title:=Label.new(); title.text=wildlife.words_of("activity",actor.activity)+" / "+["¾ front","side","rear","front","stride A","stride B","feeding","rest","rest side","pose","pose","RTS"][slot]
 			title.position=Vector2(10,278); title.add_theme_font_size_override("font_size",13); cell.add_child(title)
 		for frame in range(8): await process_frame
 		await RenderingServer.frame_post_draw

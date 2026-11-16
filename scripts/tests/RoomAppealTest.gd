@@ -177,7 +177,7 @@ func _thoughts(bed) -> void:
 	for i in 3: worker._process(.5)
 	# The thought is the room's as this dwarf feels it: Pleasant, or Beautiful if its tastes lift it past 16.
 	var felt: Dictionary = worker.get_tastes().felt(_appeal(probe))
-	var thought := "slept_" + String(rooms.appeal_step(float(felt.score)).word).to_lower()
+	var thought := "slept_" + String(rooms.appeal_step(float(felt.score)).id)
 	_expect(resting and thought in ["slept_pleasant", "slept_beautiful"] and not _row(mood, thought).is_empty(),
 		"a night in the bed leaves the room's thought, %s: %s" % [thought, mood.thoughts().map(func(row: Dictionary) -> String: return row.id)])
 	worker._wake_up()

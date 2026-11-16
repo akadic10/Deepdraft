@@ -7,7 +7,7 @@
   "furniture_key": "base:furniture:tool_rack",
   "furniture_category": "storage",
   "display_name": "Tool rack",
-  "description": "A broad sawn board pegged to a wall, with three stout pegs to hang tools on. It keeps three of the colony's tools where everyone can see them.",
+  "description": "A broad sawn board nailed to a wall, with three stout pegs to hang tools on. It keeps three of the colony's tools where everyone can see them.",
   "model": "res://assets/models/furniture/tool_rack.glb",
   "item_key": "base:item:tool_rack",
   "placement": "floor_wall",

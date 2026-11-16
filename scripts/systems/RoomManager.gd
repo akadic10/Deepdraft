@@ -45,6 +45,7 @@ const RoomAppeal = preload("res://scripts/components/RoomAppeal.gd")
 const RoomKinds = preload("res://scripts/components/RoomKinds.gd")
 const Climate = preload("res://scripts/components/Climate.gd")
 const HeatSpread = preload("res://scripts/components/HeatSpread.gd")
+const Wording = preload("res://scripts/components/Wording.gd")
 
 const MAX_ROOM_CELLS := 4096          # ~ a generous 16x16x16 hall; tuning constant
 const DOOR_SEAL_HEIGHT := 4           # air cells above a door's floor cell that seal
@@ -485,7 +486,7 @@ func appeal_word(appeal: float) -> String:
 ## The words a save may name for a dwarf's room memories, lower case, and "" for none.
 func appeal_word_ids() -> Dictionary:
 	var ids := {"": true}
-	for entry: Dictionary in appeal_config.get("words", []): ids[String(entry.word).to_lower()] = true
+	for entry: Dictionary in appeal_config.get("words", []): ids[String(entry.id)] = true
 	return ids
 
 
@@ -700,13 +701,19 @@ func climate_at(cell: Vector3i) -> Dictionary:
 		"low_c": span.x, "high_c": span.y, "wet": climate.is_wet(), "fire_c": fire, "heat_c": kept, "door_c": doors})
 	return place
 
+## How a temperature feels for sleep, as a code: "cold", "chilly", "comfortable" or "hot".
+## Logic reads this; comfort_label() says it.
+func comfort(temp_c: float) -> String:
+	if temp_c<float(temperature_config.cold_below_c): return "cold"
+	if temp_c<float(temperature_config.comfortable_min_c): return "chilly"
+	if temp_c<=float(temperature_config.comfortable_max_c): return "comfortable"
+	return "hot"
+
+## The comfort code in words (temperature.json, "words").
 func comfort_label(temp_c: float) -> String:
-	if temp_c<float(temperature_config.cold_below_c): return "Cold"
-	if temp_c<float(temperature_config.comfortable_min_c): return "Chilly"
-	if temp_c<=float(temperature_config.comfortable_max_c): return "Comfortable"
-	return "Hot"
+	return Wording.of(temperature_config.get("words", {}), comfort(temp_c))
 
 ## The sleep words, with Frozen for 0°C and below: the words temperature is shown in.
 func temperature_word(temp_c: float) -> String:
-	if temp_c <= float(temperature_config.frozen_at_c): return "Frozen"
+	if temp_c <= float(temperature_config.frozen_at_c): return Wording.of(temperature_config.get("words", {}), "frozen")
 	return comfort_label(temp_c)

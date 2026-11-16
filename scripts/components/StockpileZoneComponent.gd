@@ -233,5 +233,5 @@ func discard_unclaimed(slot: Variant) -> int:
 	return gone
 
 
-func place_words() -> String:
-	return "in Stockpile %d" % zone_id
+func place_code() -> String:
+	return "stockpile:%d" % zone_id

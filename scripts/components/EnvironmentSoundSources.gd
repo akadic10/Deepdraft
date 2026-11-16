@@ -45,7 +45,7 @@ func eligible_wolf(animal: Node, slice_y: int) -> bool:
 	return is_instance_valid(animal) and animal is Wolf and animal.is_inside_tree() \
 		and not animal.is_queued_for_deletion() and animal.is_visible_in_tree() \
 		and animal.global_position.y <= slice_y \
-		and animal.activity in ["Idle", "Prowling", "Searching", "Resting"]
+		and animal.activity in ["idle", "prowling", "searching", "resting"]
 
 func _nearest(result: Dictionary, kind: String, point: Vector3, focus: Vector3, node: Node3D = null) -> void:
 	var distance := point.distance_to(focus)

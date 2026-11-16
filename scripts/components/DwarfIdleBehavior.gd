@@ -56,7 +56,7 @@ func continue_seated(occupied: InstalledFurnitureComponent, controller: Node, ac
 	home = agent.current_cell()
 	goal = access
 	state = "sitting"
-	timer = _range("sit_min_s","sit_max_s")
+	timer = _range("sit_min_seconds","sit_max_seconds")
 	elapsed = 0.0
 	_chairs = []
 	_privacy.reset()
@@ -91,7 +91,7 @@ func tick(delta: float) -> bool:
 	if TaskManager.planning_held(agent.dwarf_id) and Privacy.allowed(agent.current_cell(),agent.dwarf_id): return true
 	if home.x < 0:
 		home = agent.current_cell()
-		timer = _range("start_delay_min_s","start_delay_max_s")
+		timer = _range("start_delay_min_seconds","start_delay_max_seconds")
 		state = "waiting"
 	elapsed += delta
 	if state=="leaving_room":
@@ -117,7 +117,7 @@ func tick(delta: float) -> bool:
 		agent._follow_path(delta)
 		return true
 	if state in ["sitting","standing_up"]:
-		var step := delta / maxf(.05,float(config.get("seat_transition_s",.5)))
+		var step := delta / maxf(.05,float(config.get("seat_transition_seconds",.5)))
 		_sitting_blend = move_toward(_sitting_blend,0.0 if state=="standing_up" else 1.0,step)
 		_relax_elapsed += delta
 		_pose()
@@ -150,7 +150,7 @@ func _range(lo: String, hi: String) -> float:
 func _pause() -> void:
 	state = "waiting"
 	goal = Vector3i(-1,-1,-1)
-	timer = _range("pause_min_s","pause_max_s")
+	timer = _range("pause_min_seconds","pause_max_seconds")
 
 func _wander() -> void:
 	var from := agent.current_cell()
@@ -266,7 +266,7 @@ func walk_finished(success: bool) -> void:
 	if success and state=="to_seat" and _seat_valid():
 		state = "sitting"
 		_sitting_blend = 0.0
-		timer = _range("sit_min_s","sit_max_s")
+		timer = _range("sit_min_seconds","sit_max_seconds")
 		agent.rotation.y = float(seat.idle_seat_yaw_steps)*PI*.5
 	else:
 		_release_seat()
@@ -304,7 +304,7 @@ func _pose() -> void:
 		var center := Vector3(0,1.15,0)
 		agent.get_body().position += center-agent.get_body().basis*center
 	if not _relax_hands.is_empty():
-		var blend := smoothstep(0.0,maxf(.05,float(config.get("seat_transition_s",.5))),_relax_elapsed)
+		var blend := smoothstep(0.0,maxf(.05,float(config.get("seat_transition_seconds",.5))),_relax_elapsed)
 		agent._hand_l.position = _relax_hands[0].lerp(agent._hand_l.position,blend)
 		agent._hand_r.position = _relax_hands[1].lerp(agent._hand_r.position,blend)
 		if blend >= 1.0: _relax_hands.clear()

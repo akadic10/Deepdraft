@@ -22,9 +22,9 @@ extends Node3D
 ## WorldGenerator.world_seed + column XZ. No randi()/randf().
 
 # ── Streaming geometry (mirror WorldData / WorldRenderer) ─────────────────────
-const CHUNK_SIZE:    int = 16
-const CHUNK_COUNT_X: int = 64
-const CHUNK_COUNT_Z: int = 64
+const CHUNK_SIZE:    int = WorldData.CHUNK_SIZE
+const CHUNK_COUNT_X: int = WorldGenerator.CHUNK_COUNT_X
+const CHUNK_COUNT_Z: int = WorldGenerator.CHUNK_COUNT_Z
 
 # ── Domain constants (must match WorldGenerator) ──────────────────────────────
 const DOMAIN_LOWLAND:  int = 0
@@ -938,6 +938,7 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 	var progress := float(change.get("work_seconds", 0.0))
 	var duration := float(stage.get("fruit_harvest" if harvesting else "felling", {}).get("work_seconds", 1.0))
 	var status := "Standing"
+	var order_tone := "waiting"   # settled with the order's words: red with no route, plain at work
 	if marked:
 		status = "Marked for harvest" if harvesting else "Marked for felling"
 		var source: RefCounted = work.get_source(tree_id)
@@ -946,10 +947,11 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 			if task != null:
 				if task.retry_at > Time.get_ticks_msec():
 					status = "Awaiting reachable route"
-				elif task.status == Task.Status.ASSIGNED:
-					status = "Dwarf approaching"
+					order_tone = "blocked"
+				elif task.status == Task.Status.ASSIGNED: status = "Dwarf approaching"
 				elif task.status == Task.Status.IN_PROGRESS:
 					status = "Picking %s" % String(fruit.get("yield_label","berries")) if harvesting else "Chopping"
+					order_tone = "fine"
 	if progress > 0.0:
 		status += " · %d%%" % mini(99, floori(progress / maxf(duration, .001) * 100.0))
 	var order_status := status
@@ -980,13 +982,12 @@ func get_explorer_data(tree_id: Variant) -> Dictionary:
 	var age := String(tree["stage"]).capitalize()
 	data.status = {"text": age if species_fruit.is_empty() else "%s · %s" % [age, fruit_status.to_lower()], "tone": "fine"}
 	if marked:
-		data.status = {"text": order_status, "tone": "blocked" if order_status.begins_with("Awaiting")
-			else "fine" if order_status.begins_with("Chopping") or order_status.begins_with("Picking") else "waiting"}
+		data.status = {"text": order_status, "tone": order_tone}
 	elif can_harvest_tree(tree_id):
 		var amount := str(int(fruit.get("yield_count", fruit.get("yield_min", 1))))
 		if not fruit.has("yield_count") and int(fruit.get("yield_max", 1)) != int(fruit.get("yield_min", 1)):
 			amount += "–%d" % int(fruit.yield_max)
-		data.badge = {"icon": "res://assets/ui/items/%s.png" % String(species_fruit.get("yield_item", "")).replace(":", "_"),
+		data.badge = {"icon": preload("res://scripts/components/Pictures.gd").item(String(species_fruit.get("yield_item", ""))),
 			"value": amount, "tooltip": "%s %s ready to pick" % [amount, String(fruit.get("yield_label", "berries"))]}
 	if bool(change.get("planted", false)):
 		var growth: Dictionary = _planting.describe(tree_id)

@@ -350,7 +350,7 @@ func _complete_profession_change(key: String) -> void:
 	var definition := DwarfAssets.profession_definition(key)
 	var options := {"dwarves": [dwarf_id]}
 	if definition.has("icon"): options.picture = String(definition.icon)
-	EventLog.post("colony", "%s is now a %s." % [dwarf_name, String(definition.get("display_name", "specialist"))], options)
+	EventLog.post("colony", "promoted", {"name": dwarf_name, "profession": key}, options)
 
 
 func set_work_permission(key: String, allowed: bool) -> void:

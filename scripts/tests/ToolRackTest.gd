@@ -44,6 +44,7 @@ func _run() -> void:
 	worker.profession = CARPENTER
 	tasks.work_policy_changed()
 	drops.spawn_drop(PINE_PLANK, 2, Vector3i(42, 21, 40))
+	drops.spawn_drop("base:item:copper_nail", 2, Vector3i(43, 21, 40))   # a nail to each plank (doc 313)
 	var id: int = crafting.queue_order(RACK_RECIPE, 1)
 	for i in range(20): await _tick()
 	var status: String = crafting.status(crafting.get_order(id), inventory_script.snapshot(drops, furniture))

@@ -53,6 +53,7 @@ func _run() -> void:
 	_expect(placed.size() == 1 and placed[0].category == "storage", "Place files it under Storage")
 	_carpenter_bench_at(Vector3i(44, 20, 41))
 	drops.spawn_drop(PINE_PLANK, 4, Vector3i(42, 21, 40))
+	drops.spawn_drop("base:item:copper_nail", 4, Vector3i(43, 21, 40))   # a nail to each plank (doc 313)
 	var id: int = crafting.queue_order(SHELF_RECIPE, 1)
 	_expect(await _completed(id) and _count(SHELF_ITEM) == 1 and _count(PINE_PLANK) == 0, "four planks make one packed shelf")
 	# With no shelf yet, food goes to ground storage.
@@ -174,8 +175,12 @@ func _rots(shelf) -> void:
 	shelf.stored_entries()[slot]["spoil"] = 0.99
 	shelf.stored_entries()[_slot_of(shelf, DRIED)]["spoil"] = 0.7495
 	spoilage.run(1.0)
-	var lines: Array = events.entries().slice(0, 2).map(func(entry: Dictionary) -> String: return String(entry.text))
+	var told: Array = events.entries().slice(0, 2)
+	var lines: Array = told.map(func(entry: Dictionary) -> String: return String(entry.text))
 	_expect(not shelf.stored_entries().has(slot) and not shelf._shown.has(slot) and stockpiles.get_total(ELDERBERRY) == 0, "a rotten crate goes, model and count")
+	_expect(told.any(func(entry: Dictionary) -> bool: return entry.line == "food_rotted" and entry.fields == {"count": 24, "item": ELDERBERRY, "where": "piece:" + SHELF})
+		and told.any(func(entry: Dictionary) -> bool: return entry.line == "food_going_bad" and entry.fields.item == DRIED and entry.fields.where == "piece:" + SHELF),
+		"Events keeps the rot and the warning as codes: the food, how many and the shelf: %s" % [told])
 	_expect(lines.has("24 elderberries rotted on the food shelf.") and lines.any(func(line: String) -> bool: return line.begins_with("Dried fish on the food shelf are going bad")),
 		"Events tells of the rot and warns of a crate passing 75%%: %s" % [lines])
 	var berries: int = _slot_of(shelf, BLUEBERRY)

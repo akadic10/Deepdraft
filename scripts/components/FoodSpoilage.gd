@@ -16,6 +16,7 @@ extends RefCounted
 ## Only the spoil is saved; after a load the hours start afresh.
 ## A pass finished: the readouts show the new spoil (the storage window's Keeping list).
 signal passed
+const Pictures = preload("res://scripts/components/Pictures.gd")
 var owner: Node   # StockpileManager
 var config: Dictionary
 var _last_days := -1.0   # WorldClock.elapsed_days() at the last pass; -1 before the first
@@ -141,7 +142,7 @@ func _stored(store: StorageComponent, slot: Variant) -> void:
 	stack["spoil"] = after
 	var crate: Variant = store.shown_goods(slot, _pass.crates)
 	if is_instance_valid(crate): ItemDropManager.set_spoil(crate, after)
-	var place := store.place_words()
+	var place := store.place_code()
 	if after >= 1.0: _note(_pass.rotted, key, place, cell, store.discard_unclaimed(slot))
 	elif before < float(config.warn_at) and after >= float(config.warn_at): _warn(key, place, cell, after)
 
@@ -159,8 +160,8 @@ func _loose(node: Variant) -> void:
 		if drops.is_claimed(node): return
 		var count := drops.quantity_of(node)
 		drops.discard(node)
-		_note(_pass.rotted, key, "on the ground", cell, count)
-	elif before < float(config.warn_at) and after >= float(config.warn_at): _warn(key, "on the ground", cell, after)
+		_note(_pass.rotted, key, "ground", cell, count)
+	elif before < float(config.warn_at) and after >= float(config.warn_at): _warn(key, "ground", cell, after)
 
 
 ## In hand food is claimed; it never rots there, and rots where it is put down if due.
@@ -202,22 +203,11 @@ func _warn(key: String, place: String, cell: Vector3i, spoil: float) -> void:
 func _finish() -> void:
 	if busy() and is_instance_valid(_pass.drops):
 		for note: Dictionary in (_pass.rotted as Dictionary).values():
-			EventLog.post("warning", "%d %s rotted %s." % [int(note.count), _name(note.key, int(note.count)), note.place],
-				{"picture": _picture(note.key), "place": note.cell})
+			EventLog.post("warning", "food_rotted", {"count": int(note.count), "item": String(note.key), "where": String(note.place)},
+				{"picture": Pictures.item(String(note.key)), "place": note.cell})
 		for note: Dictionary in (_pass.warned as Dictionary).values():
-			var name := _name(note.key, 2)
-			EventLog.post("warning", "%s %s are going bad: %s left." % [name.left(1).to_upper() + name.substr(1), note.place, days_text(float(note.days))],
-				{"picture": _picture(note.key), "place": note.cell})
+			EventLog.post("warning", "food_going_bad", {"item": String(note.key), "where": String(note.place), "days": float(note.days)},
+				{"picture": Pictures.item(String(note.key)), "place": note.cell})
 	var finished := busy()
 	_pass = {}
 	if finished: passed.emit()
-
-
-func _name(key: String, count: int) -> String:
-	var definition := (_pass.drops as ItemDropManager).get_item_def(key)
-	var single := String(definition.get("display_name", key)).to_lower()
-	return single if count == 1 else String(definition.get("plural_name", single + "s"))
-
-
-static func _picture(key: String) -> String:
-	return "res://assets/ui/items/%s.png" % key.replace(":", "_")

@@ -81,5 +81,5 @@ func spawn_member(event: Dictionary, batch: Dictionary, events: Node) -> String:
 	duck.position = start
 	duck.home = landing
 	duck.begin_flight(path,landing,true)
-	duck.arrival = {"event":batch.id,"status":"Flying inland","route":[]}
+	duck.arrival = {"event":batch.id,"status":"flying_inland","route":[]}
 	return "spawned"

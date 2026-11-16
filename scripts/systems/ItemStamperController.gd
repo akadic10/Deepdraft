@@ -10,6 +10,7 @@ extends Node3D
 ## ItemStamperPanel chooses the item, the amount and the wood; the tool bar's Done, or Esc,
 ## ends stamping (doc 23, "The tool bar"). It only works with DEV tools on.
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const RAY_MAX := 600.0
 const FLAG_ITEM := "base:item:settlement_flag"
 ## How far around the clicked floor bushes look for room, in floors.
@@ -61,8 +62,7 @@ func is_active() -> bool:
 ## picture, in the DEV family. A stamp merges into a pile, so there is no Undo (doc 23).
 func tool_bar_state() -> Dictionary:
 	var definition: Dictionary = ContentRegistry.item_def(key)
-	var picture := "res://assets/ui/items/%s.png" % key.replace(":", "_")
-	if not ResourceLoader.exists(picture): picture = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)
+	var picture := Pictures.of(key)   # a packed piece shows its furniture's picture
 	return {"tool": "item_stamper", "family": "dev", "undo": false, "picture": picture,
 		"name": "Stamp · %s" % String(definition.get("display_name", key))}
 
@@ -116,10 +116,7 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active: return
-	if event is InputEventKey and event.pressed and not event.echo and (event as InputEventKey).keycode == KEY_ESCAPE:
-		deactivate()
-		get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+	if event is InputEventMouseButton and event.pressed and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
 		var floor := floor_under(event.position)
 		if floor != NO_FLOOR: stamp_at(floor)
 		get_viewport().set_input_as_handled()

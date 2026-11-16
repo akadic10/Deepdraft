@@ -317,13 +317,6 @@ func clear_subject() -> void:
 	if _portrait != null: _portrait.render_target_update_mode = SubViewport.UPDATE_DISABLED
 
 
-func _unhandled_key_input(event: InputEvent) -> void:
-	if is_visible_in_tree() and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if is_instance_valid(dock) and dock.is_action_menu_open(): return
-		manager.close("professions")
-		get_viewport().set_input_as_handled()
-
-
 func select_profession(key: String) -> void:
 	if not _entries.has(key): return
 	_selected = key
@@ -372,7 +365,7 @@ func refresh() -> void:
 		for i in range(2):
 			var stat := DwarfAssets.stat_definition(String(pair[i]))
 			_fit_icons[i].texture = load(String(stat.get("icon", "")))
-			names.append(String(stat.get("name", "")))
+			names.append(String(stat.get("display_name", "")))
 		_fit_text.text = "%s fit · %s, then %s" % [DwarfAssets.stat_word(fit), names[0], names[1]]
 	var starter_tool := String(entry.get("starter_tool", ""))
 	var crafting := get_tree().get_first_node_in_group("crafting_manager")
@@ -425,9 +418,10 @@ func refresh() -> void:
 		# A trade whose tool the colony has none of yet: the copper trades before the Blacksmith's first bars (doc 306).
 		var tool := DwarfAssets.profession_tool(key)
 		var lacks_tool: bool = usable and key != _agent.profession and not tool.is_empty() and crafting != null and int(stock.get(tool, {}).get("available", 0)) < 1
+		var collecting: bool = pending and key == _agent.get_equipment().pending_role
 		if lacks_tool: node.state.text = "Needs tool"
-		if pending and key == _agent.get_equipment().pending_role: node.state.text = "Collecting tool"
-		node.state.add_theme_color_override("font_color", UITheme.HEARTH_MUTED if not usable else UITheme.HEARTH_COPPER if node.state.text == "Needs tool" else UITheme.SUCCESS)
+		if collecting: node.state.text = "Collecting tool"
+		node.state.add_theme_color_override("font_color", UITheme.HEARTH_MUTED if not usable else UITheme.HEARTH_COPPER if lacks_tool and not collecting else UITheme.SUCCESS)
 		node.icon.modulate = Color.WHITE if usable or key == _selected else Color(.48, .48, .48)   # dimmed like planned dock entries
 		node.button.set_pressed_no_signal(key == _selected)
 		_show_fit(key, node)

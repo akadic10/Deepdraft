@@ -47,14 +47,14 @@ func can_graze() -> bool:
 
 func wants_hunt() -> bool:
 	if not arrival.is_empty() and not arrival.route.is_empty(): return false
-	return hunger >= float(definition.behavior.hungry_threshold) and satisfied_hours <= 0 and retry_hours <= 0 and calm_left <= 0 and activity not in ["Eating","Sleeping"] and fatigue < float(definition.behavior.exhausted_threshold)
+	return hunger >= float(definition.behavior.hungry_threshold) and satisfied_hours <= 0 and retry_hours <= 0 and calm_left <= 0 and activity not in ["eating","sleeping"] and fatigue < float(definition.behavior.exhausted_threshold)
 
 func begin_hunt(target_animal: Node3D) -> void:
 	prey = target_animal
 	hunt_target_id = prey.animal_id
 	hunt_left = float(definition.hunting.pursuit_seconds)
 	timer = 0
-	activity = "Hunting"
+	activity = "hunting"
 	if hop_progress < 1: hop_seconds = _hop_duration(float(definition.hunting.stride_seconds))
 
 func abandon_hunt() -> void:
@@ -62,8 +62,8 @@ func abandon_hunt() -> void:
 	prey = null
 	hunt_left = 0
 	retry_hours = float(definition.hunting.retry_hours)
-	if activity == "Hunting":
-		activity = "Idle"
+	if activity == "hunting":
+		activity = "idle"
 		timer = 0
 
 func begin_meal(food: Dictionary) -> void:
@@ -74,7 +74,7 @@ func begin_meal(food: Dictionary) -> void:
 	# eating pose. The wolf never makes another kill to replace that animation.
 	hunger = maxf(0,hunger-float(food.meal_relief))
 	satisfied_hours = float(food.satisfied_hours)
-	activity = "Eating"
+	activity = "eating"
 	timer = float(definition.hunting.eat_seconds)
 	_pose()
 
@@ -93,7 +93,7 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 
 func _decide(threat: Vector3, threat_distance: float) -> void:
 	if not hunt_target_id.is_empty() and calm_left <= 0 and wants_hunt() and is_instance_valid(prey):
-		activity = "Hunting"
+		activity = "hunting"
 		var destination := Navigation.approach(cell,prey.position,int(definition.navigation.clearance),footprint,int(definition.hunting.route_budget),float(definition.hunting.capture_radius))
 		if destination != cell:
 			_hop(destination)
@@ -107,15 +107,15 @@ func _decide(threat: Vector3, threat_distance: float) -> void:
 		abandon_hunt()
 	elif not hunt_target_id.is_empty(): abandon_hunt()
 	super._decide(threat,threat_distance)
-	if activity in ["Foraging","Alert"]: activity = "Searching" if wants_hunt() else "Prowling"
-	elif activity == "Exploring": activity = "Prowling"
+	if activity in ["foraging","alert"]: activity = "searching" if wants_hunt() else "prowling"
+	elif activity == "exploring": activity = "prowling"
 
 func _pose() -> void:
-	var resting := activity == "Sleeping"
+	var resting := activity == "sleeping"
 	var moving := hop_progress < 1
 	visual.position.y = float(definition.visual_pose.rest_y) if resting else sin(hop_progress*PI)*float(definition.navigation.hop_height)*float(definition.visual_pose.hop_amplitude) if moving else 0.0
 	_squash_stretch(hop_progress if moving and not resting else 1.0)
-	head.rotation.x = -.45 + sin(pose_time*6)*.045 if activity == "Eating" else -.12 if resting else 0.0
+	head.rotation.x = -.45 + sin(pose_time*6)*.045 if activity == "eating" else -.12 if resting else 0.0
 	ears.rotation.x = .3 if resting else sin(pose_time*1.3)*.025
 	tail.rotation.y = sin(pose_time*2)*.09 if moving else .35 if resting else 0.0
 	for i in range(legs.size()):

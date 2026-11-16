@@ -280,6 +280,10 @@ func section_hanging(section_id: String) -> Array[String]:
 	return lines
 
 ## "2 perch", "1 copper bar": a count of goods, singular for one.
+## A count of goods as a line reads it: "1 rough stone", "4 copper nails".
+func goods_words(key: String, count: int) -> String:
+	return _goods(key, count)
+
 func _goods(key: String, count: int) -> String:
 	return "%d %s" % [count, _plural(key) if count != 1 else String(items.get_item_def(key).get("display_name", key)).to_lower()]
 
@@ -633,9 +637,10 @@ func _missing_reason(order, totals: Dictionary) -> String:
 		if not order.recipe.has("ingredient_words"):   # timber: "Waiting for 2 Pine logs"
 			if count > 1: return "Waiting for %d %s logs" % [count, ingredient_label(order.allowed_ingredients[0]) if one else "matching"]
 			return "Waiting for " + ingredient_label(order.allowed_ingredients[0]) if one else "Waiting for allowed wood"
-		# Others name their goods: "Waiting for 2 perch", "Waiting for 2 matching fish".
-		var plural := String(items.get_item_def(order.allowed_ingredients[0]).get("plural_name", words.units)) if one else "matching " + String(words.units)
-		return "Waiting for %d %s" % [count, plural]
+		# Others name their goods: "Waiting for 2 perch", "Waiting for 1 copper bar", "Waiting for 2 matching fish".
+		if not one: return "Waiting for %d matching %s" % [count, words.units]
+		var key := String(order.allowed_ingredients[0])
+		return "Waiting for " + (_goods(key, count) if items.get_item_def(key).has("plural_name") else "%d %s" % [count, words.units])
 	var own: Dictionary = order.held_counts().extras if order is Object else {}
 	var extra_counts := {}
 	var extras := additional_ingredient_keys(order.recipe)
@@ -644,10 +649,11 @@ func _missing_reason(order, totals: Dictionary) -> String:
 		var chosen: Array[String] = order.settle_choice(totals) if order is Object else choice_keys(order.recipe, totals)
 		if chosen.is_empty(): return "Waiting for " + String(choice_words(order.recipe).words)
 		extras.append_array(chosen)
-	for key in extras:
-		extra_counts[key] = int(extra_counts.get(key,0)) + 1
-		if int(totals.get(key,{}).get("available",0)) + int(own.get(key,0)) < extra_counts[key]:
-			return "Waiting for " + ingredient_label(key)
+	# A good the batch takes several of is named with its count: "Waiting for 4 copper nails".
+	for key in extras: extra_counts[key] = int(extra_counts.get(key,0)) + 1
+	for key in extra_counts:
+		if int(totals.get(key,{}).get("available",0)) + int(own.get(key,0)) < int(extra_counts[key]):
+			return "Waiting for " + (ingredient_label(key) if int(extra_counts[key]) == 1 else _goods(key, int(extra_counts[key])))
 	var workshop := String(order.recipe.workshop)
 	if not workshop.is_empty() and not has_bench(workshop): return "Needs " + with_article(bench_name(workshop))
 	# Each section's orders wait for its own career (doc 292): Dried fish for a Ranger.
@@ -697,19 +703,29 @@ static func turn_label(place: int) -> String:
 	if place % 100 not in [11, 12, 13] and place % 10 in [1, 2, 3]: suffix = ["st", "nd", "rd"][place % 10 - 1]
 	return "%d%s in line" % [place, suffix]
 
-func status(order, totals: Dictionary) -> String:
+## An order's line in the queue, {text, tone}: "waiting" while it lacks something or someone,
+## "fine" while it waits its turn, is under way, is paused or has met its stock target. The
+## tone is settled here with the words; nothing reads it back from them.
+func status_line(order, totals: Dictionary) -> Dictionary:
 	var reason := waiting_reason(order, totals)
 	if reason == QUEUED:
 		var wait := _hanging_wait(String(order.recipe.workshop))
-		return wait if not wait.is_empty() else turn_label(order.queue_place)
-	if not reason.is_empty(): return reason
+		return {"text": wait, "tone": "waiting"} if not wait.is_empty() else {"text": turn_label(order.queue_place), "tone": "fine"}
+	if not reason.is_empty():
+		var settled: bool = order.paused or (order.maintain and available_output(order, totals) >= order.quantity)
+		return {"text": reason, "tone": "fine" if settled else "waiting"}
 	if order.worker_id >= 0:
 		var agent = TaskManager.get_agent(order.worker_id)
 		if is_instance_valid(agent) and agent.get_task_phase() == agent.TaskPhase.FETCH_WORKING:
-			return "Crafting · %d%%" % roundi(100.0*order.progress/float(order.recipe.work_seconds))
-		return String(ingredient_words(order.recipe).carrying) if order.fixed_keys().is_empty() else "Gathering / carrying materials"
+			return {"text": "Crafting · %d%%" % roundi(100.0*order.progress/float(order.recipe.work_seconds)), "tone": "fine"}
+		return {"text": String(ingredient_words(order.recipe).carrying) if order.fixed_keys().is_empty() else "Gathering / carrying materials", "tone": "fine"}
 	var task := TaskManager.get_task(order.lease_id)
-	return "Waiting for a reachable route" if task != null and task.blocked_count > 0 else "Waiting for a " + crafter_name(order.recipe)
+	return {"text": "Waiting for a reachable route" if task != null and task.blocked_count > 0 else "Waiting for a " + crafter_name(order.recipe), "tone": "waiting"}
+
+
+## The words of an order's line in the queue.
+func status(order, totals: Dictionary) -> String:
+	return String(status_line(order, totals).text)
 
 func crafting_count(item_key: String) -> int:
 	var count := 0

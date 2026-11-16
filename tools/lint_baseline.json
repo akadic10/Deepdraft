@@ -1,4 +1,78 @@
 {
+ "glued-plural": {
+  "scripts/components/CatchLog.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/components/DwarfInspection.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/components/FurnitureWindow.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/systems/BlueprintController.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/systems/ConstructionController.gd": {
+   "a word chosen by a count of one": 4
+  },
+  "scripts/systems/CraftingManager.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/systems/FarmingSystem.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/systems/FishingSystem.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/systems/FurniturePlacementController.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/systems/MiningDesignationController.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/systems/StockpileDesignationController.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/systems/TreeFellingController.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/ui/DockCounts.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/ui/DockUI.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/DwarfInspectorPanel.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/DwarfRosterPanel.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/FarmFieldPanel.gd": {
+   "a word chosen by a count of one": 4
+  },
+  "scripts/ui/FishingZonePanel.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/FurniturePlacePanel.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/ui/GameMenu.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/RoomInspectorPanel.gd": {
+   "a word chosen by a count of one": 2
+  },
+  "scripts/ui/SettlementPanel.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/SkyDial.gd": {
+   "a word chosen by a count of one": 1
+  },
+  "scripts/ui/WorkerCraftingPanel.gd": {
+   "a word chosen by a count of one": 3
+  }
+ },
  "legacy-code": {
   "scripts/components/SaveSnapshotValidator.gd": {
    "migrated": 1

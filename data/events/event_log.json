@@ -1,5 +1,5 @@
 {
-  "__comment": "The colony's event log (doc 23), read by EventLog: how many days of entries it keeps, how many toasts show at once, how often it checks for dwarves who cannot find food, and how many in-game hours a flood warning stays after the water stops spilling. Each kind names how long its toast stays and its picture when the entry brings none (an arrival brings its species' picture from arrivals.json, a promotion its profession's icon). messages are the player's own toasts (saves, loads, the flag), which never land in the log.",
+  "__comment": "The colony's event log (doc 23), read by EventLog: how many days of entries it keeps, how many toasts show at once, how often it checks for dwarves who cannot find food, and how many in-game hours a flood warning stays after the water stops spilling. Each kind names how long its toast stays and its picture when the entry brings none (an arrival brings its species' picture from arrivals.json, a promotion its profession's icon). messages are the player's own toasts (saves, loads, the flag), which never land in the log. lines holds every entry's words by its code (doc 13, 'Codes and words'): text, a second line (detail) and, for a warning, its words once resolved (past). Each is a whole sentence with {named} fields, or its forms by {count} (one, other). An entry is saved as its code and fields, and EventLog words it when it is read: {item}, {items} and {Items} from an item id; {crops} from a crop id; {profession}; {season} and {Season}; {animal} and {animals} from an arrival's id; {edge}; {days} (\"about 3 days\"); and {where}, a place by its code in places (ground, storage, stockpile:<number> as {zone}, piece:<furniture id> as {piece}).",
   "keep_days": 10,
   "toast_limit": 3,
   "food_check_seconds": 1.0,
@@ -10,5 +10,29 @@
     "colony": {"toast_seconds": 4.0, "picture": "res://assets/ui/icons/colony.png"},
     "warning": {"toast_seconds": 6.0, "picture": "res://assets/ui/icons/warning.png"}
   },
-  "messages": {"toast_seconds": 2.5, "error_toast_seconds": 4.5}
+  "messages": {"toast_seconds": 2.5, "error_toast_seconds": 4.5},
+  "lines": {
+    "cavern_found": {"text": "Cavern discovered. Bring light to explore it."},
+    "flood": {"text": "Rising water is spilling onto dry ground.", "past": "Rising water spilled onto dry ground."},
+    "season_came": {"text": "{Season} has come."},
+    "food_short": {
+      "text": {"one": "{count} dwarf cannot find reachable food.", "other": "{count} dwarves cannot find reachable food."},
+      "past": {"one": "{count} dwarf could not find reachable food.", "other": "{count} dwarves could not find reachable food."},
+      "detail": "Harvest berries or make stored food accessible."
+    },
+    "promoted": {"text": "{name} is now a {profession}."},
+    "arrived": {"text": {"one": "A {animal} has arrived from the {edge}.", "other": "{count} {animals} have arrived from the {edge}."}},
+    "founded": {"text": "{name} is founded."},
+    "founded_with": {
+      "text": "{name} is founded.",
+      "detail": {"one": "{count} dwarf has arrived with the flag.", "other": "{count} dwarves have arrived with the flag."}
+    },
+    "food_rotted": {"text": {"one": "{count} {item} rotted {where}.", "other": "{count} {items} rotted {where}."}},
+    "food_going_bad": {"text": "{Items} {where} are going bad: {days} left."},
+    "crop_late": {
+      "text": {"one": "{count} tile of {crops} in Field {field} was not ripe when {season} came.", "other": "{count} tiles of {crops} in Field {field} were not ripe when {season} came."},
+      "detail": "A Farmer will hoe them under."
+    }
+  },
+  "places": {"ground": "on the ground", "storage": "in storage", "stockpile": "in Stockpile {zone}", "piece": "on the {piece}"}
 }

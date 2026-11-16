@@ -4,8 +4,8 @@ extends VBoxContainer
 ## tile, with its tier, materials and benefit, then the upgrade path. Read-only: planned
 ## upgrades are deliberately not item IDs or active equip actions until those physical
 ## goods and recipes exist.
-const HAY := Color("e2c06a")
-const MUTED := Color("aeb5ad")
+const HAY := UITheme.HAY
+const MUTED := UITheme.MUTED
 # Text sizes come from the type scale (doc 23, "Type").
 const MEDIUM := UITheme.TYPE_MEDIUM
 var _tool_name: Label

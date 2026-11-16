@@ -4,7 +4,7 @@
   "recipes": [
     {
       "id": "base:recipe:crude_workbench",
-      "name": "Crude workbench",
+      "display_name": "Crude workbench",
       "output_plural": "workbenches",
       "description": "A rough stump with an axe-hewn top for the colony's first crafts. Workers can make it on clear ground, then haul and install it through Place.",
       "flavour": "Every hall began as a stump and a dwarf with an axe.",
@@ -23,7 +23,7 @@
     },
     {
       "id": "base:recipe:torch",
-      "name": "Log torch",
+      "display_name": "Log torch",
       "output_plural": "torches",
       "description": "A charred branch bound with rough fibre and held by a wooden wall peg. A basic light for the first tunnels.",
       "flavour": "Dark corners breed rumours. Light them.",
@@ -42,7 +42,7 @@
     },
     {
       "id": "base:recipe:crude_ladder",
-      "name": "Ladder section",
+      "display_name": "Ladder section",
       "output_plural": "ladder sections",
       "description": "Split raw timber into pegged rails and rungs. Each section installs four blocks; taller routes need several sections.",
       "flavour": "Down is easy. Up is where the rungs earn their keep.",
@@ -61,7 +61,7 @@
     },
     {
       "id": "base:recipe:campfire",
-      "name": "Campfire",
+      "display_name": "Campfire",
       "output_plural": "campfires",
       "description": "A low outdoor stone-ring fire, centered in a 3 \u00d7 3 camp area. Place stools around its edges to gather by the light.",
       "flavour": "Stones in a ring, logs in the middle, stories all around.",
@@ -84,7 +84,7 @@
     },
     {
       "id": "base:recipe:log_stool",
-      "name": "Log stool",
+      "display_name": "Log stool",
       "output_plural": "log stools",
       "description": "A short log cut flat for sitting, with rough bark sides. A simple stump seat for the first camp.",
       "flavour": "Sit low, eat well, argue loudly.",
@@ -104,7 +104,7 @@
     },
     {
       "id": "base:recipe:log_bed",
-      "name": "Log bed",
+      "display_name": "Log bed",
       "output_plural": "log beds",
       "description": "Fit rough logs into a low frame and heap it with hay and dried leaves. A simple place for one dwarf to sleep. Workers make it at the crude workbench; it is then installed through Place.",
       "flavour": "Straw on logs beats stone on stone.",
@@ -124,7 +124,7 @@
     },
     {
       "id": "base:recipe:door_2",
-      "name": "Log door (2 wide)",
+      "display_name": "Log door (2 wide)",
       "output_plural": "log doors",
       "description": "One rough log leaf swings open as dwarves approach. Fits a 2-block-wide opening and seals the room for warmth. Workers make it at the crude workbench; it is then installed through Place.",
       "flavour": "A door is a wall that learned manners.",
@@ -143,7 +143,7 @@
     },
     {
       "id": "base:recipe:door_3",
-      "name": "Log door (3 wide)",
+      "display_name": "Log door (3 wide)",
       "output_plural": "log doors",
       "description": "One rough log leaf swings open as dwarves approach. Fits a 3-block-wide opening and seals the room for warmth. Workers make it at the crude workbench; it is then installed through Place.",
       "flavour": "Wide enough for a barrel, snug enough to stop the draught.",
@@ -162,7 +162,7 @@
     },
     {
       "id": "base:recipe:door_4",
-      "name": "Double log door (4 wide)",
+      "display_name": "Double log door (4 wide)",
       "output_plural": "log doors",
       "description": "Two rough log leaves swing open as dwarves approach. Fits a 4-block-wide opening and seals the room for warmth. Workers make it at the crude workbench; it is then installed through Place.",
       "flavour": "Big doors for big halls, and bigger quarrels over who left them open.",
@@ -181,7 +181,7 @@
     },
     {
       "id": "base:recipe:ranger_kit",
-      "name": "Ranger's kit",
+      "display_name": "Ranger's kit",
       "output_plural": "Ranger's kits",
       "description": "A stone-tipped spear and a peeled fishing rod, bound with rope. Needs no metal or bowstring.",
       "flavour": "A rod for the river, a spear for the woods.",
@@ -204,7 +204,7 @@
     },
     {
       "id": "base:recipe:stone_hammer",
-      "name": "Stone hammer",
+      "display_name": "Stone hammer",
       "output_plural": "stone hammers",
       "description": "A heavy stone head fitted to a wooden handle for the colony's first metalworking tools.",
       "flavour": "The first hammer is always the heaviest.",
@@ -227,7 +227,7 @@
     },
     {
       "id": "base:recipe:drying_rack",
-      "name": "Drying rack",
+      "display_name": "Drying rack",
       "output_plural": "drying racks",
       "description": "Two forked posts and a crossbar lashed with rope: the Ranger's own workbench. Fish hung along it dry into food that keeps a season. Rangers make it at the crude workbench; it is then installed through Place.",
       "flavour": "A winter's dinner, hung out in the autumn wind.",
@@ -248,7 +248,7 @@
     },
     {
       "id": "base:recipe:carpenter_bench",
-      "name": "Carpenter's bench",
+      "display_name": "Carpenter's bench",
       "output_plural": "carpenter's benches",
       "description": "A thick slab hewn flat on top, one end let into a bark stump, the chopping block, the other on two peeled legs: the Carpenter's own workbench. Carpenters make it at the crude workbench; it is then installed through Place.",
       "flavour": "A bench is a carpenter's first piece and last argument.",
@@ -269,7 +269,7 @@
     },
     {
       "id": "base:recipe:pine_plank",
-      "name": "Pine planks",
+      "display_name": "Pine planks",
       "output_plural": "pine planks",
       "description": "A pine log sawn along its length into two thick boards with the copper saw. Carpenters saw planks at the carpenter's bench.",
       "flavour": "A log is a tree lying down. A plank is a tree put to work.",
@@ -289,7 +289,7 @@
     },
     {
       "id": "base:recipe:oak_plank",
-      "name": "Oak planks",
+      "display_name": "Oak planks",
       "output_plural": "oak planks",
       "description": "An oak log sawn along its length into two thick boards with the copper saw. Carpenters saw planks at the carpenter's bench.",
       "flavour": "A log is a tree lying down. A plank is a tree put to work.",
@@ -309,7 +309,7 @@
     },
     {
       "id": "base:recipe:juniper_plank",
-      "name": "Juniper planks",
+      "display_name": "Juniper planks",
       "output_plural": "juniper planks",
       "description": "A juniper log sawn along its length into two thick boards with the copper saw. Carpenters saw planks at the carpenter's bench.",
       "flavour": "A log is a tree lying down. A plank is a tree put to work.",
@@ -329,7 +329,7 @@
     },
     {
       "id": "base:recipe:apple_plank",
-      "name": "Applewood planks",
+      "display_name": "Applewood planks",
       "output_plural": "applewood planks",
       "description": "An applewood log sawn along its length into two thick boards with the copper saw. Carpenters saw planks at the carpenter's bench.",
       "flavour": "A log is a tree lying down. A plank is a tree put to work.",
@@ -349,9 +349,9 @@
     },
     {
       "id": "base:recipe:tool_rack",
-      "name": "Tool rack",
+      "display_name": "Tool rack",
       "output_plural": "tool racks",
-      "description": "A broad sawn board pegged to a wall, with three stout pegs to hang tools on. Made from two matching planks. Carpenters make it at the carpenter's bench; it is then installed against a wall through Place.",
+      "description": "A broad sawn board nailed to a wall, with three stout pegs to hang tools on. Made from two matching planks and two copper nails. Carpenters make it at the carpenter's bench; it is then installed against a wall through Place.",
       "flavour": "A tool on a peg is a tool you can find.",
       "purpose": "Holds three of the colony's tools, one to a hook. It is filled before ground storage.",
       "purpose_short": "Holds three tools on a wall.",
@@ -373,14 +373,18 @@
       "output": "base:item:tool_rack",
       "output_count": 1,
       "furniture": "base:furniture:tool_rack",
+      "additional_ingredients": [
+        "base:item:copper_nail",
+        "base:item:copper_nail"
+      ],
       "section": "carpenter",
       "material_group": "wood"
     },
     {
       "id": "base:recipe:raw_materials_crate",
-      "name": "Raw materials crate",
+      "display_name": "Raw materials crate",
       "output_plural": "raw materials crates",
-      "description": "A plank bin, open on top: a sawn post at each corner and two boards a side, pegged. Made from four matching planks. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
+      "description": "A plank bin, open on top: a sawn post at each corner and two boards a side, nailed. Made from four matching planks and four copper nails. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
       "flavour": "What the mine gives, the crib keeps.",
       "purpose": "Holds twelve raw goods, three to each quarter: rough stone, ores and coal, and soil. It is filled before ground storage.",
       "purpose_short": "Holds twelve stones, ores or soil.",
@@ -402,16 +406,22 @@
       "output": "base:item:raw_materials_crate",
       "output_count": 1,
       "furniture": "base:furniture:raw_materials_crate",
+      "additional_ingredients": [
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail"
+      ],
       "section": "carpenter",
       "material_group": "wood"
     },
     {
       "id": "base:recipe:finished_goods_pallet",
-      "name": "Finished goods pallet",
+      "display_name": "Finished goods pallet",
       "output_plural": "finished goods pallets",
-      "description": "Four sawn deck boards pegged across three runners, with gaps between them. Made from four matching planks. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
+      "description": "Four sawn deck boards nailed across three runners, with gaps between them. Made from four matching planks and four copper nails. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
       "flavour": "Made is not placed. Until then, it waits on the poles.",
-      "purpose": "Holds the colony's finished goods: one piece of packed furniture or three metal goods, such as copper bars, to each of its four quarters. It is filled before ground storage.",
+      "purpose": "Holds a packed piece, three copper bars, a crate of nails or four planks in each quarter. It is filled before ground storage.",
       "purpose_short": "Holds packed furniture and metal.",
       "category": "Storage",
       "ingredient_tag": "plank",
@@ -431,16 +441,22 @@
       "output": "base:item:finished_goods_pallet",
       "output_count": 1,
       "furniture": "base:furniture:finished_goods_pallet",
+      "additional_ingredients": [
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail"
+      ],
       "section": "carpenter",
       "material_group": "wood"
     },
     {
       "id": "base:recipe:food_shelf",
-      "name": "Food shelf",
+      "display_name": "Food shelf",
       "output_plural": "food shelves",
-      "description": "Two plank shelves pegged between two plank ends, the upper one shallower. Made from four matching planks. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
+      "description": "Two plank shelves nailed between two plank ends, the upper one shallower. Made from four matching planks and four copper nails. Carpenters make it at the carpenter's bench; it is then installed on the floor through Place.",
       "flavour": "Off the floor, out of the muck.",
-      "purpose": "Holds six crates of food, three to a deck. It is filled before ground storage, and food keeps there as it would on the floor beside it.",
+      "purpose": "Holds six crates of food, three to a deck. It is filled before ground storage, and food keeps as it would on the floor.",
       "purpose_short": "Holds six crates of food.",
       "category": "Storage",
       "ingredient_tag": "plank",
@@ -460,14 +476,20 @@
       "output": "base:item:food_shelf",
       "output_count": 1,
       "furniture": "base:furniture:food_shelf",
+      "additional_ingredients": [
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail"
+      ],
       "section": "carpenter",
       "material_group": "wood"
     },
     {
       "id": "base:recipe:dining_table",
-      "name": "Plank dining table",
+      "display_name": "Plank dining table",
       "output_plural": "plank dining tables",
-      "description": "Four broad boards pegged across two plank ends, tied under each long side. Made from four matching planks. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "description": "Four broad boards nailed across two plank ends, tied under each long side. Made from four matching planks and four copper nails. Carpenters make it at the carpenter's bench; it is then installed through Place.",
       "flavour": "A table turns a meal into a feast, and a feast into a story.",
       "purpose": "Add separate stools at the four guides for seated dining.",
       "category": "Dining",
@@ -489,13 +511,19 @@
       "output_count": 1,
       "furniture": "base:furniture:dining_table",
       "material_group": "wood",
+      "additional_ingredients": [
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail"
+      ],
       "section": "carpenter"
     },
     {
       "id": "base:recipe:bench",
-      "name": "Plank bench",
+      "display_name": "Plank bench",
       "output_plural": "plank benches",
-      "description": "Two boards pegged onto two plank ends, with a stretcher between them. Made from two matching planks. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "description": "Two boards nailed onto two plank ends, with a stretcher between them. Made from two matching planks and two copper nails. Carpenters make it at the carpenter's bench; it is then installed through Place.",
       "flavour": "Room for three dwarves, or two after supper.",
       "category": "Dining",
       "ingredient_tag": "plank",
@@ -516,11 +544,15 @@
       "output_count": 1,
       "furniture": "base:furniture:bench",
       "material_group": "wood",
+      "additional_ingredients": [
+        "base:item:copper_nail",
+        "base:item:copper_nail"
+      ],
       "section": "carpenter"
     },
     {
       "id": "base:recipe:log_fence",
-      "name": "Log fence post",
+      "display_name": "Log fence post",
       "output_plural": "log fence posts",
       "description": "Stands in the middle of a tile. Two level rails join posts on neighboring tiles, forming straight runs, corners and junctions. Carpenters make it at the carpenter's bench; it is then installed through Place.",
       "flavour": "A row of posts tells beasts and neighbours where the colony begins.",
@@ -540,7 +572,7 @@
     },
     {
       "id": "base:recipe:log_gate",
-      "name": "Log gate",
+      "display_name": "Log gate",
       "output_plural": "log gates",
       "description": "Hangs across one tile between posts on the tiles either side, sharing posts with connected fences. Opens as dwarves approach and does not seal a room. Carpenters make it at the carpenter's bench; it is then installed through Place.",
       "flavour": "A fence that knows when to open.",
@@ -560,9 +592,9 @@
     },
     {
       "id": "base:recipe:board_game_table",
-      "name": "Board-game table",
+      "display_name": "Board-game table",
       "output_plural": "board-game tables",
-      "description": "A game scratched across the top of a plank table, with loose stones for counters. Made from four matching planks and a rough stone. Add one stool for solo play, or two opposite stools to play together for more happiness. Carpenters make it at the carpenter's bench; it is then installed through Place.",
+      "description": "A game scratched across the top of a plank table, with loose stones for counters. Made from four matching planks, four copper nails and a rough stone. Add one stool for solo play, or two opposite stools to play together for more happiness. Carpenters make it at the carpenter's bench; it is then installed through Place.",
       "flavour": "Wars have been won, and friendships lost, across this board.",
       "category": "Recreation",
       "ingredient_tag": "plank",
@@ -584,13 +616,17 @@
       "furniture": "base:furniture:board_game_table",
       "material_group": "wood",
       "additional_ingredients": [
-        "base:item:rough_stone"
+        "base:item:rough_stone",
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail",
+        "base:item:copper_nail"
       ],
       "section": "carpenter"
     },
     {
       "id": "base:recipe:mason_bench",
-      "name": "Mason's bench",
+      "display_name": "Mason's bench",
       "output_plural": "mason's benches",
       "description": "A split stone slab laid across two log stumps: the Stonemason's own workbench. Stonemasons make it at the crude workbench; it is then installed through Place.",
       "flavour": "Every wall begins on a stone someone knocked square.",
@@ -615,7 +651,7 @@
     },
     {
       "id": "base:recipe:stone_stool",
-      "name": "Stone stool",
+      "display_name": "Stone stool",
       "output_plural": "stone stools",
       "description": "A rough stone knocked square all the way down with the maul, one corner knocked off and a crack down its back: a stool the log stool's size. Stonemasons make it at the mason's bench; it is then installed through Place.",
       "flavour": "It will outlast the table, the hall and very likely the dwarf.",
@@ -643,7 +679,7 @@
     },
     {
       "id": "base:recipe:hearth",
-      "name": "Rudimentary hearth",
+      "display_name": "Rudimentary hearth",
       "output_plural": "hearths",
       "description": "A 2 \u00d7 2 hearth: an open fire against a great split boulder that throws its heat into the room. Two matching logs and four rough stones. Stonemasons make it.",
       "flavour": "A room with a hearth is a home; without one, a cellar.",
@@ -669,7 +705,7 @@
     },
     {
       "id": "base:recipe:dried_fish",
-      "name": "Dried fish",
+      "display_name": "Dried fish",
       "output_plural": "dried fish",
       "description": "Fresh fish split and hung on the drying rack until the air has taken the water out of them: a day on the rack, then a Ranger takes them down. Dried fish keep about thirty days, longer kept cool, where fresh ones keep two or three.",
       "flavour": "Tough as a boot, and twice as welcome in midwinter.",
@@ -701,7 +737,7 @@
     },
     {
       "id": "base:recipe:basic_smelter",
-      "name": "Basic smelter",
+      "display_name": "Basic smelter",
       "output_plural": "basic smelters",
       "description": "One great rough stone knocked hollow, a stone pot in its top and a fire hole in its foot, beside a casting stone with a bar mould: the Blacksmith's own workbench, made at the crude workbench.",
       "flavour": "Every forge in the deep began as a pit of coals and a patient dwarf.",
@@ -728,12 +764,12 @@
     },
     {
       "id": "base:recipe:anvil_stone",
-      "name": "Anvil stone",
+      "display_name": "Anvil stone",
       "output_plural": "anvil stones",
       "description": "One great rough stone with its top split off level and nothing else done to it: the stone a Blacksmith hammers copper on. Blacksmiths make it at the crude workbench; it is then installed through Place.",
       "flavour": "A smith's first anvil is whatever the mountain would not let them break.",
-      "purpose": "Blacksmiths hammer copper bars into the other trades' tools on it, also while the smelter melts the next bar. It serves until iron brings a forged anvil.",
-      "purpose_short": "Where the trades' copper tools are hammered.",
+      "purpose": "Blacksmiths hammer copper bars into the other trades' tools and into nails on it, also while the smelter melts the next bar. It serves until iron brings a forged anvil.",
+      "purpose_short": "Where copper tools and nails are hammered.",
       "category": "Workshops",
       "ingredient_tag": "stockpile_stone",
       "ingredient_words": {
@@ -756,7 +792,7 @@
     },
     {
       "id": "base:recipe:copper_bar",
-      "name": "Copper bar",
+      "display_name": "Copper bar",
       "output_plural": "copper bars",
       "description": "Two copper ore thrown into the stone pot in the smelter's boulder, over a fire of coal or logs blown up through a hollow stick. The charge melts by itself for a few hours, then a Blacksmith takes the cast bar off the casting stone.",
       "flavour": "Green stone in, red metal out, and a dwarf who smells of smoke for a week.",
@@ -818,7 +854,7 @@
     },
     {
       "id": "base:recipe:copper_pick",
-      "name": "Copper pick",
+      "display_name": "Copper pick",
       "output_plural": "copper picks",
       "description": "A copper bar hammered into a pick's head and bound to a log haft. Blacksmiths hammer it on the anvil stone.",
       "flavour": "Stone breaks stone. Copper breaks it faster.",
@@ -864,7 +900,7 @@
     },
     {
       "id": "base:recipe:copper_saw",
-      "name": "Copper saw",
+      "display_name": "Copper saw",
       "output_plural": "copper saws",
       "description": "A copper bar hammered thin, its edge filed into teeth, and set in a long log handle bound with cord: a saw that cuts as it is drawn back. Blacksmiths hammer it on the anvil stone.",
       "flavour": "Push, and it buckles. Pull, and it sings.",
@@ -910,7 +946,7 @@
     },
     {
       "id": "base:recipe:copper_chisel",
-      "name": "Copper chisel",
+      "display_name": "Copper chisel",
       "output_plural": "copper chisels",
       "description": "A copper bar hammered to a square edge, with a hammerstone maul on a log haft to drive it. Blacksmiths hammer it on the anvil stone.",
       "flavour": "The stone decides where it breaks, unless you ask it firmly.",
@@ -956,7 +992,7 @@
     },
     {
       "id": "base:recipe:copper_hoe",
-      "name": "Copper hoe",
+      "display_name": "Copper hoe",
       "output_plural": "copper hoes",
       "description": "A copper bar hammered into a broad blade and bound to a log haft for the colony's first fields. Blacksmiths hammer it on the anvil stone.",
       "flavour": "Even a soft blade wakes the soil.",
@@ -999,43 +1035,70 @@
       "output_count": 1,
       "material_group": "wood",
       "section": "blacksmith"
+    },
+    {
+      "id": "base:recipe:copper_nail",
+      "display_name": "Copper nails",
+      "output_plural": "copper nails",
+      "description": "A copper bar drawn out thin on the anvil stone and cut into twelve square nails, each with a hammered head. Blacksmiths make them; a batch lands as one crate.",
+      "flavour": "Twelve small arguments for why a table should stay a table.",
+      "purpose": "Carpenters fix their plank furniture with them, a nail to each plank. One bar makes twelve.",
+      "purpose_short": "For the Carpenter's plank furniture.",
+      "category": "Metal",
+      "ingredient_tag": "copper_bar",
+      "ingredient_words": {
+        "noun": "copper",
+        "units": "copper bars",
+        "same": "Each batch is one copper bar.",
+        "pick": "Click a bar to allow it.",
+        "carrying": "Carrying a bar to the anvil stone"
+      },
+      "default_ingredients": [
+        "base:item:copper_bar"
+      ],
+      "ingredient_count": 1,
+      "work_seconds": 12.0,
+      "workshop": "base:furniture:anvil_stone",
+      "output": "base:item:copper_nail",
+      "output_count": 12,
+      "section": "blacksmith"
     }
   ],
   "sections": [
     {
       "id": "rudimentary",
-      "name": "Rudimentary",
+      "display_name": "Rudimentary",
       "planned": false,
       "hint": "The first camp's goods, made by Workers at the crude workbench: light, a way down, a seat, a bed and a door, and the first two trades' tools."
     },
     {
       "id": "carpenter",
-      "name": "Carpenter",
+      "display_name": "Carpenter",
       "planned": false,
       "description": "Timber sawn and worked at the Carpenter's own bench: planks, storage, tables, fences and games.",
-      "hint": "Carpenters make these: their bench at the crude workbench first, then everything else at it. Promote a Carpenter with a copper saw, which a Blacksmith makes."
+      "hint": "Carpenters make these: their bench at the crude workbench first, then everything else at it. Promote a Carpenter with a copper saw; plank furniture takes copper nails. A Blacksmith makes both."
     },
     {
       "id": "stonemason",
-      "name": "Stonemason",
+      "display_name": "Stonemason",
       "planned": false,
       "description": "Stone shaped at the Stonemason's own bench.",
       "hint": "Stonemasons make these: their bench at the crude workbench first, then everything else at it. Promote a Stonemason with a copper chisel, which a Blacksmith makes."
     },
     {
       "id": "blacksmith",
-      "name": "Blacksmith",
+      "display_name": "Blacksmith",
       "planned": false,
-      "description": "Copper melted and cast at the Blacksmith's own basic smelter, and hammered into the other trades' tools on the anvil stone.",
+      "description": "Copper melted and cast at the Blacksmith's own basic smelter, and hammered into the other trades' tools and the Carpenter's nails on the anvil stone.",
       "later": [
         "WITH IRON",
         "The Smelter and the Forge join this page with iron: iron bars, then tools, hardware, weapons and armor. Iron needs a level-2 Blacksmith."
       ],
-      "hint": "Blacksmiths make these: their basic smelter and their anvil stone at the crude workbench first, then copper bars in the smelter and the trades' tools on the anvil stone. Promote a Blacksmith with a stone hammer."
+      "hint": "Blacksmiths make these: their basic smelter and their anvil stone at the crude workbench first, then copper bars in the smelter, and the trades' tools and nails on the anvil stone. Promote a Blacksmith with a stone hammer."
     },
     {
       "id": "farmer",
-      "name": "Farmer",
+      "display_name": "Farmer",
       "planned": true,
       "description": "Farmers work the colony's fields, laid out with Zones \u203a Farming. They have nothing to craft yet.",
       "preview": [
@@ -1047,7 +1110,7 @@
     },
     {
       "id": "ranger",
-      "name": "Ranger",
+      "display_name": "Ranger",
       "planned": false,
       "description": "Food from the wild, and the Ranger's own workbench: the drying rack now, more with hunting.",
       "later": [
@@ -1058,7 +1121,7 @@
     },
     {
       "id": "miner",
-      "name": "Miner",
+      "display_name": "Miner",
       "status_label": "Equipment preview",
       "planned": true,
       "description": "Miners specialize in excavation. A Blacksmith makes their copper pick; better picks come with better metal.",
@@ -1071,7 +1134,7 @@
     },
     {
       "id": "brewer",
-      "name": "Brewer",
+      "display_name": "Brewer",
       "planned": true,
       "description": "Turn farm harvests into drinks for the colony.",
       "preview": [

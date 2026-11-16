@@ -13,8 +13,8 @@ extends MarginContainer
 signal keep_step_requested(steps: int)
 signal remove_requested
 
-const MUTED := Color("aeb5ad")
-const HAY := Color("e2c06a")
+const MUTED := UITheme.MUTED
+const HAY := UITheme.HAY
 
 var _picture: TextureRect
 var _water: Label
@@ -118,7 +118,7 @@ func show_zone(data: Dictionary) -> void:
 		else ("Regrows about one every %d days" % roundi(1.0 / regrowth) if regrowth > 0.0 else "Doesn't regrow")
 	_regrowth.text = "%s · Fished out below %d" % [regrows, int(data.fished_out_below)]
 	_keep.text = "%d fish" % int(data.keep)
-	var state := "fishing" if bool(data.wants) else ("the water is fished out" if data.word == "Fished out" else "enough kept, paused")
+	var state := "fishing" if bool(data.wants) else ("the water is fished out" if bool(data.fished_out) else "enough kept, paused")
 	_kept.text = "%d kept now · %s" % [int(data.kept), state]
 	_work_heading.text = "AT WORK · %d OF %d SPOT%s" % [data.fishers.size(), data.spots, "" if int(data.spots) == 1 else "S"]
 	for child in _fishers.get_children(): child.queue_free()

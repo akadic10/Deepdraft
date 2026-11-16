@@ -53,7 +53,7 @@ func _crates() -> void:
 	_expect(_colors(oak) != _colors(partial), "and show their own wood")
 	_expect(_count(TORCH_ITEM) == 34, "every torch is counted")
 	var shown: Dictionary = drops.get_explorer_data(partial)
-	_expect(shown.title == "Pine log torch" and shown.badge.get("value") == "6 / 24" and shown.picture == "res://assets/ui/furniture/torch.png",
+	_expect(shown.title == "Pine log torch" and shown.badge.get("value") == "6 / 24" and shown.picture == preload("res://scripts/components/Pictures.gd").furniture(TORCH),
 		"a clicked crate names its torches and says how many it holds: %s, %s" % [shown.title, shown.badge])
 	# The plans below work from the one pine crate of six.
 	for node: Node3D in [full, oak]:

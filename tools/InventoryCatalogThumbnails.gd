@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Offline transparent thumbnails from the actual resource models. The
 ## registry owns JSON reading; generated PNGs are the only assets written.
-const OUT := "res://assets/ui/items/"
+const Pictures = preload("res://scripts/components/Pictures.gd")
 
 func _init() -> void:
 	_run.call_deferred()
@@ -11,7 +11,7 @@ func _run() -> void:
 	root.get_node("SaveManager").set_process(false)
 	root.get_node("WorldClock").set_paused(true)
 	root.get_node("RoomManager").set_process(false)
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(Pictures.ITEMS))
 	var registry = load("res://scripts/systems/ItemDropManager.gd").new()
 	root.add_child(registry)
 	var definitions: Dictionary = registry.get_item_defs()
@@ -24,7 +24,7 @@ func _run() -> void:
 		var definition: Dictionary = definitions[key]
 		# Storage inspectors still prefer any existing item-path thumbnail (the
 		# settlement flag). Refresh that legacy path along with ordinary goods.
-		if "stockpile_furniture" in definition.get("material_tags", []) and not FileAccess.file_exists(OUT+key.replace(":","_")+".png"): continue
+		if "stockpile_furniture" in definition.get("material_tags", []) and not FileAccess.file_exists(Pictures.item(key)): continue
 		if not ResourceLoader.exists(String(definition.get("model", ""))): continue
 		var viewport := SubViewport.new()
 		viewport.size = Vector2i(216, 180)
@@ -70,7 +70,7 @@ func _run() -> void:
 		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		for frame in range(4): await process_frame
 		await RenderingServer.frame_post_draw
-		var output := OUT + key.replace(":", "_") + ".png"
+		var output := Pictures.item(key)
 		count += 1
 		var result := viewport.get_texture().get_image().save_png(output)
 		if result != OK: push_error("Could not save " + output); quit(1); return

@@ -21,8 +21,8 @@
     "max_workers": 4
   },
   "execution": {
-    "swing_base_time_s": 0.5,
-    "visible_swing_s": 0.9,
+    "swing_base_time_seconds": 0.5,
+    "visible_swing_seconds": 0.9,
     "reach_up_blocks": 5,
     "reach_down_blocks": 1
   }

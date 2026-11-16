@@ -62,10 +62,6 @@ var _zoom_mode: String = "cursor_target"  # "cursor_target" = zoom toward mouse 
 var _cursor_min_gap: float = 14.0     # cursor zoom stops this far from the targeted surface point (never punches through)
 var _zoom_smooth: float = 0.15
 
-var _keys_forward:  Array[Key] = []
-var _keys_backward: Array[Key] = []
-var _keys_left:     Array[Key] = []
-var _keys_right:    Array[Key] = []
 var _btn_rotate:    MouseButton = MOUSE_BUTTON_RIGHT    # Stonehearth: orbit on right-mouse
 var _btn_drag:      MouseButton = MOUSE_BUTTON_MIDDLE   # Stonehearth: grab-the-ground pan on middle-mouse
 
@@ -326,10 +322,6 @@ func _load_settings() -> void:
 
 	# input_mappings ───────────────────────────────────────────────────────────
 	var im := d.get("input_mappings", {}) as Dictionary
-	_keys_forward  = _parse_keys(im.get("move_forward",  []))
-	_keys_backward = _parse_keys(im.get("move_backward", []))
-	_keys_left     = _parse_keys(im.get("move_left",     []))
-	_keys_right    = _parse_keys(im.get("move_right",    []))
 	_btn_rotate    = _parse_mouse_button(im.get("rotate_action", "MOUSE_BUTTON_RIGHT"))
 	_btn_drag      = _parse_mouse_button(im.get("drag_action",   "MOUSE_BUTTON_MIDDLE"))
 
@@ -373,10 +365,11 @@ func _handle_pan(delta: float) -> void:
 		return
 	var dir := Vector2.ZERO
 
-	if _any_key(_keys_forward):  dir.y -= 1.0
-	if _any_key(_keys_backward): dir.y += 1.0
-	if _any_key(_keys_left):     dir.x -= 1.0
-	if _any_key(_keys_right):    dir.x += 1.0
+	# The move keys are input actions (project.godot, doc 23 "Keys"): W A S D and the arrows.
+	if Input.is_action_pressed(&"camera_forward"): dir.y -= 1.0
+	if Input.is_action_pressed(&"camera_back"):    dir.y += 1.0
+	if Input.is_action_pressed(&"camera_left"):    dir.x -= 1.0
+	if Input.is_action_pressed(&"camera_right"):   dir.x += 1.0
 
 	if _edge_scroll and dir == Vector2.ZERO:
 		dir = _edge_scroll_dir()
@@ -386,8 +379,8 @@ func _handle_pan(delta: float) -> void:
 
 	stop_following()
 	dir         = dir.normalized()
-	# Fast by default; Shift is a PRECISION (slow) modifier — shift_multiplier < 1.0.
-	var speed   := _move_speed * (_shift_mult if Input.is_key_pressed(KEY_SHIFT) else 1.0)
+	# Fast by default; camera_slow (Shift) is a PRECISION (slow) modifier — shift_multiplier < 1.0.
+	var speed   := _move_speed * (_shift_mult if Input.is_action_pressed(&"camera_slow") else 1.0)
 
 	# Scale pan speed with camera HEIGHT (Stonehearth: speed = camera.position.y) so
 	# motion feels consistent at any framing: high overview sweeps fast, low/zoomed-in
@@ -841,40 +834,6 @@ func _edge_scroll_dir() -> Vector2:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
-func _any_key(keys: Array[Key]) -> bool:
-	for k: Key in keys:
-		if Input.is_physical_key_pressed(k):
-			return true
-	return false
-
-
-func _parse_keys(raw) -> Array[Key]:
-	var result: Array[Key] = []
-	if raw is Array:
-		for item in raw:
-			var k := _str_to_key(str(item))
-			if k != KEY_NONE:
-				result.append(k)
-	elif raw is String:
-		var k := _str_to_key(raw as String)
-		if k != KEY_NONE:
-			result.append(k)
-	return result
-
-
-func _str_to_key(s: String) -> Key:
-	match s:
-		"KEY_W":     return KEY_W
-		"KEY_S":     return KEY_S
-		"KEY_A":     return KEY_A
-		"KEY_D":     return KEY_D
-		"KEY_UP":    return KEY_UP
-		"KEY_DOWN":  return KEY_DOWN
-		"KEY_LEFT":  return KEY_LEFT
-		"KEY_RIGHT": return KEY_RIGHT
-	return KEY_NONE
-
 
 func _parse_mouse_button(s: String) -> MouseButton:
 	match s:

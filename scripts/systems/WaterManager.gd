@@ -158,8 +158,9 @@ func _process(delta: float) -> void:
 		return
 	if initialized and _seed != WorldGenerator.world_seed: reset()
 	initialize()
-	if not initialized or WorldClock.paused or SaveManager.is_loading() or WorldClock.speed <= 0: return
-	advance(delta * WorldClock.speed)
+	var seconds := WorldClock.game_seconds(delta)
+	if not initialized or SaveManager.is_loading() or seconds <= 0.0: return
+	advance(seconds)
 
 ## Spreads each tick's cells over the frames until the next tick is due, so a
 ## 10 Hz tick no longer lands whole on one frame (a regular camera hitch). The

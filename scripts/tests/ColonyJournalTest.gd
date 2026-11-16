@@ -6,8 +6,9 @@ extends SceneTree
 ## begins anew, still one line per topic a day; a thought that ends and returns begins
 ## again; complaints and praises go by the thought's sign; nothing is noted while the clock
 ## stands still; ten days are kept; the save section round-trips and a load starts the look
-## afresh. Every thought a dwarf can have has its lines. The page's journal is
-## SettlementPanelTest's; validating the section is SaveManagerRoundTripTest's.
+## afresh. A line is kept as codes (its topic, and the taste a room's thought names) and
+## worded when read, the same after a load. Every thought a dwarf can have has its lines.
+## The page's journal is SettlementPanelTest's; validating the section is SaveManagerRoundTripTest's.
 const THOUGHTS := ["bedroom", "recreation_together", "recreation_alone", "grilled_alone", "grilled_together", "quiet_hour", "hungry", "famished", "injured", "dining_seat_only",
 	"dining_table_only", "dining_neither", "cold", "chilly", "hot", "slept_horrid", "slept_pleasant", "slept_beautiful",
 	"ate_horrid", "ate_pleasant", "ate_beautiful", "played_horrid", "played_pleasant", "played_beautiful"]
@@ -73,6 +74,14 @@ func _test_lines_data() -> void:
 	mood.thermal_memory.chilly = 24.0
 	var ids: Array = mood.thoughts().map(func(thought: Dictionary) -> String: return thought.id)
 	_expect(ids == ["recreation_together", "dining_neither", "bedroom", "chilly"], "each thought carries its id: %s" % [ids])
+	# A thought's words come from its id alone, so the journal can keep the id and no sentence.
+	_expect(mood.thoughts().all(func(thought: Dictionary) -> bool: return thought.text == mood.thought_text(thought.id, thought.fields)),
+		"every thought reads the same from its id and fields")
+	for id: String in THOUGHTS:
+		_expect(not String(mood.thought_text(id)).is_empty() and mood.thought_text(id) != id, "a thought has its words by id: " + id)
+	_expect(mood.thought_text("slept_pleasant") == "Slept in a pleasant room"
+		and mood.thought_text("ate_beautiful", {"taste": "base:material:pine", "feeling": "dislike"}) == "Ate in a beautiful room · dislikes pine",
+		"a room's thought is worded from its id and the taste it names: %s" % mood.thought_text("ate_beautiful", {"taste": "base:material:pine", "feeling": "dislike"}))
 
 
 func _build() -> void:
@@ -121,6 +130,12 @@ func _test_beginnings() -> void:
 	lines = journal.lines()
 	_expect(lines.size() == 2 and lines[0].topic == "dining_neither" and lines[0].tone == "complaint" and lines[0].text == "Ate without a proper place",
 		"a bad thought is a complaint")
+	# A taste found is a line too: the topic names the feeling and the thing, and the words are built from them.
+	journal.note_taste(a, "base:furniture:log_bed", "love")
+	var found: Dictionary = journal.lines()[0]
+	_expect(found.topic == "found_love:base:furniture:log_bed" and found.tone == "praise" and found.text == "Found a taste: loves the log bed"
+		and journal.config.lines.found_love.any(func(words: String) -> bool: return words.format({"thing": "log bed"}) == found.words),
+		"a found taste is kept by its feeling and its thing, and worded from them: %s" % [found])
 
 
 func _test_days() -> void:
@@ -133,7 +148,7 @@ func _test_days() -> void:
 	a.get_mood().bedroom_memory_hours = 24.0
 	journal.check_thoughts()
 	var lines: Array = journal.lines()
-	_expect(lines.size() == 3 and lines[0].topic == "bedroom" and lines[0].day == floori(clock.elapsed_days()) and lines[0].dwarves == [a.dwarf_id],
+	_expect(lines.size() == 4 and lines[0].topic == "bedroom" and lines[0].day == floori(clock.elapsed_days()) and lines[0].dwarves == [a.dwarf_id],
 		"a memory that comes again on another day opens that day's line")
 	b.get_mood().dining_memory_hours = 0.0
 	journal.check_thoughts()
@@ -143,10 +158,10 @@ func _test_days() -> void:
 	clock.set_paused(true)
 	c.get_mood().record_recreation(true)
 	journal.check_thoughts()
-	_expect(journal.lines().size() == 4, "nothing is noted while the clock stands still")
+	_expect(journal.lines().size() == 5, "nothing is noted while the clock stands still")
 	clock.set_paused(false)
 	journal.check_thoughts()
-	_expect(journal.lines().size() == 5 and journal.lines()[0].topic == "recreation_together" and journal.lines()[0].speaker == c.dwarf_id,
+	_expect(journal.lines().size() == 6 and journal.lines()[0].topic == "recreation_together" and journal.lines()[0].speaker == c.dwarf_id,
 		"what began while paused is noted once the clock runs")
 	var first_day: int = journal.lines().back().day
 	clock.advance_hours(24.0 * 9.0)
@@ -158,8 +173,18 @@ func _test_days() -> void:
 
 
 func _test_saving() -> void:
+	# A line with a taste in its thought, as a room's thought brings it.
+	journal.note(dwarves[0], {"id": "slept_pleasant", "points": 4, "fields": {"taste": "base:furniture:log_bed", "feeling": "like"}})
 	var before: Array = journal.lines()
-	var saved: Dictionary = JSON.parse_string(JSON.stringify(journal.serialize_state()))
+	_expect(before[0].text == "Slept in a pleasant room · likes the log bed" and before[0].words in journal.config.lines.slept_pleasant,
+		"a room's thought names the taste the dwarf found there: %s" % [before[0]])
+	var kept: Dictionary = journal.serialize_state()
+	_expect(kept.lines.all(func(line: Dictionary) -> bool: return not line.has("text") and not line.has("words") and line.has("fields"))
+		and kept.lines[-1].topic == "slept_pleasant" and kept.lines[-1].fields == {"taste": "base:furniture:log_bed", "feeling": "like"},
+		"the journal is saved as codes, with no sentence: %s" % [kept.lines[-1]])
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(kept))
+	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
+	_expect(validator._validate(saved, validator.SCENE.journal, "journal", root.get_node("SaveManager")._capture_catalogs()).is_empty(), "the saved journal validates")
 	journal.clear_runtime_state()
 	_expect(journal.lines().is_empty(), "a new world starts with an empty journal")
 	journal.restore_state(saved)

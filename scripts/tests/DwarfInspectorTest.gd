@@ -231,11 +231,9 @@ func _run() -> void:
 		"switching object releases Follow, closes the sheet and shows the piece")
 	explorer.select_object(director, worker)
 	explorer._perform_dwarf_action("follow")
-	var escape := InputEventKey.new()
-	escape.keycode = KEY_ESCAPE
-	escape.pressed = true
-	root.push_input(escape, true)
-	_expect(not rig.is_following(worker) and not compact.visible, "Escape clears the panel and Follow")
+	# Esc is the dock's (DockUI.cancel); this fixture has no dock, so its step for the selection
+	# is asked directly. DwarfRosterTest presses the key with a dock.
+	_expect(explorer.cancel_selection() and not rig.is_following(worker) and not compact.visible, "Escape clears the panel and Follow")
 	explorer.select_object(director, worker)
 	explorer._perform_dwarf_action("follow")
 	explorer.open_character_sheet()

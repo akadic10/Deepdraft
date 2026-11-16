@@ -25,8 +25,8 @@ extends Node
 ##
 ##     WorldData.chunk_dirtied.connect(_on_chunk_dirtied, CONNECT_DEFERRED)
 
-const CHUNK_SIZE:   int = 16
 const WorldSize = preload("res://scripts/systems/WorldSize.gd")
+const CHUNK_SIZE:   int = WorldSize.CHUNK_SIZE
 ## The world size: use these everywhere instead of typed numbers.
 const WORLD_SIZE_X: int = WorldSize.WORLD_SIZE_X
 const WORLD_SIZE_Y: int = WorldSize.WORLD_SIZE_Y

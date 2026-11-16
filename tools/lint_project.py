@@ -27,6 +27,22 @@ Rules
                   part of its id; its own name, its Place entry, its recipe and its packed good
                   are spelled alike; no shown name has a capital after its first word; a data
                   file sits one folder deep, data/<folder>/<file>.json
+  wording-compare logic that reads the words the player reads (doc 13, "Codes and words"): a
+                  sentence or a capitalised word compared with == or !=, looked for in a list,
+                  or tested with begins_with, contains and the like. A state or a reason is a
+                  code ("hurt"); one place turns it into words. Node names are not checked
+  glued-plural    a word or a plural ending chosen in code by whether a count is one
+                  ("" if n == 1 else "s"). A sentence that changes with a count keeps its
+                  forms in data and is filled by Wording.fill
+  unknown-name    a method, signal or group reached by its name in text that nothing defines
+                  (doc 13, "One job, one way"): has_method("x"), .call("x"), call_deferred("x"),
+                  connect("x", ...), get_first_node_in_group("x") and the like. A typo or a
+                  rename fails nowhere else: behind has_method it is skipped in silence
+  picture-path    the folder of the item or furniture pictures typed outside
+                  scripts/components/Pictures.gd, which alone says where a thing's picture is
+  hand-key        a key read by its constant (KEY_R) instead of an input-map action
+                  (doc 23, "Keys"); Esc is ui_cancel, and DockUI.cancel() decides what it
+                  finishes. Shift, Ctrl, Alt and Meta held with the mouse are not checked
 """
 import argparse
 import json
@@ -50,6 +66,23 @@ GARBLED = [chr(0xC2), chr(0xC3), chr(0xE2) + chr(0x20AC), chr(0xE2) + chr(0x2020
 GARBLED_EXAMPLES = {"scripts/tests/DataEncodingTest.gd", "tools/lint_project.py",
                     "docs/00_dev_roadmap/258_code_review_2026_10_22.md"}
 DOC_KEYS = {"description", "comment", "comments", "note", "notes", "_comment", "$schema"}
+# Capitalised words that are ids, not words for the player, and why.
+WORDING_IDS = {"scripts/components/SaveSnapshotValidator.gd": {"Deepdraft": "the project's name, an id in every save"}}
+# The one script that says where a thing's picture is, and the folders only it may name.
+PICTURES = "scripts/components/Pictures.gd"
+PICTURE_FOLDERS = ("res://assets/ui/items/", "res://assets/ui/furniture/")
+# Keys held with the mouse, and scripts that name other keys for a reason.
+MODIFIER_KEYS = {"KEY_SHIFT", "KEY_CTRL", "KEY_ALT", "KEY_META"}
+KEY_READERS = {"scripts/ui/DockIconButton.gd": "names an action's key for its keycap",
+               "scripts/ui/GameMenu.gd": "the keys a focused text field takes"}
+# Engine methods and signals that code may reach by name; everything else must be a game script's.
+ENGINE_NAMES = {"queue_free", "free", "add_child", "remove_child", "grab_focus", "release_focus", "queue_redraw",
+                "queue_sort", "hide", "show", "reset_size", "update_minimum_size", "pressed", "toggled", "timeout",
+                "text_changed", "text_submitted", "visibility_changed", "resized", "ready", "tree_exiting",
+                "tree_exited", "gui_input", "mouse_entered", "mouse_exited", "focus_entered", "focus_exited",
+                "value_changed", "item_selected", "finished", "size_changed", "close_requested"}
+# A Callable called with a text as its first argument, which is not a method's name: file -> why.
+CALLABLE_ARGUMENTS = {}
 TEXT_SUFFIXES = {".gd", ".json", ".md", ".py", ".ps1", ".mjs", ".tscn", ".txt", ".gdshader", ".gdshaderinc"}
 SKIP_DIRS = {".git", ".godot", "tmp", "node_modules", "__pycache__"}
 
@@ -133,6 +166,29 @@ SIZE_CALLS = {"add_theme_font_size_override": 1, "format_label": 2, "apply_title
               "add_keycaps": 2, "set_font_size": 2}
 SIZE_HELPER = re.compile(r"^func (_\w+)\(([^)]*)\)")
 HAND_SIZE = re.compile(r"\d+|\d+\s+if\s+.+\s+else\s+\d+")
+# Words for the player: a capitalised word ("Hurt", "Waiting for a builder") or two words with a
+# space between them ("quick save"). Ids are lower case and joined by _ or : ("badly_hurt").
+CAPITAL_WORD = re.compile(r"[A-Z][a-z]+\b")
+TWO_WORDS = re.compile(r"[A-Za-z]{2,} [A-Za-z]{2,}")
+BLANKED = re.compile(r"\"\"|''")
+COMPARED_BEFORE = re.compile(r"(?:==|!=)\s*$")
+COMPARED_AFTER = re.compile(r"\s*(?:==|!=)")
+TEXT_TEST = re.compile(r"\.(?:begins_with|ends_with|contains|containsn|find|findn|rfind|trim_prefix|trim_suffix)\(\s*$")
+IN_LIST = re.compile(r"\bin\s*\[[^\]]*$")
+FOR_LOOP = re.compile(r"\s*for\b")
+NODE_NAME = re.compile(r"\.name\)*\s*(?:(?:==|!=)\s*|\.\w+\(\s*)$")
+# A word or an ending chosen by whether a count is one: "" if n == 1 else "s".
+PLURAL_CHOICE = re.compile(r"(\"\"|'')\s+if\s+[^\"']*?(?:==|!=|>)\s*1\b(?!\.)[^\"']*?\s+else\s+(\"\"|'')")
+# The names of a sentence's forms in data: choosing one of these by a count is the right way.
+FORM_KEYS = {"one", "many", "other"}
+KEY_CONSTANT = re.compile(r"\bKEY_[A-Z0-9_]+\b")
+# A name in text, by what the call before it takes it for.
+NAMED_METHOD = re.compile(r"(?:\bhas_method|\bcall|\bcall_deferred)\(\s*&?$|\bCallable\(\s*[\w.]+\s*,\s*&?$")
+NAMED_SIGNAL = re.compile(r"\b(?:connect|has_signal|has_user_signal|emit_signal|is_connected|disconnect)\(\s*&?$")
+NAMED_GROUP = re.compile(r"\b(?:get_first_node_in_group|get_nodes_in_group|is_in_group)\(\s*&?$")
+JOINED_GROUP = re.compile(r"\badd_to_group\(\s*&?$")
+JOINED_BY_CONSTANT = re.compile(r"\badd_to_group\(\s*([A-Za-z_][\w.]*)\s*[,)]")
+TEXT_CONSTANT = re.compile(r"\s*const\s+(\w+)\s*(?::\s*\w+\s*)?:?=\s*(?:\"\"|'')\s*$")
 
 
 def call_arguments(line, open_at):
@@ -149,6 +205,22 @@ def call_arguments(line, open_at):
             args.append(line[start:i].strip())
             start = i + 1
     return None
+
+
+def literal_spots(line, found):
+    """Each string literal of a line with the blanked code before and after it."""
+    spots = list(BLANKED.finditer(line))
+    if len(spots) != len(found):   # a text that runs over lines: nothing to pair up
+        return []
+    return [(literal, line[:spot.start()], line[spot.end():], spot.start()) for spot, literal in zip(spots, found)]
+
+
+def reads_wording(literal, before, after):
+    """Whether logic compares or tests this literal, and the literal is words for the player."""
+    if not (CAPITAL_WORD.match(literal) or TWO_WORDS.search(literal)) or NODE_NAME.search(before):
+        return False
+    return bool(COMPARED_BEFORE.search(before) or COMPARED_AFTER.match(after) or TEXT_TEST.search(before)
+                or (IN_LIST.search(before) and not FOR_LOOP.match(before)))
 
 
 def game_scripts():
@@ -201,10 +273,64 @@ def check_scripts(findings):
                     findings.add("world-literal", name, literal, n, raw)
             for word in LEGACY.findall(raw):
                 findings.add("legacy-code", name, word.lower(), n, raw)
+            for key in KEY_CONSTANT.findall(line):
+                if key not in MODIFIER_KEYS and name not in KEY_READERS:
+                    findings.add("hand-key", name, key, n, raw)
+            for literal in found:
+                if literal.startswith(PICTURE_FOLDERS) and name != PICTURES:
+                    findings.add("picture-path", name, literal, n, raw)
+            spots = literal_spots(line, found)
+            for literal, before, after, _at in spots:
+                if reads_wording(literal, before, after) and literal not in WORDING_IDS.get(name, ()):
+                    findings.add("wording-compare", name, literal, n, raw)
+            starts = {at: literal for literal, _before, _after, at in spots}
+            for choice in PLURAL_CHOICE.finditer(line):
+                forms = [starts.get(choice.start(1), ""), starts.get(choice.start(2), "")]
+                if re.search(r"[A-Za-z]", "".join(forms)) and not set(forms) <= FORM_KEYS:
+                    findings.add("glued-plural", name, "a word chosen by a count of one", n, raw)
     for path_literal, readers in data_refs.items():
         if len(readers) > 1:
             for reader in sorted(readers):
                 findings.add("json-owner", reader, "shared: " + path_literal, 0, "also read by " + ", ".join(sorted(readers - {reader})))
+
+
+def check_names_in_text(findings):
+    """Every method, signal and group that game code reaches by its name in text exists."""
+    methods, signals, groups, constants, joined_by = set(ENGINE_NAMES), set(ENGINE_NAMES), set(), {}, set()
+    uses = []
+    for path in game_scripts():
+        name = rel(path)
+        text = read(path)
+        code, literals = split_code(text)
+        raw_lines = text.split("\n")
+        for n, (line, found) in enumerate(zip(code, literals), 1):
+            declared = re.match(r"\s*(?:static\s+)?func\s+(\w+)", line)
+            if declared:
+                methods.add(declared.group(1))
+            declared = re.match(r"\s*signal\s+(\w+)", line)
+            if declared:
+                signals.add(declared.group(1))
+            constant = TEXT_CONSTANT.match(line)
+            if constant and found:
+                constants[constant.group(1)] = found[0]
+            for by_name in JOINED_BY_CONSTANT.findall(line):
+                joined_by.add(by_name.rsplit(".", 1)[-1])
+            for literal, before, _after, _at in literal_spots(line, found):
+                if JOINED_GROUP.search(before):
+                    groups.add(literal)
+                elif NAMED_METHOD.search(before):
+                    uses.append((methods, "method", literal, name, n, raw_lines[n - 1]))
+                elif NAMED_SIGNAL.search(before):
+                    uses.append((signals, "signal", literal, name, n, raw_lines[n - 1]))
+                elif NAMED_GROUP.search(before):
+                    uses.append((groups, "group", literal, name, n, raw_lines[n - 1]))
+    groups.update(constants[c] for c in joined_by if c in constants)
+    for path in walk("scenes", {".tscn"}):
+        for listed in re.findall(r"groups=\[([^\]]*)\]", read(path)):
+            groups.update(re.findall(r'"([^"]+)"', listed))
+    for known, kind, literal, name, n, raw in uses:
+        if literal not in known and literal not in CALLABLE_ARGUMENTS.get(name, ()):
+            findings.add("unknown-name", name, "%s %s" % (kind, literal), n, raw)
 
 
 def check_garbled(findings):
@@ -311,7 +437,7 @@ def check_names(findings):
         if not re.fullmatch(r"base:recipe:[a-z0-9_]+", str(recipe.get("id", ""))):
             findings.add("naming", recipes_file, "recipe id: " + str(recipe.get("id", "")), 0, str(recipe.get("id", "")))
     place = {entry.get("key"): entry.get("label") for entry in json.loads(read(ROOT / "data/ui/place_catalog.json")).get("items", [])}
-    made = {recipe.get("furniture"): recipe.get("name") for recipe in recipes if recipe.get("furniture")}
+    made = {recipe.get("furniture"): recipe.get("display_name") for recipe in recipes if recipe.get("furniture")}
     for path in walk("data/furniture", {".json"}):
         name = rel(path)
         piece = json.loads(read(path))
@@ -348,6 +474,7 @@ def check_names(findings):
 def scan():
     findings = Findings()
     check_scripts(findings)
+    check_names_in_text(findings)
     check_garbled(findings)
     check_data(findings)
     check_dock(findings)

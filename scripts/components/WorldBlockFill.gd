@@ -18,7 +18,7 @@ const WorldSize = preload("res://scripts/systems/WorldSize.gd")
 const WORLD_SIZE_X: int = WorldSize.WORLD_SIZE_X
 const WORLD_SIZE_Y: int = WorldSize.WORLD_SIZE_Y
 const WORLD_SIZE_Z: int = WorldSize.WORLD_SIZE_Z
-const CHUNK_SIZE: int = 16   # WorldData.CHUNK_SIZE
+const CHUNK_SIZE: int = WorldSize.CHUNK_SIZE
 const CHUNK_COUNT_Y: int = WORLD_SIZE_Y / CHUNK_SIZE
 
 # -- Terrain domain classification ---------------------------------------------
@@ -27,7 +27,7 @@ const DOMAIN_VALLEY:   int = 1   # Y20..43, foothill shelves (retained API name)
 const DOMAIN_LOWLAND:  int = 0   # Y19 and below, lowland / lake basin
 
 # -- Surface elevation ranges (Y in blocks) ------------------------------------
-const BEDROCK_MAX_Y: int = 3
+const BEDROCK_MAX_Y: int = WorldSize.BEDROCK_MAX_Y
 const FOUNDATION_ROCK_MAX_Y: int = 11
 const LOWLAND_SHELF_MIN_Y: int = 12
 const MATERIAL_MACRO_CELL_SIZE: int = 32

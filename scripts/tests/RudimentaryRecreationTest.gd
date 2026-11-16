@@ -39,10 +39,12 @@ func _clear_layout() -> void:
 func _craft_and_place() -> void:
 	# The fence, gate and game table are the Carpenter's (doc 44), made at the carpenter's bench.
 	_carpenter_bench_at(Vector3i(45,20,42))
-	# The fence and the gate take a log each; the game table is a plank piece (doc 308): four planks and a Rough stone.
+	# The fence and the gate take a log each; the game table is a plank piece (doc 308): four planks, a Rough stone
+	# and a copper nail to each plank (doc 313).
 	drops.spawn_drop(PINE,2,Vector3i(42,21,40))
 	drops.spawn_drop("base:item:pine_plank",4,Vector3i(43,21,40))
 	drops.spawn_drop(STONE,1,Vector3i(42,21,41))
+	drops.spawn_drop("base:item:copper_nail",4,Vector3i(43,21,41))
 	# The enlarged workbench also fills the south boundary beside the old fence site.
 	var positions := [Vector3i(44,20,46),Vector3i(49,20,45),Vector3i(46,20,38)]
 	var index := 0
@@ -61,7 +63,7 @@ func _craft_and_place() -> void:
 		_expect(await _installed(key),"Worker hauls and installs "+key)
 		_expect(_count(item_key)==0,"installation consumes packed output")
 		index += 1
-	_expect(_count(PINE)==0 and _count("base:item:pine_plank")==0 and _count(STONE)==0,"the recipes take exactly two logs, four planks and one stone")
+	_expect(_count(PINE)==0 and _count("base:item:pine_plank")==0 and _count(STONE)==0 and _count("base:item:copper_nail")==0,"the recipes take exactly two logs, four planks, four nails and one stone")
 	var saved: Dictionary = furniture.serialize_state()
 	_expect(saved.installed.size()==4,"all three designs serialize with existing workshop")
 	_clear_layout()

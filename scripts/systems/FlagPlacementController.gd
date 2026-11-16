@@ -28,13 +28,12 @@ extends Node3D
 
 const FLAG_MODEL := "res://assets/models/furniture/settlement_flag.glb"
 const FURNITURE_KEY := "base:furniture:settlement_flag"
-## The flag's picture, for the founding entry and Colony's header.
-const PICTURE := "res://assets/ui/furniture/settlement_flag.png"
 const NAMES_PATH := "res://data/colony/settlement_names.json"
 const WORLD_EDGE_MARGIN := 2       # reject placement hugging the world border
 const RAY_STEP := 0.5
 const RAY_MAX := 700.0
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const SettlementName = preload("res://scripts/components/SettlementName.gd")
 
 const GHOST_VALID := Color(0.35, 1.0, 0.45, 0.55)
@@ -56,7 +55,7 @@ var _name_styles: Array = []
 var _naming_cell := Vector3i(-1, -1, -1)
 
 var _camera_rig: Node3D = null
-var _dock_ui: Node = null
+var _dock_ui: DockUI
 var _director: Node = null
 
 ## Fired on every activate/deactivate — DockUI refreshes button pressed-state
@@ -79,12 +78,11 @@ func _ready() -> void:
 	add_to_group("settlement")   # the game menu and SaveManager read the name
 	_name_styles = preload("res://scripts/registries/JsonData.gd").read_dict(NAMES_PATH).get("styles", [])
 	_camera_rig = get_node_or_null(camera_path) as Node3D
-	_dock_ui = get_node_or_null(dock_ui_path)
+	_dock_ui = get_node_or_null(dock_ui_path) as DockUI
 	_director = get_node_or_null(dwarf_director_path)
-	if _dock_ui != null and _dock_ui.has_method("register_flag_controller"):
-		_dock_ui.call("register_flag_controller", self)
-	if _dock_ui != null and _dock_ui.has_signal("tool_requested"):
-		_dock_ui.connect("tool_requested", _on_tool_requested)
+	if _dock_ui != null:
+		_dock_ui.register_flag_controller(self)
+		_dock_ui.tool_requested.connect(_on_tool_requested)
 	_bind_furniture.call_deferred()
 
 
@@ -121,12 +119,6 @@ func _process(_delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active:
 		return
-	if event is InputEventKey and (event as InputEventKey).pressed \
-			and (event as InputEventKey).keycode == KEY_ESCAPE:
-		if is_naming(): cancel_naming()
-		else: deactivate()
-		get_viewport().set_input_as_handled()
-		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
@@ -144,10 +136,15 @@ func is_active() -> bool:
 	return _active
 
 
+## The flag's picture, for the founding entry and Colony's header.
+static func picture() -> String:
+	return Pictures.furniture(FURNITURE_KEY)
+
+
 ## What the tool bar shows (doc 23, "The tool bar"): the flag, and the card while it asks
 ## for the name. Planting the flag founds the settlement, so there is nothing to undo.
 func tool_bar_state() -> Dictionary:
-	return {"tool": "flag", "name": "Plant the settlement flag", "picture": "res://assets/ui/furniture/settlement_flag.png",
+	return {"tool": "flag", "name": "Plant the settlement flag", "picture": picture(),
 		"undo": false, "message": "Name the settlement in the card" if is_naming() else ""}
 
 
@@ -190,6 +187,14 @@ func deactivate() -> void:
 
 
 # ── Naming (doc 23) ───────────────────────────────────────────────────────────
+
+## Esc's smaller step while the tool is on (DockUI.cancel): a naming in progress is dropped and
+## the tool stays on. False when there is none, and the tool ends.
+func cancel_step() -> bool:
+	if not is_naming(): return false
+	cancel_naming()
+	return true
+
 
 ## Whether a flag waits for the card's name.
 func is_naming() -> bool:
@@ -325,9 +330,8 @@ func _place_flag(cell: Vector3i, spawn_squad: bool = true, new_name := "") -> vo
 		arrived = int(_director.call("spawn_squad_at", cell.x, cell.z))
 
 	print("FlagPlacementController: %s founded at %s." % [settlement_name, str(cell)])
-	var detail := ""
-	if arrived > 0: detail = "%s arrived with the flag." % ("1 dwarf has" if arrived == 1 else "%d dwarves have" % arrived)
-	EventLog.post("colony", "%s is founded." % settlement_name, {"detail": detail, "picture": PICTURE, "place": cell})
+	EventLog.post("colony", "founded_with" if arrived > 0 else "founded", {"name": settlement_name, "count": arrived},
+		{"picture": picture(), "place": cell})
 	settlement_changed.emit()
 	deactivate()
 

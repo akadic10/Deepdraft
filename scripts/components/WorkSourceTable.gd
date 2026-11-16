@@ -8,6 +8,9 @@ extends RefCounted
 ##   work_task_gone(task: Task, dwarf_id: int)      completed (-1) / cancelled / failed
 ##   work_task_released(task: Task, dwarf_id: int)  returned to PENDING; never re-post
 ##   work_source_retired()                          free source-held claims
+## A source that keeps a worker's claim (`reserved_by` and the like) also answers
+##   claimed_workers() -> Array                     the dwarves that hold it now
+## which TaskManager's self-check reads (lifecycle_errors, "Orphan source claim").
 ## Release is never routed as "gone": a released lease stays pending, so a
 ## source that re-posted on release would duplicate the job (Hard Rule 12).
 ## Retire forgets the source BEFORE cancelling its tasks, so cancellation

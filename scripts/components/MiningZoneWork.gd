@@ -11,8 +11,8 @@ var controller
 var zones: Dictionary          # the controller's zone_id -> zone record
 var zone_by_block: Dictionary  # the controller's block -> zone_id
 var max_workers: int           # data/terrain/mining_config.json zone.max_workers
-var swing_base_time: float     # execution.swing_base_time_s
-var visible_swing: float = .9  # execution.visible_swing_s: how long a swing is meant to look
+var swing_base_time: float     # execution.swing_base_time_seconds
+var visible_swing: float = .9  # execution.visible_swing_seconds: how long a swing is meant to look
 var _occupancy_dirty_zones: Dictionary = {}
 ## Cached ItemDropManager scene node (group lookup, lazy).
 var _drop_manager_node: ItemDropManager = null

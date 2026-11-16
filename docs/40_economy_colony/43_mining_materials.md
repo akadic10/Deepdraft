@@ -384,7 +384,7 @@ When a dwarf mines the last block in a zone, the zone entity is automatically de
    - reach-aware pull: blocks workable from the dwarf's CURRENT cell rank first (2026-06-26)
    - vertical reach envelope: a dwarf beside a face works blocks up to reach_up_blocks (5)
      above / reach_down_blocks (1) below their stand floor (mining_config.json execution.*)
-   - dig time = base × hardness; swings divide it near `execution.visible_swing_s` (0.9 s), which sets the
+   - dig time = base × hardness; swings divide it near `execution.visible_swing_seconds` (0.9 s), which sets the
      pace, not the time; partial swings discarded on interrupt
 4. On each block mined: bedrock re-guard (y > 3), chunk materialised from the generator before
    the first write, WorldData.set_block → void, renderer add_mined_blocks (exact-colour

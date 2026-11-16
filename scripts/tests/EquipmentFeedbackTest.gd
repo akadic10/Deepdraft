@@ -20,7 +20,8 @@ func _run() -> void:
 	await _appointed()
 	_expect(promotion_sounds == 1, "Carpenter completion plays one promotion cue")
 	var news: Array = _promotion_news()
-	_expect(news.size() == 1 and news[0].text == "%s is now a Carpenter." % worker.dwarf_name
+	_expect(news.size() == 1 and news[0].fields == {"name": worker.dwarf_name, "profession": CARPENTER}
+		and news[0].text == "%s is now a Carpenter." % worker.dwarf_name
 		and String(news[0].picture).ends_with("/carpenter.png") and news[0].dwarves == [worker.dwarf_id],
 		"Carpenter completion lands in Events with the profession's icon (doc 23)")
 	worker._process(.1)
@@ -37,7 +38,7 @@ func _run() -> void:
 	worker.change_profession(MINER)
 	_expect(promotion_sounds == 1 and worker.profession == WORKER, "a Miner's request is silent until the pick is in hand")
 	_expect(await _until_role(MINER) and promotion_sounds == 2, "the Miner's completion plays its cue")
-	_expect(_promotion_news().size() == 2 and _promotion_news()[0].text.ends_with(" is now a Miner."), "the Miner promotion is news too")
+	_expect(_promotion_news().size() == 2 and _promotion_news()[0].fields.profession == MINER, "the Miner promotion is news too")
 	clock_node.set_paused(true)
 	worker.change_profession(WORKER)
 	worker.change_profession(CARPENTER)
@@ -59,7 +60,7 @@ func _run() -> void:
 ## The event log's promotion entries, newest first.
 func _promotion_news() -> Array:
 	return root.get_node("EventLog").entries().filter(func(entry: Dictionary) -> bool:
-		return entry.kind == "colony" and String(entry.text).contains(" is now a "))
+		return entry.kind == "colony" and entry.line == "promoted")
 
 
 func _review_views(factory) -> void:

@@ -1,5 +1,42 @@
 # 44 — Crafting Workshops
 
+**Copper nails (2026-11-16, doc 313):** the Carpenter's plank furniture is nailed (owner: "I want
+to introduce copper nails that are made from a copper bar. Copper nails should be needed for
+carpenter or other recipes where it makes sense. 1 copper bar perhaps makes 12 nails. nails
+should follow the crate approach just like most food.").
+- **Who makes them.** A Blacksmith hammers one copper bar into twelve copper nails on the anvil
+  stone, in 12 s, under Crafters → Blacksmith → Metal. The recipe stands after the four tools,
+  so the anvil stone's window still opens at the copper pick. A batch is one Blacksmith
+  experience, as a bar or a tool is.
+- **What takes them.** The seven plank pieces, a nail to each plank, as
+  `additional_ingredients`: the Tool Rack and the Plank bench two; the Raw Materials Crate, the
+  Finished Goods Pallet, the Food Shelf, the Plank Dining Table and the Board-game Table four.
+  Nothing else does: a Worker's camp goods, the carpenter's bench, the fence and the gate, the
+  stone pieces and the tools are all made before a nail can be, or without a board to fix.
+  `CopperNailTest` fails when a plank recipe takes no nails or another recipe takes some.
+- **A crate good.** `base:item:copper_nail` is kept 24 to a crate with low, half and full crates
+  of its own, as produce and log torches are (doc 62, "Copper nails are kept 24 to a crate"): a
+  batch lands as one crate, the
+  next batch joins it, and a crate is one stockpile cell, one carry and one quarter of the
+  finished goods pallet. It is stored as Metal. A crate of nails is a heavy load of 4 points,
+  whatever it holds.
+- **How a piece takes them.** One nail leaves its crate for each the piece needs, from the
+  ground or from storage (`WorkerCraftOrder.take_planting_item`, `StorageComponent.withdraw_stack`);
+  the crate stays where it is with the rest. A piece's nails are one load, so they come in a
+  trip of their own, before the planks ("Trips", below, which also has the fix that lets a
+  later trip find a fuller crate).
+- **Words.** A fixed ingredient a recipe takes several of is counted in the item's own words
+  (`CraftingManager.goods_words`, from the item's `plural_name`): the board heads
+  "INGREDIENTS · 4 planks · 4 copper nails" and lists "4 copper nails · 12 available", and an
+  order reads "Waiting for 4 copper nails". One of a good keeps its name alone ("Waiting for
+  Rough stone"). A recipe's own good is worded the same way where the item names its plural:
+  "Waiting for 1 copper bar", "Waiting for 3 rough stones".
+- **The board at 1080p.** The nails' line made the pallet's and the food shelf's boards a line
+  too tall, so their `purpose` is two lines now. `CraftingBrowserTest` says how many lines a
+  board's words and ingredients take when one does not fit.
+- **The models are unchanged.** The plank pieces' descriptions say nailed; their knot-dark pegs
+  stand where the nails are (doc 64).
+
 **The anvil stone (2026-11-14, doc 310):** the Blacksmith's second station, where a bar is
 hammered into a tool (owner: "I think the smelter should not be that workstation, does the
 blacksmith need another workstation?").
@@ -10,8 +47,9 @@ blacksmith need another workstation?").
   Crafters → Blacksmith → Workshops; installed through Place → Workshops. So the Blacksmith has
   two stations made from raw goods: the basic smelter melts, the anvil stone shapes.
 - **What is made on it.** All four copper tools (pick, saw, chisel, hoe): one bar and a log
-  each, 12 to 14 s, no wait. Nothing is hammered at the basic smelter any more: an order with
-  a smelter but no anvil stone reads "Needs an anvil stone".
+  each, 12 to 14 s, no wait. Since doc 313, copper nails too: one bar into twelve. Nothing is
+  hammered at the basic smelter any more: an order with a smelter but no anvil stone reads
+  "Needs an anvil stone".
 - **Why two stations.** A melting charge, and a set bar until it is taken off, holds the
   smelter (one batch a smelter). On the casting stone, tools and bars took turns; on the anvil
   stone a tool is hammered while the next bar melts.
@@ -176,8 +214,8 @@ batch to the Ranger's log of fish dried.
     (`WorkshopBatch.collect_sound`, `WorkFeedback.play_collect`). The drying rack names none.
 
 **The dining table (2026-10-18; a plank table since 2026-11-13, doc 308):** Crafters →
-Carpenter → Dining offers a Plank Dining Table for four matching planks and 16 seconds at a
-carpenter's bench. Until 2026-11-13 it was the Log Dining Table, two matching logs (and
+Carpenter → Dining offers a Plank Dining Table for four matching planks, four copper nails
+(doc 313) and 16 seconds at a carpenter's bench. Until 2026-11-13 it was the Log Dining Table, two matching logs (and
 Rudimentary, at the crude workbench, until 2026-11-02; see "Specialist workbenches").
 Its 3×3 footprint, its top a block and a half up and its stools' places are as they were
 (doc 62 has its look). Pine, Oak, Juniper and Applewood follow normal material selection,
@@ -194,9 +232,9 @@ Ranger's kit and the stone hammer). The Carpenter's
 page: Workshops, Timber (the four woods' planks, doc 308), Storage, Dining (plank dining table,
 plank bench), Access (Log Fence Post and Log
 Gate, one log and 10 seconds each, doc 198) and Recreation (the Board-game Table: four matching
-planks and one rough stone, 18 seconds; two matching logs until 2026-11-13, doc 308). The Stonemason's page: Workshops, Dining (stone stool)
-and Rooms (the hearth). The Blacksmith's page: Workshops (the basic smelter), Metal (the copper
-bar) and Tools (the copper pick, saw, chisel and hoe).
+planks, four copper nails and one rough stone, 18 seconds; two matching logs until 2026-11-13, doc 308). The Stonemason's page: Workshops, Dining (stone stool)
+and Rooms (the hearth). The Blacksmith's page: Workshops (the basic smelter and the anvil stone), Metal (the copper
+bar and copper nails) and Tools (the copper pick, saw, chisel and hoe).
 Categories affect browsing and search only; a page lists them in the order its recipes first
 name them.
 
@@ -246,7 +284,7 @@ scaled material bonus, with future copper/gold tuning separate from recipes (doc
 **Log furniture (2026-10-11):** Crafters → Rudimentary → Rooms offers 2/3-wide single log
 doors and a 4-wide double log door (the Carpenter's from 2026-11-02 to 2026-11-13), and Crafters
 → Carpenter → Dining a bench (a log bench of one log until 2026-11-13; since then a plank
-bench of two matching planks, doc 308). Each door uses one allowed timber at the crude
+bench of two matching planks, doc 308, and two copper nails, doc 313). Each door uses one allowed timber at the crude
 workbench, taking 12/18/24 seconds; the bench takes 10 at a carpenter's bench. Finished crates use normal haul/install work. The starter
 wooden torch is renamed Log torch; its four-per-log recipe is unchanged (doc 117). Since
 2026-11-15 its torches are kept 24 to a crate, and a batch lands as one crate (doc 62).
@@ -284,7 +322,7 @@ one allowed log plus one Rough Stone (10 seconds), or a log stool from one allow
 log (8 seconds), at the crude workbench. Both use normal physical crafting and
 placement; idle dwarves use stump stools. Installed campfires and hearths are lit at
 dusk with a log and burn until dawn (doc 34). No specialist jobs are enabled (doc 100).
-- **Sections** (`sections` in `recipes.json`: name, `planned`, preview and
+- **Sections** (`sections` in `recipes.json`: `display_name`, `planned`, preview and
   requirement text) only present the menu. They never enable a specialist job or change
   who may craft; a recipe without `section` belongs to Rudimentary.
 - **Every placeable recipe needs a Place tile.** A recipe that makes furniture needs its
@@ -353,6 +391,11 @@ remain design specifications, not live conversion systems.
   - Goods in a loose crate, such as a fisher's catch at the shore, are used where they
     lie: the crate is reserved whole until pickup, which takes out one unit
     (`WorkerCraftOrder.take_planting_item`), and the rest stay in it (doc 289).
+    That holds for every trip of a batch. Until doc 313 the step that plans a later trip
+    (`CraftIngredientPlanner`) saw only single goods, so an ingredient fetched second from a
+    crate holding more than one (the game table's nails after its stone, a second fish out
+    of reach of the first) read as unreachable and waited out a retry before the scheduler
+    planned it again. All three quotes for a craft's goods now count a fuller crate.
   - Units of one kind that travel in crates share one crate's load, as a hauler carries
     a crate (`WorkerCraftOrder._load_with`), so both fish of a drying batch go in one
     trip. A log or a stone is one to a crate, so they still go four at a time.
@@ -475,20 +518,21 @@ path"). Built for the Carpenter and the Stonemason (doc 293):
   stone's `ingredient_words`). Without a mason's bench its order reads "Needs a mason's bench".
   The Rough Stone itself lies on the slab while the maul knocks it square.
 - **The tool rack** (doc 294): the Carpenter's first goods. Carpenters make it at the
-  carpenter's bench from two matching planks (12 s, Storage; one log until 2026-11-13, doc 308);
+  carpenter's bench from two matching planks and two copper nails (12 s, Storage; one log until
+  2026-11-13, doc 308; nails since doc 313);
   without a carpenter's bench its order reads
   "Needs a carpenter's bench". It keeps three of the colony's tools (doc 31, "Storage priority
   and storage furniture").
-- **The raw materials crate** (doc 294): Carpenters make it there from four matching planks
-  (16 s, Storage; two logs until 2026-11-13, doc 308), and it keeps their wood. It holds twelve raw goods: Rough Stone, the ores and coal,
+- **The raw materials crate** (doc 294): Carpenters make it there from four matching planks and
+  four copper nails (16 s, Storage; two logs until 2026-11-13, doc 308), and it keeps their wood. It holds twelve raw goods: Rough Stone, the ores and coal,
   and soil (doc 62).
-- **The finished goods pallet** (doc 296): Carpenters make it there from four matching planks
-  (16 s, Storage; two logs until 2026-11-13, doc 308), and it keeps their wood. Each of its four
-  quarters holds one piece of packed furniture, three metal goods (copper bars; owner,
-  2026-11-12) or four planks (doc 62). A crate of up to 24 log torches is one such piece
-  (2026-11-15).
-- **The food shelf** (doc 299): Carpenters make it there from four matching planks (16 s,
-  Storage; two logs until 2026-11-13, doc 308), and it keeps their wood. It holds six crates of food on two decks (doc 62; doc 42, "Spoilage").
+- **The finished goods pallet** (doc 296): Carpenters make it there from four matching planks and
+  four copper nails (16 s, Storage; two logs until 2026-11-13, doc 308), and it keeps their wood.
+  Each of its four quarters holds one piece of packed furniture, three copper bars (owner,
+  2026-11-12), a crate of up to 24 copper nails (doc 313) or four planks (doc 62). A crate of up
+  to 24 log torches is one such piece (2026-11-15).
+- **The food shelf** (doc 299): Carpenters make it there from four matching planks and four
+  copper nails (16 s, Storage; two logs until 2026-11-13, doc 308), and it keeps their wood. It holds six crates of food on two decks (doc 62; doc 42, "Spoilage").
 - The benches' Craft items open what is made at them, at the first recipe on the page: a plank
   at the carpenter's bench, the stone stool at the mason's bench ("Its window's action").
 - **The basic smelter** (doc 297; reworked in doc 300): the Blacksmith's starter bench, made by
@@ -540,7 +584,8 @@ path"). Built for the Carpenter and the Stonemason (doc 293):
     (`StockpileZoneComponent.DEFAULT_FILTER_TAGS`; Metal had been left out of that list until
     2026-11-13, so a new zone refused copper bars).
   - **Plank furniture** takes planks of one wood (`ingredient_tag` `plank`, worded by the
-    recipe's `ingredient_words`) and wears the Tier 2 look (doc 64). It costs the planks of
+    recipe's `ingredient_words`) and wears the Tier 2 look (doc 64). Since doc 313 it also takes
+    a copper nail to each plank ("Copper nails", at the top of this doc). It costs the planks of
     the logs its log form cost, carries one more point of appeal than that form did, and keeps
     its key, so a colony's pieces change look and its save keeps loading. The first two
     (owner's pick, 2026-11-13): the Plank Dining Table, four planks, and the Plank bench, two.
@@ -663,7 +708,7 @@ The Forge turns ingots and other materials into finished goods. Blacksmiths work
 Full schema: `data/furniture/forge.json` *(to be created; a workshop is a furniture piece)*.
 
 **Before the Forge: the anvil stone (doc 310).** Until iron, bars are hammered on the anvil stone
-(at the top of this doc): copper today, and whatever else comes before iron (owner, 2026-11-14:
+(at the top of this doc), into tools and into copper nails (doc 313): copper today, and whatever else comes before iron (owner, 2026-11-14:
 "perhaps this work station can work for copper, bronze, etc... until the iron anvil arrives
 later"). The Forge's forged anvil is the better bench that replaces it.
 
@@ -685,6 +730,10 @@ General metal goods. Any Blacksmith accepts these tasks.
 | `base:recipe:forge:torch_bracket`   | 1× iron ingot   | 4× torch bracket   | 0.5 h | 1 | Required to place wall torches |
 | `base:recipe:forge:door_hinge`      | 1× iron ingot   | 4× door hinge      | 0.5 h | 1 | Required to place constructed doors |
 | `base:recipe:forge:iron_nail_bundle`| 1× iron ingot   | 6× iron nail       | 0.5 h | 1 | Used in BUILD tasks for wood construction |
+
+Copper nails are in the game already (doc 313, at the top of this doc): twelve from a copper bar
+on the anvil stone, taken by the Carpenter's plank furniture. This table's iron nail is still a
+plan; when iron arrives, decide whether it replaces the copper nail or stands beside it.
 
 ---
 
@@ -822,7 +871,7 @@ Leather strips use the existing `stockpile_general` category until a dedicated t
 - **Gems are finished drops (user decision, 2026-10-10)** — Jade, Amethyst, Ruby, Sapphire, Emerald and Diamond are beautiful and trade-ready immediately after mining. No Jeweller profession, workshop, cutting or polishing stage is planned. This replaces the earlier deferred Jeweller proposal. Their stable `_raw` identifiers do not imply unfinished goods.
 - **Steel tier** — `52_combat_military.md` notes steel as a future equipment quality tier above iron. When steel ore or a steel-making recipe is added, it slots into the existing smelting/forging pipeline with higher `min_skill` requirements and better damage/reduction values. No structural changes to this system are needed.
 - **Forged weapons and champions** — the champion invader AI (`52_combat_military.md` Forward Compatibility) may loot forged weapons on colony breach. The item drop pipeline already handles this; no new code needed.
-- **Copper and tin uses** — copper bars make the trades' tools on the anvil stone (docs 306, 310) and are what brewing and water infrastructure will take (there are no copper fittings: owner, 2026-11-13); tin ingots have no recipes yet and are a placeholder for future systems such as food preservation vessels. Do not delete them from the smelting table.
+- **Copper and tin uses** — copper bars make the trades' tools and the Carpenter's nails on the anvil stone (docs 306, 310, 313) and are what brewing and water infrastructure will take (there are no copper fittings: owner, 2026-11-13); tin ingots have no recipes yet and are a placeholder for future systems such as food preservation vessels. Do not delete them from the smelting table.
 - **Support pillars** — `43_mining_materials.md` notes a future support pillar mechanic. Iron or copper ingots are the likely material input when that system is designed.
 
 ---

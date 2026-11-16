@@ -17,8 +17,8 @@ const LOCATE_ICON := "res://assets/ui/icons/locate.png"
 const FALLBACK := "res://assets/ui/icons/events.png"
 const INTRO := "Newest first. Warnings stay at the top until they are resolved."
 const EMPTY := "Nothing yet. Arrivals, discoveries, colony news and warnings will land here."
-const MUTED := Color("aeb5ad")
-const RULE := Color("27312f")
+const MUTED := UITheme.MUTED
+const RULE := UITheme.RULE
 # Text sizes come from the type scale (doc 23, "Type").
 const LARGE := UITheme.TYPE_LARGE
 const MEDIUM := UITheme.TYPE_MEDIUM

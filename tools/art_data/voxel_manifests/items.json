@@ -3459,6 +3459,102 @@
       "parts": [
         {
           "name": "main",
+          "cells": 426,
+          "visual_triangles": 738,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 280
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 107592,
+      "sha256": "9383f6b68a28cd32be915fb3f066ebcd257307ffaae6427a90e95993a6b832c7",
+      "path": "assets/models/items/crates/copper_nail_low.glb",
+      "authoring": {
+        "item": "copper_nail_low",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 484,
+          "visual_triangles": 828,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 324
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.4375,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 121364,
+      "sha256": "9adb9df063bd5bb00e8d3d4c6a5915c9c18a5928968dbd27319eba92374ee577",
+      "path": "assets/models/items/crates/copper_nail_half.glb",
+      "authoring": {
+        "item": "copper_nail_half",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 585,
+          "visual_triangles": 876,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 342
+          },
+          "min": [
+            -0.375,
+            0.0,
+            -0.3125
+          ],
+          "max": [
+            0.375,
+            0.625,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 128204,
+      "sha256": "e932a7f60b7a2d069fdc0a49d2f20b1d472572ebd249ed048cf65d262113b6ad",
+      "path": "assets/models/items/crates/copper_nail_full.glb",
+      "authoring": {
+        "item": "copper_nail_full",
+        "source": "tools/voxel_assets/hearthblock_goods.py"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 338,
           "visual_triangles": 236,
           "occlusion": true,

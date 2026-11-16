@@ -39,7 +39,7 @@ const TOOL_ID := "furniture"
 const SLICE_OFF_Y := SliceController.MAX_SLICE_Y
 const RAY_MAX := 600.0
 const WallMount = preload("res://scripts/components/WallFurnitureMount.gd")
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Lighting = preload("res://scripts/components/FurnitureLighting.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 var _ladders: Node3D
@@ -79,7 +79,7 @@ const TreePlanting = preload("res://scripts/components/TreePlanting.gd")
 
 var _moving_water_stone := ""
 var _defs: Dictionary = ContentRegistry.furniture.duplicate(true) # own copy: furniture_key -> def
-var _dock_ui: Node = null
+var _dock_ui: DockUI
 var _slice_y: int = SLICE_OFF_Y
 
 var _active: bool = false
@@ -141,12 +141,10 @@ func _ready() -> void:
 	add_child(fire_sound)
 	_ladders = preload("res://scripts/systems/LadderSystem.gd").new()
 	add_child(_ladders)
-	_dock_ui = get_node_or_null(dock_ui_path)
+	_dock_ui = get_node_or_null(dock_ui_path) as DockUI
 	if _dock_ui != null:
-		if _dock_ui.has_method("register_furniture_controller"):
-			_dock_ui.call("register_furniture_controller", self)
-		if _dock_ui.has_signal("tool_requested"):
-			_dock_ui.connect("tool_requested", _on_tool_requested)
+		_dock_ui.register_furniture_controller(self)
+		_dock_ui.tool_requested.connect(_on_tool_requested)
 	var slice_controller := get_node_or_null(slice_controller_path)
 	if slice_controller != null and slice_controller.has_signal("slice_changed"):
 		slice_controller.connect("slice_changed", _on_slice_changed)
@@ -282,8 +280,8 @@ func _emit_catalog_changed() -> void:
 func tool_bar_state() -> Dictionary:
 	var def: Dictionary = _defs.get(_active_key, {})
 	var moving := _moving_furniture >= 0 or not _moving_shrub.is_empty() or not _moving_water_stone.is_empty()
-	var picture := "res://assets/ui/furniture/%s.png" % _active_key.get_slice(":", 2)
-	if not ResourceLoader.exists(picture): picture = Inventory.thumbnail_path(String(def.get("item_key", "")))
+	var picture := Pictures.furniture(_active_key)
+	if not ResourceLoader.exists(picture): picture = Pictures.item(String(def.get("item_key", "")))
 	var state := {"tool": TOOL_ID, "family": "settlement", "picture": picture, "message": _visuals.hint_text,
 		"name": ("Move · %s" if moving else "Place · %s") % String(def.get("display_name", _active_key))}
 	if _require_stock and not _stock_words.is_empty(): state.standing = _stock_words
@@ -452,10 +450,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		var key := event as InputEventKey
 		if not key.pressed:
 			return
-		if key.keycode == KEY_ESCAPE:
-			deactivate()
-			get_viewport().set_input_as_handled()
-		elif key.keycode == KEY_R:
+		if key.is_action(&"tool_rotate"):
 			# Fence posts and seeds have no facing: a planted tree never turns.
 			_yaw = 0 if GridFence.is_post(_defs.get(_active_key,{})) or _defs.get(_active_key,{}).has("tree_species") else (_yaw + 1) % 4
 			_update_hover(true)
@@ -1203,7 +1198,7 @@ func assign_bed(installed_id: int, dwarf_id: int) -> bool:
 func begin_furniture_move(installed_id: int) -> void:
 	var piece: InstalledFurnitureComponent = _installed.get(installed_id)
 	if piece == null or piece.flagged_uninstall: return
-	if _dock_ui != null: _dock_ui.emit_signal("tool_requested",TOOL_ID)
+	if _dock_ui != null: _dock_ui.announce_tool(TOOL_ID)
 	activate_for(piece.furniture_key)
 	_moving_furniture = installed_id
 	_yaw = piece.yaw_steps
@@ -1223,7 +1218,7 @@ func toggle_uninstall(piece: InstalledFurnitureComponent) -> void:
 func begin_shrub_move(id: String) -> void:
 	var plants := get_tree().get_first_node_in_group("surface_details")
 	if plants == null or not plants.can_uproot(id): return
-	if _dock_ui != null: _dock_ui.emit_signal("tool_requested", TOOL_ID)
+	if _dock_ui != null: _dock_ui.announce_tool(TOOL_ID)
 	activate_for(SurfaceDetailRegistry.place_key(String(plants.get_record(id).definition), int(plants.get_record(id).variant)))
 	_moving_shrub = id
 
@@ -1233,7 +1228,7 @@ func begin_water_stone_move(id: String) -> void:
 	var record: Dictionary = WaterManager.stones[id]
 	if record.placed and record.disallowed: return
 	cancel_water_stone_moves(id)
-	if _dock_ui != null: _dock_ui.emit_signal("tool_requested",TOOL_ID)
+	if _dock_ui != null: _dock_ui.announce_tool(TOOL_ID)
 	activate_for("base:furniture:"+record.kind+"_stone")
 	_moving_water_stone = id
 

@@ -15,6 +15,7 @@ func _run() -> void:
 	var order = crafting.get_order(id)
 	_expect(order.lease_id<0 and order.worker_id<0 and _count(BED_ITEM)==0,"incomplete mixed wood cannot start a four-log bed")
 	_expect(crafting.status(order,crafting.stock_snapshot())=="Waiting for 4 matching logs","waiting status explains matching batch cost")
+	_expect(crafting.status_line(order,crafting.stock_snapshot()).tone=="waiting","an order short of goods waits in amber, by what it lacks and not by its words")
 	drops.spawn_drop(OAK,2,Vector3i(49,21,42))
 	_expect(await _staged(id,1),"worker starts with complete oak batch instead of nearer incomplete pine")
 	_expect(order.timber_key==OAK and drops.item_key_of(order.staged_items[0])==OAK,"first log locks the batch's wood")

@@ -196,6 +196,8 @@ static func key_text(action: String) -> String:
 	for event: InputEvent in InputMap.action_get_events(action):
 		if not event is InputEventKey: continue
 		var key := event as InputEventKey
+		# Esc goes by the short name the windows and tooltips use.
+		if key.keycode == KEY_ESCAPE or key.physical_keycode == KEY_ESCAPE: return "Esc"
 		# The key's own character first: asking the display server for the keyboard
 		# layout is not possible in headless runs. Space and the named keys (Esc, the
 		# arrows) are the same on every layout, so they go by name.

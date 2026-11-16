@@ -4,8 +4,8 @@ extends VBoxContainer
 ## of the list of rewards: each water's fish with the catches, dimmed until one is caught; the
 ## big fish, the best day and the fish dried; and the next reward with the catches to go.
 ## Shows CatchLog.describe(); rebuilt only when it changes.
-const HAY := Color("e2c06a")
-const MUTED := Color("aeb5ad")
+const HAY := UITheme.HAY
+const MUTED := UITheme.MUTED
 
 var _shown := {}
 var _size := {}

@@ -74,6 +74,11 @@ func nearest_stand_target(from: Vector3i) -> Vector3i:
 	if String(recipe.workshop).is_empty(): return from
 	return manager.bench_target(String(recipe.workshop), from, is_batch()).get("stand", Vector3i(-1,-1,-1))
 
+## The dwarf that holds this order, for TaskManager's self-check (WorkSourceAdapter).
+func claimed_workers() -> Array:
+	return [worker_id] if worker_id >= 0 else []
+
+
 func display_name() -> String:
 	if bench_id >= 0:
 		var bench = manager.furniture.get_installed(bench_id)

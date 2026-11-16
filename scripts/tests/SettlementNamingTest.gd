@@ -186,13 +186,14 @@ func _test_founding() -> void:
 	_expect(not flag.is_active() and not manager.is_open("founding") and founder.squads == 1 and founder.anchor == CELL,
 		"the card closes, the tool ends and the dwarves arrive")
 	var entry: Dictionary = events.entries()[0] if not events.entries().is_empty() else {}
-	_expect(entry.get("text", "") == "Ost's Hollow is founded." and entry.get("detail", "") == "5 dwarves have arrived with the flag."
-		and entry.get("picture", "") == flag.PICTURE and entry.get("place", []) == [CELL.x, CELL.y, CELL.z] and entry.get("kind", "") == "colony",
+	_expect(entry.get("line", "") == "founded_with" and entry.get("fields", {}) == {"name": "Ost's Hollow", "count": 5}
+		and entry.get("text", "") == "Ost's Hollow is founded." and entry.get("detail", "") == "5 dwarves have arrived with the flag."
+		and entry.get("picture", "") == flag.picture() and entry.get("place", []) == [CELL.x, CELL.y, CELL.z] and entry.get("kind", "") == "colony",
 		"Events announces the settlement by name: %s" % entry)
 	var saved: Dictionary = flag.serialize_state()
 	_expect(saved.name == "Ost's Hollow" and saved.founded_day == flag.founded_day and saved.founded, "the name and day are saved with the flag")
 	_expect(flag.rename("Kolgund") and flag.settlement_name == "Kolgund" and not flag.rename("No"), "the settlement can be renamed within the rules")
-	_expect(events.entries()[0].text == "Ost's Hollow is founded.", "renaming leaves Events as it was written")
+	_expect(events.entries()[0].fields.name == "Ost's Hollow" and events.entries()[0].text == "Ost's Hollow is founded.", "renaming leaves Events as it was written")
 	flag.activate()
 	_expect(not flag.is_active(), "one founding per world")
 

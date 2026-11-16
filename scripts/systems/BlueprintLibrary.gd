@@ -14,6 +14,7 @@ extends Node
 signal changed
 
 const JsonData = preload("res://scripts/registries/JsonData.gd")
+const Wording = preload("res://scripts/components/Wording.gd")
 const FORMAT := 1
 const FOLDER := "user://blueprints/"
 const STARTERS_PATH := "res://data/construction/blueprints.json"
@@ -37,17 +38,20 @@ const FACES := [
 
 var _starters: Array[Dictionary] = []
 var _own: Array[Dictionary] = []
-var _refused: Array[String] = []
+var _refused: Array[Dictionary] = []
+var _refusal_words: Dictionary = {}   # refusal code -> its sentence (blueprints.json "refusals")
 var _pictures: Dictionary = {}   # id -> Texture2D
 var _waiting: Array[String] = []   # ids whose picture is still to render, in order
 var _rendering := false
 
 
 func _ready() -> void:
-	for entry: Variant in JsonData.read_dict(STARTERS_PATH).get("starters", []):
+	var data := JsonData.read_dict(STARTERS_PATH)
+	_refusal_words = data.get("refusals", {})
+	for entry: Variant in data.get("starters", []):
 		var outcome := parse(entry, "")
 		if outcome.has("error"):
-			push_error("BlueprintLibrary: a starter blueprint is refused: %s" % outcome.error)
+			push_error("BlueprintLibrary: a starter blueprint is refused: %s" % [outcome])
 			continue
 		var blueprint: Dictionary = outcome.blueprint
 		blueprint.merge({"id": "starter:" + slug(String(blueprint.name)), "starter": true, "path": ""})
@@ -71,9 +75,16 @@ func get_blueprint(id: String) -> Dictionary:
 	return {}
 
 
-## The files in the folder that could not be read, each "name.json: why".
-func refused() -> Array[String]:
+## The files in the folder that could not be read, each {file, error, and the fields its
+## words take}: the refusal parse() gave, with the file's name. refusal_words() says it.
+func refused() -> Array[Dictionary]:
 	return _refused
+
+
+## A refusal in words for the player: "broken.json: it uses a material the game does not
+## know: marble". The sentences are blueprints.json's "refusals", one a code.
+func refusal_words(refusal: Dictionary) -> String:
+	return Wording.of(_refusal_words, String(refusal.get("error", "")), refusal)
 
 
 ## Reads the folder again, for files the player dropped into it.
@@ -90,12 +101,13 @@ func rescan() -> void:
 func _read_file(path: String) -> void:
 	var stem := path.get_file().get_basename()
 	if FileAccess.get_file_as_bytes(path).size() > MAX_FILE_BYTES:
-		_refused.append("%s: it is too big to be a blueprint" % path.get_file())
+		_refused.append({"file": path.get_file(), "error": "file_too_big"})
 		return
 	var outcome := JsonData.inspect(path, TYPE_DICTIONARY)
-	var parsed := parse(outcome.data, stem) if String(outcome.error).is_empty() else {"error": "it is not a blueprint file"}
+	var parsed := parse(outcome.data, stem) if String(outcome.error).is_empty() else {"error": "not_a_file"}
 	if parsed.has("error"):
-		_refused.append("%s: %s" % [path.get_file(), parsed.error])
+		parsed.file = path.get_file()
+		_refused.append(parsed)
 		return
 	var blueprint: Dictionary = parsed.blueprint
 	blueprint.merge({"id": "own:" + stem, "starter": false, "path": path})
@@ -108,38 +120,40 @@ func _sort() -> void:
 
 # ── Files ─────────────────────────────────────────────────────────────────────
 
-## Checks a blueprint read from a file: {"blueprint": {name, size, blocks}} or {"error": why}.
+## Checks a blueprint read from a file: {"blueprint": {name, size, blocks}}, or a refusal:
+## {"error": a code, and the fields its words take}, as {"error": "unknown_material",
+## "material": "marble"}. Code tells refusals apart by the code; refusal_words() says one.
 ## Only the known fields are read; anything wrong refuses the whole file. A file of another
 ## format is refused, not converted, while the game is in development (as saves are).
 static func parse(data: Variant, fallback_name: String) -> Dictionary:
-	if not data is Dictionary or not (data as Dictionary).has("deepdraft_blueprint"): return {"error": "it is not a Deepdraft blueprint"}
+	if not data is Dictionary or not (data as Dictionary).has("deepdraft_blueprint"): return {"error": "not_a_blueprint"}
 	if not _whole(data.deepdraft_blueprint) or int(data.deepdraft_blueprint) != FORMAT:
-		return {"error": "it was made for another version of the game"}
+		return {"error": "other_version"}
 	var name := String(data.name).strip_edges().left(MAX_NAME) if data.get("name") is String else ""
 	if name.is_empty(): name = fallback_name if not fallback_name.is_empty() else "Blueprint"
-	if not _triple(data.get("size")): return {"error": "its size is not three whole numbers"}
+	if not _triple(data.get("size")): return {"error": "size_not_numbers"}
 	var size := Vector3i(int(data.size[0]), int(data.size[1]), int(data.size[2]))
-	if size.x < 1 or size.y < 1 or size.z < 1: return {"error": "its size is empty"}
+	if size.x < 1 or size.y < 1 or size.z < 1: return {"error": "size_empty"}
 	if size.x > MAX_SIZE.x or size.y > MAX_SIZE.y or size.z > MAX_SIZE.z:
-		return {"error": "it is too large: a blueprint is at most %d × %d × %d" % [MAX_SIZE.x, MAX_SIZE.y, MAX_SIZE.z]}
-	if not data.get("blocks") is Dictionary: return {"error": "it has no blocks"}
+		return {"error": "too_large", "across": MAX_SIZE.x, "tall": MAX_SIZE.y, "deep": MAX_SIZE.z}
+	if not data.get("blocks") is Dictionary: return {"error": "no_blocks"}
 	var blocks := {}
 	var taken := {}
 	for kind: Variant in data.blocks:
 		if not kind is String or material_parts(kind).is_empty():
-			return {"error": "it uses a material the game does not know: %s" % str(kind)}
-		if not data.blocks[kind] is Array: return {"error": "its %s blocks are not a list" % kind}
+			return {"error": "unknown_material", "material": str(kind)}
+		if not data.blocks[kind] is Array: return {"error": "blocks_not_a_list", "material": kind}
 		var cells: Array[Vector3i] = []
 		for cell: Variant in data.blocks[kind]:
-			if not _triple(cell): return {"error": "a %s block is not three whole numbers" % kind}
+			if not _triple(cell): return {"error": "block_not_numbers", "material": kind}
 			var at := Vector3i(int(cell[0]), int(cell[1]), int(cell[2]))
 			if at.x < 0 or at.y < 0 or at.z < 0 or at.x >= size.x or at.y >= size.y or at.z >= size.z:
-				return {"error": "a block lies outside its size"}
-			if taken.has(at): return {"error": "two blocks share a cell"}
+				return {"error": "block_outside"}
+			if taken.has(at): return {"error": "blocks_share_a_cell"}
 			taken[at] = true
 			cells.append(at)
 		if not cells.is_empty(): blocks[kind] = cells
-	if blocks.is_empty(): return {"error": "it has no blocks"}
+	if blocks.is_empty(): return {"error": "no_blocks"}
 	return {"blueprint": {"name": name, "size": size, "blocks": blocks}}
 
 

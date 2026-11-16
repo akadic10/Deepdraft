@@ -5,6 +5,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## a flush body where the content brings its own margins), and the grouped picture grid.
 ## godot --headless --path . --script res://scripts/tests/WindowStyleTest.gd
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 
 
 func _run() -> void:
@@ -128,13 +129,13 @@ func _check_grid() -> void:
 	var grid = Grid.new()
 	grid.family = root.get_node("UIRegistry").get_icon_family_color("settlement")
 	scene.add_child(grid)
-	var bench: Texture2D = load("res://assets/ui/furniture/bench.png")
-	var torch: Texture2D = load("res://assets/ui/furniture/torch.png")
+	var bench: Texture2D = load(Pictures.furniture("base:furniture:bench"))
+	var torch: Texture2D = load(Pictures.furniture(TORCH))
 	var groups := [
 		{"id": "dining", "title": "Dining", "items": [
 			{"id": "bench", "picture": bench, "count": 3, "mark": "on", "selected": true, "tooltip": "Log bench"},
 			{"id": "table", "picture": bench, "mark": "missing", "dim": true, "tooltip": "Log table: needs 2 logs"}]},
-		{"id": "lighting", "title": "Lighting", "state": "Some", "items": [{"id": "torch", "picture": torch}]},
+		{"id": "lighting", "title": "Lighting", "state": "some", "items": [{"id": "torch", "picture": torch}]},
 	]
 	grid.show_groups(groups)
 	await _frames(2)
@@ -174,7 +175,7 @@ func _check_grid() -> void:
 		"a rebuild gives focus back to the tile with the same id; a tile can show a word for its picture")
 	# Storage's rows: the heading beside its tiles, its state a tag that toggles the group.
 	grid.heading_beside = true
-	grid.show_groups([{"id": "materials", "title": "Materials", "state": "Some", "items": [{"id": "stone", "picture": bench, "mark": "on", "selected": true}]}])
+	grid.show_groups([{"id": "materials", "title": "Materials", "state": "some", "items": [{"id": "stone", "picture": bench, "mark": "on", "selected": true}]}])
 	await _frames(2)
 	_expect(grid.get_tile("stone").get_node("Mark").get_global_rect().position.y >= grid.get_global_rect().position.y - 0.5,
 		"a mark on the first row stays inside the grid, so a scroll edge cannot cut it")

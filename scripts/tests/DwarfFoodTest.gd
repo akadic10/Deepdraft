@@ -21,7 +21,7 @@ func _run() -> void:
 	_expect(zone.contents().get(BLUEBERRY,0)==24 and zone._outgoing.size()==1,"walking reserves one portion but leaves the crate stored")
 	var row: Dictionary = inventory_script.snapshot(drops,furniture)[BLUEBERRY]
 	_expect(row.total==24 and row.available==23,"one stored portion is reserved in inventory")
-	_expect(tasks.worker_availability(worker)=="Self-care" and not tasks._idle_dwarves.has(worker.dwarf_id),"food search is unavailable to job assignment")
+	_expect(tasks.worker_availability(worker)=="self_care" and not tasks._idle_dwarves.has(worker.dwarf_id),"food search is unavailable to job assignment")
 	tasks._supervision._reconcile_workers()
 	_expect(not tasks._idle_dwarves.has(worker.dwarf_id),"reconciliation preserves eating availability")
 	_expect(await _food_phase("eating"),"worker physically reaches and collects fruit")

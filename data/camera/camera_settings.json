@@ -11,7 +11,10 @@
     "  (geometric zoom).",
     "  min_distance 2 / cursor_min_gap 1.5 allow ground-level close-up; the surface floor",
     "  (surface_floor_* keys) prevents clipping instead of a hard min distance.",
-    "FRAME PACING is the Frame rate video setting (data/video/video_settings.json)."
+    "FRAME PACING is the Frame rate video setting (data/video/video_settings.json).",
+    "KEYS: the move keys and the slow key are input actions in project.godot (camera_forward,",
+    "  camera_back, camera_left, camera_right, camera_slow; doc 23 \"Keys\"). input_mappings holds",
+    "  the mouse buttons only."
   ],
 
   "camera_settings": {
@@ -55,10 +58,6 @@
   },
 
   "input_mappings": {
-    "move_forward":  ["KEY_W", "KEY_UP"],
-    "move_backward": ["KEY_S", "KEY_DOWN"],
-    "move_left":     ["KEY_A", "KEY_LEFT"],
-    "move_right":    ["KEY_D", "KEY_RIGHT"],
     "rotate_action": "MOUSE_BUTTON_RIGHT",
     "drag_action":   "MOUSE_BUTTON_MIDDLE"
   },

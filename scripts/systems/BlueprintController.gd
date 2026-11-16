@@ -199,11 +199,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		_update(event.position)
 	elif event is InputEventKey and event.pressed and not event.echo and not (event.ctrl_pressed or event.alt_pressed or event.meta_pressed):
-		if event.keycode == KEY_ESCAPE: deactivate()
-		elif event.keycode == KEY_R and _mode == "place":
+		if event.is_action(&"tool_rotate") and _mode == "place":
 			_turns = posmod(_turns + (-1 if event.shift_pressed else 1), 4)
 			_update(_pointer)
-		elif event.keycode == KEY_F and _mode == "copy": set_tool_setting("floor", not _with_floor)
+		elif event.is_action(&"tool_toggle") and _mode == "copy": set_tool_setting("floor", not _with_floor)
 		else: return
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
@@ -437,8 +436,8 @@ func _show_ghost() -> void:
 	ghost_at(_hover)
 	var green: Array[Vector3i] = []
 	for kind: String in _ghost_cells: green.append_array(_ghost_cells[kind])
-	_ghost.mesh = construction.mining.build_fill_mesh(green, Color.WHITE, .005) if not green.is_empty() else null
-	_clash.mesh = construction.mining.build_fill_mesh(_clashes, Color.WHITE, .006) if not _clashes.is_empty() else null
+	_ghost.mesh = construction.mining.build_fill_mesh(green, Color.WHITE, construction.PREVIEW_OUTSET) if not green.is_empty() else null
+	_clash.mesh = construction.mining.build_fill_mesh(_clashes, Color.WHITE, construction.ERASE_OUTSET) if not _clashes.is_empty() else null
 
 
 ## Works out the blueprint placed with its corner at `origin`: the cells a click plans, by

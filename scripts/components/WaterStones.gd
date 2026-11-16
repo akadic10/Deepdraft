@@ -3,6 +3,7 @@ extends Node3D
 ## Placed forms and worker packing jobs. WaterManager owns persistent identity
 ## and effects; ItemDropManager/storage own the inactive packed forms.
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Permission = preload("res://scripts/components/ItemPermission.gd")
 const Packing = preload("res://scripts/components/WaterStonePacking.gd")
 var terrain: Node3D
@@ -184,7 +185,7 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	var state := {"text":"Disallowed: dwarves leave it here", "tone":"blocked"} if record.disallowed \
 		else {"text":"Packing requested", "tone":"waiting"} if record.packing else {"text":"Working while placed", "tone":"fine"}
 	return {"title":definition.display_name, "family":"settlement",
-		"picture":"res://assets/ui/furniture/%s_stone.png" % String(record.kind), "status":state, "rows":[
+		"picture":Pictures.furniture(String(definition.item_key)), "status":state, "rows":[
 		["Colony access","Disallowed" if record.disallowed else "Allowed"],
 		["Water","Active while placed"],["Order","Packing requested" if record.packing else "None"]],
 		"details":"Feeds water up to level %.1f. Allowing colony access does not stop the spring or automatically move it." % record.level if record.kind=="wet" else "Absorbs water above level %.1f. Packing stops the drain; allowing access alone leaves it working." % record.level,

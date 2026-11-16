@@ -81,6 +81,7 @@ func _fits(assets: Node) -> void:
 		_expect(pair.size() == 2 and assets.stat_ids().has(pair[0]) and assets.stat_ids().has(pair[1]), "%s names a main and a second stat" % key)
 	for id: String in assets.stat_ids():
 		_expect(ResourceLoader.exists(String(assets.stat_definition(id).get("icon", ""))), "%s has its picture" % id)
+		_expect(not String(assets.stat_definition(id).get("display_name", "")).is_empty(), "%s has the name it is shown by" % id)
 
 
 ## 6% of work speed a step from Average (step 3): Strength digs and fells, Wits crafts and
@@ -118,6 +119,8 @@ func _sheet() -> void:
 	var strength: Dictionary = sheet._stat_rows["base:stat:strength"]
 	var agility: Dictionary = sheet._stat_rows["base:stat:agility"]
 	_expect(strength.word.text == "Excellent" and agility.word.text == "Poor", "each stat shows its step's word")
+	_expect(strength.name.text == "Strength" and agility.name.text == "Agility" and String(strength.row.tooltip_text).begins_with("Strength · Excellent"),
+		"each stat shows its name, on its row and in the hover: %s, %s" % [strength.name.text, strength.row.tooltip_text.get_slice("\n", 0)])
 	var fill: StyleBox = UITheme.cell_style("fill", int(sheet._size.pip_cell))
 	var filled := (agility.marks as Array).filter(func(mark: PanelContainer) -> bool: return mark.get_theme_stylebox("panel") == fill).size()
 	_expect(filled == 1 and int(strength.step) == 5, "the pips fill to the step (%d filled for Poor)" % filled)

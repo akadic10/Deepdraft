@@ -107,7 +107,14 @@ planned. This supersedes the earlier permanent-water-block and no-flood rules.
 
 Rivers are crossed on built logs (doc 32, "River crossings"). Construction never
 builds into standing water, so a deck sits above the surface. Its blocks are solid
-terrain, so water flows on beneath a deck but cannot rise through it. The log bridge
+terrain, so water flows on beneath a deck but cannot rise through it. A deck one block
+over the water can therefore hold a river back: water under it cannot stand higher than
+its underside, so no more passes than that opening carries, and the rest rises behind it
+until it runs over the deck and the banks as a film. Measured in the owner's colony on
+2026-11-16: a stone deck four blocks long, one block over a bed at 41, held the river at
+44.1 above it against 42.1 below, and with its blocks over the channel taken out (in a
+copy) the river fell under the bank top within 15 seconds. This is how the simulation
+behaves, not a rule anyone chose; whether a low deck should let a river through is open. The log bridge
 furniture, whose deck left the water untouched, was retired on 2026-10-27.
 
 Duck navigation reads live water levels and excludes unsafe waterfall approaches
@@ -202,7 +209,12 @@ A fall is drawn only where water drops more than one block at a free outlet, set
 0.025 block off the cliff face so the two never flicker against each other.
 Depths below 1/16 block are conserved surface films: damp ground rather than blue
 standing water, without blocking navigation/placement or producing waterfall
-effects or sound.
+effects or sound. A rule that asks whether ground is under water asks
+`WaterManager.has_standing_water`, never `depth_at(...) > 0`: the fishing spot and the
+field rules asked the second until 2026-11-16 and refused damp ground (docs 42, "Fishing"
+and "Fields"; `FishingTest`, `FarmingTest`). A film stays once it lies: in a copy of the
+owner's colony the banks were still damp two minutes after the river that wet them had
+fallen back.
 
 Development → **DEV: Water** offers feature locations, spring stop/start,
 a test dam/removal, a measured lake withdrawal and the moisture overlay. The dam
@@ -337,8 +349,8 @@ agriculture and alcohol production.
   quarter faster, and pumpkins are sown and grow only in damp soil. A day of rain or storm
   makes every open field damp; rain adds no water to the world. Tilled soil is `dirt` to the
   moisture rules, so it wets, dries and shows damp as dirt does. Fields only read
-  `soil_moisture_at` and `depth_at`; a tile under standing water is left alone, and flooding
-  takes no plant.
+  `soil_moisture_at` and `has_standing_water`; a tile under standing water is left alone, and
+  flooding takes no plant.
 - **Fishing** (doc 289; the rules are in doc 42, "Fishing"). The lake, the tarn, the river and
   the spring cave's pool each hold a fish stock that catches lower and that regrows; water the
   player makes holds none. Fishing only reads `depth_at`, the live blocks between a bank and

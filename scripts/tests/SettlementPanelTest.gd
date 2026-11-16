@@ -248,12 +248,14 @@ func _test_journal() -> void:
 	var a: Node = dwarves[0]
 	var b: Node = dwarves[1]
 	var c: Node = dwarves[2]
+	# Saved lines are codes: the page shows the words the journal builds from them.
 	journal.restore_state({"lines": [
-		_line(today - 1, "bedroom", "Slept in my own bedroom", "praise", [a.dwarf_id], a, "A door that shuts and a bed of my own. Bliss."),
-		_line(today, "bedroom", "Slept in my own bedroom", "praise", [b.dwarf_id], b, "Slept like a stone. My own stone, in my own room."),
-		_line(today, "chilly", "Chilly sleep", "complaint", [a.dwarf_id, b.dwarf_id, 999], null, "Woke with frost in my beard. A hearth would not go amiss."),
-		_line(today, "dining_neither", "Ate without a proper place", "complaint", [c.dwarf_id], c, "Ate in the dirt like a mole."),
+		_line(today - 1, "bedroom", "praise", [a.dwarf_id], a),
+		_line(today, "bedroom", "praise", [b.dwarf_id], b),
+		_line(today, "chilly", "complaint", [a.dwarf_id, b.dwarf_id, 999], null),
+		_line(today, "dining_neither", "complaint", [c.dwarf_id], c),
 	]})
+	var said: String = journal.lines().filter(func(line: Dictionary) -> bool: return line.topic == "chilly")[0].words
 	panel.refresh()
 	await _settle()
 	var days: Array = panel._journal_list.get_children().filter(func(node: Node) -> bool: return node is VBoxContainer)
@@ -263,7 +265,7 @@ func _test_journal() -> void:
 	_expect(order == ["Today · Autumn, day 3", "Complaints", "line", "line", "Praises", "line"], "complaints, then praises: %s" % [order])
 	var chilly: Control = days[0].get_child(2)
 	var words: Array = chilly.find_children("*", "Label", true, false).map(func(label: Label) -> String: return label.text)
-	_expect(words == ["Hilde", "· Chilly sleep", "3 dwarves", "“Woke with frost in my beard. A hearth would not go amiss.”"],
+	_expect(said in journal.config.lines.chilly and words == ["Hilde", "· Chilly sleep", "3 dwarves", "“%s”" % said],
 		"a line: the speaker, the thought, how many share it and the words, the most shared first: %s" % [words])
 	var shared: Control = chilly.find_children("*", "PanelContainer", true, false).back()
 	_expect(shared.tooltip_text == "%s, %s" % [a.dwarf_name, b.dwarf_name], "the dwarves sharing it on hover, those still here")
@@ -277,7 +279,7 @@ func _test_journal() -> void:
 	var many: Array = []
 	for back in range(10):
 		for topic: Array in [["bedroom", "praise"], ["chilly", "complaint"], ["hungry", "complaint"]]:
-			many.append(_line(today - 9 + back, topic[0], String(topic[0]).capitalize(), topic[1], [a.dwarf_id], a, "Words for day %d." % back))
+			many.append(_line(today - 9 + back, topic[0], topic[1], [a.dwarf_id], a))
 	journal.restore_state({"lines": many})
 	panel.refresh()
 	await _settle()
@@ -285,8 +287,8 @@ func _test_journal() -> void:
 		"a long journal scrolls by itself, and the rows stay whole")
 
 
-func _line(day: int, topic: String, text: String, tone: String, shared: Array, speaker: Node, words: String) -> Dictionary:
-	return {"day": day, "topic": topic, "text": text, "tone": tone, "dwarves": shared, "words": words,
+func _line(day: int, topic: String, tone: String, shared: Array, speaker: Node) -> Dictionary:
+	return {"day": day, "topic": topic, "tone": tone, "dwarves": shared, "fields": {},
 		"speaker": speaker.dwarf_id if speaker != null else int(shared.back()), "name": speaker.dwarf_name if speaker != null else "Hilde"}
 
 

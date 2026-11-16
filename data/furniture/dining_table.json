@@ -2,7 +2,7 @@
   "furniture_key": "base:furniture:dining_table",
   "furniture_category": "dining",
   "display_name": "Plank dining table",
-  "description": "Four broad boards laid across two plank ends, tied under each long side by a pegged board. Sawn and pegged by a Carpenter. Four separate stools fit around it in a 5 × 5 dining layout.",
+  "description": "Four broad boards laid across two plank ends, tied under each long side by a nailed board. Sawn and nailed by a Carpenter. Four separate stools fit around it in a 5 × 5 dining layout.",
   "model": "res://assets/models/furniture/dining_table.glb",
   "item_key": "base:item:dining_table",
   "placement": "floor",

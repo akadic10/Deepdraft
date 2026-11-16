@@ -622,12 +622,12 @@ func _show_dwarf_rows(data: Dictionary) -> void:
 	_profession_label.tooltip_text = "Tool · " + String(data.get("equipment", "")).get_slice("\n", 0)
 	_activity_label.text = String(data.get("activity", ""))
 	var destination := String(data.get("destination", ""))
-	_activity_label.tooltip_text = String(data.get("explanation", "")) + ("" if destination in ["", "No destination"] else "\n" + destination)
+	_activity_label.tooltip_text = String(data.get("explanation", "")) + ("" if destination.is_empty() else "\n" + destination)
 	var health: Dictionary = data.get("health", {})
 	_health_chip.visible = bool(health.get("hurt", false))
 	if _health_chip.visible:
 		_health_label.text = "%d/%d" % [health.points, health.maximum]
-		_health_label.add_theme_color_override("font_color", UITheme.TAG_TONES.waiting[0] if health.word == "Hurt" else UITheme.DANGER_RED)
+		_health_label.add_theme_color_override("font_color", UITheme.TAG_TONES.waiting[0] if health.level == "hurt" else UITheme.DANGER_RED)
 		_health_chip.tooltip_text = "%s · %d of %d hit points\nHealth comes back slowly, faster while asleep." % [health.word, health.points, health.maximum]
 	var concern: Dictionary = data.get("concern", {})
 	_concern_icon.visible = not concern.is_empty()

@@ -69,19 +69,30 @@ func _starter_test() -> void:
 func _file_test() -> void:
 	var good := {"deepdraft_blueprint": 1, "name": "Good", "size": [2, 1, 1], "blocks": {"stone": [[0, 0, 0], [1, 0, 0]]}}
 	_expect(Library.parse(good, "").has("blueprint"),"a good file is read")
+	# Each refusal is told apart by its code; its words are the library's to say.
 	var cases := {
-		"not a blueprint": [],
-		"another version": {"deepdraft_blueprint": 2, "size": [1, 1, 1], "blocks": {"stone": [[0, 0, 0]]}},
-		"too large": {"deepdraft_blueprint": 1, "size": [40, 1, 1], "blocks": {"stone": [[0, 0, 0]]}},
-		"material the game does not know": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"marble": [[0, 0, 0]]}},
-		"outside its size": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": [[1, 0, 0]]}},
-		"share a cell": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": [[0, 0, 0]], "dirt": [[0, 0, 0]]}},
-		"not three whole numbers": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": [[0.5, 0, 0]]}},
+		"not_a_blueprint": [],
+		"other_version": {"deepdraft_blueprint": 2, "size": [1, 1, 1], "blocks": {"stone": [[0, 0, 0]]}},
+		"size_not_numbers": {"deepdraft_blueprint": 1, "size": [1, 1], "blocks": {"stone": [[0, 0, 0]]}},
+		"size_empty": {"deepdraft_blueprint": 1, "size": [0, 1, 1], "blocks": {"stone": [[0, 0, 0]]}},
+		"too_large": {"deepdraft_blueprint": 1, "size": [40, 1, 1], "blocks": {"stone": [[0, 0, 0]]}},
+		"no_blocks": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {}},
+		"unknown_material": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"marble": [[0, 0, 0]]}},
+		"blocks_not_a_list": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": 3}},
+		"block_not_numbers": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": [[0.5, 0, 0]]}},
+		"block_outside": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": [[1, 0, 0]]}},
+		"blocks_share_a_cell": {"deepdraft_blueprint": 1, "size": [1, 1, 1], "blocks": {"stone": [[0, 0, 0]], "dirt": [[0, 0, 0]]}},
 	}
-	for why: String in cases:
-		var outcome: Dictionary = Library.parse(cases[why], "x")
-		_expect(outcome.has("error") and String(outcome.error).contains(why.trim_prefix("not a ").trim_prefix("a ")),
-			"a file is refused (%s): %s" % [why, outcome.get("error", "read")])
+	for code: String in cases:
+		var outcome: Dictionary = Library.parse(cases[code], "x")
+		_expect(String(outcome.get("error", "read")) == code, "a file is refused (%s): %s" % [code, outcome.get("error", "read")])
+		var words: String = library.refusal_words(outcome.merged({"file": "x.json"}))
+		_expect(words.begins_with("x.json: ") and words != code and not "{" in words, "the refusal %s has its words: %s" % [code, words])
+	for code: String in ["file_too_big", "not_a_file"]:
+		var words: String = library.refusal_words({"file": "x.json", "error": code})
+		_expect(words.begins_with("x.json: ") and not "{" in words, "the refusal %s has its words: %s" % [code, words])
+	_expect(library.refusal_words({"file": "x.json", "error": "too_large", "across": 32, "tall": 16, "deep": 32})
+		== "x.json: it is too large: a blueprint is at most 32 × 16 × 32", "a refusal's fields are put into its sentence")
 	var text: String = Library.to_text({"name": "Round \"trip\"", "size": Vector3i(2, 1, 1), "blocks": {"stone": [Vector3i(0, 0, 0)]}})
 	var back: Dictionary = Library.parse(JSON.parse_string(text), "")
 	_expect(back.has("blueprint") and back.blueprint.name=="Round \"trip\"" and _same(back.blueprint.blocks.stone, [Vector3i(0, 0, 0)]),"a file reads back as written")
@@ -103,7 +114,9 @@ func _restart_test() -> void:
 	var again: Dictionary = fresh.get_blueprint(String(saved.id))
 	_expect(not again.is_empty() and again.name=="Test wall" and _same(again.blocks["log:pine:x"], cells),"the blueprint, logs and all, survives a restart")
 	_expect(not fresh.get_blueprint("own:friends_tower").is_empty(),"a friend's file dropped in is read")
-	_expect(fresh.refused().size()==1 and String(fresh.refused()[0]).begins_with("broken.json: it uses a material"),"a bad file is named with why: %s" % [fresh.refused()])
+	var bad: Array = fresh.refused()
+	_expect(bad.size()==1 and bad[0].file=="broken.json" and bad[0].error=="unknown_material" and bad[0].material=="marble","a bad file is named with why: %s" % [bad])
+	_expect(bad.size()==1 and fresh.refusal_words(bad[0])=="broken.json: it uses a material the game does not know: marble","the bad file's refusal is said in words: %s" % [bad])
 	fresh.queue_free()
 	library.rescan()
 	var old_path := String(saved.path)

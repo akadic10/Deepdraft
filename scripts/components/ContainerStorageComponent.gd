@@ -32,7 +32,7 @@ var edible_only := false               # only goods dwarves eat, of its tags
 var anchors: Array = []
 var hang := false
 var straight := false                  # its goods all stand the same way
-var piece_name := "storage"            # the piece, for Events ("on the food shelf")
+var piece_key := ""                    # the piece's furniture id, for Events ("on the food shelf")
 var cells: Array[Vector3i] = []        # the piece's footprint floor cells
 var footprint := Vector2(1, 1)         # its width and depth in blocks, for the anchors
 var display_parent: Node3D = null      # the piece's node: shown goods are its children
@@ -54,7 +54,7 @@ func setup_container(def: Dictionary, footprint_cells: Array[Vector3i], node: No
 	anchors = storage.get("anchors", [])
 	hang = bool(storage.get("hang", false))
 	straight = bool(storage.get("straight", false))
-	piece_name = String(def.get("display_name", piece_name)).to_lower()
+	piece_key = String(def.get("furniture_key", ""))
 	priority = clampi(int(storage.get("priority", LAST_PRIORITY - 1)), FIRST_PRIORITY, LAST_PRIORITY)
 	footprint = Vector2(float(def.footprint.width), float(def.footprint.depth))
 	_slots.slots = range(capacity)
@@ -319,8 +319,8 @@ func discard_unclaimed(slot: Variant) -> int:
 	return gone
 
 
-func place_words() -> String:
-	return "on the %s" % piece_name
+func place_code() -> String:
+	return "piece:" + piece_key if not piece_key.is_empty() else "storage"
 
 
 # ── What it shows ─────────────────────────────────────────────────────────────

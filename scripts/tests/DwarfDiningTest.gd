@@ -341,13 +341,13 @@ func _foraging() -> void:
 	var events := root.get_node("EventLog")
 	events.check_food()
 	var shortage: Dictionary = events.warning("food")
-	_expect(shortage.get("text","")=="1 dwarf cannot find reachable food." and shortage.get("dwarves",[])==[worker.dwarf_id],"failed searches pin the food warning in Events")
+	_expect(shortage.get("line","")=="food_short" and shortage.get("fields",{})=={"count":1} and shortage.get("dwarves",[])==[worker.dwarf_id],"failed searches pin the food warning in Events")
 	_store(APPLE,4)
 	_hungry(worker); worker._food.value=.1
 	_expect(await _food_phase("eating"),"famished dwarf still takes stored food first")
 	_expect(worker._food._quote.key==APPLE and details.forage_available(bush_id),"emergency never overrides reachable storage")
 	events.check_food()
-	_expect(events.warning("food").is_empty() and events.entries().any(func(entry:Dictionary)->bool: return entry.id==shortage.get("id",-1) and entry.text=="1 dwarf could not find reachable food."),
+	_expect(events.warning("food").is_empty() and events.entries().any(func(entry:Dictionary)->bool: return entry.id==shortage.get("id",-1) and entry.has("resolved") and entry.text=="1 dwarf could not find reachable food."),
 		"collecting food resolves the shortage warning, in past words")
 	await _finish_food()
 	_clear_food()

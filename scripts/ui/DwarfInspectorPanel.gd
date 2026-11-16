@@ -20,17 +20,17 @@ extends MarginContainer
 ## another live agent or a world camera.
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const EquipmentPanel = preload("res://scripts/ui/DwarfEquipmentPanel.gd")
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const Inspection = preload("res://scripts/components/DwarfInspection.gd")
 const Appeal = preload("res://scripts/components/RoomAppeal.gd")
 const RoomPanel = preload("res://scripts/ui/RoomInspectorPanel.gd")   # its appeal scale
 const CatchLogView = preload("res://scripts/ui/CatchLogView.gd")
 const TABS := ["Overview", "Mood", "Traits", "Equipment", "Profession", "Tastes"]
 const TASTES_TAB := 5
-const HAY := Color("e2c06a")
-const MOSS := Color("8fbf5a")
-const RUST := Color("d3856e")   # the rust tag, lit, for words on the dark slab
-const MUTED := Color("aeb5ad")
+const HAY := UITheme.HAY
+const MOSS := UITheme.MOSS
+const RUST := UITheme.RUST
+const MUTED := UITheme.MUTED
 # Text sizes come from the type scale (doc 23, "Type").
 const LARGE := UITheme.TYPE_LARGE
 const MEDIUM := UITheme.TYPE_MEDIUM
@@ -552,7 +552,7 @@ func _show_overview(data: Dictionary) -> void:
 	_activity.tooltip_text = String(data.explanation)
 	_explanation.text = String(data.explanation)
 	var destination := String(data.destination)
-	_destination.text = "" if destination == "No destination" else destination.replace("\n", " · ")
+	_destination.text = destination.replace("\n", " · ")
 	_destination.tooltip_text = "Now at " + String(data.location)
 	_destination.visible = not _destination.text.is_empty()
 	var concern: Dictionary = data.get("concern", {})
@@ -583,8 +583,7 @@ func _show_overview(data: Dictionary) -> void:
 		_clear(_carry_tiles)
 		for entry: Dictionary in data.cargo:
 			var key := String(entry.key)
-			var path := Inventory.thumbnail_path(key)
-			if not ResourceLoader.exists(path): path = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)   # packed furniture
+			var path := Pictures.of(key)   # a packed piece shows its furniture's picture
 			_carry_tiles.add_child(_counted_tile(_texture(path), int(entry.count)))
 	_carry_tiles.visible = _carry_tiles.get_child_count() > 0
 
@@ -695,8 +694,9 @@ func _show_health(health: Dictionary) -> void:
 	_health_need.panel.visible = not health.is_empty()
 	if health.is_empty(): return
 	var word := String(health.word)
+	var level := String(health.level)
 	_health_words.text = "%s · %d of %d hit points" % [word, health.points, health.maximum]
-	_health_words.add_theme_color_override("font_color", MOSS if word == "Healthy" else (HAY if word == "Hurt" else RUST))
+	_health_words.add_theme_color_override("font_color", MOSS if level == "healthy" else (HAY if level == "hurt" else RUST))
 	_health_need.status.text = "%d of %d · %s" % [health.points, health.maximum, word]
 	_health_need.bar.value = float(health.share) * 100.0
 
@@ -961,7 +961,7 @@ func _stat_row(id: String) -> HBoxContainer:
 	line.add_theme_constant_override("separation", 8)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(line)
-	var name := _text(line, String(stat.get("name", id)), MEDIUM.lead, UITheme.CARD_TITLE, true)
+	var name := _text(line, String(stat.get("display_name", id)), MEDIUM.lead, UITheme.CARD_TITLE, true)
 	name.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var word := _text(line, "", MEDIUM.body)
 	word.autowrap_mode = TextServer.AUTOWRAP_OFF

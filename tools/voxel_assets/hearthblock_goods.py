@@ -5,7 +5,8 @@ Mined stone, soil and ore are chunky square fragments with a split; gems are squ
 crystal clusters; logs are the Tier 1 stool on its side in each wood's colours;
 produce, seeds and cuttings sit in an axe-hewn crate at three fill levels, and so do
 the Farmer's seven vegetables, each laid to be told from the rest from above (doc 309),
-and the log torches, the one piece of furniture kept 24 to a crate; the
+the log torches, the one piece of furniture kept 24 to a crate, and the Blacksmith's
+copper nails (doc 313); the
 Worker's tools have worked stone heads lashed to their hafts, the Ranger's kit is
 its two tools crossed and lashed where they cross, and the Blacksmith's copper
 tools are the copper bar's own metal on the same hafts. Every good keeps its
@@ -425,11 +426,36 @@ def torches(v, char, binding, level):
             lay(v, piece, (-4 if heads_right else 3, 2 + 2 * layer, z), 'x', 1 if heads_right else -1)
 
 
+# ── Copper nails (doc 313): the Blacksmith's, kept 24 to a crate ─────────────────
+def nails(v, shade, light, level):
+    """Square copper nails tipped into the crate: each a shank three cells long and a cell
+    square, with a hammered head standing a cell proud of its end. Six lie on the heap in three
+    rows, two to a row: points together in the outer rows and heads together in the middle one,
+    so the bright heads make a cross from above. A half crate has two more lying across them and
+    a full crate a third layer on top. The metal is the copper bar's own (`COPPER`): its body
+    for the shanks, its light for the heads and its shade for the heap underneath."""
+    nail = {(0, 0, 0): light, (0, 1, 0): light}
+    for a in range(1, 4): nail[a, 0, 0] = COPPER['body']
+    top = [3, 4, 6][level]
+    notched(v, (-4, 1, -3), (4, top, 3), shade, 0)                 # the heap underneath, in shadow
+    for z in (-3, 1):                                              # heads at the crate's ends
+        lay(v, nail, (-4, top, z), 'x', 1); lay(v, nail, (3, top, z), 'x', -1)
+    lay(v, nail, (-1, top, -1), 'x', -1); lay(v, nail, (0, top, -1), 'x', 1)   # heads at its middle
+    if level >= 1:
+        lay(v, nail, (-2, top + 1, -3), 'z', 1); lay(v, nail, (1, top + 1, 2), 'z', -1)
+    if level == 2:
+        lay(v, nail, (-2, top + 2, 0), 'x', 1)
+
+
 def crate(name, level):
     v = shell(); kind, dark, light = ITEMS['crate_contents'][name]; dark, light = linear(dark), linear(light)
     joinery = dict(v.cells)
     if kind == 'torch':
         torches(v, dark, light, level)
+        v.cells.update(joinery)
+        return v
+    if kind == 'nail':
+        nails(v, dark, light, level)
         v.cells.update(joinery)
         return v
     if kind in VEGETABLES:

@@ -22,7 +22,7 @@ func _run() -> void:
 	await _floor_excavation()
 	await _cleanup()
 	for failure: String in failures: push_error(failure)
-	var report := {"placements":checked,"set_down_seconds":tasks.get_config_section("hauling").deposit_time_s,
+	var report := {"placements":checked,"set_down_seconds":tasks.get_config_section("hauling").deposit_time_seconds,
 		"failures":failures,"player_saves_touched":false}
 	var file := FileAccess.open(OUT+"checks.json",FileAccess.WRITE)
 	file.store_string(JSON.stringify(report,"  ")+"\n")
@@ -75,7 +75,7 @@ func _arrive(key: String,yaw: int) -> RefCounted:
 func _place_case(key: String,yaw: int) -> void:
 	var ghost = await _arrive(key,yaw)
 	if worker._task_phase!=worker.TaskPhase.FETCH_DEPOSIT: return
-	var duration: float = tasks.get_config_section("hauling").deposit_time_s
+	var duration: float = tasks.get_config_section("hauling").deposit_time_seconds
 	_expect(is_zero_approx(worker._work_execution._handling_elapsed),"arrival does not spend hidden placement work")
 	_expect(is_equal_approx(worker._work_execution._handling_duration,duration),"only the shared set-down duration is charged")
 	var item: Node3D = worker._work_execution._fetch_item

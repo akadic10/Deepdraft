@@ -42,7 +42,7 @@ func _run() -> void:
 		_expect(not crafting.recipes.has(RECIPE + gone) and not drops.get_item_defs().has(TOOL + gone), "the %s is retired" % gone)
 	for key: String in drops.get_item_defs():
 		if "tool" in drops.get_item_def(key).get("material_tags", []):
-			_expect(ResourceLoader.exists(String(drops.get_item_def(key).model)) and ResourceLoader.exists("res://assets/ui/items/%s.png" % key.replace(":", "_")),
+			_expect(ResourceLoader.exists(String(drops.get_item_def(key).model)) and ResourceLoader.exists(preload("res://scripts/components/Pictures.gd").item(key)),
 				"every tool has its model and its picture: " + key)
 	# Rudimentary is the first camp: the bed and every door are a Worker's again.
 	for name: String in ["log_bed", "door_2", "door_3", "door_4"]:
@@ -58,7 +58,7 @@ func _run() -> void:
 		"dining_table", "bench", "log_fence", "log_gate", "board_game_table"],
 		"the Carpenter saws planks (doc 308) and keeps storage, tables, fences and games: %s" % [pages.carpenter])
 	_expect(pages.stonemason == ["mason_bench", "stone_stool", "hearth"], "the Stonemason keeps the stool and the hearth: %s" % [pages.stonemason])
-	_expect(pages.blacksmith == ["basic_smelter", "anvil_stone", "copper_bar", "copper_pick", "copper_saw", "copper_chisel", "copper_hoe"], "the Blacksmith makes its two stations, copper and the trades' tools: %s" % [pages.blacksmith])
+	_expect(pages.blacksmith == ["basic_smelter", "anvil_stone", "copper_bar", "copper_pick", "copper_saw", "copper_chisel", "copper_hoe", "copper_nail"], "the Blacksmith makes its two stations, copper, the trades' tools and nails (doc 313): %s" % [pages.blacksmith])
 	# A Worker makes a bed and a door at the crude workbench.
 	furniture._install(BENCH, furniture.get_defs()[BENCH], Vector3i(45, 20, 42), 0)
 	drops.spawn_drop(PINE, 5, Vector3i(42, 21, 42))
@@ -164,6 +164,7 @@ func _review_map() -> void:
 	var map = director._profession_panel
 	await _frames(4)
 	_expect(map._selected == P + "blacksmith", "a Worker's map opens on the Blacksmith, whose copper opens the other trades")
+	_expect(map._fit_row.visible and String(map._fit_text.text).ends_with("fit · Strength, then Wits"), "the card names the trade's two stats: %s" % map._fit_text.text)
 	# A line is what a dwarf is promoted from, so no trade hangs under another: under the Blacksmith
 	# the copper trades read as "be a Blacksmith first".
 	var parents := {}

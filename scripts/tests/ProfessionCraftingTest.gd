@@ -79,8 +79,8 @@ func _run() -> void:
 	worker._idle_behavior.cancel()
 	worker.position = Vector3(46.5,21,41.5)
 	worker._idle_behavior.config = tasks.get_config_section("idle").duplicate(true)
-	worker._idle_behavior.config.start_delay_min_s = .1
-	worker._idle_behavior.config.start_delay_max_s = .1
+	worker._idle_behavior.config.start_delay_min_seconds = .1
+	worker._idle_behavior.config.start_delay_max_seconds = .1
 	worker._idle_behavior.config.seat_chance = 1.0
 	for i in range(180):
 		worker._process(.1)

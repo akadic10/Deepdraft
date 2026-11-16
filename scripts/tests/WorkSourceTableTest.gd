@@ -37,6 +37,7 @@ func _run() -> void:
 	Table = load("res://scripts/components/WorkSourceTable.gd")
 	Adapter = load("res://scripts/components/WorkSourceAdapter.gd")
 	_check_stub_family()
+	_check_claims()
 	await _check_ladders()
 	await _check_trees()
 	for failure: String in failures: push_error(failure)
@@ -64,6 +65,27 @@ func _check_stub_family() -> void:
 	_expect(table.retire("stub", true) == stub, "retire returns the source")
 	_expect(stub.events.slice(before) == ["retired"], "retiring cancels without routing gone events (got %s)" % str(stub.events.slice(before)))
 	_expect(_leases(id) == 0 and tasks.get_work_source(id) == null and table.size() == 0 and table.key_for(id) == null, "retire cancels, unregisters and forgets")
+
+
+## The self-check sees every kind of source that keeps a worker's claim (code review
+## 2026-11-16): each answers claimed_workers() itself, so a claim with no matching lease is
+## reported for a fishing spot as it is for a tree. It used to know five kinds by name.
+func _check_claims() -> void:
+	for source_name: String in ["StorageComponent", "FurnitureGhostComponent", "MiningZoneComponent", "TreeFellingComponent",
+			"WorkerCraftOrder", "FishingSpot", "FarmFieldWork", "WorkshopBatch"]:
+		var script: GDScript = load("res://scripts/components/%s.gd" % source_name)
+		_expect(script.get_script_method_list().any(func(method: Dictionary) -> bool: return method.name == "claimed_workers"),
+			"%s answers claimed_workers" % source_name)
+	var spot: RefCounted = load("res://scripts/components/FishingSpot.gd").new()
+	var table = Table.new()
+	var id: int = table.add("spot", spot)
+	var orphan := "Orphan source claim: %d worker 7" % id
+	_expect(Adapter.claimed_workers(spot).is_empty() and not orphan in tasks.lifecycle_errors(), "a free fishing spot claims no one")
+	spot.reserved_by = 7
+	_expect(Adapter.claimed_workers(spot) == [7], "a held fishing spot names its dwarf (got %s)" % str(Adapter.claimed_workers(spot)))
+	_expect(orphan in tasks.lifecycle_errors(), "a spot held by a dwarf with no lease is reported (got %s)" % str(tasks.lifecycle_errors()))
+	spot.reserved_by = -1
+	table.retire("spot", true)
 
 
 func _check_ladders() -> void:

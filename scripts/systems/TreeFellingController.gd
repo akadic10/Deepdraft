@@ -52,10 +52,10 @@ func _ready() -> void:
 	_details = get_node_or_null(details_path) if not details_path.is_empty() else get_tree().get_first_node_in_group("surface_details")
 	_explorer = get_node_or_null(explorer_path) as ObjectExplorerController
 	_mining = get_node_or_null(mining_path) if not mining_path.is_empty() else null
-	var dock := get_node_or_null(dock_ui_path)
+	var dock := get_node_or_null(dock_ui_path) as DockUI
 	if dock != null:
-		dock.call("register_chop_controller", self)
-		dock.connect("tool_requested", _on_tool_requested)
+		dock.register_chop_controller(self)
+		dock.tool_requested.connect(_on_tool_requested)
 	_hover = MeshInstance3D.new()
 	_hover.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_hover.visible = false
@@ -119,10 +119,7 @@ func deactivate() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _active:
 		return
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		deactivate()
-		get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_begin_drag(event.position)
 		get_viewport().set_input_as_handled()
 
@@ -144,9 +141,6 @@ func _input(event: InputEvent) -> void:
 			_finish_drag(event.position)
 		else:
 			_cancel_drag()
-		get_viewport().set_input_as_handled()
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		deactivate()
 		get_viewport().set_input_as_handled()
 
 

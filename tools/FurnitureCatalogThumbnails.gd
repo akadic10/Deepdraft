@@ -2,7 +2,7 @@ extends SceneTree
 
 ## Offline transparent thumbnails from the actual placed-form models. The
 ## registry owns JSON reading; generated PNGs are the only assets written.
-const OUT := "res://assets/ui/furniture/"
+const Pictures = preload("res://scripts/components/Pictures.gd")
 
 func _init() -> void:
 	_run.call_deferred()
@@ -13,14 +13,14 @@ func _run() -> void:
 	root.get_node("RoomManager").set_process(false)
 	var registry = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	var only := ""
-	var output_directory := OUT
+	var output_directory := Pictures.FURNITURE
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--only="): only = arg.trim_prefix("--only=")
 		if arg.begins_with("--out="): output_directory = arg.trim_prefix("--out=")
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output_directory))
 	var count := 0
 	for definition: Dictionary in registry.get_defs().values():
-		if not only.is_empty() and not String(definition.furniture_key).get_slice(":",2) in only.split(","): continue
+		if not only.is_empty() and not Pictures.last_part(String(definition.furniture_key)) in only.split(","): continue
 		count += 1
 		var viewport := SubViewport.new()
 		viewport.size = Vector2i(216, 180)
@@ -78,7 +78,7 @@ func _run() -> void:
 		viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 		for frame in range(4): await process_frame
 		await RenderingServer.frame_post_draw
-		var output := output_directory.path_join(String(definition.furniture_key).get_slice(":", 2) + ".png")
+		var output := output_directory.path_join(Pictures.file_name(String(definition.furniture_key)))
 		var result := viewport.get_texture().get_image().save_png(ProjectSettings.globalize_path(output))
 		if result != OK: push_error("Could not save " + output); quit(1); return
 		viewport.queue_free()

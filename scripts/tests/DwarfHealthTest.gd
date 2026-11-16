@@ -70,10 +70,14 @@ func _words() -> void:
 	var health = Health.new()
 	health.setup(_average())
 	var words: Array[String] = []
+	var levels: Array[String] = []
 	for points: float in [100.0, 75.0, 74.0, 50.0, 49.0]:
 		health.hit_points.current = points
 		words.append(health.word())
-	_expect(words == ["Healthy", "Healthy", "Hurt", "Hurt", "Badly hurt"], "the words by the share left: %s" % [words])
+		levels.append(health.level())
+	_expect(levels == ["healthy", "healthy", "hurt", "hurt", "badly_hurt"], "the levels by the share left: %s" % [levels])
+	_expect(words == ["Healthy", "Healthy", "Hurt", "Hurt", "Badly hurt"], "each level is said in its word: %s" % [words])
+	_expect(String(health.describe().level) == "badly_hurt" and bool(health.describe().hurt), "the readouts get the level as a code")
 	worker.sleep = 1.0
 	worker.get_food().value = 1.0
 	worker.get_health().setup(worker.stats, 40.0 * worker.get_health().hit_points.maximum / 100.0)

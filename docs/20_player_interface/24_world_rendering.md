@@ -159,6 +159,15 @@ nearest tile first, with every eighth dispatch taking the oldest. Terrain edits 
 and requeue their tile. A new moisture owner or a reload discards the index and
 disconnects the old owner.
 
+**Damp ground is a solid layer over a block's top** (`MoistureRenderer.LIFT`, 0.012 of a
+block), so it hides whatever is drawn under it. A tool's highlight of a block therefore lies
+higher: `MoistureRenderer.HIGHLIGHT_OUTSET` at the least, which Build's plans, its drag
+preview, its Ctrl + drag and a blueprint's ghost and clashes are measured from
+(`ConstructionController.PLAN_OUTSET`, `PREVIEW_OUTSET`, `ERASE_OUTSET`). Found 2026-11-16:
+Replace's blue plan lay at 0.004 and did not show on the damp ground near water.
+`ReplaceBlocksTest` checks the three highlights against the damp ground's height. Mining's
+marks are drawn twice, once without the depth test, so they still show there, more faintly.
+
 **Water mesh rebuilds (2026-10-14, 179):** adds private
 worker snapshots, coalesced dirty tiles, nearby priority with distant progress,
 and a soft main-thread time budget for water mesh preparation/uploads. The

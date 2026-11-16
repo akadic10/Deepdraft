@@ -55,7 +55,7 @@ const RESTORE_TIPS := {"audio": "Restore the original audio mix", "interface": "
 	"video": "Restore the original video settings"}
 const CHANNELS := [["ambience", "Ambience", "Weather, woodland, shoreline and cave sounds"],
 	["effects", "Effects", "Work, wildlife, water, fires and notifications"]]
-const RULE := Color("27312f")
+const RULE := UITheme.RULE
 const DockIcon = preload("res://scripts/ui/DockIconButton.gd")   # names an input action's key
 const INSET_SIDES := 24.0   # the inset's own margins, left and right
 const INSET_ENDS := 20.0   # and top and bottom
@@ -490,8 +490,10 @@ func _build_keys() -> void:
 				keys.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 				row.add_child(keys)
 				var chords: Array = []
-				for action: String in entry.get("actions", []):
-					chords.append(DockIcon.key_text(action))
+				# An action shows its key; a list of actions shows theirs side by side ("W A S D").
+				for named: Variant in entry.get("actions", []):
+					if named is Array: chords.append((named as Array).map(func(action: String) -> String: return DockIcon.key_text(action)))
+					else: chords.append(DockIcon.key_text(String(named)))
 				chords.append_array(entry.get("keys", []))
 				_key_rows.append({"row": row, "text": String(entry.label), "words": words, "keys": keys,
 					"chords": chords, "joined": String(entry.get("joined", "or"))})

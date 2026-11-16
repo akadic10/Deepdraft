@@ -56,7 +56,7 @@ func _run() -> void:
 	rig.focus_world_position(rabbit.position+Vector3.UP,30 if species=="deer" else 24)
 	_check(explorer.select_object(wildlife,rabbit),"shared inspector selects a new arrival")
 	for i in range(150): await process_frame
-	_check(explorer._provider == wildlife and rabbit.activity == "Arriving", "shared explorer shows arriving wildlife")
+	_check(explorer._provider == wildlife and rabbit.activity == "arriving", "shared explorer shows arriving wildlife")
 	var box: AABB = wildlife.get_explorer_bounds(rabbit)
 	var picked := false
 	for x in range(2, 9):
@@ -82,7 +82,7 @@ func _run() -> void:
 	clock_node.set_paused(true)
 	for i in range(90): await process_frame
 	explorer._refresh_selected()
-	_check(rabbit.arrival.status == "Settled", "arrival settles in natural inland habitat")
+	_check(rabbit.arrival.status == "settled", "arrival settles in natural inland habitat")
 	if species == "deer":
 		# Low-angle study below the tall tree canopy; behavior, terrain and herd
 		# positions stay untouched. Follow has already been verified above.

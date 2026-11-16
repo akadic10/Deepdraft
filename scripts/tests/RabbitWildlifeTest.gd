@@ -66,16 +66,16 @@ func _run() -> void:
 	rabbit.timer = 0
 	rabbit.fatigue = 0
 	wildlife.advance(0.01, [])
-	_expect(rabbit.activity == "Grazing", "hungry rabbit grazes surface vegetation")
+	_expect(rabbit.activity == "grazing", "hungry rabbit grazes surface vegetation")
 	for i in range(62): wildlife.advance(0.1, [])
 	_expect(rabbit.hunger < 0.2 and world.get_block(40,20,40) == grass, "one completed graze satisfies hunger without consuming terrain or crops")
 	rabbit.restore_state(start)
-	rabbit.activity = "Grazing"
+	rabbit.activity = "grazing"
 	rabbit.timer = 3
 	rabbit.hunger = 0.7
 	var before_distance: float = rabbit.position.distance_to(Vector3(37.5,21,40.5))
 	wildlife.advance(0.01, [Vector3(37.5,21,40.5)])
-	_expect(rabbit.activity == "Fleeing" and rabbit.hunger >= 0.7, "danger interrupts eating with no free meal")
+	_expect(rabbit.activity == "fleeing" and rabbit.hunger >= 0.7, "danger interrupts eating with no free meal")
 	for i in range(30): wildlife.advance(0.02, [Vector3(37.5,21,40.5)])
 	_expect(rabbit.position.distance_to(Vector3(37.5,21,40.5)) > before_distance, "flight gains distance from dwarf")
 	rabbit.restore_state(start)
@@ -84,14 +84,14 @@ func _run() -> void:
 	rabbit.hunger = 0.1
 	rabbit.timer = 0
 	wildlife.advance(0.01, [])
-	_expect(rabbit.activity == "Sleeping", "tired rabbit takes a scheduled nap")
+	_expect(rabbit.activity == "sleeping", "tired rabbit takes a scheduled nap")
 	var nap: Dictionary = rabbit.serialize_state()
 	rabbit.restore_state(nap)
 	_expect(rabbit.serialize_state() == nap, "a naturally entered nap survives observational saving")
 	for i in range(100): wildlife.advance(0.1, [])
 	_expect(rabbit.fatigue < 0.8, "sleep restores rest gradually")
 	wildlife.advance(0.01, [rabbit.position + Vector3(2,0,0)])
-	_expect(rabbit.activity == "Fleeing", "danger wakes a sleeping rabbit")
+	_expect(rabbit.activity == "fleeing", "danger wakes a sleeping rabbit")
 	_navigation_checks(start)
 	# Save while partway through a hop, including random state and pose phase.
 	rabbit.restore_state(start)

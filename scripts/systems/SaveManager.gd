@@ -742,6 +742,7 @@ func _restore_pending_snapshot() -> void:
 	_print_load_performance(t_restore_start, t_owners_end, owner_lines)
 	var restored_from_backup := _loading_from_backup
 	var label := _loading_label
+	var slot := _loading_id
 	var saved_at := String(_pending_restore.get("saved_at_utc", ""))
 	# The colony is the save it came from, so that save is its last.
 	_colony_saves.clear()
@@ -753,9 +754,9 @@ func _restore_pending_snapshot() -> void:
 	_loading_id = ""
 	_loading_label = ""
 	_autosave_elapsed_seconds = 0.0
-	if label == "autosave":
+	if slot == "auto":
 		_notify("Autosave backup recovered and loaded." if restored_from_backup else "Autosave loaded.")
-	elif label == "quick save":
+	elif slot == "quick":
 		_notify("Backup recovered and loaded." if restored_from_backup else "Game loaded.")
 	else:
 		_notify("%s recovered from its backup and loaded." % label if restored_from_backup else "%s loaded." % label)
@@ -860,7 +861,8 @@ func _capture_catalogs() -> Dictionary:
 		if not id.begins_with("__"): traits[id]=true
 	var catalogs := ContentRegistry.save_catalogs()
 	catalogs.merge({"blocks":blocks,"construction":construction,"woods":woods,"materials":materials,"appeal_words":RoomManager.appeal_word_ids(),
-		"stats":stats,"stat_steps":DwarfAssets.stat_steps(),"professions":professions,"traits":traits})
+		"stats":stats,"stat_steps":DwarfAssets.stat_steps(),"professions":professions,"traits":traits,
+		"event_lines":EventLog.line_codes(),"journal_lines":ColonyJournal.line_codes()})
 	return catalogs
 
 

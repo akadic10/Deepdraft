@@ -350,7 +350,7 @@ func _process(delta: float) -> void:
 	if config.is_empty() or not _sync_scene():
 		return
 	_update_voices(delta,listener_context())
-	var step := 0.0 if WorldClock.paused else delta*WorldClock.speed
+	var step := WorldClock.game_seconds(delta)
 	var slice_y := visible_slice_y()
 	for i in range(_bursts.size()-1,-1,-1):
 		var burst := _bursts[i]

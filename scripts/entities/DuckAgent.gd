@@ -113,7 +113,7 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 		return
 	var here: Dictionary = navigation.surface(Vector2i(floori(position.x),floori(position.z)))
 	if here.is_empty() or (mode=="water" and not here.water):
-		if activity!="Seeking safe water": flight_left = 0
+		if activity!="seeking_safe_water": flight_left = 0
 		if flight_left<=0 and _try_flight(threat,distance):
 			_pose()
 			return
@@ -122,11 +122,11 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 		if not here.is_empty() and navigation.segment_clear(position,here.position,float(definition.navigation.radius)):
 			position.y = move_toward(position.y,here.position.y,seconds*3)
 			if is_equal_approx(position.y,here.position.y): _settle(here)
-		activity = "Seeking safe water"
+		activity = "seeking_safe_water"
 		_pose()
 		return
-	if calm_left>0 and activity!="Fleeing":
-		activity = "Fleeing"
+	if calm_left>0 and activity!="fleeing":
+		activity = "fleeing"
 		timer = 0
 		flight_left = 0
 	if distance<3.5 and flight_left<=0 and _try_flight(threat,distance):
@@ -153,7 +153,7 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 	if here.water: position.y = move_toward(position.y,here.position.y,seconds*4)
 	cell = here.cell
 	mode = "water" if here.water else "land"
-	if activity=="Sleeping" and calm_left<=0:
+	if activity=="sleeping" and calm_left<=0:
 		fatigue = maxf(0,fatigue-hours*(float(b.sleep_recovery_per_hour)+float(b.fatigue_per_hour)))
 		if fatigue>float(b.wake_threshold) and hunger<float(b.wake_hunger_threshold):
 			_pose()
@@ -165,7 +165,7 @@ func advance(seconds: float, hours: float, threats: Array) -> void:
 		if calm_left<=0: WorkFeedback.play_animal(definition.feedback.ambient_sound,self)
 	timer = maxf(0,timer-seconds)
 	if timer<=0:
-		if activity=="Grazing" and calm_left<=0: hunger = maxf(0,hunger-float(b.meal_relief))
+		if activity=="grazing" and calm_left<=0: hunger = maxf(0,hunger-float(b.meal_relief))
 		_decide_duck(here,threat,distance)
 	_pose()
 
@@ -174,14 +174,14 @@ func _decide_duck(here: Dictionary, threat: Vector3, distance: float) -> void:
 	if flight_left<=0 and calm_left<=0 and _try_flight(): return
 	if calm_left<=0:
 		if hunger>=float(b.hungry_threshold):
-			activity = "Grazing"
+			activity = "grazing"
 			timer = float(b.graze_seconds)
 			return
 		if mode=="land" and fatigue>=float(b.sleep_threshold) and (_rest_time() or fatigue>=float(b.exhausted_threshold)):
-			activity = "Sleeping"
+			activity = "sleeping"
 			return
 		if rng.randf()<float(b.preen_chance):
-			activity = "Preening"
+			activity = "preening"
 			timer = rng.randf_range(2.0,4.0)
 			return
 		if mode=="water" and (rng.randf()<float(b.shore_chance) or fatigue>=float(b.sleep_threshold)): shore_left = 18
@@ -209,7 +209,7 @@ func _decide_duck(here: Dictionary, threat: Vector3, distance: float) -> void:
 			best = score
 			destination = next
 	if destination.is_empty():
-		activity = "Alert" if calm_left>0 else "Resting"
+		activity = "alert" if calm_left>0 else "resting"
 		timer = 1
 		return
 	step_from = position
@@ -218,7 +218,7 @@ func _decide_duck(here: Dictionary, threat: Vector3, distance: float) -> void:
 	hop_seconds = float(definition.navigation.flee_seconds if calm_left>0 else definition.navigation.swim_seconds if destination.water else definition.navigation.walk_seconds)
 	var direction: Vector3 = destination.position-position
 	rotation.y = atan2(-direction.x,-direction.z)
-	activity = "Fleeing" if calm_left>0 else "Swimming" if destination.water else "Walking"
+	activity = "fleeing" if calm_left>0 else "swimming" if destination.water else "walking"
 	timer = 0.0 if calm_left>0 else rng.randf_range(b.idle_seconds[0],b.idle_seconds[1])
 
 func _settle(sample: Dictionary) -> void:
@@ -260,7 +260,7 @@ func begin_flight(path: PackedVector3Array, landing: Vector3i, already_airborne 
 	hop_progress = 1
 	launch_left = 0.0 if already_airborne or mode=="air" else float(definition.navigation.takeoff_seconds)
 	mode = "air"
-	activity = "Taking off" if launch_left>0 else "Flying"
+	activity = "taking_off" if launch_left>0 else "flying"
 	flight_left = rng.randf_range(definition.navigation.flight_interval[0],definition.navigation.flight_interval[1])
 	if path.size()>1:
 		var direction := path[1]-position
@@ -271,7 +271,7 @@ func _advance_flight(seconds: float) -> void:
 		launch_left = maxf(0,launch_left-seconds)
 		return
 	if flight.is_empty():
-		activity = "Seeking a landing"
+		activity = "seeking_landing"
 		if flight_left<=0: _try_flight()
 		return
 	var remaining := seconds*float(definition.navigation.flight_speed)
@@ -296,16 +296,16 @@ func _advance_flight(seconds: float) -> void:
 		position = next
 		remaining -= distance
 		if position.is_equal_approx(goal): flight_index += 1
-	activity = "Landing" if flight_index>floori(flight.size()*.75) else "Flying"
+	activity = "landing" if flight_index>floori(flight.size()*.75) else "flying"
 	if flight_index>=flight.size():
 		var landing: Dictionary = navigation.surface(Vector2i(target.x,target.z))
 		flight.clear()
 		if landing.is_empty(): return
 		_settle(landing)
 		home = cell
-		activity = "Swimming" if landing.water else "Resting"
+		activity = "swimming" if landing.water else "resting"
 		timer = 2
-		if not arrival.is_empty(): arrival.status = "Settled"
+		if not arrival.is_empty(): arrival.status = "settled"
 
 func _pose() -> void:
 	if visual==null: return
@@ -317,15 +317,15 @@ func _pose() -> void:
 	_squash_stretch(hop_progress if mode=="land" and launch_left<=0 else 1.0)
 	for joint: Node3D in _heads.values():
 		# Ducks face -Z, so a negative pitch dips the bill to feed (it used to lift it).
-		joint.rotation.x = -.65+sin(pose_time*6)*.12 if activity=="Grazing" else .25 if activity=="Sleeping" else 0.0
-		joint.rotation.y = 1.5+sin(pose_time*3)*.15 if activity=="Preening" else .9 if activity=="Sleeping" else 0.0
+		joint.rotation.x = -.65+sin(pose_time*6)*.12 if activity=="grazing" else .25 if activity=="sleeping" else 0.0
+		joint.rotation.y = 1.5+sin(pose_time*3)*.15 if activity=="preening" else .9 if activity=="sleeping" else 0.0
 	# Keep the wings tucked through the narrow launch/landing sections; those
 	# are swept for the body footprint, while cruise uses the full wingspan.
 	var wings_open := airborne and flight_index>1 and flight_index<flight.size()-1
 	for wing in _wings:
 		var side := int(wing.get_meta("side"))
 		wing.visible = wings_open
-		wing.basis=Basis(Vector3.FORWARD,-side*(sin(pose_time*18)*.7 if activity!="Landing" else .06)) if wings_open else Basis.IDENTITY
+		wing.basis=Basis(Vector3.FORWARD,-side*(sin(pose_time*18)*.7 if activity!="landing" else .06)) if wings_open else Basis.IDENTITY
 	for folded in _folded: folded.visible = not wings_open
 	for i in _feet.size():
 		_feet[i].rotation.x = .8 if airborne else sin(pose_time*(20 if launch_left>0 else 12)+i*PI)*.5 if moving else 0.0

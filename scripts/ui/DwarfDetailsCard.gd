@@ -11,8 +11,8 @@ extends VBoxContainer
 ## compact panel: show_data(), clear_subject() and action_requested. Read-only: the
 ## portrait clones the dwarf's visual parts into its own viewport.
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
-const HAY := Color("e2c06a")
-const MUTED := Color("aeb5ad")
+const HAY := UITheme.HAY
+const MUTED := UITheme.MUTED
 const ACTIONS := [
 	["character_sheet", "Character sheet", "Everything about this dwarf: work, mood, traits, equipment and profession."],
 	["profession", "Change profession", "Explore career paths and choose this dwarf's profession."],

@@ -12,9 +12,17 @@ extends Node
 ## - What dwarves already think when the journal first sees them (after a load, or on
 ##   arrival) is not news.
 ## Nothing is noted while the clock stands still or a save loads.
+##
+## A line is kept and saved as codes, never as sentences (doc 13, "Codes and words"): its
+## topic (a thought's id, or found_love, found_like or found_dislike with the thing's id
+## after a colon), its tone, who shares it, who spoke and their name, and the fields the
+## thought's words took (a room's taste and the dwarf's feeling for it). lines() words each
+## copy: the thought (`text`) and what the speaker said (`words`).
 
 signal changed
 
+const Mood = preload("res://scripts/components/DwarfMood.gd")
+const Tastes = preload("res://scripts/components/DwarfTastes.gd")
 const DATA_PATH := "res://data/colony/journal_lines.json"
 ## SaveSnapshotValidator bounds the saved list to this many lines.
 const MAX_LINES := 200
@@ -60,9 +68,8 @@ func check_thoughts() -> void:
 ## `thought` began for `agent` (a DwarfMood.thoughts() row): today's line for its topic
 ## gains the dwarf, or a new line opens in the dwarf's words.
 func note(agent: DwarfAgent, thought: Dictionary) -> void:
-	var words: Array = config.get("lines", {}).get(thought.id, [])
-	if words.is_empty(): push_error("ColonyJournal: the thought '%s' has no lines in %s." % [thought.id, DATA_PATH])
-	_add_line(agent, String(thought.id), String(thought.text), "complaint" if int(thought.points) < 0 else "praise", words)
+	if _words_for(String(thought.id)).is_empty(): push_error("ColonyJournal: the thought '%s' has no lines in %s." % [thought.id, DATA_PATH])
+	_add_line(agent, String(thought.id), "complaint" if int(thought.points) < 0 else "praise", thought.get("fields", {}))
 
 
 ## `agent` found one of their tastes (doc 41 "Tastes"): today's line for that taste, a praise
@@ -70,14 +77,11 @@ func note(agent: DwarfAgent, thought: Dictionary) -> void:
 ## (found_love, found_like and found_dislike, with {thing} for its name).
 func note_taste(agent: DwarfAgent, thing: String, kind: String) -> void:
 	if SaveManager.is_loading(): return
-	var tastes: RefCounted = agent.get_tastes()
-	_add_line(agent, "found_%s:%s" % [kind, thing], "Found a taste: " + tastes.describe(thing),
-		"complaint" if kind == "dislike" else "praise", config.get("lines", {}).get("found_" + kind, []), {"thing": tastes.thing_name(thing)})
+	_add_line(agent, "found_%s:%s" % [kind, thing], "complaint" if kind == "dislike" else "praise", {})
 
 
-## Today's line for a topic gains the dwarf, or a new line opens in the dwarf's words: one of
-## `words`, chosen by the dwarf, the day and the topic, with `fill` put in.
-func _add_line(agent: DwarfAgent, topic: String, text: String, tone: String, words: Array, fill := {}) -> void:
+## Today's line for a topic gains the dwarf, or a new line opens for the dwarf to speak.
+func _add_line(agent: DwarfAgent, topic: String, tone: String, fields: Dictionary) -> void:
 	var day := floori(WorldClock.elapsed_days())
 	for line: Dictionary in _lines:
 		if int(line.day) != day or line.topic != topic: continue
@@ -85,19 +89,65 @@ func _add_line(agent: DwarfAgent, topic: String, text: String, tone: String, wor
 			(line.dwarves as Array).append(agent.dwarf_id)
 			changed.emit()
 		return
-	var said := "" if words.is_empty() else String(words[posmod(("%d:%d:%s" % [agent.dwarf_id, day, topic]).hash(), words.size())]).format(fill)
-	_lines.append({"day": day, "topic": topic, "text": text, "tone": tone, "dwarves": [agent.dwarf_id],
-		"speaker": agent.dwarf_id, "name": agent.dwarf_name, "words": said})
+	_lines.append({"day": day, "topic": topic, "tone": tone, "dwarves": [agent.dwarf_id],
+		"speaker": agent.dwarf_id, "name": agent.dwarf_name, "fields": fields.duplicate(true)})
 	_prune()
 	changed.emit()
 
 
-## Every line, newest first, as copies: {day, topic, text (the thought), tone (complaint or
-## praise), dwarves (ids sharing it that day), speaker, name (the speaker's), words}.
+## Every line, newest first, as copies: {day, topic, tone (complaint or praise), dwarves (ids
+## sharing it that day), speaker, name (the speaker's), fields}, with its words built here:
+## text (the thought) and words (what the speaker said).
 func lines() -> Array:
-	var list := _lines.duplicate(true)
-	list.reverse()
+	var list: Array = []
+	for index in range(_lines.size() - 1, -1, -1):
+		var line: Dictionary = (_lines[index] as Dictionary).duplicate(true)
+		line.text = _thought_of(line)
+		line.words = _said(line)
+		list.append(line)
 	return list
+
+
+## Every line code the data has (thought ids and the found tastes), for the save check.
+func line_codes() -> Dictionary:
+	var codes := {}
+	for code: String in config.get("lines", {}): codes[code] = true
+	return codes
+
+
+# ── Words (doc 13, "Codes and words") ──────────────────────────────────────────
+
+## A topic's line code: a thought's id, or for a found taste the part before its thing.
+static func _code(topic: String) -> String:
+	return topic.get_slice(":", 0)
+
+
+## The thing a found taste's topic names ("found_love:base:furniture:log_bed"), or "".
+static func _thing(topic: String) -> String:
+	return topic.substr(_code(topic).length() + 1)
+
+
+func _words_for(code: String) -> Array:
+	return config.get("lines", {}).get(code, [])
+
+
+## The thought a line is about, in words: DwarfMood's for a thought, the taste for a find.
+func _thought_of(line: Dictionary) -> String:
+	var topic := String(line.topic)
+	var thing := _thing(topic)
+	if thing.is_empty(): return Mood.thought_text(topic, line.get("fields", {}))
+	return "Found a taste: " + Tastes.said(_code(topic).trim_prefix("found_"), thing)
+
+
+## What the speaker said: one of the topic's lines, chosen by the speaker, the day and the
+## topic, so a journal reads the same after a load; a found taste's line names its thing.
+func _said(line: Dictionary) -> String:
+	var topic := String(line.topic)
+	var words := _words_for(_code(topic))
+	if words.is_empty(): return ""
+	var thing := _thing(topic)
+	var fill := {"thing": Tastes.named(thing)} if not thing.is_empty() else {}
+	return String(words[posmod(("%d:%d:%s" % [int(line.speaker), int(line.day), topic]).hash(), words.size())]).format(fill)
 
 
 # ── Saving (doc 13, the save_state_owner contract) ─────────────────────────────

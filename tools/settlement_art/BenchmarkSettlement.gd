@@ -284,7 +284,7 @@ func _build_camp() -> void:
 	var stock = scene.get_node("StockpileDesignationController")
 	var groups := {}
 	for cell in free_cells:
-		if cell.z<camp.z+12 or not stock._is_valid_cell(cell,cell.y): continue
+		if cell.z<camp.z+12 or not stock.cell_reason(cell).is_empty(): continue
 		if not groups.has(cell.y): groups[cell.y]=[]
 		groups[cell.y].append(cell)
 	var storage_cells: Array[Vector3i] = []

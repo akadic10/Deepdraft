@@ -145,7 +145,7 @@ func walk_finished(success: bool) -> void:
 	agent._reset_part_offsets()
 
 func _pickup(delta: float) -> void:
-	var duration := maxf(.05, float(TaskManager.get_config_section("hauling").get("pickup_time_s", .75)))
+	var duration := maxf(.05, float(TaskManager.get_config_section("hauling").get("pickup_time_seconds", .75)))
 	_elapsed += delta
 	var phase := minf(1.0, _elapsed / duration)
 	agent.rotation.y = lerp_angle(_yaw, _target_yaw, smoothstep(0.0, .28, phase))

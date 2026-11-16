@@ -77,7 +77,7 @@ func _run() -> void:
 	_expect(wolf.hunt_target_id.is_empty(),"content wolves do not hunt")
 	_reset()
 	wildlife.advance(.05,[])
-	_expect(wolf.hunt_target_id == rabbit.animal_id and wolf.activity == "Hunting","hungry wolf claims nearby visible prey")
+	_expect(wolf.hunt_target_id == rabbit.animal_id and wolf.activity == "hunting","hungry wolf claims nearby visible prey")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(wildlife.serialize_state()))
 	wildlife.restore_state(saved)
 	_bind()
@@ -89,13 +89,13 @@ func _run() -> void:
 	for i in range(15): wildlife.advance(.05,[])
 	_expect(wildlife.serialize_state() == future,"saved target ID and partial chase resume deterministically")
 	var victim: Node3D = rabbit
-	var saw_escape: bool = rabbit.activity == "Fleeing"
+	var saw_escape: bool = rabbit.activity == "fleeing"
 	for i in range(220):
 		wildlife.advance(.05,[])
-		if victim in wildlife.animals: saw_escape = saw_escape or victim.activity == "Fleeing"
-		if wolf.activity == "Eating": break
+		if victim in wildlife.animals: saw_escape = saw_escape or victim.activity == "fleeing"
+		if wolf.activity == "eating": break
 	_expect(saw_escape,"prey flee from the approaching wolf")
-	_expect(wolf.activity == "Eating" and wildlife.animals_of_species("rabbit").size() == 1,"bounded live chase ends in one capture and meal")
+	_expect(wolf.activity == "eating" and wildlife.animals_of_species("rabbit").size() == 1,"bounded live chase ends in one capture and meal")
 	_expect(not wildlife._inspectable(victim),"captured prey cannot leave stale selection")
 	_expect(wolf.hunger < .2 and wolf.satisfied_hours > 35,"rabbit meal satisfies the wolf for a long interval")
 	_expect(not wildlife._try_capture(wolf),"a captured meal cannot be committed twice")
@@ -112,14 +112,14 @@ func _run() -> void:
 	wildlife.advance(.05,[])
 	_expect(wolf.hunt_target_id.is_empty(),"satisfaction blocks hunting even at high appetite")
 	wolf.satisfied_hours = 0
-	wolf.activity = "Idle"
+	wolf.activity = "idle"
 	wolf.retry_hours = 0
 	var reserve = wildlife.animals_of_species("rabbit")[0]
 	_expect(not wildlife._eligible_prey(reserve),"minimum prey population remains protected")
 	wolf.begin_meal(wildlife.wolf_definition.hunting.prey["base:animal:deer"])
 	_expect(wolf.satisfied_hours == 72 and wolf.hunger == 0,"deer meal provides greater and longer satisfaction")
 	wildlife.advance(.01,[wolf.position+Vector3(-3,0,0)])
-	_expect(wolf.activity == "Fleeing" and wolf.satisfied_hours > 71,"dwarf interrupts eating without losing the credited meal")
+	_expect(wolf.activity == "fleeing" and wolf.satisfied_hours > 71,"dwarf interrupts eating without losing the credited meal")
 	_reset()
 	wolf.begin_hunt(rabbit)
 	wolf.hunt_left = .02
@@ -127,7 +127,7 @@ func _run() -> void:
 	_expect(wolf.hunt_target_id.is_empty() and wolf.retry_hours > 0,"pursuit timeout releases prey and waits before retrying")
 	_reset()
 	wildlife.advance(.01,[wolf.position+Vector3(3,0,0)])
-	_expect(wolf.activity == "Fleeing" and wolf.hunt_target_id.is_empty(),"wolves avoid dwarves instead of attacking")
+	_expect(wolf.activity == "fleeing" and wolf.hunt_target_id.is_empty(),"wolves avoid dwarves instead of attacking")
 	_reset()
 	var second = wildlife.add_wolf("wolf:second",Vector3i(40,21,44),104)
 	second.hunger = .8
@@ -138,7 +138,7 @@ func _run() -> void:
 	wolf.hunger = .1
 	wolf.fatigue = .8
 	wildlife.advance(.01,[])
-	_expect(wolf.activity == "Sleeping","tired satisfied wolf rests during its preferred window")
+	_expect(wolf.activity == "sleeping","tired satisfied wolf rests during its preferred window")
 	var rest: AABB = wildlife.get_explorer_bounds(wolf)
 	_expect(rest.position.y >= 20.99,"folded rest pose remains above ground")
 	var fatigue: float = wolf.fatigue

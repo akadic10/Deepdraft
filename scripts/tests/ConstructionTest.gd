@@ -88,6 +88,7 @@ func _interruption_test() -> void:
 	if await _wait_phase(worker.TaskPhase.HAUL_TO_ZONE):
 		var data: Dictionary = construction.get_explorer_data(id)
 		_expect(data.rows[0][1]=="Delivering materials" and data.rows[6][1]==worker.dwarf_name,"inspector reflects the real carrier")
+		_expect(data.status.tone=="fine" and String(data.status.text).contains("delivered"),"a plan being supplied is plain and counts its goods: %s" % [data.status])
 		var state: Dictionary = construction.serialize_state()
 		_expect(state.orders.size()==1 and worker.serialize_state().carried_items.size()==1,"save records pending area and real cargo separately")
 		construction.perform_explorer_action(id,"cancel")

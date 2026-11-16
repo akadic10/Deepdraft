@@ -14,8 +14,8 @@ extends MarginContainer
 signal plan_requested(season: String, crop_key: String)
 signal remove_requested
 
-const MUTED := Color("aeb5ad")
-const HAY := Color("e2c06a")
+const MUTED := UITheme.MUTED
+const HAY := UITheme.HAY
 
 var _seasons: Dictionary = {}       # season -> {"button", "name", "picture", "crop", "note"}
 var _season_row: HBoxContainer

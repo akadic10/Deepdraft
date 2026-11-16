@@ -175,6 +175,12 @@ func _rotting() -> void:
 		"a rotten stack goes, crate and count")
 	_expect(lines.has("24 blueberries rotted in Stockpile 1.") and lines.has("Blueberries in Stockpile 1 are going bad: less than a day left."),
 		"Events tells of the rot and warns of the stack passing 75%%: %s" % [lines])
+	# Events keeps each as a code: the food's id, how many and the place, not the sentence.
+	var told: Array = events.entries().slice(0, 2)
+	var where := "stockpile:%d" % zone.zone_id
+	_expect(told.any(func(entry: Dictionary) -> bool: return entry.line == "food_rotted" and entry.fields == {"count": 24, "item": BLUEBERRY, "where": where})
+		and told.any(func(entry: Dictionary) -> bool: return entry.line == "food_going_bad" and entry.fields.item == BLUEBERRY and entry.fields.where == where and float(entry.fields.days) < 1.0),
+		"the rot and the warning are kept as codes: %s" % [told.map(func(entry: Dictionary) -> Array: return [entry.line, entry.fields])])
 	_clear()
 	_store(cells[0], BLUEBERRY, 24, 0.99)
 	var token: Dictionary = zone.reserve_portion(cells[0], BLUEBERRY, worker.dwarf_id)
@@ -192,7 +198,8 @@ func _rotting() -> void:
 	_expect(is_instance_valid(crate) and drops.is_loose(crate), "a loose crate claimed for a haul stays")
 	drops.unreserve(crate, worker.dwarf_id)
 	spoilage.run(1.0)
-	_expect(not drops.is_loose(crate) and _new_lines(1) == ["5 apples rotted on the ground."], "unclaimed, it rots where it lies")
+	_expect(not drops.is_loose(crate) and _new_lines(1) == ["5 apples rotted on the ground."]
+		and events.entries()[0].fields == {"count": 5, "item": APPLE, "where": "ground"}, "unclaimed, it rots where it lies")
 	_clear()
 
 

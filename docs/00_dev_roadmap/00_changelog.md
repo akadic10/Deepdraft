@@ -9,6 +9,109 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**Fishing and fields take damp ground (2026-11-16):** From the owner's play: "I can't place a
+fishing zone", which looked like the zone tools' merge (doc 312). It was not: the last commit's
+rule gives the same answer on every cell beside the colony's river (192 cells, none differ).
+The rule itself was wrong. It refused a cell with any water on it, and in the owner's colony a
+stone crossing holds the river back (44.1 above it, 42.1 below), so the river runs over its
+banks as a film a fiftieth of a block deep: damp ground, too thin to be drawn as water. 99 of
+the 192 bank cells were refused for that film alone, with "Fishers stand on the shore, not in
+the water". A fishing spot is now refused only under standing water (a sixteenth of a block,
+as Build and everything else reads it), and so is a field's ground, which had the same test
+("This ground is under water"). Checked with real clicks in a copy of the colony: Zones,
+Fishing, a drag along the damp west bank, a zone of four spots on the river. `FishingTest` and
+`FarmingTest` fail on the old rule. Docs 33 and 42 have the rule; doc 33 also records how the
+crossing holds the river back. Restart Play; no project reload is needed.
+
+**Copper nails (2026-11-16):** The owner asked for "copper nails that are made from a copper
+bar", needed "for carpenter or other recipes where it makes sense", twelve from a bar, kept in
+crates "just like most food" ([doc 313](313_copper_nails.md)).
+- **A Blacksmith hammers one copper bar into twelve copper nails** on the anvil stone, in 12
+  seconds, under Crafters → Blacksmith → Metal.
+- **The Carpenter's seven plank pieces take a nail to each plank:** two for the tool rack and
+  the plank bench, four for the crate, the pallet, the food shelf, the dining table and the
+  board-game table. Nothing else takes nails. A plank piece queued in a colony from before
+  waits ("Waiting for 4 copper nails") until a Blacksmith has made some.
+- **Nails are kept 24 to a crate,** with low, half and full crates of their own, and stored as
+  Metal: on the ground, or a crate to a quarter of the finished goods pallet. A piece takes its
+  nails out of a crate and leaves the rest.
+- **Words.** The plank pieces' descriptions say "nailed"; their models are unchanged. The
+  crafting board counts a fixed ingredient in the good's own words ("4 copper nails", "4 rough
+  stones"). An order for a copper tool with no bar read "Waiting for 1 copper bars"; it reads
+  "1 copper bar" now.
+- **A stall is gone.** An ingredient fetched second out of a crate that holds more than one
+  (the game table's nails after its stone, a second fish for the drying rack) made its order
+  say "Waiting for a reachable route" for a few seconds. It is found at once now.
+- Not seen in play: the crate's look is on `tmp/copper_nails_20261116/review.png`, and eleven
+  decisions of mine are listed in doc 313. Saves from before keep loading. Restart Play; no
+  project reload is needed.
+
+**Replace shows on damp ground (2026-11-16):** From the owner's play: with Build's Replace
+near water, the blue highlight did not show on the blocks made darker by the damp. Damp ground
+is drawn as a solid layer 0.012 of a block over a block's top, and the plan's blue lay only
+0.004 over it, so the damp ground covered it. The hover's green and the Ctrl + drag's orange
+lay under it too. All three now lie just over the damp ground, and a blueprint's ghost and
+clashes with them; their heights are measured from the damp ground's
+(`MoistureRenderer.LIFT`), so the two cannot drift apart again. `ReplaceBlocksTest` failed on
+the old code and passes now. Not seen on screen: it needs the owner's look. Mining's marks
+were not changed; on damp ground they show through their fainter layer only. Restart Play.
+
+**One job, one way (2026-11-16):** After the wording review the owner asked for "a code review
+to find other inconsistent or not best practice approaches", and said to proceed with what it
+recommended ([doc 312](312_one_job_one_way.md)). The review found the code consistent wherever
+a rule or a lint check exists, and copies where a new feature had no shared part to use. Almost
+nothing reads differently in play, and saves are not touched.
+- **One zone tool.** Storage, Fishing and Farming zones are drawn by one shared tool
+  (`scripts/components/ZoneTool.gd`); the Farming tool had been a copy of Fishing's. Storage's
+  tool now says why a cell is refused ("Can't store here"), as the other two do.
+- **Esc is decided in one place** (`DockUI.cancel()`), where 21 handlers each read the key. A
+  held Esc now finishes one thing. With the mining tool on, Esc ends the tool before it closes
+  Crafting or Colony's inventory, as every other tool already did.
+- **The camera's and the tools' keys are input actions** (W A S D and the arrows, Shift, R, F,
+  Q, E, Tab), and the Controls page reads every keyboard key from the input map.
+- **A thing's picture has one path rule** (`scripts/components/Pictures.gd`), and the 84 item
+  pictures carry the last part of their id (`apple.png`), as furniture pictures do. Their 84
+  old `.import` files are left on disk for the owner to delete.
+- **Tools register with the dock one way** (`DockUI.register_tool`).
+- **Smaller fixes:** the task self-check sees fishing spots, farm tiles and hanging batches;
+  three wordings are read from the data that held them; the bedrock row and the chunk size are
+  typed once; five panel colours moved into `UITheme`; data keys for seconds end in
+  `_seconds`, and a shown name is `display_name`.
+- **Kept in order from here:** the rules are in CLAUDE.md ("Code: one job, one way") and
+  [doc 13](../10_core_foundation/13_architecture.md) ("One job, one way"). The lint has three
+  new rules, which found nothing on the day they were added: `unknown-name`, `picture-path`
+  and `hand-key`.
+
+Reload the project (Project → Reload Current Project), then Play: `project.godot` has ten new
+input actions, and an editor that was open while they were added should read them before it
+saves its settings.
+
+**Codes and words (2026-11-16):** From the owner, reviewing `BlueprintLibrary.gd`: English
+error messages in code "will make translations harder later. Should error messages be ID based
+and the ID's and text could be in a JSON file". The review recommended codes only where the
+game itself depends on a message, and the owner said to proceed
+([doc 311](311_codes_and_words.md)). Nothing reads differently in play. **Saves from before
+no longer load,** Balstad included: the save check refuses its animals' activity words.
+- **Logic no longer reads wording.** An animal's activity, a dwarf's health, a worker's
+  availability, a room's comfort and a blueprint file's refusal are codes (`grazing`,
+  `badly_hurt`, `unknown_material`), and one place says each in words kept in the feature's
+  own JSON. About 50 places in some 20 scripts changed.
+- **A status line's colour is settled with its words,** not read back from them: building
+  plans, boulders, plants, trees, furniture and crafting orders.
+- **The event log and the journal save codes.** An entry holds a line code and its fields;
+  Events, the toasts and Colony's page build the same sentences when they are read.
+- **Sentences are whole.** A sentence with a count gives its forms in data
+  (`{"one": …, "other": …}`), filled by `Wording.fill` (`scripts/components/Wording.gd`).
+- **Kept in order from here:** the rules are in CLAUDE.md ("Text: codes and words") and
+  [doc 13](../10_core_foundation/13_architecture.md) ("Codes and words"). The lint has two new
+  rules: `wording-compare` finds nothing today, and `glued-plural` records the 40 lines in 24
+  files that still choose a plural in code, to be fixed as their files are changed. The lint's
+  known violations went from 207 to 247 by those 40 alone.
+- **Not built:** a translation. Captions that are only shown stay in code until one is
+  planned.
+- **Checked:** every test in the project, 244 of 244, and the lint. Not seen in play.
+- **Restart Play.** No project reload is needed.
+
 **Data folders made flat (2026-11-15):** From the owner, reviewing the data folder: "some
 items are nested in the /data/entities folder while /data/furniture is not". `data/entities/`
 was the only folder with folders inside it, and no code read it as a group. Of four answers

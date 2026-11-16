@@ -51,10 +51,10 @@ func _run() -> void:
 
 func _configure(agent) -> void:
 	var config: Dictionary = tasks.get_config_section("idle").duplicate(true)
-	config.start_delay_min_s = .2
-	config.start_delay_max_s = .2
-	config.pause_min_s = .4
-	config.pause_max_s = .6
+	config.start_delay_min_seconds = .2
+	config.start_delay_max_seconds = .2
+	config.pause_min_seconds = .4
+	config.pause_max_seconds = .6
 	config.seat_chance = 0.0
 	agent._idle_behavior.config = config
 

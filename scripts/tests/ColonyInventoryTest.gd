@@ -1,6 +1,7 @@
 extends "res://scripts/tests/FurniturePlaceTest.gd"
 
 var Inventory
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const STONE := "base:item:rough_stone"
 const IRON := "base:item:iron_ore"
 const ACORN := "base:item:oak_acorn"
@@ -163,7 +164,19 @@ func _run() -> void:
 	items.drop_loose(cargo, Vector3i(38,20,34))
 	# Existing model thumbnails; no invented replacements.
 	for key in [STONE, IRON, ACORN]:
-		_expect(inventory.tile(key).icon.resource_path == Inventory.thumbnail_path(key), "real model thumbnail for " + key)
+		_expect(inventory.tile(key).icon.resource_path == Pictures.item(key), "real model thumbnail for " + key)
+	# A picture carries the last part of its id (doc 13): an item's in one folder, a piece's in the
+	# other, and a packed piece shows the furniture's. Every item and every piece has one.
+	_expect(Pictures.item(ACORN) == "res://assets/ui/items/oak_acorn.png" and Pictures.furniture(ACTIVE_TABLE) == "res://assets/ui/furniture/dining_table.png"
+		and Pictures.of(ACORN) == Pictures.item(ACORN) and Pictures.of("base:item:dining_table") == Pictures.furniture(ACTIVE_TABLE)
+		and Pictures.last_part("") == "", "a picture is named for the last part of its id")
+	var unpictured: Array[String] = []
+	for key: String in items.get_item_defs():
+		if not ResourceLoader.exists(Pictures.of(key)): unpictured.append(key)
+	for key: String in furniture.get_defs():
+		var piece: Dictionary = furniture.get_defs()[key]
+		if not ResourceLoader.exists(Pictures.furniture(key)) and not ResourceLoader.exists(Pictures.item(String(piece.get("item_key", "")))): unpictured.append(key)
+	_expect(unpictured.is_empty(), "every item and every piece has its picture: %s" % str(unpictured))
 	var item_key: String = furniture.get_defs()[ACTIVE_TABLE].item_key
 	items.restore_loose_item(item_key, Vector3(37.5,21,33.5), 0)
 	await _settle()

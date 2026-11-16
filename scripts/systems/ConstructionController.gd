@@ -5,7 +5,15 @@ const Work = preload("res://scripts/components/ConstructionWork.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const Shapes = preload("res://scripts/components/ConstructionShapes.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
+const Moisture = preload("res://scripts/components/MoistureRenderer.gd")
 const INVALID := Vector3i(-1,-1,-1)
+## How far a highlight lies outside its block: over the damp ground, which would hide it on a
+## block being replaced. Plans lie lowest, the drag's preview over them, and what a Ctrl + drag
+## takes out on top.
+const PLAN_OUTSET := Moisture.HIGHLIGHT_OUTSET
+const PREVIEW_OUTSET := PLAN_OUTSET + .001
+const ERASE_OUTSET := PLAN_OUTSET + .002
 const DIRECTIONS := [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.UP,Vector3i.DOWN,Vector3i.FORWARD,Vector3i.BACK]
 @export var mining_path: NodePath
 @export var furniture_path: NodePath
@@ -187,7 +195,7 @@ func _likeliest_wood() -> String:
 	return best
 
 
-## The tool bar's Done, as Esc.
+## The tool bar's Done, and Esc through the dock (DockUI.cancel).
 func deactivate() -> void:
 	if _active: _on_tool_requested("")
 
@@ -271,7 +279,7 @@ func _material_option(material: String) -> Dictionary:
 			var words := BlockRegistry.get_wood(wood)
 			var stock := StockpileManager.get_available_total(String(words.item_key))
 			woods.append({"id": wood, "label": String(words.label), "tooltip": "1 %s a block. Mining it gives the log back." % String(words.one),
-				"picture": "res://assets/ui/items/%s.png" % String(words.item_key).replace(":","_"),
+				"picture": Pictures.item(String(words.item_key)),
 				"count": str(stock), "tone": "fine" if stock > 0 else "blocked", "note": "%d %s in stock" % [stock, String(words.many)]})
 		rows.append({"id": "wood", "label": String(info.woods), "value": _wood, "options": woods})
 	option.menu = rows
@@ -335,11 +343,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _active: return
 	if event is InputEventMouseMotion:
 		_update_preview(event.position)
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		_on_tool_requested("")
-		get_viewport().set_input_as_handled()
 	elif event is InputEventKey and event.pressed and not event.echo and not (event.ctrl_pressed or event.alt_pressed or event.meta_pressed) \
-			and _key_setting(event.keycode,event.shift_pressed):
+			and _key_setting(event,event.shift_pressed):
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton:
 		var wheel := 0
@@ -379,22 +384,24 @@ func _unhandled_input(event: InputEvent) -> void:
 				_erase.mesh = null
 			get_viewport().set_input_as_handled()
 
-## Q and E step through the materials, R turns a lying log, Tab (Shift + Tab back) steps through
-## Shapes' shapes, and F fills a shape or empties it, or in Build switches Replace. False when the
-## key does none of these.
-func _key_setting(key: Key, back: bool) -> bool:
-	if key in [KEY_Q,KEY_E] and _is_build(_kind):
+## The tool's keys, read as input actions (project.godot, doc 23 "Keys"): Q and E step through
+## the materials, R turns a lying log, Tab (Shift + Tab back) steps through Shapes' shapes, and F
+## fills a shape or empties it, or in Build switches Replace. False when the key does none of
+## these.
+func _key_setting(key: InputEvent, back: bool) -> bool:
+	var next := key.is_action(&"tool_material_next")
+	if (next or key.is_action(&"tool_material_previous")) and _is_build(_kind):
 		var materials := build_materials()
-		set_tool_setting("material",materials[posmod(materials.find(_material)+(1 if key == KEY_E else -1),materials.size())])
-	elif key == KEY_R and String(_tool_definition().get("logs","")) == "lie":
+		set_tool_setting("material",materials[posmod(materials.find(_material)+(1 if next else -1),materials.size())])
+	elif key.is_action(&"tool_rotate") and String(_tool_definition().get("logs","")) == "lie":
 		_log_axis = "z" if _log_axis == "x" else "x"
 		_update_preview(_pointer)
-	elif key == KEY_TAB and _shapes:
+	elif key.is_action(&"tool_shape_next") and _shapes:
 		var shapes: Array = BlockRegistry.get_construction_shapes().keys()
 		set_tool_setting("shape",shapes[posmod(shapes.find(_shape)+(-1 if back else 1),shapes.size())])
-	elif key == KEY_F and _shapes and _shape != "stairs":
+	elif key.is_action(&"tool_toggle") and _shapes and _shape != "stairs":
 		set_tool_setting("filled",not _filled)
-	elif key == KEY_F and _is_build(_kind) and not _shapes:
+	elif key.is_action(&"tool_toggle") and _is_build(_kind) and not _shapes:
 		set_tool_setting("replace",not _replace)
 	else: return false
 	return true
@@ -447,7 +454,7 @@ func _update_preview(mouse := Vector2(-1,-1)) -> void:
 func _show_preview() -> void:
 	if _preview_dirs.is_empty() or renderer == null or _replace:
 		_clear_ghost()
-		_preview.mesh = mining.build_fill_mesh(_preview_cells,Color.WHITE,.005) if not _preview_cells.is_empty() else null
+		_preview.mesh = mining.build_fill_mesh(_preview_cells,Color.WHITE,PREVIEW_OUTSET) if not _preview_cells.is_empty() else null
 		return
 	_preview.mesh = null
 	if is_instance_valid(_ghost) and _ghost.get_meta("dirs",{}) == _preview_dirs and _ghost.get_meta("wood","") == _wood: return
@@ -576,7 +583,7 @@ func _update_erase() -> void:
 			for cell: Vector3i in order.cells:
 				if cell.y <= _slice_y() and cell.x >= low.x and cell.x <= high.x and cell.z >= low.y and cell.z <= high.y:
 					_erase_cells.append(cell)
-	_erase.mesh = mining.build_fill_mesh(_erase_cells,Color.WHITE,.006) if not _erase_cells.is_empty() else null
+	_erase.mesh = mining.build_fill_mesh(_erase_cells,Color.WHITE,ERASE_OUTSET) if not _erase_cells.is_empty() else null
 
 ## Takes the erase box's blocks out of their plans.
 func _finish_erase() -> void:
@@ -699,6 +706,9 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	var short: Array = order.needs().keys().filter(func(item: String) -> bool: return materials.staged_count(item) < int(order.needs()[item]))
 	var waiting := "Waiting for %s" % (good if not mixed else Work.items_words(short))
 	var status := waiting
+	# The line's tone and what it counts are settled with its words, never read back from them.
+	var tone := "waiting"
+	var hauling := true   # the line counts goods delivered; once building is next, blocks built
 	var details := "Deliver all materials to the temporary crate, then hammer each block. Cancelling returns unused %s; completed blocks remain." % good
 	if mixed: details = "Deliver each good to the temporary crate; a good's blocks are hammered once all of it is in. Cancelling returns unused %s; completed blocks remain." % good
 	# Replace (doc 285): the builder digs each old block out and hammers the new one in.
@@ -709,24 +719,34 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 		if is_instance_valid(hauler): haulers.append(hauler.dwarf_name)
 	if materials.crate_cell == INVALID or materials.delivery_stand_cells(materials.crate_cell).is_empty():
 		status = "No delivery access"
+		tone = "blocked"
+		hauling = false
 	elif is_instance_valid(worker):
 		var working := worker.get_task_phase() == DwarfAgent.TaskPhase.FETCH_WORKING
 		status = ("Replacing" if working else "Going to replace") if order.replace else ("Building" if working else "Going to build")
+		tone = "fine"
+		hauling = false
 	elif order.ready_for_staged_work():
 		status = "Waiting for builder"
+		hauling = false
 		if task != null and task.blocked_count > 0:
 			status = "No construction access"
+			tone = "blocked"
 			details = task.wait_reason+"\n\n"+details
-	elif not haulers.is_empty(): status = "Delivering materials"
-	if task != null and task.recovery_paused: status = "Needs attention"
+	elif not haulers.is_empty():
+		status = "Delivering materials"
+		tone = "fine"
+	if task != null and task.recovery_paused:
+		status = "Needs attention"
+		tone = "blocked"
+		hauling = false
 	var progress := "—"
 	if order.cells.has(order.target):
 		progress = "%d%%" % roundi(clampf(float(order.work_progress.get(order.target,0.0))/order.work_seconds_of(order.target),0.0,1.0)*100.0)
 	var built: int = order.total_blocks - order.cells.size()
 	# A plan of several goods names those still short; its Materials card counts each.
 	var delivered := " · %d / %d %s delivered" % [materials.count() + built, order.total_blocks, good] if not mixed else ""
-	var count := delivered if status in [waiting, "Delivering materials"] else " · %d / %d blocks %s" % [built, order.total_blocks, "replaced" if order.replace else "built"]
-	var tone := "blocked" if status.begins_with("No ") or status == "Needs attention" else "waiting" if status.begins_with("Waiting") else "fine"
+	var count := delivered if hauling else " · %d / %d blocks %s" % [built, order.total_blocks, "replaced" if order.replace else "built"]
 	# One Materials row, or for several goods a row each: "Oak logs · 30 / 247 delivered".
 	var rows := [["Status",status],["Blocks left",str(order.cells.size())]]
 	var on_way: Array[String] = []
@@ -772,7 +792,7 @@ func _materials_card(order: RefCounted, haulers: Array[String]) -> Dictionary:
 		var words := Work.item_words(item)
 		var tag := "All in" if delivered >= total else ("None in stock" if stock == 0 else "%d in stock" % stock)
 		var tone := "fine" if delivered >= total else ("blocked" if stock == 0 and coming == 0 else "waiting")
-		rows.append({"picture":Inventory.thumbnail_path(item),"name":words.left(1).to_upper()+words.substr(1),
+		rows.append({"picture":Pictures.item(item),"name":words.left(1).to_upper()+words.substr(1),
 			"detail":"%d of %d delivered · %d on the way" % [delivered,total,coming],"tag":tag,"tone":tone})
 	return {"title":"Materials","rows":rows,
 		"footer":"Hauling: %s" % ", ".join(haulers) if not haulers.is_empty() else "No one is hauling"}
@@ -1164,7 +1184,7 @@ func _rebuild_visuals() -> void:
 		for order in orders.values():
 			for cell: Vector3i in order.cells:
 				if cell.y <= _slice_y(): pending.append(cell)
-		_plans.mesh = mining.build_fill_mesh(pending,Color.WHITE,.004) if not pending.is_empty() else null
+		_plans.mesh = mining.build_fill_mesh(pending,Color.WHITE,PLAN_OUTSET) if not pending.is_empty() else null
 
 func save_section_key() -> String: return "construction"
 func save_restore_priority() -> int: return 15

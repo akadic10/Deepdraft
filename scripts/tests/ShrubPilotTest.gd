@@ -70,6 +70,7 @@ func _run() -> void:
 	explorer._perform_action("harvest")
 	var source: RefCounted = details.work.sources[BLUE]
 	_expect(source.task_type == Task.Type.HARVEST_SHRUB and source.duration == 3, "harvest uses configured adjacent work")
+	_expect(details.get_explorer_data(BLUE).status.tone == "waiting", "a marked shrub's line waits in amber: %s" % [details.get_explorer_data(BLUE).status])
 	_expect(not details.designate_detail(BLUE,"clear_shrubs"), "clearing cannot silently replace a harvest order")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
 	worker = factory.spawn(factory.generate(101, {}),101)

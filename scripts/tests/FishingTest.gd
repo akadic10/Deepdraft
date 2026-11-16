@@ -47,6 +47,18 @@ func _run() -> void:
 		and fishing.water_item("spring_cave") == "base:item:cave_fish", "each water has its own fish")
 	_expect(fishing.spot_reason(Vector3i(52, 19, 33)) == "Fishers stand on the shore, not in the water", "the lake's own cells are refused")
 	_expect(fishing.water_in_front(Vector3i(SHORE_X, 20, 33)) == Vector3i(51, 20, 33), "the float lands two blocks out, in water deep enough")
+	# Damp ground is ground (doc 33: a film thinner than standing water blocks no placement). In
+	# the owner's colony, 2026-11-16, a stone crossing held the river back, a film a fiftieth of
+	# a block deep lay over its banks, and every bank cell read "Fishers stand on the shore, not
+	# in the water". Under standing water a cell is still refused. The film stays for the real
+	# drag further down, which paints through it.
+	var damp := Vector3i(SHORE_X, 20, 36)
+	water.flow.seed_column(damp + Vector3i.UP, .25, false)
+	_expect(water.has_standing_water(damp + Vector3i.UP) and fishing.spot_reason(damp) == "Fishers stand on the shore, not in the water",
+		"a shore cell under standing water is refused: '%s'" % fishing.spot_reason(damp))
+	water.flow.seed_column(damp + Vector3i.UP, .02, false)
+	_expect(water.depth_at(damp + Vector3i.UP) > 0.0 and not water.has_standing_water(damp + Vector3i.UP) and fishing.spot_reason(damp) == "",
+		"a shore cell under a film thinner than standing water is damp ground, and still a spot: '%s'" % fishing.spot_reason(damp))
 	# A zone of four spots posts four leases.
 	var cells: Array[Vector3i] = []
 	for z in range(31, 35): cells.append(Vector3i(SHORE_X, 20, z))
@@ -123,6 +135,7 @@ func _run() -> void:
 	fishing._stocks.lake = {"fish": 150.0, "day": clock_node.elapsed_days()}
 	var data: Dictionary = fishing.zone_data(zone_id)
 	_expect(data.water == "Lowland lake" and data.fish_name == "Perch" and data.word == "Plenty" and data.stock == 150 and data.maximum == 192 and data.spots == 4, "the zone's window data")
+	for water: String in fishing.config.waters: _expect(fishing.water_name(water) != "Water", "every water has the name it is shown by: " + water)
 	var panel = load("res://scripts/ui/FishingZonePanel.gd").new()
 	scene.add_child(panel)
 	panel.show_zone(data)
@@ -186,8 +199,24 @@ func _run() -> void:
 	_mouse_button(to, false)
 	await process_frame
 	var painted: Array = fishing.zone_ids()
-	_expect(painted.size() == 1 and fishing.zone_data(painted[0]).spots == 3, "a real drag along the shore paints a zone of three spots")
+	_expect(painted.size() == 1 and fishing.zone_data(painted[0]).spots == 3 and fishing._cell_to_zone.has(damp),
+		"a real drag along the shore paints a zone of three spots, the damp one among them")
 	fishing.deactivate()
+	# With the tool off a click on a zone still opens its window. The object explorer asks the
+	# zone systems for exactly that, by name, before it selects the bare ground (doc 312: the
+	# shared zone tool once left that name out, and nothing failed).
+	if painted.size() == 1:
+		fishing._close_window()
+		_mouse_button(from, true)
+		_mouse_button(from, false)
+		await process_frame
+		_expect(fishing._window_zone == int(painted[0]), "with the tool off, a real click on the zone opens its window")
+		fishing._close_window()
+		_expect(fishing.try_select_zone_at_screen(from) and fishing._window_zone == int(painted[0]), "the explorer's question opens the zone under the pointer")
+	for script_name: String in ["FishingSystem", "FarmingSystem", "StockpileDesignationController"]:
+		var script: GDScript = load("res://scripts/systems/%s.gd" % script_name)
+		_expect(script.get_script_method_list().any(func(method: Dictionary) -> bool: return method.name == "try_select_zone_at_screen"),
+			"%s answers the explorer's try_select_zone_at_screen" % script_name)
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("FISHING_OK: spots, zone leases, a real catch, the pose, release, Keep, fished out, regrowth, the window and saves")
 	quit(0 if failures.is_empty() else 1)

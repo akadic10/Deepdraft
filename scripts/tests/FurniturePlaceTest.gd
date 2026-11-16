@@ -366,7 +366,7 @@ func _heading_shown(title: String) -> bool:
 
 func _key(code: Key) -> void:
 	var event := InputEventKey.new()
-	event.pressed = true; event.keycode = code
+	event.pressed = true; event.keycode = code; event.physical_keycode = code
 	root.push_input(event, true)
 
 

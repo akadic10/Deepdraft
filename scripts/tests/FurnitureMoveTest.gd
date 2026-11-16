@@ -22,7 +22,7 @@ func _run() -> void:
 	if move_button!=null: _click(move_button.get_global_rect().get_center())
 	_expect(furniture.is_active() and not piece.flagged_uninstall and furniture._ghosts.is_empty(),"Move starts preview without touching the source")
 	var escape:=InputEventKey.new(); escape.keycode=KEY_ESCAPE; escape.pressed=true
-	furniture._unhandled_input(escape)
+	root.push_input(escape, true)   # Esc is the dock's: the key goes through the viewport
 	_expect(not furniture.is_active() and not piece.flagged_uninstall,"Escape leaves the installed piece alone")
 	var plan = _plan(piece)
 	_expect(piece.flagged_uninstall and not plan.required_instance_id.is_empty(),"confirmed destination posts exact-piece relocation")

@@ -2,7 +2,7 @@
   "__comment": "Appeal = design + material bonus * design material_factor. Hit points = the design's hit_points * the material's toughness (doc 62); a material without toughness counts 1. Wood differences are modest; precious metals can be decorative. Metal profiles are tuning for future refined-metal recipes, not ore recipes. Source palettes replace only authored wood colors; crates, flame, fibre and stone remain unchanged.",
   "materials": {
     "base:material:pine": {
-      "name": "Pine",
+      "display_name": "Pine",
       "adjective": "Pine",
       "group": "wood",
       "appeal_bonus": 0,
@@ -35,7 +35,7 @@
       }
     },
     "base:material:oak": {
-      "name": "Oak",
+      "display_name": "Oak",
       "adjective": "Oak",
       "group": "wood",
       "appeal_bonus": 1,
@@ -68,7 +68,7 @@
       }
     },
     "base:material:juniper": {
-      "name": "Juniper",
+      "display_name": "Juniper",
       "adjective": "Juniper",
       "group": "wood",
       "appeal_bonus": 1.5,
@@ -101,7 +101,7 @@
       }
     },
     "base:material:applewood": {
-      "name": "Applewood",
+      "display_name": "Applewood",
       "adjective": "Applewood",
       "group": "wood",
       "appeal_bonus": 2,
@@ -134,7 +134,7 @@
       }
     },
     "base:material:iron": {
-      "name": "Iron",
+      "display_name": "Iron",
       "adjective": "Iron",
       "group": "metal",
       "appeal_bonus": 1,
@@ -143,7 +143,7 @@
       "colors": {}
     },
     "base:material:copper": {
-      "name": "Copper",
+      "display_name": "Copper",
       "adjective": "Copper",
       "group": "metal",
       "appeal_bonus": 4,
@@ -151,7 +151,7 @@
       "colors": {}
     },
     "base:material:gold": {
-      "name": "Gold",
+      "display_name": "Gold",
       "adjective": "Gold",
       "group": "metal",
       "appeal_bonus": 25,

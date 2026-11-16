@@ -33,7 +33,7 @@ func valid(id: String) -> bool:
 
 
 func material_name(id: String) -> String:
-	return String(definitions.get(id, {}).get("name", "Unspecified"))
+	return String(definitions.get(id, {}).get("display_name", "Unspecified"))
 
 
 func product_name(base_name: String, id: String) -> String:

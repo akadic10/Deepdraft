@@ -2,6 +2,7 @@ class_name ItemDropManager
 extends Node3D
 
 const Permission = preload("res://scripts/components/ItemPermission.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 
 ## Spawns and owns dropped-item entities. Doc 18 Phase 2 grew this into the
 ## LOOSE-ITEM INDEX: every drop is registered on spawn, reservable by hauling
@@ -971,9 +972,7 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	# The compact panel beside the dock (doc 260): the item's picture, appeal or quantity
 	# on the badge, and where it stands.
 	data.family = "settlement"
-	data.picture = "res://assets/ui/items/%s.png" % key.replace(":", "_")
-	if not ResourceLoader.exists(data.picture):
-		data.picture = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)
+	data.picture = Pictures.of(key)   # a packed piece shows its furniture's picture
 	# A crate's key number is what it holds, also for the one piece of furniture kept in crates
 	# (log torches): its appeal stays in the rows.
 	if crated or quantity_of(id) > 1:

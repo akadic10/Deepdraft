@@ -121,11 +121,17 @@ func _record(id: String, reason: String, count: int) -> void:
 func _announce(event_id: String, count: int, edge: String, place: Vector3i) -> void:
 	for event: Dictionary in config.events:
 		if event.id != event_id: continue
-		var subject := "A %s has" % event.singular_name if count == 1 else "%d %s have" % [count, event.plural_name]
 		var options := {"picture": String(event.picture)}
 		if place.x >= 0: options.place = place
-		EventLog.post("arrival", subject + " arrived from the %s." % edge, options)
+		EventLog.post("arrival", "arrived", {"count": count, "event": event_id, "edge": edge}, options)
 		return
+
+## What Events calls an arrival's animals, one and several ({one, other}: "wolf", "wolves");
+## {} for an arrival the game does not have.
+func arrival_names(event_id: String) -> Dictionary:
+	for event: Dictionary in config.events:
+		if event.id == event_id: return {"one": String(event.singular_name), "other": String(event.plural_name)}
+	return {}
 
 func record_player_hunt(at: Vector3i) -> void:
 	# Only the wildlife owner's successful player_hunt removal calls this hook.

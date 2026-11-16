@@ -46,7 +46,9 @@ func _run() -> void:
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
 	var catalogs: Dictionary=root.get_node("SaveManager")._capture_catalogs()
 	_expect(validator._validate(start,"duck","duck",catalogs).is_empty(),"current duck save is valid")
-	for pair: Array in [["sex","invalid"],["mode","invalid"],["flight_index",-1],["flight",[[0,0]]],["launch_left",-1],["hop_seconds",0],["position",[1,999,1]]]:
+	# An activity and an arrival's status are saved as codes; the words shown for them are refused.
+	for pair: Array in [["sex","invalid"],["mode","invalid"],["flight_index",-1],["flight",[[0,0]]],["launch_left",-1],["hop_seconds",0],["position",[1,999,1]],
+			["activity","Grazing"],["activity","Seeking safe water"],["arrival",{"status":"Settled"}]]:
 		var malformed := start.duplicate(true)
 		malformed[pair[0]] = pair[1]
 		_expect(not validator._validate(malformed,"duck","duck",catalogs).is_empty(),"reject invalid duck "+pair[0])
@@ -65,7 +67,7 @@ func _run() -> void:
 	duck.hunger = .8
 	duck.timer = 0
 	wildlife.advance(.01,[])
-	_expect(duck.activity=="Grazing","duck dabbles when hungry")
+	_expect(duck.activity=="grazing","duck dabbles when hungry")
 	for i in 52: wildlife.advance(.1,[])
 	_expect(duck.hunger<.4,"completed forage relieves hunger")
 	duck.restore_state(start)
@@ -107,7 +109,7 @@ func _run() -> void:
 	water.initialized = true
 	duck.restore_state(start)
 	wildlife.advance(.01,[duck.position+Vector3(2,0,0)])
-	_expect(duck.mode=="air" and duck.activity=="Taking off","nearby dwarf startles duck into short flight")
+	_expect(duck.mode=="air" and duck.activity=="taking_off","nearby dwarf startles duck into short flight")
 	duck.restore_state(start)
 	# Rising water changes height without deleting/adding water for ducks.
 	for key: Vector3i in water.flow.mass: water.flow.mass[key] = 950000
@@ -127,7 +129,7 @@ func _run() -> void:
 	duck.hunger = .1
 	duck.fatigue = .95
 	wildlife.advance(.01,[])
-	_expect(duck.activity=="Sleeping","exhausted duck rests on the bank")
+	_expect(duck.activity=="sleeping","exhausted duck rests on the bank")
 	# A real cliff outlet makes nearby water unsuitable even if depth is ample.
 	geometry[Vector2i(75,50)] = [Vector2i(15,128)]
 	water.flow.terrain_changed(Vector2i(75,50))

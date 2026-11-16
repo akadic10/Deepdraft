@@ -383,7 +383,7 @@ func _rejected_workers(task: Task) -> Dictionary:
 func _reject_worker_route(task: Task, agent: DwarfAgent, now: int) -> void:
 	var rejected := _rejected_workers(task)
 	rejected[agent.dwarf_id] = agent.current_cell()
-	if task.wait_reason in ["Waiting for assessment","Checking route"]: task.wait_reason = "No route for eligible workers"
+	if task.wait_reason == Task.NOT_ASSESSED: task.wait_reason = "No route for eligible workers"
 	for id: int in _idle_dwarves:
 		var other: DwarfAgent = _agents.get(id)
 		if is_instance_valid(other) and task.type in types_for(other) and rejected.get(id, Vector3i(-1,-1,-1)) != other.current_cell():

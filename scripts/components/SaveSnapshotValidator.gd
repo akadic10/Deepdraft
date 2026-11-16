@@ -15,12 +15,15 @@ const FILTER := {"tags": [TYPE_STRING], "items": [TYPE_STRING], "excluded_items"
 const CONTAINER := {"stacks": [{"slot": TYPE_INT, "item": "item", "count": "positive_int", "material_id": "material", "?instance_id": TYPE_STRING, "?spoil": TYPE_FLOAT}],
 	"storage_filter": FILTER, "priority": TYPE_INT}
 const CARGO := {"item_key": "item", "count": "positive_int", "disallowed": TYPE_BOOL, "?instance_id": TYPE_STRING, "?material_id": "material", "?spoil": TYPE_FLOAT}
+## What an event's words take (EventLog): numbers, proper names, and ids the game still has.
+const EVENT_FIELDS := {"?count": TYPE_INT, "?name": TYPE_STRING, "?item": "item", "?crop": "crop", "?profession": "profession",
+	"?season": "key", "?event": "key", "?edge": TYPE_STRING, "?where": "key", "?days": TYPE_FLOAT, "?field": TYPE_INT}
 const ANIMAL := {
 	"id": "key", "cell": "cell", "home": "cell", "target": "cell", "position": "vector",
-	"yaw": TYPE_FLOAT, "hunger": TYPE_FLOAT, "fatigue": TYPE_FLOAT, "activity": "key",
+	"yaw": TYPE_FLOAT, "hunger": TYPE_FLOAT, "fatigue": TYPE_FLOAT, "activity": "state_code",
 	"timer": TYPE_FLOAT, "calm_left": TYPE_FLOAT, "hop_progress": TYPE_FLOAT,
 	"hop_seconds": TYPE_FLOAT, "rest_offset": TYPE_FLOAT, "pose_time": TYPE_FLOAT,
-	"rng_state": "rng", "?arrival": TYPE_DICTIONARY, "?herd_id": TYPE_STRING,
+	"rng_state": "rng", "?arrival": {"status": "state_code"}, "?herd_id": TYPE_STRING,
 	"?hunt_target_id": TYPE_STRING, "?hunt_left": TYPE_FLOAT,
 	"?retry_hours": TYPE_FLOAT, "?satisfied_hours": TYPE_FLOAT,
 }
@@ -123,18 +126,20 @@ const SCENE := {
 			"started": TYPE_FLOAT, "?material": "material"}]},
 	"camera": {"target_position": "vector", "zoom": TYPE_FLOAT, "pitch": TYPE_FLOAT, "orbit_y": TYPE_FLOAT},
 	"slice": {"active": TYPE_BOOL, "seeded": TYPE_BOOL, "slice_y": TYPE_INT, "last_slice_y": TYPE_INT},
+	# Both keep codes, never sentences (doc 13, "Codes and words"): an event its line and the
+	# fields its words take, a journal line its topic and the taste its thought names.
 	"events": {"next_id": "positive_int", "seen_id": TYPE_INT, "entries": [{"id": "positive_int", "kind": "key",
-		"text": "key", "detail": TYPE_STRING, "picture": TYPE_STRING, "time": TYPE_FLOAT, "?place": "cell",
-		"?dwarves": [TYPE_INT], "?warning": "key", "?raised": TYPE_FLOAT, "?hold": TYPE_FLOAT, "?past": "key", "?resolved": TYPE_FLOAT}]},
-	"journal": {"lines": [{"day": TYPE_INT, "topic": "key", "text": "key", "tone": "key", "dwarves": [TYPE_INT],
-		"speaker": TYPE_INT, "name": TYPE_STRING, "words": TYPE_STRING}]},
+		"line": "event line", "fields": EVENT_FIELDS, "picture": TYPE_STRING, "time": TYPE_FLOAT, "?place": "cell",
+		"?dwarves": [TYPE_INT], "?warning": "key", "?raised": TYPE_FLOAT, "?hold": TYPE_FLOAT, "?resolved": TYPE_FLOAT}]},
+	"journal": {"lines": [{"day": TYPE_INT, "topic": "key", "tone": "key", "dwarves": [TYPE_INT],
+		"speaker": TYPE_INT, "name": TYPE_STRING, "fields": {"?taste": "key", "?feeling": "key"}}]},
 }
 const EVENT_KINDS := ["arrival", "discovery", "colony", "warning"]
 ## The seasons a field's plan may name (doc 309).
 const FIELD_SEASONS := ["spring", "summer", "autumn", "winter"]
 ## Validation rule -> ContentRegistry.save_catalogs() key set.
 const CONTENT_CATALOGS := {"furniture": "furniture", "item": "items", "recipe": "recipes", "tree": "trees", "plant": "plants",
-	"profession": "professions", "trait": "traits"}
+	"profession": "professions", "trait": "traits", "crop": "crops", "event line": "event_lines"}
 const SNAPSHOT := {
 	"schema_version": TYPE_INT, "project": TYPE_STRING, "saved_at_utc": "key", "world_seed": TYPE_INT, "colony_name": TYPE_STRING,
 	"?save_name": TYPE_STRING,
@@ -270,17 +275,21 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 	var event_ids := {}
 	for entry: Dictionary in events.entries:
 		if entry.id >= events.next_id or event_ids.has(entry.id) or entry.time < 0 or not entry.kind in EVENT_KINDS \
-			or (entry.has("warning") and entry.kind != "warning") or (entry.has("hold") and not entry.has("raised")) \
-			or (entry.has("past") and (not entry.has("warning") or entry.has("resolved"))):
+			or (entry.has("warning") and entry.kind != "warning") or (entry.has("hold") and not entry.has("raised")):
 			return "save.scene.events has an invalid entry."
 		event_ids[entry.id] = true
 	# ColonyJournal keeps at most MAX_LINES (200), one line per topic a day, spoken by one of its dwarves.
+	# A topic is a thought's id, or a found taste's code with its thing after a colon; the
+	# journal has lines for it, and a taste a thought names comes with the dwarf's feeling.
 	var topics := {}
 	if snapshot.scene.journal.lines.size() > 200: return "save.scene.journal has too many lines."
 	for line: Dictionary in snapshot.scene.journal.lines:
 		var topic := "%d|%s" % [line.day, line.topic]
-		if line.day < 0 or not line.tone in ["complaint", "praise"] or not line.speaker in line.dwarves or topics.has(topic):
+		if line.day < 0 or not line.tone in ["complaint", "praise"] or not line.speaker in line.dwarves or topics.has(topic) \
+			or line.fields.has("taste") != line.fields.has("feeling") or not line.fields.get("feeling", "like") in ["love", "like", "dislike"]:
 			return "save.scene.journal has an invalid line."
+		if not catalogs.journal_lines.has(String(line.topic).get_slice(":", 0)):
+			return "save.scene.journal names a thought the game no longer has ('%s'); start a new world." % line.topic
 		topics[topic] = true
 	var craft_ids := {}
 	if snapshot.scene.worker_crafting.orders.size() > int(catalogs.max_craft_orders):
@@ -490,7 +499,7 @@ static func _validate(value: Variant, rule: Variant, path: String, catalogs: Dic
 			return ""
 		"material":
 			return "" if value is String and catalogs.materials.has(value) else "%s has an unknown material." % path
-		"furniture", "item", "recipe", "tree", "plant", "profession", "trait":
+		"furniture", "item", "recipe", "tree", "plant", "profession", "trait", "crop", "event line":
 			# Content the game no longer defines cannot be restored.
 			var catalog: Dictionary = catalogs[CONTENT_CATALOGS[rule]]
 			if value is String and catalog.has(value): return ""
@@ -498,6 +507,10 @@ static func _validate(value: Variant, rule: Variant, path: String, catalogs: Dic
 		"key":
 			if value is String and not value.is_empty(): return ""
 			return path + " must be a non-empty string."
+		"state_code":
+			# A state by its code ("grazing"), never the words shown for it.
+			if value is String and _is_state_code(value): return ""
+			return path + " must be a state's code, in lower case."
 		"positive_int":
 			if _is_integer(value) and value > 0: return ""
 			return path + " must be a positive integer."
@@ -522,6 +535,14 @@ static func _validate(value: Variant, rule: Variant, path: String, catalogs: Dic
 					if route.size()!=2: return path+" has an invalid duck arrival route."
 			return ""
 	return path + " has an unknown validation rule."
+
+
+## A code as states use them: lower-case letters and digits joined by underscores ("taking_off").
+static func _is_state_code(value: String) -> bool:
+	if value.is_empty() or value[0] < "a" or value[0] > "z": return false
+	for character: String in value:
+		if not ((character >= "a" and character <= "z") or (character >= "0" and character <= "9") or character == "_"): return false
+	return true
 
 
 static func _is_integer(value: Variant) -> bool:

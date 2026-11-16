@@ -27,10 +27,10 @@ const Inspection = preload("res://scripts/components/DwarfInspection.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const SettlementName = preload("res://scripts/components/SettlementName.gd")
-const MUTED := Color("aeb5ad")
+const MUTED := UITheme.MUTED
 const SOFT := Color("bdb8a9")
-const RULE := Color("27312f")
-const HAY := Color("e2c06a")
+const RULE := UITheme.RULE
+const HAY := UITheme.HAY
 const REFRESH_SECONDS := 1.0
 const ROWS := {"dwarves": "Dwarves", "food": "Food", "beds": "Beds", "storage": "Storage", "happiness": "Happiness"}
 const GROUPS := [["working", "fine"], ["resting", "waiting"], ["idle", "waiting"]]
@@ -255,7 +255,7 @@ func _build_header() -> void:
 	_header = HBoxContainer.new()
 	_header.name = "Header"
 	_column.add_child(_header)
-	_header.add_child(_picture(_texture(FlagPlacementController.PICTURE), "flag"))
+	_header.add_child(_picture(_texture(FlagPlacementController.picture()), "flag"))
 	var identity := VBoxContainer.new()
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity.add_theme_constant_override("separation", 6)
@@ -396,7 +396,7 @@ func _finish_rename() -> void:
 
 
 func _on_field_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and (event as InputEventKey).keycode == KEY_ESCAPE:
+	if event.is_action_pressed("ui_cancel"):
 		_field.accept_event()
 		_editing = false
 		refresh()

@@ -95,13 +95,16 @@ func retry_order(order_key: String, reason: String = "Retry requested") -> void:
 		TaskManager.journal.transition(task.order_locator,"ready",task.wait_reason)
 	TaskManager.request_wake()
 
+## How free a worker is for a job, as a code: "unavailable", "self_care" (asleep, eating, at
+## play or collecting a tool), "recovering_access", "trapped" (no navigable footing), "working"
+## or "available".
 func worker_availability(agent: DwarfAgent) -> String:
-	if not is_instance_valid(agent): return "Unavailable"
-	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending(): return "Self-care"
-	if agent.needs_ladder_exit(): return "Recovering access"
-	if not NavGrid.is_navigable(agent.current_cell()): return "Trapped: no navigable footing"
-	if _active.has(agent.dwarf_id): return "Working"
-	return "Available"
+	if not is_instance_valid(agent): return "unavailable"
+	if agent.is_sleeping() or agent.is_eating() or agent.is_recreating() or agent.promotion_pending(): return "self_care"
+	if agent.needs_ladder_exit(): return "recovering_access"
+	if not NavGrid.is_navigable(agent.current_cell()): return "trapped"
+	if _active.has(agent.dwarf_id): return "working"
+	return "available"
 
 func job_diagnostics() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

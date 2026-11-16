@@ -75,8 +75,8 @@ func _distant_partner() -> void:
 			for y in range(21,25): world.set_block(x,y,z,0)
 	await _frames(2)
 	extra_worker.position = Vector3(78.5,21,44.5)
-	extra_worker._idle_behavior.config.start_delay_min_s = 100
-	extra_worker._idle_behavior.config.start_delay_max_s = 100
+	extra_worker._idle_behavior.config.start_delay_min_seconds = 100
+	extra_worker._idle_behavior.config.start_delay_max_seconds = 100
 	_expect(chairs.all(func(c): return Vector3(extra_worker.current_cell()-c.origin_cell).length()>24),"partner begins outside both old search radii")
 	_expect(await _playing(),"an occupied table recruits the eligible distant companion")
 	if not worker.is_recreating(): return

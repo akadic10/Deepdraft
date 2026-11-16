@@ -13,6 +13,7 @@ signal slice_toggle_requested()
 
 # Text sizes come from the type scale (doc 23, "Type").
 const MEDIUM := UITheme.TYPE_MEDIUM
+const Wording = preload("res://scripts/components/Wording.gd")
 ## The main dock's button row; the view toggles join it. DockUI sets it before adding
 ## the HUD.
 var view_row: Control
@@ -170,15 +171,22 @@ func _build_appeal() -> void:
 func _build_temperature() -> void:
 	var edges: Dictionary = RoomManager.temperature_config
 	var colours: Dictionary = UIRegistry.get_time_slice().get("temperature", {}).get("colours", {})
-	var degrees := func(key: String) -> String: return ("%.1f" % float(edges.get(key, 0.0))).trim_suffix(".0")
 	var rows: Array = [
-		["hot", "Hot", "above %s°C" % degrees.call("comfortable_max_c")],
-		["comfortable", "Comfortable", "%s to %s°C" % [degrees.call("comfortable_min_c"), degrees.call("comfortable_max_c")]],
-		["chilly", "Chilly", "%s to %s°C" % [degrees.call("cold_below_c"), degrees.call("comfortable_min_c")]],
-		["cold", "Cold", "%s to %s°C" % [degrees.call("frozen_at_c"), degrees.call("cold_below_c")]],
-		["frozen", "Frozen", "%s°C and below" % degrees.call("frozen_at_c")]]
-	for row: Array in rows: row[0] = Color(String(colours.get(row[0], "#ffffff")))
+		["hot", "above %s°C" % _degrees("comfortable_max_c")],
+		["comfortable", "%s to %s°C" % [_degrees("comfortable_min_c"), _degrees("comfortable_max_c")]],
+		["chilly", "%s to %s°C" % [_degrees("cold_below_c"), _degrees("comfortable_min_c")]],
+		["cold", "%s to %s°C" % [_degrees("frozen_at_c"), _degrees("cold_below_c")]],
+		["frozen", "%s°C and below" % _degrees("frozen_at_c")]]
+	# Each code's word comes from temperature.json, where the room and hover cards read it too.
+	for row: Array in rows:
+		row.insert(1, Wording.of(edges.get("words", {}), String(row[0])))
+		row[0] = Color(String(colours.get(row[0], "#ffffff")))
 	temperature_panel = _scale_panel(rows, "Hover a spot for its temperature.\nClick a room for the room.", _temperature_labels, _temperature_swatches)
+
+
+## One of the temperature words' edges, in whole degrees where it is whole: "16", "0.5".
+func _degrees(key: String) -> String:
+	return ("%.1f" % float(RoomManager.temperature_config.get(key, 0.0))).trim_suffix(".0")
 
 
 ## A view's scale: rows of [colour, word, range], then a hint.

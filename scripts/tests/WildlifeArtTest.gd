@@ -47,11 +47,11 @@ func _run() -> void:
 			for leg: Node3D in actor.legs:
 				expect(leg.get_node("Knee").get_child_count()==1,species+" movable lower leg")
 		var before: Dictionary=actor.serialize_state()
-		for activity in ["Idle","Wandering","Grazing" if species!="wolf" else "Eating","Sleeping"]:
+		for activity in ["idle","exploring","grazing" if species!="wolf" else "eating","sleeping"]:
 			var low := INF
 			var high := -INF
 			for i in 64:
-				actor.activity=activity; actor.hop_progress=float(i)/64 if activity=="Wandering" else 1.0
+				actor.activity=activity; actor.hop_progress=float(i)/64 if activity=="exploring" else 1.0
 				actor.pose_time=float(i)*TAU/64
 				if species=="duck": actor.mode="land"
 				actor._pose()
@@ -63,7 +63,7 @@ func _run() -> void:
 				# Squash and stretch (doc 256) scales only the root, keeping its volume.
 				var root_scale: Vector3=actor.visual.scale
 				expect(absf(root_scale.x*root_scale.y*root_scale.z-1.0)<.002 and is_equal_approx(root_scale.x,root_scale.z) and absf(root_scale.y-1.0)<=.2,species+" volume-kept squash")
-				if activity!="Wandering": expect(root_scale.is_equal_approx(Vector3.ONE),species+" unit visual root at rest")
+				if activity!="exploring": expect(root_scale.is_equal_approx(Vector3.ONE),species+" unit visual root at rest")
 				var bounds := _local_bounds(actor,meshes)
 				low=minf(low,bounds.position.y); high=maxf(high,bounds.end.y)
 			expect(low>=-.025,species+" ground clearance "+activity+" %.4f"%low)

@@ -137,6 +137,13 @@ func is_loading_held() -> bool:
 	return not _loading_holds.is_empty()
 
 
+## Game seconds that pass in `delta` real seconds at the current speed: 0 while paused. New
+## simulation code counts time with this, or in hours with game_hours_per_real_second(),
+## and does not multiply by `speed` itself (doc 13, "One job, one way").
+func game_seconds(delta: float) -> float:
+	return 0.0 if paused or speed <= 0.0 else delta * speed
+
+
 ## In-game hours that elapse per real second at the current speed (0 while
 ## paused). For agent behaviours timed in game hours outside this autoload
 ## (e.g. sleep-lite, doc 16 Phase 5) — they multiply their _process delta by

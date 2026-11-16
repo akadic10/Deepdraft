@@ -15,7 +15,7 @@ extends MarginContainer
 signal place_requested(furniture_key: String)
 
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
-const Inventory = preload("res://scripts/components/ColonyInventory.gd")
+const Pictures = preload("res://scripts/components/Pictures.gd")
 const INK := UITheme.CATALOG_INK
 const INK_SOFT := UITheme.CATALOG_MUTED
 const ANY := "any"   # the wood tile that leaves the choice of wood to the dwarves
@@ -530,7 +530,7 @@ func _show_woods(key: String, definition: Dictionary, chosen: String) -> void:
 		var count := int(counts.get(id, 0))
 		var name := CraftMaterials.material_name(id)
 		var ingredients: Array = material.get("ingredients", [])
-		var picture: Texture2D = _picture_at(Inventory.thumbnail_path(String(ingredients[0]))) if not ingredients.is_empty() else null
+		var picture: Texture2D = _picture_at(Pictures.item(String(ingredients[0]))) if not ingredients.is_empty() else null
 		items.append({"id": id, "picture": picture, "text": "" if picture != null else name, "count": count if count > 0 else -1,
 			"dim": count <= 0, "selected": chosen == id, "caption": name if named else "",
 			"tooltip": "%s · %d ready\nPlace only %s pieces." % [name, count, name.to_lower()]})
@@ -538,8 +538,8 @@ func _show_woods(key: String, definition: Dictionary, chosen: String) -> void:
 
 
 func _design_picture(key: String, definition: Dictionary) -> Texture2D:
-	var path := "res://assets/ui/furniture/%s.png" % key.get_slice(":", 2)
-	if not ResourceLoader.exists(path): path = Inventory.thumbnail_path(String(definition.item_key))
+	var path := Pictures.furniture(key)
+	if not ResourceLoader.exists(path): path = Pictures.item(String(definition.item_key))
 	return _picture_at(path)
 
 
