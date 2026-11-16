@@ -8,28 +8,29 @@
       "appeal_bonus": 0,
       "toughness": 1.0,
       "ingredients": [
-        "base:resources:wood:pine_log"
+        "base:item:pine_log",
+        "base:item:pine_plank"
       ],
       "colors": {
         "bark_dark": "44352A",
         "bark": "60482F",
         "wood_dark": "81643E",
         "wood": "987846",
-        "wood_light": "AD8C54",
-        "grain": "BBA066",
-        "grain_light": "CDB17B",
-        "cut": "E4CF97",
-        "ring": "B5A06C",
-        "heart": "D7BC80",
+        "wood_light": "9C7C42",
+        "grain": "AF8B48",
+        "grain_light": "CBA45B",
+        "cut": "E3C685",
+        "ring": "AF8B48",
+        "heart": "D9B56D",
         "hewn_bark_dark": "493C2B",
         "hewn_bark": "685137",
         "hewn_bark_light": "876B43",
-        "hewn_peel": "AD8D51",
-        "hewn_cut": "DFBD7D",
-        "hewn_cut_light": "E8CA91",
-        "hewn_cut_shade": "D3AE6A",
-        "hewn_grain": "C4A162",
-        "hewn_knot": "9C7A40",
+        "hewn_peel": "9C7C42",
+        "hewn_cut": "D9B56D",
+        "hewn_cut_light": "E3C685",
+        "hewn_cut_shade": "CBA45B",
+        "hewn_grain": "AF8B48",
+        "hewn_knot": "85642E",
         "hewn_crack": "493827"
       }
     },
@@ -40,7 +41,8 @@
       "appeal_bonus": 1,
       "toughness": 1.2,
       "ingredients": [
-        "base:resources:wood:oak_log"
+        "base:item:oak_log",
+        "base:item:oak_plank"
       ],
       "colors": {
         "bark_dark": "412A1C",
@@ -72,7 +74,8 @@
       "appeal_bonus": 1.5,
       "toughness": 1.1,
       "ingredients": [
-        "base:resources:wood:juniper_log"
+        "base:item:juniper_log",
+        "base:item:juniper_plank"
       ],
       "colors": {
         "bark_dark": "3C302C",
@@ -104,7 +107,8 @@
       "appeal_bonus": 2,
       "toughness": 1.0,
       "ingredients": [
-        "base:resources:wood:apple_wood"
+        "base:item:apple_log",
+        "base:item:apple_plank"
       ],
       "colors": {
         "bark_dark": "483029",

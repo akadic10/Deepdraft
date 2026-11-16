@@ -16,7 +16,7 @@
     "glow": {"intensity": 0.5, "strength": 1.0, "bloom": 0.0, "hdr_threshold": 1.0, "hdr_scale": 2.0, "blend": "screen", "levels": [0.0, 0.0, 1.0, 1.0, 0.6, 0.0, 0.0]},
     "underground_fill": {"readability_floor": 0.035, "tint": [0.62, 0.69, 0.82]},
     "view_fill": 0.06,
-    "light_colors": {"base:furniture:wooden_torch": "#FFB266", "base:furniture:campfire": "#FFA85A", "base:furniture:hearth": "#FFAA5E"},
+    "light_colors": {"base:furniture:torch": "#FFB266", "base:furniture:campfire": "#FFA85A", "base:furniture:hearth": "#FFAA5E"},
     "flame_gain": 1.4,
     "slice_cap_tint": [0.72, 0.63, 0.55],
     "stockpile_fill": [0.35, 0.28, 0.2, 0.3],
@@ -106,7 +106,17 @@
       {"at": "midday", "deg": -90},
       {"at": "sunset_start", "deg": -150},
       {"at": "sunset_end", "deg": -180}
-    ]
+    ],
+    "__path_lean_note": [
+      "LEANED SUN PATH (24_world_rendering.md, Sky; the owner's pick of 2026-11-11). The path leans this many",
+      "degrees off overhead, about the level line through sunrise and sunset (angle_pitch 0 and -180). Those two",
+      "keep their directions; at midday the sun stands 90 - lean degrees up (60 at 30). At 0, or with no value,",
+      "it climbs straight overhead: every top takes all of the light and every side face is in shade.",
+      "A positive value leans the midday sun to the right of someone facing the sunset. In the world scene",
+      "(Sun yaw -30) that is toward +X and a little +Z: at 30 it stands toward (0.43, 0.87, 0.25).",
+      "The moon's path does not lean."
+    ],
+    "path_lean_degrees": 30
   },
   "moon": {
     "light_color": [

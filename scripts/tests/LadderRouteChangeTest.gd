@@ -2,8 +2,8 @@ extends "res://scripts/tests/RudimentaryRecreationTest.gd"
 
 ## A ladder change leaves a walk alone unless its route uses the changed rungs, and a replan keeps
 ## the meal, game or promotion that owns the walk (doc 32).
-const APPLE := "base:resources:flora:apple"
-const KIT := "base:resources:tools:carpentry_kit"
+const APPLE := "base:item:apple"
+const KIT := "base:item:copper_saw"
 const CARPENTER := "base:profession:carpenter"
 const FAR := Vector3i(100,20,100)
 var nav

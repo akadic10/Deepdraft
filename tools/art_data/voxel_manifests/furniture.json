@@ -40,13 +40,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 4096,
-          "visual_triangles": 1134,
+          "cells": 3392,
+          "visual_triangles": 620,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.75390625,
-            "triangles": 104
+            "retained_volume": 0.7358490566037735,
+            "triangles": 72
           },
           "min": [
             -1.0,
@@ -60,8 +60,8 @@
           ]
         }
       ],
-      "bytes": 134140,
-      "sha256": "1455ce57f32abed7e4a995d8ff6f00abc77b59a7457dc38a08fbd9abfab3e6ea",
+      "bytes": 75672,
+      "sha256": "fa6b23e398f86be2b26a5c2d5bdea2baefd03e5f42632fff60a2514e68ae489d",
       "path": "assets/models/furniture/bench.glb",
       "authoring": {
         "piece": "bench",
@@ -73,13 +73,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 30599,
-          "visual_triangles": 1282,
+          "cells": 18454,
+          "visual_triangles": 1978,
           "occlusion": true,
           "shadow": {
             "stride": 4,
-            "retained_volume": 0.7989803588352561,
-            "triangles": 162
+            "retained_volume": 0.8288717893139699,
+            "triangles": 120
           },
           "min": [
             -1.4375,
@@ -93,8 +93,8 @@
           ]
         }
       ],
-      "bytes": 155492,
-      "sha256": "67a50083deb873c71ada475bf6210964e306efe1847083cbee9099f787149db0",
+      "bytes": 226788,
+      "sha256": "d123a087b04ed6cd0a29b536968f6a271397b6b388f9f263458c0957f1bc6f42",
       "path": "assets/models/furniture/crude_workbench.glb",
       "authoring": {
         "piece": "crude_workbench",
@@ -139,13 +139,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 6100,
-          "visual_triangles": 1772,
+          "cells": 7566,
+          "visual_triangles": 1326,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.7763934426229508,
-            "triangles": 314
+            "stride": 4,
+            "retained_volume": 0.7105471847739889,
+            "triangles": 82
           },
           "min": [
             -1.5,
@@ -159,8 +159,8 @@
           ]
         }
       ],
-      "bytes": 222380,
-      "sha256": "40d9c9cc73c3a420668247fd7bdfb75bd9786e2140afd20748c97db336e2a06c",
+      "bytes": 152864,
+      "sha256": "0591df14ccffc63b73622a8cd9dae80f70d8adfa183334ac8b88c97eb466d06a",
       "path": "assets/models/furniture/carpenter_bench.glb",
       "authoring": {
         "piece": "carpenter_bench",
@@ -172,28 +172,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 3823,
-          "visual_triangles": 1282,
+          "cells": 5620,
+          "visual_triangles": 1716,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7664138111430814,
-            "triangles": 164
+            "retained_volume": 0.7508896797153025,
+            "triangles": 414
           },
           "min": [
             -1.5,
             0.0,
-            -0.4375
+            -0.5
           ],
           "max": [
             1.5,
             0.9375,
-            0.4375
+            0.5
           ]
         }
       ],
-      "bytes": 155668,
-      "sha256": "68ab8a98b54ff9705d37e6f5b9e32ea85394c16fb11d2b719cca6786f9315794",
+      "bytes": 225528,
+      "sha256": "2411794e5a4545ba37dd61bcb0a0f157f8e3f8fea4617e9a5311bfa7be5397d3",
       "path": "assets/models/furniture/mason_bench.glb",
       "authoring": {
         "piece": "mason_bench",
@@ -205,28 +205,28 @@
       "parts": [
         {
           "name": "main",
-          "cells": 3232,
-          "visual_triangles": 1430,
+          "cells": 9090,
+          "visual_triangles": 2368,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 572
+            "stride": 2,
+            "retained_volume": 0.8475247524752475,
+            "triangles": 358
           },
           "min": [
-            -1.0,
+            -1.5,
             0.0,
             -0.5
           ],
           "max": [
-            1.0,
-            1.125,
+            1.5,
+            1.5625,
             0.5
           ]
         }
       ],
-      "bytes": 209184,
-      "sha256": "a60974cd7cc14e7849028d4e1fa50c2cfdef01dd2ad8a2bd67a40626662e9b92",
+      "bytes": 290792,
+      "sha256": "7262fcc541b96a72cbdae08976d979a098dd3602c11458fa7c64081dd6924665",
       "path": "assets/models/furniture/basic_smelter.glb",
       "authoring": {
         "piece": "basic_smelter",
@@ -238,16 +238,49 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2569,
-          "visual_triangles": 408,
+          "cells": 4948,
+          "visual_triangles": 984,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.8158816660179058,
-            "triangles": 110
+            "retained_volume": 0.847210994341148,
+            "triangles": 228
           },
           "min": [
-            -0.5,
+            -1.0,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            1.0,
+            0.9375,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 129356,
+      "sha256": "c43ea8f5a808f64506f4e00b3d8243a1ffc3560f26fc1c38d7b49338bc380263",
+      "path": "assets/models/furniture/anvil_stone.glb",
+      "authoring": {
+        "piece": "anvil_stone",
+        "source": "tools/art_data/voxel_hearthblock.json",
+        "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2381,
+          "visual_triangles": 498,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7879042419151617,
+            "triangles": 96
+          },
+          "min": [
+            -0.4375,
             0.0,
             -0.4375
           ],
@@ -258,8 +291,8 @@
           ]
         }
       ],
-      "bytes": 56284,
-      "sha256": "037a15fa05c02d12e264e3bb068bcf8302cdafa3f3de9cdc534923bcc2ccf9d3",
+      "bytes": 64728,
+      "sha256": "ad115fedd72356dc43bc7b8202a820b7c82e9f0992e936194642d646fa79b893",
       "path": "assets/models/furniture/stone_stool.glb",
       "authoring": {
         "piece": "stone_stool",
@@ -271,13 +304,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 1952,
-          "visual_triangles": 604,
+          "cells": 2364,
+          "visual_triangles": 292,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 206
+            "triangles": 88
           },
           "min": [
             -1.5,
@@ -286,13 +319,13 @@
           ],
           "max": [
             1.5,
-            2.875,
+            2.8125,
             0.0625
           ]
         }
       ],
-      "bytes": 86296,
-      "sha256": "5a69352061c4b57784583d36f3846dfabb9481750cdf496837ce80ca4d8784d3",
+      "bytes": 41736,
+      "sha256": "086ea75f4f077e9acebf8be9f0ff7cbe3081e217057d54822707c1f4eb110282",
       "path": "assets/models/furniture/tool_rack.glb",
       "authoring": {
         "piece": "tool_rack",
@@ -304,13 +337,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2032,
-          "visual_triangles": 852,
+          "cells": 3712,
+          "visual_triangles": 1008,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 224
+            "stride": 2,
+            "retained_volume": 0.6379310344827587,
+            "triangles": 148
           },
           "min": [
             -1.0,
@@ -319,13 +352,13 @@
           ],
           "max": [
             1.0,
-            0.5625,
+            0.8125,
             1.0
           ]
         }
       ],
-      "bytes": 114740,
-      "sha256": "73e5fa828cdbf9e673a0e4d4424a2731bf9803a828947e1122c345641433a5dc",
+      "bytes": 124596,
+      "sha256": "09d7b80578f8fd0ab058447557bf938dafe06bc0c02938f2639a8e140c0986ae",
       "path": "assets/models/furniture/raw_materials_crate.glb",
       "authoring": {
         "piece": "raw_materials_crate",
@@ -337,13 +370,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2436,
-          "visual_triangles": 1508,
+          "cells": 3776,
+          "visual_triangles": 1084,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 452
+            "stride": 2,
+            "retained_volume": 0.7796610169491526,
+            "triangles": 132
           },
           "min": [
             -1.0,
@@ -357,8 +390,8 @@
           ]
         }
       ],
-      "bytes": 206572,
-      "sha256": "3d85ff064895bf27cffd82a12560b79078ea9146af66f371fa174f1f63017a80",
+      "bytes": 131336,
+      "sha256": "7f24c0840dfb5b14a2211ed1b26847805ed6cc1d95dd0f8ce4a5dcdd985117da",
       "path": "assets/models/furniture/finished_goods_pallet.glb",
       "authoring": {
         "piece": "finished_goods_pallet",
@@ -370,13 +403,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 3928,
-          "visual_triangles": 2602,
+          "cells": 8322,
+          "visual_triangles": 576,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 680
+            "stride": 2,
+            "retained_volume": 0.7709685171833693,
+            "triangles": 110
           },
           "min": [
             -1.5,
@@ -390,8 +423,8 @@
           ]
         }
       ],
-      "bytes": 345688,
-      "sha256": "0bc6756326ac813f815f229519100c0d585ad1272d694dc9aeea18c03338049f",
+      "bytes": 74424,
+      "sha256": "e059c8aea63e68c383c3ff8ee16290be096dbd5dcbc9d34bc11f2da8ab3f11c3",
       "path": "assets/models/furniture/food_shelf.glb",
       "authoring": {
         "piece": "food_shelf",
@@ -403,13 +436,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 13476,
-          "visual_triangles": 2156,
+          "cells": 16724,
+          "visual_triangles": 1520,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.9207479964381122,
-            "triangles": 350
+            "stride": 4,
+            "retained_volume": 0.6075101650322889,
+            "triangles": 176
           },
           "min": [
             -1.4375,
@@ -423,8 +456,8 @@
           ]
         }
       ],
-      "bytes": 267192,
-      "sha256": "fdc81a680d7fde7d5b571b51b2129f7cae65178b66415e4732aec383b3715278",
+      "bytes": 182488,
+      "sha256": "d7fc967d14bed2eade0750bdffb7256ae15cf43c6ef6f86f40a2dbef148c07c7",
       "path": "assets/models/furniture/board_game_table.glb",
       "authoring": {
         "piece": "board_game_table",
@@ -667,13 +700,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 2058,
-          "visual_triangles": 542,
+          "cells": 1920,
+          "visual_triangles": 510,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.9329446064139941,
-            "triangles": 144
+            "retained_volume": 0.95,
+            "triangles": 92
           },
           "min": [
             -0.4375,
@@ -687,11 +720,11 @@
           ]
         }
       ],
-      "bytes": 73908,
-      "sha256": "043722979d7daadf2ab63a9670a9f991fb1577a83a8596fff4c244e7bea6afb9",
-      "path": "assets/models/furniture/log_chair.glb",
+      "bytes": 65668,
+      "sha256": "d2520d2b6769967744d6382a0c07e01cab95f2b37a6a4dc6d514f340c4ef50c7",
+      "path": "assets/models/furniture/log_stool.glb",
       "authoring": {
-        "piece": "log_chair",
+        "piece": "log_stool",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -700,13 +733,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 13380,
-          "visual_triangles": 1798,
+          "cells": 16670,
+          "visual_triangles": 1136,
           "occlusion": true,
           "shadow": {
-            "stride": 2,
-            "retained_volume": 0.9249626307922272,
-            "triangles": 270
+            "stride": 4,
+            "retained_volume": 0.6094781043791242,
+            "triangles": 176
           },
           "min": [
             -1.4375,
@@ -720,11 +753,11 @@
           ]
         }
       ],
-      "bytes": 221152,
-      "sha256": "7215e3ebdd50a7d51beb8330bbd07ff6e208a88e7e88873b7797c98afe05f3ac",
-      "path": "assets/models/furniture/log_table.glb",
+      "bytes": 141008,
+      "sha256": "a7ee1ed5d3ea7d6cd2807baa889fb0f159eface2ad1fb59e31d3194820805f4f",
+      "path": "assets/models/furniture/dining_table.glb",
       "authoring": {
-        "piece": "log_table",
+        "piece": "dining_table",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -754,10 +787,10 @@
         }
       ],
       "bytes": 356448,
-      "sha256": "e8efe8af526c40d9870e2794514a1410ebadc0819e63edd141bd4f87b3f5c76b",
-      "path": "assets/models/furniture/door.glb",
+      "sha256": "7858f7f0e307d1cad9f0e37019c1f12eddd2a22435d5e4e47b148099f7d92233",
+      "path": "assets/models/furniture/door_2.glb",
       "authoring": {
-        "piece": "door",
+        "piece": "door_2",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -786,11 +819,11 @@
           ]
         }
       ],
-      "bytes": 489404,
-      "sha256": "b821f59d899a6a41343b4dc7b145b095a33f5dad3c183535782cc2cc46f7a2ac",
-      "path": "assets/models/furniture/log_door_3.glb",
+      "bytes": 489400,
+      "sha256": "345dc1a21ac9a1c7b506ce3c4c73c9fc59a6bc86222688cfe5d68425b590623f",
+      "path": "assets/models/furniture/door_3.glb",
       "authoring": {
-        "piece": "log_door_3",
+        "piece": "door_3",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -840,11 +873,11 @@
           ]
         }
       ],
-      "bytes": 712240,
-      "sha256": "203e7fd3de3fe941bc4ff4a7b617d85468302707071b8abb0c6c0fbf1f168363",
-      "path": "assets/models/furniture/log_door_4.glb",
+      "bytes": 712236,
+      "sha256": "f22fa46176a7e7326d8d83d405e223528871e41b6f66354e1d2f93ac920edb2b",
+      "path": "assets/models/furniture/door_4.glb",
       "authoring": {
-        "piece": "log_door_4",
+        "piece": "door_4",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -853,23 +886,23 @@
       "parts": [
         {
           "name": "campfire_body",
-          "cells": 2092,
-          "visual_triangles": 1528,
+          "cells": 2381,
+          "visual_triangles": 1486,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 656
+            "stride": 2,
+            "retained_volume": 0.6921461570768584,
+            "triangles": 244
           },
           "min": [
-            -0.9375,
+            -1.0,
             0.0,
-            -0.9375
+            -1.0
           ],
           "max": [
-            0.9375,
+            1.0,
             0.375,
-            0.9375
+            1.0
           ]
         },
         {
@@ -889,8 +922,8 @@
           ]
         }
       ],
-      "bytes": 274748,
-      "sha256": "48c33b5c74fe58806bc8b10f5e622eab502f3e7ed33b34eca092dedf887a77e4",
+      "bytes": 232276,
+      "sha256": "434da4f14964d7e7850c289a6d7951b84352ad470a89bc3fa2d038fea24e1bc0",
       "path": "assets/models/furniture/campfire.glb",
       "authoring": {
         "piece": "campfire",
@@ -902,13 +935,13 @@
       "parts": [
         {
           "name": "hearth_body",
-          "cells": 6758,
-          "visual_triangles": 2014,
+          "cells": 6735,
+          "visual_triangles": 1702,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.7552530334418467,
-            "triangles": 320
+            "retained_volume": 0.858203414996288,
+            "triangles": 308
           },
           "min": [
             -1.0,
@@ -917,8 +950,8 @@
           ],
           "max": [
             1.0,
-            1.8125,
-            1.0
+            1.6875,
+            0.8125
           ]
         },
         {
@@ -938,8 +971,8 @@
           ]
         }
       ],
-      "bytes": 291120,
-      "sha256": "dc3688e426459f5d6c01d1b940014c3830156ac6b086842041b8664cea143a04",
+      "bytes": 256328,
+      "sha256": "ae0848496fba687262bf5382580d424f2e63d9fbf1c8c50c1a90a8818951b948",
       "path": "assets/models/furniture/hearth.glb",
       "authoring": {
         "piece": "hearth",
@@ -987,11 +1020,11 @@
           ]
         }
       ],
-      "bytes": 60592,
-      "sha256": "7a5014aba5d34f5f8b6c037195dee189a0e66ac3bb416fa917cf5a9d6158b7e8",
-      "path": "assets/models/furniture/wooden_torch.glb",
+      "bytes": 60584,
+      "sha256": "4920fb52de9f4e94324f034cde0e1c1a9af57d5181d902ff94cfd1f73ef2cba8",
+      "path": "assets/models/furniture/torch.glb",
       "authoring": {
-        "piece": "wooden_torch",
+        "piece": "torch",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -1060,13 +1093,13 @@
       "parts": [
         {
           "name": "post",
-          "cells": 632,
-          "visual_triangles": 200,
+          "cells": 554,
+          "visual_triangles": 340,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.9873417721518988,
-            "triangles": 52
+            "retained_volume": 0.8592057761732852,
+            "triangles": 84
           },
           "min": [
             -0.1875,
@@ -1080,8 +1113,8 @@
           ]
         }
       ],
-      "bytes": 28536,
-      "sha256": "059cd78ba27f51c03dc7ee5faa60673aa791ebca13b73e8b708ae241b030e8f5",
+      "bytes": 46604,
+      "sha256": "c4e9a6c10e573abff5ec9b69e46392fdcd0ebea02292b763e763112d744257ea",
       "path": "assets/models/furniture/log_fence.glb",
       "authoring": {
         "piece": "log_fence",
@@ -1093,13 +1126,13 @@
       "parts": [
         {
           "name": "post_left",
-          "cells": 632,
-          "visual_triangles": 200,
+          "cells": 554,
+          "visual_triangles": 340,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.9873417721518988,
-            "triangles": 52
+            "retained_volume": 0.8592057761732852,
+            "triangles": 84
           },
           "min": [
             -1.1875,
@@ -1114,13 +1147,13 @@
         },
         {
           "name": "post_right",
-          "cells": 632,
-          "visual_triangles": 200,
+          "cells": 554,
+          "visual_triangles": 340,
           "occlusion": true,
           "shadow": {
             "stride": 2,
-            "retained_volume": 0.9873417721518988,
-            "triangles": 52
+            "retained_volume": 0.8592057761732852,
+            "triangles": 84
           },
           "min": [
             0.8125,
@@ -1135,13 +1168,13 @@
         },
         {
           "name": "leaf_left",
-          "cells": 668,
-          "visual_triangles": 608,
+          "cells": 922,
+          "visual_triangles": 726,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 268
+            "stride": 2,
+            "retained_volume": 0.6290672451193059,
+            "triangles": 114
           },
           "min": [
             -0.8125,
@@ -1155,8 +1188,8 @@
           ]
         }
       ],
-      "bytes": 149168,
-      "sha256": "98172481f78a8f72cc102f2797e6278aca32174f5197bca96b2b5e614d506fe1",
+      "bytes": 183880,
+      "sha256": "e65666a809d2f34c683819fc38ca23d4a7fe9f8af05f2578dc7492e4c9e23883",
       "path": "assets/models/furniture/log_gate.glb",
       "authoring": {
         "piece": "log_gate",
@@ -1168,17 +1201,17 @@
       "parts": [
         {
           "name": "rails",
-          "cells": 256,
-          "visual_triangles": 144,
+          "cells": 464,
+          "visual_triangles": 364,
           "occlusion": true,
           "shadow": {
-            "stride": 1,
-            "retained_volume": 1.0,
-            "triangles": 72
+            "stride": 2,
+            "retained_volume": 0.6896551724137931,
+            "triangles": 24
           },
           "min": [
             -0.5,
-            0.3125,
+            0.25,
             -0.125
           ],
           "max": [
@@ -1188,8 +1221,8 @@
           ]
         }
       ],
-      "bytes": 24332,
-      "sha256": "0d4f2cfb4f6e14bf55844d432e5e56c3f2985374089c76d94236ee88bb1cddac",
+      "bytes": 43672,
+      "sha256": "b9574854c9909ba226c2beb4bc689de391a6f90e34c8489ecea57fd4ed72f80a",
       "path": "assets/models/furniture/parts/log_fence_rails.glb",
       "authoring": {
         "piece": "parts/log_fence_rails",
@@ -1201,28 +1234,28 @@
       "parts": [
         {
           "name": "fish",
-          "cells": 351,
-          "visual_triangles": 804,
+          "cells": 234,
+          "visual_triangles": 544,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 436
+            "triangles": 286
           },
           "min": [
-            -0.6875,
+            -0.5,
             0.5625,
             -0.1875
           ],
           "max": [
-            0.6875,
+            0.5,
             1.8125,
             0.1875
           ]
         }
       ],
-      "bytes": 129132,
-      "sha256": "0907717f186e5da2a0c2fe4d9effc48e8ce848568fb0b95a1bc2c456ae9519d2",
+      "bytes": 87232,
+      "sha256": "5d98bdcd0389979f6262125442aa5c24104ea089af0ff4c3d73561446c941143",
       "path": "assets/models/furniture/parts/drying_rack_fish.glb",
       "authoring": {
         "piece": "parts/drying_rack_fish",
@@ -1234,31 +1267,64 @@
       "parts": [
         {
           "name": "charge",
-          "cells": 96,
-          "visual_triangles": 112,
+          "cells": 80,
+          "visual_triangles": 106,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 48
+            "triangles": 80
           },
           "min": [
-            -0.6875,
+            -1.25,
             0.0625,
-            -0.1875
+            -0.25
           ],
           "max": [
-            0.75,
-            0.9375,
+            -0.875,
+            1.4375,
             0.4375
           ]
         }
       ],
-      "bytes": 18688,
-      "sha256": "0fd45885680fe25c312dde695062d21e7d3bd9c4d8203a02baddf6945ca1f8ac",
+      "bytes": 20980,
+      "sha256": "1bdb6ea9287fcbe49be31b9225c3776248205f8bd62d38e02d5a5011aafcff63",
       "path": "assets/models/furniture/parts/basic_smelter_charge.glb",
       "authoring": {
         "piece": "parts/basic_smelter_charge",
+        "source": "tools/art_data/voxel_hearthblock.json",
+        "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "bar",
+          "cells": 16,
+          "visual_triangles": 32,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            0.75,
+            0.875,
+            0.0625
+          ],
+          "max": [
+            1.25,
+            0.9375,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 6688,
+      "sha256": "0cff388f38380fb8022732d1fb8d7b9dab9e1daf2b0e3d9c543ef3883f2dd69d",
+      "path": "assets/models/furniture/parts/basic_smelter_bar.glb",
+      "authoring": {
+        "piece": "parts/basic_smelter_bar",
         "source": "tools/art_data/voxel_hearthblock.json",
         "direction": "docs/00_dev_roadmap/256_hearthblock_art_pilot.md"
       }
@@ -1706,11 +1772,11 @@
           ]
         }
       ],
-      "bytes": 184752,
-      "sha256": "e2c4da1039e4997cf05bf8dd0eb5b0bcf0298403cee048c12444f7f12c90a5ae",
-      "path": "assets/models/furniture/animations/wooden_torch_flame.glb",
+      "bytes": 184744,
+      "sha256": "ff2ca117adb9b00fe57233bee27e74c954e8969049bc70ca89a2ce0fd22e7812",
+      "path": "assets/models/furniture/animations/torch_flame.glb",
       "authoring": {
-        "effect": "wooden_torch",
+        "effect": "torch",
         "frames": 8,
         "casting": false
       }

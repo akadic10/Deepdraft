@@ -12,7 +12,7 @@ extends "res://scripts/tests/HaulingAnimationTest.gd"
 ## - the storage window sets it;
 ## - a trip moving goods up that skips one gives its claim back, and the trip still ends cleanly;
 ## - stored food never moves up onto a crate far from it in freshness.
-const APPLE := "base:resources:flora:apple"
+const APPLE := "base:item:apple"
 var _next_source := 60
 var storage
 
@@ -21,7 +21,7 @@ var storage
 class OrderStub extends RefCounted:
 	var ghost_id := 1
 	var drop_manager
-	func item_keys() -> Array: return ["base:resources:stone:rough_stone"]
+	func item_keys() -> Array: return ["base:item:rough_stone"]
 
 
 func _run() -> void:

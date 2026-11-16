@@ -49,12 +49,12 @@
       "label": "Settlement flag"
     },
     {
-      "key": "base:furniture:log_table",
+      "key": "base:furniture:dining_table",
       "category": "dining",
-      "label": "Log Dining Table"
+      "label": "Plank dining table"
     },
     {
-      "key": "base:furniture:log_chair",
+      "key": "base:furniture:log_stool",
       "category": "dining",
       "label": "Log stool"
     },
@@ -66,10 +66,10 @@
     {
       "key": "base:furniture:bench",
       "category": "dining",
-      "label": "Log bench"
+      "label": "Plank bench"
     },
     {
-      "key": "base:furniture:wooden_torch",
+      "key": "base:furniture:torch",
       "category": "lighting",
       "label": "Log torch"
     },
@@ -79,17 +79,17 @@
       "label": "Campfire"
     },
     {
-      "key": "base:furniture:door",
+      "key": "base:furniture:door_2",
       "category": "rooms",
       "label": "Log door (2 wide)"
     },
     {
-      "key": "base:furniture:log_door_3",
+      "key": "base:furniture:door_3",
       "category": "rooms",
       "label": "Log door (3 wide)"
     },
     {
-      "key": "base:furniture:log_door_4",
+      "key": "base:furniture:door_4",
       "category": "rooms",
       "label": "Double log door (4 wide)"
     },
@@ -117,6 +117,11 @@
       "key": "base:furniture:basic_smelter",
       "category": "workshops",
       "label": "Basic smelter"
+    },
+    {
+      "key": "base:furniture:anvil_stone",
+      "category": "workshops",
+      "label": "Anvil stone"
     },
     {
       "key": "base:furniture:tool_rack",
@@ -211,15 +216,15 @@
     {
       "key": "base:furniture:crude_ladder",
       "category": "access",
-      "label": "Rough wooden ladder"
+      "label": "Ladder section"
     },
     {
-      "key": "base:water:wet_stone",
+      "key": "base:furniture:wet_stone",
       "category": "water",
       "label": "Wet stone"
     },
     {
-      "key": "base:water:dry_stone",
+      "key": "base:furniture:dry_stone",
       "category": "water",
       "label": "Dry stone"
     },
@@ -231,17 +236,17 @@
     {
       "key": "base:furniture:log_fence",
       "category": "access",
-      "label": "Log Fence Post"
+      "label": "Log fence post"
     },
     {
       "key": "base:furniture:log_gate",
       "category": "access",
-      "label": "Log Gate"
+      "label": "Log gate"
     },
     {
       "key": "base:furniture:board_game_table",
       "category": "recreation",
-      "label": "Board-game Table"
+      "label": "Board-game table"
     }
   ]
 }

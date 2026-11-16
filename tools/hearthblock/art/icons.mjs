@@ -44,20 +44,26 @@ const icons = {};
 const settings = {};
 const define = (name, fn, options = {}) => { icons['icon/' + name] = fn; settings['icon/' + name] = options; };
 
-// Orders: a pickaxe driven into a rough rock.
+// Orders: the dwarves' pickaxe driven into a rough rock. Like every tool in these pictures it is
+// worked stone bound with rope, as the dwarves' own tools are (the owner's pick, 2026-11-11): one
+// long stone knapped to a point at each end, lashed across the haft's top.
 define('orders', v => {
   v.cut(-12, 12, 0, 11, -10, 10, 4, 'stone');
   v.cut(-10, 10, 11, 13, -8, 8, 4, 'stone_light');            // lit top
   v.cut(-12, 12, 0, 2, -10, 10, 4, 'stone_dark');             // dark foot
   v.paint(2, 3, 3, 8, 9, 10, 'stone_dark'); v.paint(3, 4, 7, 11, 9, 10, 'stone_dark');   // one crack
   v.cut(13, 17, 0, 3, 3, 8, 1, 'stone');                      // a chip knocked loose
-  v.box(-1, 1, 8, 30, -1, 1, 'wood'); v.paint(0, 1, 13, 30, -1, 1, 'grain');
-  v.box(-1, 1, 15, 18, -1, 1, 'tool_leather');                // grip wrap
-  v.cut(-3, 3, 27, 33, -2, 2, 1, 'iron_dark');                // square socket
-  v.box(-11, -3, 29, 32, -2, 2, 'iron'); v.box(3, 11, 29, 32, -2, 2, 'iron');
-  v.box(-14, -11, 27, 30, -1, 1, 'iron'); v.box(11, 14, 27, 30, -1, 1, 'iron');
-  v.box(-16, -14, 25, 28, -1, 1, 'steel'); v.box(14, 16, 25, 28, -1, 1, 'steel');
-  v.paint(-11, 11, 31, 32, -2, 2, 'steel');                   // lit top edge
+  v.box(-1, 1, 8, 31, -1, 1, 'wood'); v.paint(0, 1, 13, 31, -1, 1, 'grain');
+  v.box(-1, 1, 15, 18, -1, 1, 'rope');                        // grip binding
+  v.box(-7, 7, 26, 30, -2, 2, 'stone_skin'); v.paint(-7, 7, 29, 30, -2, 2, 'stone_skin_top');   // the head, lit along its top,
+  for (const s of [1, -1]) {                                  // its arms thinning as they drop to the points
+    const span = (a, b) => (s > 0 ? [a, b] : [-b, -a]);
+    let [a, b] = span(7, 11); v.box(a, b, 25, 29, -2, 2, 'stone_skin'); v.paint(a, b, 28, 29, -2, 2, 'stone_skin_top');
+    [a, b] = span(11, 14); v.box(a, b, 24, 27, -1, 1, 'stone_skin'); v.paint(a, b, 26, 27, -1, 1, 'stone_skin_top');
+    [a, b] = span(14, 16); v.box(a, b, 22, 25, -1, 1, 'stone_fresh');
+  }
+  v.box(-2, 2, 25, 31, -2, 2, 'rope'); v.paint(-2, 2, 27, 28, -2, 2, 'rope_dark'); v.paint(-2, 2, 29, 30, -2, 2, 'rope_dark');   // lashed to the haft
+  v.box(-1, 1, 31, 32, -1, 1, 'wood');                        // the haft's top, above the lashing
 });
 
 // Zones: marked storage ground with a packed crate and a log on it.
@@ -104,7 +110,7 @@ define('construction', v => {
 
 // Place: the log stool with a chunky arrow showing where it goes.
 define('place', v => {
-  replayInto(v, P.stool().log);
+  replayInto(v, T.logStool().log);
   v.box(-3, 3, 27, 36, -3, 3, 'arrow');
   v.box(-8, 8, 23, 27, -3, 3, 'arrow');
   v.box(-6, 6, 21, 23, -3, 3, 'arrow');
@@ -234,7 +240,7 @@ define('xray', v => {
 // One icon per order. The markers reuse them, so a marked tree shows the same picture
 // as the tool that marked it. Uproot has no Orders tool; it is the object panel's action.
 
-// Mine blocks: a cube of rock in four seams, its corner block struck out and a pick
+// Mine blocks: a cube of rock in four seams, its corner block struck out and the stone pickaxe
 // swinging down at the gap. The pick is drawn in steps, facing the camera.
 define('mine', v => {
   v.box(-13, 3, 0, 16, -8, 8, 'stone');
@@ -248,13 +254,15 @@ define('mine', v => {
   v.cut(5, 12, 0, 7, 0, 7, 1, 'stone');                       // fallen beside it, with chips
   v.paint(5, 12, 6, 7, 0, 7, 'stone_light');
   v.box(13, 15, 0, 2, 4, 6, 'stone_light'); v.box(-16, -14, 0, 2, 3, 5, 'stone');
-  for (const [x0, x1, y0, y1, c] of [[-13, -10, 18, 21, 'steel'], [-10, -6, 20, 23, 'iron_dark'], [-6, 0, 21, 25, 'iron_dark'],
-    [0, 4, 19, 23, 'iron_dark'], [3, 6, 16, 20, 'iron_dark'], [4, 7, 13, 17, 'steel']]) v.box(x0, x1, y0, y1, 3, 6, c);   // the head
-  v.paint(-10, 0, 24, 25, 3, 6, 'steel');                     // lit top edge
-  for (let i = 0; i < 6; i++) v.box(-4 + 2 * i, -1 + 2 * i, 24 + 2 * i, 27 + 2 * i, 3, 6, i < 4 ? 'wood' : 'tool_leather');   // haft
+  for (const [x0, x1, y0, y1, c] of [[-13, -10, 18, 21, 'stone_fresh'], [-10, -6, 20, 23, 'stone_skin'], [-6, 0, 21, 25, 'stone_skin'],
+    [0, 4, 19, 23, 'stone_skin'], [3, 6, 16, 20, 'stone_skin'], [4, 7, 13, 17, 'stone_fresh']]) v.box(x0, x1, y0, y1, 3, 6, c);   // the head, its points knapped pale
+  v.paint(-10, 0, 24, 25, 3, 6, 'stone_skin_top'); v.paint(-10, -6, 22, 23, 3, 6, 'stone_skin_top');   // lit along its top
+  v.paint(0, 4, 22, 23, 3, 6, 'stone_skin_top'); v.paint(3, 6, 19, 20, 3, 6, 'stone_skin_top');
+  for (let i = 0; i < 6; i++) v.box(-4 + 2 * i, -1 + 2 * i, 24 + 2 * i, 27 + 2 * i, 3, 6, i < 4 ? 'wood' : 'rope');   // haft, its grip bound
+  v.box(-5, 0, 21, 26, 2, 7, 'rope'); v.paint(-5, 0, 22, 23, 2, 7, 'rope_dark'); v.paint(-5, 0, 24, 25, 2, 7, 'rope_dark');   // the head lashed across it
 }, { yaw: 40 });
 
-// Chop trees: an oak with an axe bitten into its trunk, chips at the foot.
+// Chop trees: an oak with the stone axe bitten into its trunk, chips at the foot.
 define('chop', v => {
   v.cut(-7, 7, 0, 2, -7, 7, 3, 'bark_dark');                  // root flare
   v.cut(-5, 5, 0, 17, -5, 5, 2, 'bark');
@@ -262,16 +270,19 @@ define('chop', v => {
   v.cut(-11, 11, 14, 18, -11, 11, 4, 'leafy_dark');           // crown: dark skirt, body, lit cap
   v.cut(-10, 10, 18, 24, -10, 10, 4, 'leafy');
   v.cut(-6, 6, 24, 27, -6, 6, 3, 'leafy_light');
-  v.box(3, 5, 3, 11, -2, 3, null);                            // the axe's bite, pale inside
-  v.paint(2, 3, 3, 11, -2, 3, 'riven');
-  v.box(2, 8, 3, 12, -1, 2, 'iron_dark');                     // a broad axe head, edge in the wood
-  v.box(2, 4, 3, 12, -1, 2, 'steel');
-  v.box(8, 21, 6, 9, -1, 2, 'wood'); v.paint(8, 21, 8, 9, -1, 2, 'grain');
-  v.box(17, 21, 6, 9, -1, 2, 'tool_leather');
+  v.box(3, 5, 3, 12, -2, 3, null);                            // the axe's bite, pale inside
+  v.paint(2, 3, 3, 12, -2, 3, 'riven');
+  v.box(3, 6, 3, 12, -1, 2, 'stone_fresh'); v.box(6, 7, 3, 12, -1, 2, 'stone_fresh_dark');   // the blade's ground edge, in the wood
+  v.box(7, 9, 4, 11, -1, 2, 'stone_skin'); v.box(9, 11, 5, 10, -1, 2, 'stone_skin');         // the blade narrows to the haft
+  v.paint(7, 9, 10, 11, -1, 2, 'stone_skin_top'); v.paint(9, 11, 9, 10, -1, 2, 'stone_skin_top');
+  v.box(11, 15, 5, 10, -2, 3, 'wood'); v.paint(11, 15, 9, 10, -2, 3, 'grain');   // the haft's swollen end
+  v.box(12, 14, 4, 11, -2, 3, 'rope'); v.paint(12, 13, 4, 11, -2, 3, 'rope_dark');   // the blade bound into it
+  v.box(15, 22, 6, 9, -1, 2, 'wood'); v.paint(15, 22, 8, 9, -1, 2, 'grain');
+  v.box(19, 21, 6, 9, -1, 2, 'rope');                         // grip binding
   for (const [x, z] of [[7, 5], [11, 2], [4, 9]]) v.box(x, x + 2, 0, 1, z, z + 2, 'riven');   // chips
 });
 
-// Clear stones: two boulders and a scatter of scree, a maul standing beside them.
+// Clear stones: two boulders and a scatter of scree, a hammerstone maul standing beside them.
 define('clear_stones', v => {
   v.cut(-13, 3, 0, 9, -11, 5, 4, 'stone');                    // the big boulder, rounded in tiers
   v.cut(-12, 2, 9, 12, -10, 4, 4, 'stone');
@@ -282,10 +293,13 @@ define('clear_stones', v => {
   v.cut(2, 10, 6, 8, -5, 3, 3, 'stone_light');
   for (const [x, z, c] of [[-9, 8, 'stone'], [-5, 11, 'stone_light'], [-1, 8, 'stone'], [1, 12, 'stone_dark'], [-12, 11, 'stone_light']])
     v.box(x, x + 3, 0, 2, z, z + 3, c);                       // scree
-  v.box(5, 13, 0, 6, 7, 13, 'iron_dark');                     // the maul, head down
-  v.paint(5, 13, 5, 6, 7, 13, 'iron');
-  v.box(8, 10, 6, 22, 9, 11, 'wood'); v.paint(8, 9, 6, 22, 9, 11, 'grain');
-  v.box(8, 10, 18, 22, 9, 11, 'tool_leather');
+  v.box(5, 13, 0, 7, 7, 13, 'stone_skin');                    // the maul, its hammerstone down
+  v.paint(5, 13, 6, 7, 7, 13, 'stone_skin_top'); v.paint(5, 13, 0, 1, 7, 13, 'stone_skin_dark');
+  v.paint(8, 10, 0, 7, 7, 13, 'rope'); v.paint(9, 10, 0, 7, 7, 13, 'rope_dark');   // a rope band round the stone
+  v.paint(5, 6, 1, 6, 8, 12, 'stone_fresh'); v.paint(12, 13, 1, 6, 8, 12, 'stone_fresh');   // both faces worn pale
+  v.box(8, 10, 7, 23, 9, 11, 'wood'); v.paint(8, 9, 7, 23, 9, 11, 'grain');
+  v.box(7, 11, 7, 10, 8, 12, 'rope'); v.paint(7, 11, 8, 9, 8, 12, 'rope_dark');   // and round the haft above it
+  v.box(8, 10, 18, 22, 9, 11, 'rope');                        // grip binding
 });
 
 // Harvest plants: a wicker basket heaped with blue and red berries, a leafy sprig.
@@ -305,7 +319,8 @@ define('harvest_plants', v => {
   v.box(-8, -5, 21, 23, -6, -4, 'bush_light'); v.box(-11, -8, 16, 19, -5, -2, 'bush_light');
 });
 
-// Clear plants: a tuft of reed stalks, two of them cut, beside a sickle held blade up.
+// Clear plants: a tuft of reed stalks, two of them cut, beside a stone sickle held blade up: a
+// crescent of knapped stone bound into its handle.
 define('clear_plants', v => {
   v.cut(-14, 0, 0, 2, -7, 7, 3, 'earth');
   for (const [x, z, h] of [[-11, -3, 16], [-8, 1, 13], [-5, -4, 18], [-3, 2, 11], [-9, -6, 9]]) {
@@ -313,10 +328,13 @@ define('clear_plants', v => {
   }
   for (const [x, z] of [[-12, 3], [-6, 4]]) v.box(x, x + 2, 2, 4, z, z + 2, 'stalk_dry');   // cut stubs
   v.box(-10, 0, 2, 4, 6, 8, 'stalk_dry');                     // a cut stalk lying down
-  for (let i = 0; i < 4; i++) v.box(8 + 2 * i, 11 + 2 * i, 6 - 2 * i, 9 - 2 * i, -1, 1, i < 2 ? 'wood' : 'tool_leather');   // handle
+  for (let i = 0; i < 4; i++) v.box(8 + 2 * i, 11 + 2 * i, 6 - 2 * i, 9 - 2 * i, -1, 1, i < 2 ? 'wood' : 'rope');   // handle, its grip bound
   for (const [x0, x1, y0, y1] of [[4, 10, 8, 12], [2, 6, 11, 16], [1, 5, 15, 20], [3, 8, 19, 23], [7, 12, 21, 24], [11, 14, 19, 22]])
-    v.box(x0, x1, y0, y1, -1, 1, 'steel');                    // the crescent blade, tip forward
-  v.paint(1, 5, 15, 20, -1, 1, 'iron'); v.paint(2, 6, 11, 14, -1, 1, 'iron');   // its back, darker
+    v.box(x0, x1, y0, y1, -1, 1, 'stone_skin');               // the crescent blade, tip forward
+  v.paint(1, 3, 15, 20, -1, 1, 'stone_skin_dark'); v.paint(2, 4, 11, 15, -1, 1, 'stone_skin_dark');   // its back, darker
+  v.paint(4, 6, 12, 19, -1, 1, 'stone_fresh'); v.paint(5, 8, 19, 20, -1, 1, 'stone_fresh');           // its inner edge, knapped pale
+  v.paint(7, 12, 21, 22, -1, 1, 'stone_fresh'); v.paint(11, 13, 19, 21, -1, 1, 'stone_fresh');
+  v.box(6, 11, 7, 11, -2, 2, 'rope'); v.paint(6, 11, 8, 9, -2, 2, 'rope_dark');   // bound into the handle
 }, { yaw: 40 });
 
 // Cancel orders: an order scroll struck through with a red cross.
@@ -623,8 +641,8 @@ define('shape_stairs', v => shapeBlocks(v, stairCells(4, 2), 5, [-10, 0, -5]));
 
 // ── Professions ────────────────────────────────────────────────────────────────
 // One icon per profession, shared by the Crafters menu, the career map and the
-// equipment view. Tools echo the game's own: the dwarves' felling axe and mining
-// pickaxe, and the starter tools' stone heads lashed with rope.
+// equipment view. Tools are the game's own: worked stone bound with rope on wooden
+// hafts, as the dwarves hold them, and no iron before the Blacksmith makes it.
 
 // A stepped diagonal stroke in the XY plane, three cells thick, from (x0, y0) along
 // (dx, dy) steps of two cells; facing the camera when the icon turns 40°.
@@ -640,56 +658,111 @@ define('worker', v => {
   replayInto(v, D.build('tools/felling_axe').log, [0, 4, 4]);
 }, { yaw: -50 });
 
-// Miner: a heap of ore-bearing rock, a pick leaning on it. The pick is drawn in steps,
+// Miner: a heap of ore-bearing rock, the stone pickaxe leaning on it. The pick is drawn in steps,
 // facing the camera.
 define('miner', v => {
   v.cut(-15, 3, 0, 9, -8, 8, 3, 'stone'); v.cut(-13, 1, 9, 14, -6, 6, 3, 'stone'); v.paint(-13, 1, 13, 14, -6, 6, 'stone_light');
   for (const [x, y, z, c] of [[-10, 3, 7, 'ore_gold'], [-5, 6, 7, 'ore_copper'], [-1, 3, 7, 'ore_gold'], [-8, 10, 5, 'ore_copper'],
     [-3, 11, 5, 'ore_gold'], [-12, 7, 6, 'ore_copper'], [-6, 13, 1, 'ore_gold']]) v.box(x, x + 3, y, y + 3, z, z + 2, c);   // nuggets
-  for (let i = 0; i < 8; i++) v.box(14 - 2 * i, 17 - 2 * i, 0 + 2 * i, 3 + 2 * i, -1, 2, i < 2 ? 'tool_leather' : 'wood');   // haft
-  for (const [x0, x1, y0, y1, c] of [[-8, -4, 15, 18, 'steel'], [-5, -1, 16, 20, 'iron_dark'], [-1, 3, 17, 21, 'iron_dark'],
-    [2, 6, 19, 23, 'iron_dark'], [5, 9, 21, 24, 'steel']]) v.box(x0, x1, y0, y1, -1, 2, c);   // the head across the haft's top
+  for (let i = 0; i < 8; i++) v.box(14 - 2 * i, 17 - 2 * i, 0 + 2 * i, 3 + 2 * i, -1, 2, i < 2 ? 'rope' : 'wood');   // haft, its grip bound
+  for (const [x0, x1, y0, y1, c] of [[-8, -4, 15, 18, 'stone_fresh'], [-5, -1, 16, 20, 'stone_skin'], [-1, 3, 17, 21, 'stone_skin'],
+    [2, 6, 19, 23, 'stone_skin'], [5, 9, 21, 24, 'stone_fresh']]) v.box(x0, x1, y0, y1, -1, 2, c);   // the head across the haft's top, its points knapped pale
+  v.paint(-5, -1, 19, 20, -1, 2, 'stone_skin_top'); v.paint(-1, 3, 20, 21, -1, 2, 'stone_skin_top'); v.paint(2, 6, 22, 23, -1, 2, 'stone_skin_top');   // lit along its top
+  v.box(-2, 4, 15, 20, -2, 3, 'rope'); v.paint(-2, 4, 16, 17, -2, 3, 'rope_dark'); v.paint(-2, 4, 18, 19, -2, 3, 'rope_dark');   // lashed to the haft
 }, { yaw: 40 });
 
-// Carpenter: a handsaw resting on a plank, its toothed blade facing the camera.
+// Half a log lying along X, its riven face up at Y8 and its bark beneath in three steps, each
+// chopped shorter. The face shows pale sapwood inside the bark on both edges, a band of heartwood
+// and the pith as a broken line; both ends show their grain.
+function splitLog(v) {
+  for (const [x0, x1, y0, half] of [[-15, 13, 6, 6], [-14, 12, 4, 5], [-13, 11, 2, 3]]) {
+    v.box(x0, x1, y0, y0 + 2, -half, half, 'bark');
+    for (const x of [x0, x1 - 1]) v.paint(x, x + 1, y0, y0 + 2, -half, half, 'wood_top');   // the cut ends
+  }
+  for (const x of [-15, 12]) for (const z of [-6, -3, 3]) v.paint(x, x + 1, 6, 8, z, z + 1, 'grain');   // their rings
+  for (const x of [-14, 11]) { v.paint(x, x + 1, 4, 6, -3, -2, 'grain'); v.paint(x, x + 1, 4, 6, 3, 4, 'grain'); v.paint(x, x + 1, 4, 5, -3, 4, 'grain'); }
+  v.paint(-15, 13, 7, 8, -5, 5, 'riven');                     // the riven face, a rim of bark each side
+  v.paint(-15, 13, 7, 8, -5, -3, 'wood_top'); v.paint(-15, 13, 7, 8, 3, 5, 'wood_top');   // sapwood
+  v.paint(-12, 9, 7, 8, -1, 1, 'grain'); v.paint(-6, -1, 7, 8, -2, -1, 'grain'); v.paint(1, 6, 7, 8, 1, 2, 'grain');   // heartwood
+  for (const [x0, x1] of [[-12, -6], [-5, -2], [0, 7], [9, 10]]) v.paint(x0, x1, 7, 8, 0, 1, 'riven_dark');   // the pith
+}
+
+// Carpenter: the stone adze biting a split log, chips about it. The adze is the Carpenter's own:
+// a flat blade lashed under the haft's bent knee, its edge ground pale.
 define('carpenter', v => {
-  v.box(-15, 15, 0, 4, -6, 6, 'plank_riven'); v.paint(-15, 15, 3, 4, -6, 6, 'plank');
-  v.paint(-15, 15, 0, 4, -6, -5, 'plank_seam');
-  for (let x = -12; x < 8; x += 5) v.paint(x, x + 2, 3, 4, -3, 2, 'plank_grain');
-  for (let i = 0; i < 6; i++) v.box(-12 + 3 * i, -9 + 3 * i, 4, 13 + i, -1, 1, 'steel');   // a tapering blade
-  for (let x = -12; x < 6; x += 3) v.box(x, x + 2, 4, 5, -1, 1, 'iron');                    // its teeth
-  v.paint(-12, 6, 12, 19, -1, 1, 'steel');
-  v.box(6, 15, 5, 21, -2, 2, 'wood_side');                    // the handle, a loop for the hand
-  v.box(8, 13, 9, 17, -2, 2, null);
-  v.paint(6, 15, 20, 21, -2, 2, 'wood_top');
-  for (const [x, z] of [[-14, 7], [-8, 8], [-11, -9]]) v.box(x, x + 2, 0, 1, z, z + 2, 'plank');   // sawdust
-}, { yaw: 40 });
+  splitLog(v);
+  v.box(-4, -1, 7, 8, -2, 3, null); v.paint(-4, -1, 6, 7, -2, 3, 'chop');   // the bite it has just cut
+  v.box(-9, -5, 8, 20, -2, 3, 'stone_skin');                  // the blade, its edge on the wood
+  v.paint(-9, -5, 8, 10, -2, 3, 'stone_fresh'); v.paint(-9, -5, 10, 11, -2, 3, 'stone_fresh_dark');
+  v.paint(-9, -5, 11, 20, 2, 3, 'stone_skin_top');
+  v.box(-9, -1, 20, 23, -1, 2, 'wood');                       // the haft's bent knee over it
+  stroke(v, -2, 21, 1, 1, 5, 'wood');                         // and the haft, rising
+  v.paint(-2, 9, 23, 32, 1, 2, 'grain');
+  stroke(v, 6, 29, 1, 1, 1, 'rope');                          // its grip binding
+  v.box(-10, -4, 16, 21, -3, 4, 'rope'); v.paint(-10, -4, 17, 18, -3, 4, 'rope_dark'); v.paint(-10, -4, 19, 20, -3, 4, 'rope_dark');   // lashed under the knee
+  for (const [x, y, z] of [[-2, 8, 1], [1, 8, -3], [-12, 0, 8], [-6, 0, 9], [2, 0, 8]]) v.box(x, x + 2, y, y + 1, z, z + 1, 'wood_top');   // chips
+});
 
-// Stonemason: a dressed block with a chisel driven into its top, a round mason's mallet
-// at its foot, and chips.
+// A stone with its four upright corners cut square, n by n, as the world's boulders are.
+function squared(v, x0, x1, y0, y1, z0, z1, n, c) {
+  v.box(x0 + n, x1 - n, y0, y1, z0, z1, c); v.box(x0, x1, y0, y1, z0 + n, z1 - n, c);
+}
+
+// Stonemason: a Rough stone knocked square, in the benches' worked stone (a dark skin, a fresh
+// face inside a ledge of it on top), a stone point on its haft leaning into its top and the
+// hammerstone maul at its foot, spalls about it.
 define('stonemason', v => {
-  v.cut(-12, 6, 0, 15, -9, 9, 1, 'stone');
-  v.paint(-12, 6, 14, 15, -9, 9, 'stone_light'); v.paint(-12, 6, 0, 1, -9, 9, 'stone_dark');
-  for (const y of [5, 10]) v.paint(-12, 6, y, y + 1, -9, 9, 'stone_dark');   // tooled courses
-  for (let i = 0; i < 6; i++) v.box(-2 + 2 * i, 1 + 2 * i, 13 + 2 * i, 16 + 2 * i, -1, 2, i < 4 ? 'steel' : 'iron');   // the chisel
-  v.box(10, 14, 23, 27, -2, 3, 'iron'); v.paint(10, 14, 26, 27, -2, 3, 'steel');
-  v.cutX(7, 15, 0, 7, 4, 11, 2, 'wood_side');                 // the round mallet head
-  v.paint(7, 8, 0, 7, 4, 11, 'wood_top'); v.paint(14, 15, 0, 7, 4, 11, 'wood_top');
-  v.box(10, 12, 2, 4, 11, 19, 'wood'); v.box(10, 12, 2, 4, 16, 19, 'tool_leather');   // its handle
-  for (const [x, z, c] of [[-15, 6, 'stone'], [-9, 11, 'stone_light'], [1, 12, 'stone']]) v.box(x, x + 3, 0, 2, z, z + 3, c);
+  squared(v, -12, 6, 0, 13, -9, 9, 2, 'stone_skin');
+  v.paint(-12, 6, 0, 2, -9, 9, 'stone_skin_dark'); v.paint(-12, 6, 12, 13, -9, 9, 'stone_skin_top');   // dark foot, lit ledge
+  squared(v, -11, 5, 13, 14, -8, 8, 2, 'stone_fresh');        // the fresh face
+  v.box(2, 6, 9, 14, 5, 9, null);                             // a corner knocked off, its scar fresh
+  v.paint(1, 2, 9, 14, 5, 9, 'stone_fresh'); v.paint(2, 6, 8, 9, 5, 9, 'stone_fresh'); v.paint(2, 6, 9, 14, 4, 5, 'stone_fresh');
+  v.box(-7, -6, 12, 14, -8, 4, null); v.paint(-7, -6, 11, 12, -8, 4, 'stone_skin_dark');   // a crack across its top
+  for (let i = 0; i < 8; i++) v.box(-4 + 2 * i, -1 + 2 * i, 12 + 2 * i, 15 + 2 * i, -1, 2, i < 1 ? 'stone_fresh' : i < 4 ? 'stone_skin' : i < 5 ? 'rope' : 'wood');   // the point, bound to its haft
+  v.paint(-2, 5, 14, 23, 1, 2, 'stone_skin_top'); v.paint(6, 12, 22, 30, 1, 2, 'grain');
+  v.box(7, 16, 0, 8, 3, 12, 'stone_skin'); v.paint(7, 16, 7, 8, 3, 12, 'stone_skin_top'); v.paint(7, 16, 0, 1, 3, 12, 'stone_skin_dark');   // the maul's hammerstone
+  v.paint(15, 16, 1, 7, 4, 11, 'stone_fresh'); v.paint(15, 16, 2, 6, 5, 10, 'stone_fresh_dark');   // its striking face worn pale
+  v.paint(10, 12, 0, 8, 3, 12, 'rope'); v.paint(11, 12, 0, 8, 3, 12, 'rope_dark');   // a rope band round it
+  v.box(8, 10, 3, 5, 12, 21, 'wood'); v.paint(8, 10, 4, 5, 12, 21, 'grain');   // its haft
+  v.box(7, 11, 2, 6, 12, 14, 'rope'); v.box(8, 10, 3, 5, 18, 20, 'rope');
+  for (const [x, z] of [[-15, 6], [-9, 11], [1, 13]]) v.box(x, x + 3, 0, 2, z, z + 3, 'stone_fresh');   // spalls
 }, { yaw: 20 });
 
-// Blacksmith: an anvil with a glowing bar on its face and sparks above.
+// One weathered tier of a boulder: a dark foot where it stands on the ground, a lit top layer.
+function tier(v, x0, x1, y0, y1, z0, z1, n) {
+  if (y0 === 0) squared(v, x0, x1, 0, 2, z0, z1, n, 'stone_skin_dark');
+  squared(v, x0, x1, y0 === 0 ? 2 : y0, y1 - 1, z0, z1, n, 'stone_skin');
+  squared(v, x0, x1, y1 - 1, y1, z0, z1, n, 'stone_skin_top');
+}
+
+// Blacksmith: the basic smelter's hollowed boulder, drawn for an icon's size: tiers out of line
+// with each other and a lump at its front, the stone pot in its crown brimming with molten
+// copper, the fire in the hole knocked in its foot, sparks above.
 define('blacksmith', v => {
-  v.cut(-7, 7, 0, 4, -6, 6, 2, 'iron_dark');                  // the foot
-  v.box(-4, 4, 4, 9, -3, 3, 'iron_dark');                     // the waist
-  v.box(-11, 10, 9, 15, -5, 5, 'iron');                       // the body and face
-  v.box(10, 14, 10, 14, -3, 3, 'iron'); v.box(14, 17, 11, 13, -2, 2, 'iron');   // the horn
-  v.box(-14, -11, 11, 15, -4, 4, 'iron');                     // the heel
-  v.paint(-14, 14, 14, 15, -5, 5, 'steel');
-  v.box(-7, 6, 15, 17, -1, 2, 'flame_out'); v.paint(-5, 4, 16, 17, -1, 2, 'flame_mid');
-  v.paint(-2, 1, 16, 17, -1, 2, 'flame_core');
-  for (const [x, y, z] of [[-3, 21, 0], [3, 24, 1], [0, 27, -1], [6, 20, 0]]) v.box(x, x + 1, y, y + 1, z, z + 1, 'flame_core');
+  tier(v, -14, 12, 0, 9, -9, 8, 4);                           // the boulder's broad foot
+  tier(v, 3, 13, 0, 12, 1, 9, 2);                             // a lump at its front
+  tier(v, -13, 8, 9, 18, -9, 5, 3);                           // its body, set back above the fire
+  tier(v, -11, 2, 18, 23, -7, 4, 2);                          // its crown, round the pot
+  v.box(-8, -2, 16, 23, -5, 1, null);                         // the hole knocked in the crown,
+  v.paint(-9, -1, 22, 23, -6, 2, 'stone_fresh');              // its lip fresh stone,
+  v.paint(-9, -8, 16, 22, -5, 1, 'soot'); v.paint(-2, -1, 16, 22, -5, 1, 'soot');   // its walls smoke-black,
+  v.paint(-8, -2, 16, 22, -6, -5, 'soot'); v.paint(-8, -2, 16, 22, 1, 2, 'soot');
+  v.box(-8, -2, 16, 17, -5, 1, 'ash');                        // ash on its floor
+  squared(v, -8, -2, 17, 24, -5, 1, 1, 'stone_skin_dark');    // the stone pot standing in it,
+  v.paint(-8, -2, 23, 24, -5, 1, 'stone_skin');               // its rim a cell above the crown
+  v.paint(-7, -3, 19, 20, -4, 0, 'soot');
+  v.box(-7, -3, 20, 23, -4, 0, 'flame_out'); v.box(-7, -3, 23, 24, -4, 0, 'flame_mid'); v.paint(-6, -4, 23, 24, -3, -1, 'flame_core');   // copper melting in it, to the brim
+  v.box(-9, -2, 0, 7, 3, 8, null);                            // the fire hole knocked in the foot,
+  v.box(-9, -2, 0, 1, 3, 8, 'ash');
+  v.paint(-9, -2, 1, 7, 2, 3, 'soot'); v.paint(-10, -9, 0, 7, 3, 8, 'soot'); v.paint(-2, -1, 0, 7, 3, 8, 'soot');   // its walls,
+  v.paint(-10, -1, 7, 9, 3, 8, 'soot');                       // the ledge over it
+  v.paint(-9, -2, 9, 11, 4, 5, 'soot'); v.paint(-7, -3, 11, 13, 4, 5, 'soot');   // and a stain up the face above smoke-black
+  v.box(-9, -2, 1, 3, 4, 7, 'char'); v.paint(-8, -3, 2, 3, 4, 7, 'ember');   // its coals
+  v.box(-9, -2, 1, 5, 3, 4, 'flame_out'); v.paint(-7, -4, 1, 4, 3, 4, 'flame_mid');   // and its fire
+  v.box(10, 12, 4, 9, -5, 0, null);                           // a flake off its flank, its scar fresh
+  v.paint(9, 10, 4, 9, -5, 0, 'stone_fresh'); v.paint(10, 12, 3, 4, -5, 0, 'stone_fresh'); v.paint(10, 12, 4, 9, 0, 1, 'stone_fresh');
+  v.box(13, 15, 0, 1, -3, -1, 'stone_fresh'); v.box(-16, -14, 0, 1, 3, 5, 'stone_fresh');   // spalls
+  for (const [x, y, z] of [[-6, 27, -2], [-3, 30, -1], [-7, 32, -3], [-1, 26, -2]]) v.box(x, x + 1, y, y + 1, z, z + 1, 'flame_core');   // sparks
 }, { yaw: 20 });
 
 // Farmer: the stone hoe over a heap of earth, turnips pulled beside it.
@@ -820,14 +893,14 @@ function arrowX(v, x0, x1, y0, dir) {
 
 // Move: the log stool under a two-headed arrow.
 define('move', v => {
-  replayInto(v, P.stool().log);
+  replayInto(v, T.logStool().log);
   arrowX(v, -8, 8, 21, 1);
   arrowX(v, 8, -8, 21, -1);
 }, { yaw: 38 });
 
 // Pack up: the stool, an arrow and the packed crate it goes into.
 define('pack_up', v => {
-  replayInto(v, P.stool().log, [-10, 0, -2]);
+  replayInto(v, T.logStool().log, [-10, 0, -2]);
   replayInto(v, T.packedCrate().log, [9, 0, 2]);
   arrowX(v, -12, 0, 21, 1);
 }, { yaw: 30 });
@@ -1139,7 +1212,7 @@ define('dev_block_inspector', v => {
   v.paint(13, 19, -4, 3, 7, 10, 'tool_leather');
 }, { yaw: 25 });
 
-// World Build: a cut of the generated world, its strata on the sides, a mountain with a
+// World build: a cut of the generated world, its strata on the sides, a mountain with a
 // snowy peak and a lower shoulder, pines on the grass and a stream running off the edge.
 define('dev_world_build', v => {
   v.box(-15, 15, 0, 12, -15, 15, 'stone');

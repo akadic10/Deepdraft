@@ -5,7 +5,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## its ingredients as pictures and its flavour line, Make or Keep with one Queue button,
 ## the queue beside them or folded into Orders, the Crafters row and the planned crafts.
 ## Where the screen has the room, every recipe's board shows whole, without scrolling.
-const PREFIX := "base:recipe:worker:"
+const PREFIX := "base:recipe:"
 const CAPTURES := "res://tmp/crafting_browser_20261011/"
 
 func _run() -> void:
@@ -21,7 +21,7 @@ func _run() -> void:
 		_expect(panel._folded==folded and panel._right.visible!=folded and panel._tabs.visible==folded,"the queue folds into an Orders tab only on small screens: "+str(viewport))
 		_expect(panel._recipe_scroll.is_visible_in_tree() and panel._queue_scroll.is_visible_in_tree()!=folded,"recipes show, with the queue beside them unless folded")
 		var categories := _categories()
-		_expect(categories==["Workshops","Lighting","Access","Dining","Starter tools"],"Rudimentary keeps the first camp's five categories; room pieces, recreation and food are the careers' (owner, 2026-11-02): %s" % [categories])
+		_expect(categories==["Workshops","Lighting","Access","Dining","Rooms","Starter tools"],"Rudimentary keeps the first camp's six categories, the bed and the doors among them since 2026-11-13 (doc 306); storage, recreation and food are the careers' (owner, 2026-11-02): %s" % [categories])
 		for key: String in _rudimentary():
 			var tile: Button = panel._recipes.get_tile(key)
 			_expect(tile!=null and tile.icon!=null and tile.text.is_empty(),"illustrated recipe tile: "+key)
@@ -30,8 +30,8 @@ func _run() -> void:
 		_expect(campfire.has_node("Mark") and panel._recipes.get_tile(PREFIX+"crude_workbench").has_node("Mark"),"with no timber in the colony every recipe is missing something")
 		_expect(panel._chips.time.label.text=="10 s" and panel._chips.makes.label.text=="Makes 1","badges give the work time and the yield")
 		_expect(panel._flavour.text=="\"Stones in a ring, logs in the middle, stories all around.\"","the recipe's flavour line shows")
-		_expect(panel._ingredients_heading.text=="INGREDIENTS · 1 timber · 1 Rough Stone" and panel._woods.get_tile(PINE)!=null
-			and panel._woods.get_tile("extra:base:resources:stone:rough_stone")!=null,"ingredients are pictures: the woods, then the stone")
+		_expect(panel._ingredients_heading.text=="INGREDIENTS · 1 timber · 1 Rough stone" and panel._woods.get_tile(PINE)!=null
+			and panel._woods.get_tile("extra:base:item:rough_stone")!=null,"ingredients are pictures: the woods, then the stone")
 		_expect(_tag_texts().has("Needs a crude workbench") and _tag_texts().has("✓ Any Worker"),"tags say what the recipe needs")
 		campfire.grab_focus()
 		panel.refresh()
@@ -46,12 +46,12 @@ func _run() -> void:
 		await _expect_rings_show(viewport)
 		dock.open_crafting(PREFIX+"hearth")
 		await _frames(4)
-		_expect(panel._requirements.text.contains("4 Rough Stone") and panel._requirements.text.count("Rough Stone")==1,"hearth groups repeated stone ingredients into one count")
+		_expect(panel._requirements.text.contains("4 Rough stone") and panel._requirements.text.count("Rough stone")==1,"hearth groups repeated stone ingredients into one count")
 		await _capture_browser("hearth_%d" % viewport.x)
-		panel.select_recipe(PREFIX+"stone_hoe")
+		panel.select_recipe(PREFIX+"stone_hammer")
 		await _frames(2)
-		var hoe: Dictionary = crafting.recipes[PREFIX+"stone_hoe"]
-		_expect(panel._description.text.ends_with(String(hoe.purpose_short if viewport.y < 650 else hoe.purpose)),"small screens take the recipe's short purpose")
+		var hammer: Dictionary = crafting.recipes[PREFIX+"stone_hammer"]
+		_expect(panel._description.text.ends_with(String(hammer.purpose_short if viewport.y < 650 else hammer.purpose)),"small screens take the recipe's short purpose")
 		# Use real text input so focusing search cannot leak game hotkeys.
 		_click(panel._search.get_global_rect().get_center())
 		for letter in "ACCESS":

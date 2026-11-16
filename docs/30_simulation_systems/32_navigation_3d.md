@@ -195,7 +195,7 @@ while rejecting new through traffic. Interruptions/sleep return an actor to a
 floor first. Route changes invalidate path caches and re-arm blocked tasks.
 
 **Sections and cost.** A Worker makes one section from one raw log in six seconds
-at a crude workbench (`data/workshops/worker_crafting.json`). Each section installs
+at a crude workbench (`data/recipes/recipes.json`). Each section installs
 exactly four blocks (`data/furniture/crude_ladder.json` → `ladder`, which also holds
 the install/removal times and the 0.45 climbing speed), so 4/8/12-block ledges take
 1/2/3 sections. An uneven ledge rounds up to whole sections (a five-block ledge gets

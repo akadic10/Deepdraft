@@ -2,10 +2,10 @@ extends Node
 
 ## Sole loader for surface-detail definitions. Runtime owners keep only stable
 ## string definition/instance keys in saves; no block IDs or visual nodes.
-const DATA_PATH := "res://data/entities/surface_details.json"
+const DATA_PATH := "res://data/terrain/surface_details.json"
 ## The flora folder: "*_bush.json" wild shrubs load here, "*_tree.json"
 ## species load in ContentRegistry through flora_files().
-const FLORA_DIR := "res://data/entities/flora/"
+const FLORA_DIR := "res://data/flora/"
 const JsonData = preload("res://scripts/registries/JsonData.gd")
 var definitions: Dictionary = {}
 

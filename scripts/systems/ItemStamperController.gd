@@ -11,7 +11,7 @@ extends Node3D
 ## ends stamping (doc 23, "The tool bar"). It only works with DEV tools on.
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const RAY_MAX := 600.0
-const FLAG_ITEM := "base:items:special:settlement_flag"
+const FLAG_ITEM := "base:item:settlement_flag"
 ## How far around the clicked floor bushes look for room, in floors.
 const BUSH_REACH := 6
 const NO_FLOOR := Vector3i(-1, -1, -1)

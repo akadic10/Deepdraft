@@ -42,6 +42,7 @@ extends Node
 
 const RoomRebuild = preload("res://scripts/components/RoomRebuild.gd")
 const RoomAppeal = preload("res://scripts/components/RoomAppeal.gd")
+const RoomKinds = preload("res://scripts/components/RoomKinds.gd")
 const Climate = preload("res://scripts/components/Climate.gd")
 const HeatSpread = preload("res://scripts/components/HeatSpread.gd")
 
@@ -71,6 +72,7 @@ var _heat_reach: Dictionary = {}          # heat anchor -> its widest piece's ra
 var _light_cells: Dictionary = {}         # floor anchor -> installed light count
 var _bed_cells: Dictionary = {}           # bed origin -> complete footprint
 var _bed_assignments: Dictionary = {}     # bed origin -> permanent dwarf id
+var _thing_cells: Dictionary = {}         # thing (RoomKinds.piece_things) -> {floor anchor -> pieces}
 
 var _rooms: Dictionary = {}               # room_id -> RoomData-shaped Dictionary
 var _cell_to_room: Dictionary = {}        # Vector3i (interior air cell) -> room_id
@@ -94,7 +96,8 @@ var climate: Climate
 var heat: HeatSpread
 var _heat_refresh_queued := false
 var appeal_config: Dictionary = {}
-var room_kinds: Array = []   # room_kinds.json: what each kind of room needs, in test order
+## Room types (room_kinds.json): what each needs, and a room's type worked out from them.
+var kinds: RoomKinds
 
 
 func _ready() -> void:
@@ -102,7 +105,7 @@ func _ready() -> void:
 	detection_config = JsonData.read_dict("res://data/rooms/detection.json")
 	temperature_config = JsonData.read_dict("res://data/world_gen/temperature.json")
 	appeal_config = JsonData.read_dict("res://data/rooms/appeal.json")
-	room_kinds = JsonData.read_dict("res://data/rooms/room_kinds.json").get("kinds", [])
+	kinds = RoomKinds.new(self, JsonData.read_dict("res://data/rooms/room_kinds.json"))
 	climate = Climate.new(self)
 	heat = HeatSpread.new(self)
 	print("RoomManager: ready (doc 34/22).")
@@ -231,6 +234,14 @@ func on_furniture_changed(_key: String, cells: Array[Vector3i], def: Dictionary,
 		if count > 0: _light_cells[anchor] = count
 		else: _light_cells.erase(anchor)
 		changed = true
+	# What else room types count (tables, seats, fires, food stores), each at its floor anchor.
+	if not cells.is_empty():
+		for thing: String in RoomKinds.piece_things(def):
+			var held: Dictionary = _thing_cells.get_or_add(thing, {})
+			var pieces := maxi(0, int(held.get(cells[0], 0)) + (1 if installed else -1))
+			if pieces > 0: held[cells[0]] = pieces
+			else: held.erase(cells[0])
+			changed = true
 	# A batch-heated workshop (the basic smelter, doc 297) heats only while a batch melts.
 	if not def.has("nightly_fire") and not def.has("batch_heat") and _count_heat(cells, def, installed):
 		changed = true
@@ -328,6 +339,7 @@ func clear_runtime_state() -> void:
 	_light_cells.clear()
 	_bed_cells.clear()
 	_bed_assignments.clear()
+	_thing_cells.clear()
 	_rooms.clear()
 	_cell_to_room.clear()
 	_next_room_id = 1
@@ -375,55 +387,49 @@ func on_bed_assignment_changed(origin: Vector3i, dwarf_id: int) -> void:
 func _classify_bedroom(room: Dictionary) -> void:
 	var beds := room_beds(room.cells)
 	room.bed_count = beds.size()
-	classify(room, int(_bed_assignments.get(beds[0], -1)) if beds.size() == 1 else -1)
+	if not beds.is_empty(): room.bed_origin = beds[0]
+	classify(room, _bed_owner(room))
 
-## A room's kind (doc 261): the first kind in room_kinds.json whose needs the room meets,
-## or a plain room. `bed_owner` is the owner of the room's one bed; only a kind that
-## takes an owner keeps it.
+
+## The owner of the room's one bed, or -1: a room with several beds has none.
+func _bed_owner(room: Dictionary) -> int:
+	return int(_bed_assignments.get(room.get("bed_origin"), -1)) if int(room.get("bed_count", 0)) == 1 else -1
+
+
+## Every piece room types count beyond beds, lights and doors, for a scan to place in its
+## rooms: [thing, floor anchor, pieces] each (RoomKinds.piece_things).
+func thing_anchors() -> Array:
+	var anchors := []
+	for thing: String in _thing_cells:
+		for cell: Vector3i in _thing_cells[thing]: anchors.append([thing, cell, int(_thing_cells[thing][cell])])
+	return anchors
+
+
+# ── Room types (RoomKinds, room_kinds.json) ───────────────────────────────────
+
+## A room's type (doc 34 "Room types"): the first type in room_kinds.json whose needs the
+## room meets, or a plain room. `bed_owner` is the owner of the room's one bed. A type can
+## need a temperature, so every temperature recompute works the types out again.
 func classify(room: Dictionary, bed_owner: int) -> void:
-	room.owner_id = bed_owner
-	room.room_type = "room"
-	for kind: Dictionary in room_kinds:
-		if missing_needs(room, kind).is_empty():
-			room.room_type = String(kind.id)
-			break
-	if not bool(room_kind(room).get("owner", false)): room.owner_id = -1
+	kinds.classify(room, bed_owner)
 
-## What a room still lacks to be a kind: its unmet needs (beds, lights, doors, owner).
+## What a room still lacks to be a type: its unmet needs' ids.
 func missing_needs(room: Dictionary, kind: Dictionary) -> Array[String]:
-	var counts := room_counts(room)
-	var missing: Array[String] = []
-	var needs: Dictionary = kind.get("needs", {})
-	for need: String in needs:
-		var rule: Dictionary = needs[need]
-		var count := int(counts.get(need, 0))
-		if count < int(rule.get("least", 0)) or (rule.has("most") and count > int(rule.most)): missing.append(need)
-	if bool(kind.get("owner", false)) and int(room.get("owner_id", -1)) < 0: missing.append("owner")
-	return missing
+	return kinds.missing(room, kind)
 
-## The counts a room's needs are measured in: whole beds, light sources and door pieces.
+## The counts a room's needs are measured in: beds, lights, doors, tables, seats, fires and
+## food stores.
 func room_counts(room: Dictionary) -> Dictionary:
-	return {"beds": int(room.get("bed_count", 0)), "lights": int(room.get("light_count", 0)), "doors": room.get("door_cells", {}).size()}
+	return kinds.counts(room)
 
-## The room's kind from room_kinds.json, or {} for a plain room.
+## The room's type from room_kinds.json, or {} for a plain room.
 func room_kind(room: Dictionary) -> Dictionary:
-	for kind: Dictionary in room_kinds:
-		if String(kind.id) == String(room.get("room_type", "")): return kind
-	return {}
+	return kinds.kind_of(room)
 
-## The kind a room is measured against in the room window: its own, or for a plain room
-## the kind it is fewest needs away from (the first such, in the data's order).
+## The type a room is measured against in the room window: its own; for a plain room the
+## type whose key piece it holds, the fewest needs away; {} when it holds no type's key.
 func nearest_kind(room: Dictionary) -> Dictionary:
-	var own := room_kind(room)
-	if not own.is_empty(): return own
-	var nearest := {}
-	var fewest := 1 << 30
-	for kind: Dictionary in room_kinds:
-		var missing := missing_needs(room, kind).size()
-		if missing < fewest:
-			nearest = kind
-			fewest = missing
-	return nearest
+	return kinds.nearest(room)
 
 func room_label(room: Dictionary) -> String:
 	return String(room_kind(room).get("label", "Room"))
@@ -494,11 +500,14 @@ func _on_chunk_dirtied(cx: int, cy: int, cz: int) -> void:
 
 func _on_hour_changed(_new_hour: int) -> void:
 	# Hourly weather updates reuse room geometry and its precomputed exposure; a room changes
-	# with the clock through its rock or through a door to the open air.
+	# with the clock through its rock or through a door to the open air, and its type with it
+	# when the type needs a temperature (a pantry warming out of its range).
+	var types := {}
+	for room_id: int in _rooms: types[room_id] = String(_rooms[room_id].room_type)
 	_recompute_temps()
 	for room_id: int in _rooms.keys():
 		var form: Vector3 = _rooms[room_id].temp_form
-		if form.y > 0.0 or form.z > 0.0: room_updated.emit(room_id)
+		if form.y > 0.0 or form.z > 0.0 or String(_rooms[room_id].room_type) != String(types[room_id]): room_updated.emit(room_id)
 
 
 ## Open-air warmth and every room's temperature again, once a frame at most: fires lit or
@@ -612,11 +621,14 @@ func _recompute_temp(room: Dictionary) -> void:
 	_finish_temp(room)
 
 
-## Every room's own temperature, then the doors' leaks between them.
+## Every room's own temperature, then the doors' leaks between them, then each room's type,
+## which may need a temperature.
 func _recompute_temps() -> void:
 	for room: Dictionary in _rooms.values(): _recompute_temp(room)
 	heat.apply_door_leaks(_rooms, _cell_to_room)
-	for room: Dictionary in _rooms.values(): _finish_temp(room)
+	for room: Dictionary in _rooms.values():
+		_finish_temp(room)
+		classify(room, _bed_owner(room))
 
 
 func _finish_temp(room: Dictionary) -> void:

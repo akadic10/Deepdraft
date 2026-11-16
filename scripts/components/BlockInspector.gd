@@ -1,6 +1,6 @@
 extends RefCounted
 
-## DEV Block Inspector for WorldRenderer: a draggable CanvasLayer panel that
+## DEV Block inspector for WorldRenderer: a draggable CanvasLayer panel that
 ## reports the clicked block's identity, generation data and room, plus a
 ## yellow outline on the block. WorldRenderer builds it only when
 ## UIRegistry.dev_tools_enabled and forwards unhandled input to it.
@@ -85,7 +85,7 @@ func _build_block_inspector_ui() -> void:
 	title_margin.add_child(header)
 
 	var title := Label.new()
-	title.text = "Block Inspector"
+	title.text = "Block inspector"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UITheme.apply_heading(title)
@@ -278,7 +278,7 @@ func _inspect_block_id(pos: Vector3i) -> Dictionary:
 
 
 ## Room inspect block (doc 34 "UI — Room Temperature Display"; built in the
-## doc 22 close-out pass). The Block Inspector IS the doc 34 inspect panel:
+## doc 22 close-out pass). The Block inspector IS the doc 34 inspect panel:
 ## if the air cell the ray crossed just before the solid hit belongs to a
 ## sealed room, RoomManager.get_room_at() already returns everything the
 ## panel needs. Null-safe: degrades to a single "room: —" line if RoomManager

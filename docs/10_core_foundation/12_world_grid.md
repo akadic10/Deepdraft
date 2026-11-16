@@ -148,7 +148,7 @@ Keys use the `base:terrain:` namespace. Each definition carries `kind`, `hex_col
 
 > **Surface colours are seasonal.** For `surface:grass` and `surface:dirt`, `BlockRegistry.get_color()` reads `data/terrain/surface_palettes.json` (per-season tint, keyed by the last segment of the key) and only falls back to `hex_color` if no palette entry exists. All other kinds use `hex_color` directly.
 >
-> **Item drops** are no longer declared inline on the block (there is no `drops_item_entity` / `selectable_kinds` field). What a mined block yields is defined separately in `data/terrain/block_resources.json` and `data/entities/items/resources.json`.
+> **Item drops** are no longer declared inline on the block (there is no `drops_item_entity` / `selectable_kinds` field). What a mined block yields is defined separately in `data/terrain/block_resources.json` and `data/items/items.json`.
 
 ### Save File Serialization
 
@@ -212,7 +212,7 @@ Not everything in the world is a terrain block. **Placed entities** are objects 
 | Dropped items | Harvested resources waiting for pickup |
 
 > **Furniture three-form model (doc 19, 2026-07-11 — SH-verified):** player furniture is
-> ONE logical thing in three representations: a carryable ITEM (a normal resources.json
+> ONE logical thing in three representations: a carryable ITEM (a normal items.json
 > drop), the PLACED form (occupancy-registered via this pattern), and a non-solid GHOST
 > (a standing build request). Only the placed form ever touches `PlacedEntityRegistry`.
 
@@ -222,7 +222,7 @@ Not everything in the world is a terrain block. **Placed entities** are objects 
 
 ### Entity Data Definition
 
-Each placed entity type is defined in `data/entities/`. Definitions must include a `footprint` field — a list of grid offsets the entity occupies relative to its origin. Other systems use this for collision and interaction queries without needing a full physics raycast.
+Each placed entity type is defined in its kind's folder under `data/` (`data/furniture/`, `data/flora/`). Definitions must include a `footprint` field — a list of grid offsets the entity occupies relative to its origin. Other systems use this for collision and interaction queries without needing a full physics raycast.
 
 ```json
 {

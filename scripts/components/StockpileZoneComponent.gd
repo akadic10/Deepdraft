@@ -14,7 +14,7 @@ extends StorageComponent
 ## StorageComponent adds exact item choices and per-category exceptions.
 const DEFAULT_FILTER_TAGS: Array[String] = [
 	"stockpile_stone", "stockpile_ore", "stockpile_gem", "stockpile_soil",
-	"stockpile_wood", "stockpile_food", "stockpile_drink", "stockpile_seed",
+	"stockpile_wood", "stockpile_plank", "stockpile_metal", "stockpile_food", "stockpile_drink", "stockpile_seed",
 	"stockpile_misc", "stockpile_currency", "stockpile_furniture",
 ]
 

@@ -11,9 +11,9 @@ extends "res://scripts/tests/ConstructionTest.gd"
 ## - a log plan keeps its wood, its directions and its crate through a save;
 ## - a plan of two goods (doc 276) stages each for its own blocks: its logs are built once both
 ##   are in while its soil is still short, then the soil comes and the dirt is built of it.
-const PINE := "base:resources:wood:pine_log"
-const OAK := "base:resources:wood:oak_log"
-const SOIL := "base:resources:soil:soil"
+const PINE := "base:item:pine_log"
+const OAK := "base:item:oak_log"
+const SOIL := "base:item:soil"
 
 func _run() -> void:
 	create_timer(100).timeout.connect(func(): push_error("Build materials test timed out"); quit(1))

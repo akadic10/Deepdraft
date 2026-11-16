@@ -34,7 +34,10 @@ func _init(owner: Node) -> void:
 	work.on_gone = func(_id: Variant, _task: Task) -> void: leases_dirty = true
 
 
+## Whether a piece's fire burns: a nightly fire while it has its log; a workshop whose fire is its
+## batch's (the basic smelter, doc 300) while that batch shows unfinished; any other (a torch) always.
 static func burning(piece: InstalledFurnitureComponent) -> bool:
+	if piece.def.has("batch_model"): return piece.batch_showing()
 	return not piece.def.has("nightly_fire") or not piece.fire_log.is_empty()
 
 

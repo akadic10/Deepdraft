@@ -525,7 +525,7 @@ static func catalog_paper_style(compact: bool = false) -> StyleBox:
 	return cell_style("board_compact" if compact else "board", 3)
 
 
-## A list row, such as a dwarf in Colony Dwarves: a raised block with a hay edge when
+## A list row, such as a dwarf in Colony dwarves: a raised block with a hay edge when
 ## selected.
 static func catalog_item_style(selected: bool = false) -> StyleBox:
 	return cell_style("raised_on" if selected else "raised", 3)

@@ -1,14 +1,14 @@
 extends "res://scripts/tests/DwarfDiningTest.gd"
 
 ## The stone stool (doc 293, step 3), the Stonemason's first piece. Only a Stonemason makes it, from
-## one Rough Stone at the mason's bench: with no bench the order needs one, and the stone lies on
+## one Rough stone at the mason's bench: with no bench the order needs one, and the stone lies on
 ## the slab in front of them while the maul knocks it square. It seats as the log stool does: it
 ## takes a dining table's guides beside log stools, a dwarf eats there on it in the table's
 ## posture, it is a game seat at the board, and its Place card says it snaps to tables. A save
 ## keeps it at its table.
 const STONE_STOOL := "base:furniture:stone_stool"
-const STONE_STOOL_ITEM := "base:resources:furniture:stone_stool"
-const STONE_STOOL_RECIPE := "base:recipe:worker:stone_stool"
+const STONE_STOOL_ITEM := "base:item:stone_stool"
+const STONE_STOOL_RECIPE := "base:recipe:stone_stool"
 const MASON_BENCH := "base:furniture:mason_bench"
 const STONEMASON := "base:profession:stonemason"
 const GAME := "base:furniture:board_game_table"
@@ -20,7 +20,7 @@ func _run() -> void:
 	var recipe: Dictionary = crafting.recipes[STONE_STOOL_RECIPE]
 	var keys: Array = crafting.ingredient_keys(recipe)
 	_expect(String(recipe.get("section", "")) == "stonemason" and recipe.workshop == MASON_BENCH and String(recipe.category) == "Dining"
-		and keys.size() == 1 and keys[0] == STONE and int(recipe.ingredient_count) == 1, "the stone stool: one Rough Stone at the mason's bench, on the Stonemason's page: %s" % [keys])
+		and keys.size() == 1 and keys[0] == STONE and int(recipe.ingredient_count) == 1, "the stone stool: one Rough stone at the mason's bench, on the Stonemason's page: %s" % [keys])
 	var definition: Dictionary = furniture.get_defs()[STONE_STOOL]
 	var log_stool: Dictionary = furniture.get_defs()[STOOL]
 	_expect(definition.seating_chair == log_stool.seating_chair and definition.footprint == log_stool.footprint
@@ -46,11 +46,11 @@ func _run() -> void:
 	var at: Vector3 = stone.global_position
 	var lying := is_equal_approx(at.y + bounds.position.y, bench.node.global_position.y + float(bench.def.crafting_surface_height))
 	var inside := at.x + bounds.position.x >= 45.0 and at.x + bounds.end.x <= 48.0 and at.z + bounds.position.z >= 42.0 and at.z + bounds.end.z <= 43.0
-	_expect(lying and inside, "the Rough Stone lies on the slab, all of it inside the bench: %s %s" % [at, bounds])
+	_expect(lying and inside, "the Rough stone lies on the slab, all of it inside the bench: %s %s" % [at, bounds])
 	_expect(at.distance_to(worker.global_position) < 1.6, "in front of the Stonemason: %.2f away" % at.distance_to(worker.global_position))
 	_expect(worker._felling_pose.axe.scene_file_path.ends_with("stone_maul.glb"), "the maul knocks it square")
 	_expect(await _completed(id) and _count(STONE_STOOL_ITEM) == 1 and _count(STONE) == 0 and int(worker.profession_experience.get(STONEMASON, 0)) == 1,
-		"one Rough Stone makes one packed stone stool, and one experience")
+		"one Rough stone makes one packed stone stool, and one experience")
 	# A dining table's guides take it beside log stools, placed and installed for real. Clearing the
 	# layout clears loose goods too, so the packed stool is laid down again.
 	_clear_layout()

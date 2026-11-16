@@ -162,20 +162,20 @@ Merchants will not buy raw stone, soil, or basic ore — only processed or high-
 Every item has a base trade value in Trade Points (TP; 1 TP = 1 gold coin). Actual trade prices fluctuate ±20% based on caravan type and recent transaction history.
 
 **Planned, not implemented.** No trade code exists yet, so these values live here
-rather than in `resources.json`. When the merchant system is built, move them into
+rather than in `items.json`. When the merchant system is built, move them into
 the item data that owns them.
 
 | Group | Base trade value (TP) |
 |---|---|
-| Stone, soil, misc | Rough Stone 1 · Soil 1 · Water Bucket 1 · Gold Coin 1 · Fossil Fragment 10 |
-| Starter tools | Stone Hoe, Ranger's Kit, Crude Carpentry Kit, Stone Hammer 3 each |
+| Stone, soil, misc | Rough stone 1 · Soil 1 · Water bucket 1 · Gold coin 1 · Fossil fragment 10 |
+| Tools | Ranger's kit, stone hammer 3 each; the copper pick, saw, chisel and hoe (doc 306) need values when the merchant system is built |
 | Ore | Tin 2 · Coal 2 · Copper 3 · Iron 4 · Silver 10 · Gold 12 |
 | Gems | Jade 22 · Amethyst 25 · Ruby 40 · Sapphire 40 · Emerald 45 · Diamond 80 |
-| Wood | Pine Log 2 · Apple Wood 3 · Juniper Log 3 · Oak Log 5 · Oak Stave 8 |
-| Produce | Plump Helmet 2 · Pig Tail 2 · Apple 3 · Hops 3 · Blueberry 4 · Juniper Berry 4 · Elderberry 5 · Grapes 5 · Wild Strawberry 6 · Honey 6 · Pig Tail Cloth 6 |
-| Seeds, cuttings | Pine Cone 2 · Pig Tail Seed 2 · Apple Seed 3 · Blueberry Cutting 3 · Oak Acorn 4 · Elderberry Cutting 4 · Hops Cutting 4 · Strawberry Cutting 5 · Juniper Seed 5 · Grape Cutting 6 |
-| Drinks | Ale 3 · Mead 5 · Stout 5 · Cider 5 · Wine 7 · Gin 8 · Aged Stout 10 · Reserve Gin 12 · Vintage Wine 15 |
-| Packed furniture | Log torch 2 · Ladder section 3 · Campfire 4 · Log Stool 4 · Fence Post 4 · Gate 4 · Bench 6 · Log door (2 wide) 8 · Crude Workbench 8 · Log Dining Table 8 · Board-game Table 10 · Log door (3 wide) 12 · Log bed 12 · Hearth 14 · Double log door (4 wide) 16 |
+| Wood | Pine log 2 · Apple log 3 · Juniper log 3 · Oak log 5 · Oak stave 8 |
+| Produce | Plump helmet 2 · Pig tail 2 · Apple 3 · Hops 3 · Blueberry 4 · Juniper berry 4 · Elderberry 5 · Grapes 5 · Wild strawberry 6 · Honey 6 · Pig tail cloth 6 |
+| Seeds, cuttings | Pine cone 2 · Pig tail seed 2 · Apple seed 3 · Blueberry cutting 3 · Oak acorn 4 · Elderberry cutting 4 · Hops cutting 4 · Wild strawberry cutting 5 · Juniper seed 5 · Grape cutting 6 |
+| Drinks | Ale 3 · Mead 5 · Stout 5 · Cider 5 · Wine 7 · Gin 8 · Aged stout 10 · Reserve gin 12 · Vintage wine 15 |
+| Packed furniture | Log torch 2 · Ladder section 3 · Campfire 4 · Log stool 4 · Fence post 4 · Gate 4 · Bench 6 · Log door (2 wide) 8 · Crude workbench 8 · Plank dining table 8 · Board-game table 10 · Log door (3 wide) 12 · Log bed 12 · Hearth 14 · Double log door (4 wide) 16 |
 | Not for sale | Settlement flag, uprooted plants, water stones: 0 / no value |
 
 Ingots, forged goods and armour (doc 44) still need values in the trade balance pass.
@@ -195,7 +195,7 @@ This encourages product diversification. The modifier resets when a different it
 The player configures buy orders on the Trade Counter via the UI. Each order specifies:
 
 ```
-item_id            — namespaced item key, e.g. 'base:resources:ore:iron'
+item_id            — namespaced item key, e.g. 'base:item:iron_ore'
 max_count          — maximum units to buy per visit
 max_price_per_unit — colony will not pay above this price in gold coins
 ```

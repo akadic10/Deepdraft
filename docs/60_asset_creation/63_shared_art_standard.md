@@ -6,7 +6,7 @@ and [61](61_voxel_art_guide.md) walks through building a model. World lighting i
 by `SkyController`'s `hearthblock_lighting` block
 ([64 §Lighting](64_hearthblock_art_direction.md#lighting), doc 255).
 
-All **385** production models are built by `tools/voxel_assets/` on the 1:16 grid.
+All **445** production models are built by `tools/voxel_assets/` on the 1:16 grid.
 
 ## Scale and form
 
@@ -48,6 +48,11 @@ Family contracts:
   torso, beards against every man's hairstyle and brows against hair and beards. It then
   covers the shared head's skin faces with one outward cell (`separate_overlay`), since
   the same head serves bald dwarves: no pairing may share cells or coincident faces.
+  A trade hat (doc 304) may meet any of them too. It is solid from the hat line (y 45) up, and
+  each hairstyle is also built as it lies under a hat (`hair_hatted/`, `under_hat` in
+  `dwarves.py`): the same cells below the hat line. `test_hats_sit_on_every_head` puts every
+  hat on every head, brow, beard and hairstyle and allows no shared face. The Miner's hat
+  holds its candle's flame as a second, non-casting mesh (`flame`).
 - **Animals** are rigid voxel parts on rigs read from each definition's `visual_pose`;
   `wildlife.py` splits the deer and wolf legs at the same `visual_pose.knee_y`. Only the
   visual root squashes and stretches, and only while the animal moves
@@ -66,17 +71,19 @@ Family contracts:
 |---|---|---:|
 | Trees | `flora/trees/` | 94 |
 | Bushes, flowers, reeds | `flora/{bushes,flowers,reeds}/` | 76 |
-| Defined crops | `flora/crops/` | 14 |
+| Crops: the field vegetables with the bare tilled tile (doc 309), and the brewing crops' placeholders | `flora/crops/` | 37 |
 | Ground stones | `rocks/` | 6 |
-| Dwarves and their work tools | `characters/dwarves/` | 43 |
-| Eyelids and meal servings | `presentation/` | 3 |
+| Dwarves: appearance parts, hair as it lies under a hat, trade hats, work tools | `characters/dwarves/` | 85 |
+| Eyelids and meal servings | `presentation/` | 7 |
 | Wildlife | `animals/` | 23 |
-| Furniture, support forms and flame libraries | `furniture/` | 33 |
-| Loose goods | `items/` | 86 |
+| Furniture, support forms and flame libraries | `furniture/` | 40 |
+| Loose goods | `items/` | 132 |
 | Materials crate and built log pieces | `construction/` | 2 |
-| **Total** | | **380** |
+| **Total** | | **502** |
 
-Crops fill **defined art paths** only; they don't add farming behaviour.
+The seven field vegetables are the plants of a Farmer's fields (doc 42, "Fields"): three stages
+each, kale's picked form, and the bare tilled tile, every one carrying its tile's soil ridges.
+The four brewing crops still fill **defined art paths** only, as placeholders.
 
 Authoring inputs:
 - Hearthblock operations in `tools/art_data/voxel_hearthblock.json`, written from

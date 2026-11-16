@@ -6,8 +6,8 @@ extends "res://scripts/tests/DwarfDiningTest.gd"
 ## another dwarf sits by the fire. A cold fire, dried fish, a fire with no room or one beyond the
 ## meal's reach mean an ordinary meal; a release mid-grill drops the raw fish whole; the
 ## memories save.
-const PERCH := "base:resources:fish:perch"
-const DRIED := "base:resources:fish:dried_fish"
+const PERCH := "base:item:perch"
+const DRIED := "base:item:dried_fish"
 
 
 func _run() -> void:

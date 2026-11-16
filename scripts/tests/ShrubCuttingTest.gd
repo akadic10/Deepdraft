@@ -1,7 +1,7 @@
 extends "res://scripts/tests/ShrubTransplantTest.gd"
 
 const CUTTING := "base:flora:blueberry_cutting"
-const CUTTING_ITEM := "base:resources:seed:blueberry_cutting"
+const CUTTING_ITEM := "base:item:blueberry_cutting"
 
 
 func _run() -> void:
@@ -112,7 +112,7 @@ func _fresh_owner(snapshot: Dictionary, saved_clock: Dictionary, id: String) -> 
 
 func _other_species() -> void:
 	clock_node.restore_state({"season":"winter","year":1,"day":clock_node.days_per_season(),"hour":12,"paused":false})
-	drops.spawn_drop("base:resources:seed:elderberry_cutting",1,Vector3i(37,21,43))
+	drops.spawn_drop("base:item:elderberry_cutting",1,Vector3i(37,21,43))
 	var plan := _plant_plan("base:flora:elderberry_cutting",Vector3i(54,20,47))
 	_expect(await _wait_for(func(): return not furniture._ghosts.has(plan)), "elderberry cutting plants")
 	var elder := _planted_at(Vector3i(54,20,47))
@@ -123,11 +123,11 @@ func _other_species() -> void:
 	_expect(is_equal_approx(_age(elder),2.5) and elder_days > 2.5 and not details.can_uproot(elder), "spring multiplier applies before elderberry's growth days")
 	details.dev_mature_shrub(elder)
 	_expect(details.can_uproot(elder) and not details.accepts_tool(elder,"harvest_plants"), "DEV shortcut matures selected plant without granting out-of-season fruit")
-	drops.spawn_drop("base:resources:seed:strawberry_cutting",2,Vector3i(37,21,43))
+	drops.spawn_drop("base:item:wild_strawberry_cutting",2,Vector3i(37,21,43))
 	var cells: Array[Vector3i] = [Vector3i(49,20,53)]
 	var zone = zone_controller._create_zone(cells)
 	zone.filter_tags.clear()
-	zone.filter_items.assign(["base:resources:seed:strawberry_cutting"])
+	zone.filter_items.assign(["base:item:wild_strawberry_cutting"])
 	_expect(await _wait_for(func():
 		root.get_node("StockpileManager")._process(1)
 		return zone.stored_count() == 2), "cuttings haul to ground stockpile")
@@ -137,7 +137,7 @@ func _other_species() -> void:
 	var straw := _planted_at(Vector3i(54,20,53))
 	details.designate_clearing(straw)
 	_expect(await _wait_for(func(): return details._changes[straw].removed), "young plant can be cleared")
-	_expect(_cutting_count("strawberry_cutting") + zone.stored_count() == 2, "young clearing returns exactly its cutting without multiplication")
+	_expect(_cutting_count("wild_strawberry_cutting") + zone.stored_count() == 2, "young clearing returns exactly its cutting without multiplication")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(details.serialize_state()))
 	details.restore_state(saved)
 	clock_node.advance_hours(200)

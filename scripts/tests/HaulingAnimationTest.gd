@@ -1,8 +1,8 @@
 extends "res://scripts/tests/ObjectExplorerTest.gd"
 
-const ACORN := "base:resources:seed:oak_acorn"
-const LOG := "base:resources:wood:oak_log"
-const STONE := "base:resources:stone:rough_stone"
+const ACORN := "base:item:oak_acorn"
+const LOG := "base:item:oak_log"
+const STONE := "base:item:rough_stone"
 var worker
 var drops
 var tasks
@@ -218,19 +218,19 @@ func _test_fetch_from_stockpile() -> void:
 		drops.take(node)
 		node.free()
 	# Use the real furniture ghost's storage-withdraw path.
-	var key := "base:resources:furniture:log_chair"
+	var key := "base:item:log_stool"
 	var loader = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	var defs: Dictionary = loader.get_defs()
 	loader.free()
-	if not defs.has("base:furniture:log_chair"):
+	if not defs.has("base:furniture:log_stool"):
 		_expect(false, "buildable log stool definition available")
 		return
-	key = String(defs["base:furniture:log_chair"].item_key)
+	key = String(defs["base:furniture:log_stool"].item_key)
 	zone.cell_stacks[Vector3i(40,20,44)] = {"item": key, "count": 1}
 	drops.restore_stored_item(key, Vector3i(40,20,44))
 	stockpiles._totals[key] = 1
 	var ghost = load("res://scripts/components/FurnitureGhostComponent.gd").new()
-	ghost.setup(1, "base:furniture:log_chair", defs["base:furniture:log_chair"], Vector3i(45,20,44), 0)
+	ghost.setup(1, "base:furniture:log_stool", defs["base:furniture:log_stool"], Vector3i(45,20,44), 0)
 	ghost.source_id = tasks.allocate_source_id()
 	ghost.drop_manager = drops
 	tasks.register_work_source(ghost.source_id, ghost)

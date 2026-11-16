@@ -14,8 +14,10 @@ each axis (0.0625 Godot units).
 | Path | What it holds |
 | --- | --- |
 | `tools/hearthblock/art/proposal.mjs` | The approved proposal models, verbatim, and the shared `Vox` cell vocabulary and palette |
-| `tools/hearthblock/art/tier1.mjs` | Tier 1 · Axe-Hewn furniture, hearth, kits and flag |
-| `tools/hearthblock/art/dwarves.mjs` | Every dwarf part: heads, eyes, body, mittens and cuffs, boots, hair, beards, brows, scars, work tools |
+| `tools/hearthblock/art/tier1.mjs` | Tier 1 · Axe-Hewn furniture, hearth and flag |
+| `tools/hearthblock/art/tier2.mjs` | Tier 2 · the Carpenter's plank pieces (doc 308): `plankTable()`, `plankBench()`, `plankGameTable()`, `plankPallet()`, `plankToolRack()`, `plankCrate()`, `plankFoodShelf()`, the frame the two tables share (`plankFrame()`) and the sawn-board helpers every plank piece uses (`board`, `sawnEndX`/`sawnEndZ`, `strokesX`/`strokesZ`, `faceStrokes`, `peg`, `hookPegs`, `binSide`, `binPost`) |
+| `tools/voxel_assets/hearthblock_goods.py` | Stockpile goods, drawn in Python: mined goods, logs, planks (`plank()`, doc 308), crates (produce, seeds, cuttings, and the log torches' own, `torches()`, doc 62), the copper bar, and the tool goods (`starter()`: the Ranger's kit, the stone hammer and the Blacksmith's copper pick, saw, chisel and hoe, doc 306) |
+| `tools/hearthblock/art/dwarves.mjs` | Every dwarf part: heads, eyes, body, mittens and cuffs, boots, hair, beards, brows, scars, trade hats, work tools |
 | `tools/hearthblock/art/wildlife.mjs` | Rabbit, deer, wolf and ducks |
 | `tools/hearthblock/art/icons.mjs` | UI icon models; the `icons` family in `build.py` is staged only, and `tools/GenerateUiIcons.gd` renders it to PNGs (see UI icons below) |
 | `tools/hearthblock/art/sky.mjs` | The Sky Dial's pieces (doc 23, "The Sky Dial"); the `sky` family in `build.py` is staged only, and `tools/GenerateUiIcons.gd` renders it to the dial's layers (see The Sky Dial below) |
@@ -26,6 +28,7 @@ each axis (0.0625 Godot units).
 | `tools/voxel_glb.py`, `tools/voxel_shadow.py` | Greedy mesher with opt-in baked occlusion, GLB writer, shadow proxies |
 | `tools/art_data/voxel_*.json` | Family profiles and palettes; installed manifests in `tools/art_data/voxel_manifests/` |
 | `tools/art_data/studies/hearthblock_furniture_tiers.json` | Tier 1 and Tier 2 furniture study layouts (never delete) |
+| `tools/art_data/studies/iron_work_tools.mjs` | The iron felling axe and pickaxe, drawn for the Blacksmith's upgrade (doc 301); nothing builds it |
 
 Art data sits under `tools/` (not `data/`) because no game script reads it; the export preset excludes `tools/*`,
 so it does not ship.
@@ -45,6 +48,16 @@ Python builders use the same ideas (`notched`, `paint` and `carve` in
 `hearthblock_goods.py`, `square_clump` in `plants.py`, square crowns and `square_pine`
 in `trees.py`).
 
+Stone furniture has helpers of its own in `tier1.mjs` ([64](64_hearthblock_art_direction.md),
+"Stone is drawn as wood is"):
+- `stoneBlock` is a box with its corners cut square (two `box` operations), and `stoneTier` one
+  weathered tier of a boulder;
+- `workedStone` is one stone with a fresh top inside a ledge of skin, a dark foot or underside;
+- `knockOff` carves a piece away and paints the scar fresh.
+
+The file holds operations, not cells, so a helper may only call `box`, `cut`, `paint`,
+`ring` and `air`.
+
 Roles are semantic names (`wood`, `bark`, `grain`, `rope`, `hay`, `stone`, `iron`,
 `tunic`, `skin` and so on), not colours. The palette maps them to colours:
 - Wood roles map to the existing source palettes in
@@ -55,10 +68,21 @@ Roles are semantic names (`wood`, `bark`, `grain`, `rope`, `hay`, `stone`, `iron
 - The tunic and cuffs are recoloured to the dwarf's clothing colour.
 - Everything else is a fixed colour.
 
-Keep wood swatches for wood only, or hay and stone would recolour with the wood. Stone that
-stands for a good keeps that good's colours as fixed roles: the mason's bench's slab uses the
-`rough_stone` roles, the Rough Stone's own greys, and the crafting tools' heads `tool_stone`,
-the starter tools' stone (doc 293).
+Keep wood swatches for wood only, or hay and stone would recolour with the wood. Stone
+furniture uses the worked-stone roles (`stone_skin`, `stone_skin_top`, `stone_skin_dark`,
+`stone_fresh`, `stone_fresh_dark` and `stone_cleft`; doc 301): the mason's bench, the stone
+stool and the basic smelter. The stone heads of the dwarves' hand tools use them too (doc
+301), and the starter tools on the ground carry the same colours (`hearthblock_goods.STONE`).
+
+The log stool is two models. `log_stool` (`tier1.mjs`) is the furniture and what the Place,
+Move and Pack up icons replay. `stool` (`proposal.mjs`) builds no piece: stored logs replay it
+on its side (`hearthblock_goods.log_roles`), so changing it changes every log.
+
+A plank (`hearthblock_goods.plank`, doc 308) is one thick squared board, 10 by 4 by 14 cells,
+lying the way its log lies and as long: a pale sawn face with three saw strokes across it that
+stop short of its edges, square ends that show the log's ring, and no bark, so it is never
+taken for a log or for one of the camp's split halves. It is built in each wood's own colours.
+`ItemArtTest` keeps it flat inside a log's stockpile slot.
 
 ## Workflow
 
@@ -66,12 +90,13 @@ the starter tools' stone (doc 293).
    `python3 tools/hearthblock/art/write_data.py` (it needs Node). Or edit a Python
    builder in `tools/voxel_assets/`.
    Each model's row in `write_data.py` names its palette and may `drop` roles or add
-   `extra` operations: the campfire stays verbatim in `proposal.mjs`, and its row drops the
-   logs, char and embers and paints the ash and soot.
+   `extra` operations: the log torch stays verbatim in `proposal.mjs`, and its row drops the
+   drawn flame and adds the stick's foot.
 2. **Stage.** Run `python3 tools/voxel_assets/build.py FAMILY`. `--only <path substring>`
    stages a quick preview, but a partial family can't be installed.
 3. **Review the gallery.** Run `tools/voxel_assets/Gallery.gd` with `--family=FAMILY`
-   and `--output=res://tmp/<label>/`, then look at the captures. It writes
+   and `--output=res://tmp/<label>/` through `tools/run_offscreen.py` (see "Running a
+   script that draws"), then look at the captures. It writes
    `gallery.json` with the exact hashes it reviewed. The family galleries
    (`FurnitureGallery`, `DwarfGallery`, `WildlifeGallery`, `TreeGallery`, `PlantGallery`,
    `ItemGallery`) show contact sheets.
@@ -86,9 +111,11 @@ the starter tools' stone (doc 293).
 6. **Check in the game.** Run the game and look at the model in the main world, which
    always uses Hearthblock lighting.
 7. **Re-render the menu pictures** that show the model with
-   `tools/FurnitureCatalogThumbnails.gd` or `tools/InventoryCatalogThumbnails.gd`. UI icons
+   `tools/FurnitureCatalogThumbnails.gd` or `tools/InventoryCatalogThumbnails.gd`, through
+   `tools/run_offscreen.py`. UI icons
    that replay the model (the dwarf head, the log
-   stool, the packed crate) also need `tools/GenerateUiIcons.gd`.
+   stool, the packed crate) also need `tools/GenerateUiIcons.gd`. The Worker icon replays
+   the felling axe and the mining pickaxe.
    Zones' Animal pasture icon replays the fence post and rails. The dock's Build icon draws
    its own peeled log (`logCube` in `icons.mjs`), so change it by hand when built logs change.
    `FurnitureCatalogThumbnails.gd` takes `--only=<names>` (the keys' last part, such as
@@ -116,8 +143,11 @@ which is Uproot's picture.
 1. Edit `icons.mjs`, then run `python3 tools/hearthblock/art/write_data.py`.
 2. Stage with `python3 tools/voxel_assets/build.py icons`. The family is staged-only: no
    icon GLB is installed or shipped.
-3. Render with `tools/GenerateUiIcons.gd` (`-- --only=name` for one icon) in an isolated
-   profile. It writes 144 px PNGs, outlined and without a tile, to `assets/ui/icons/`.
+3. Render with `python3 tools/run_offscreen.py res://tools/GenerateUiIcons.gd`
+   (`--only=name,name` after the script for chosen icons; see "Running a script that draws").
+   It writes 144 px PNGs, outlined and without a tile, to `assets/ui/icons/`. The Build
+   menu's log pictures (`log_upright_<wood>`, `log_horizontal_<wood>`) are drawn in each
+   wood's own hewn colours, so render them again when a wood's colours change.
 4. Import new PNGs with Godot's importer (`python3 tools/import_assets.py`).
 5. Name the PNG and a `family` in the entry's `data/ui` JSON. `UITheme` draws the tile
    in the family colour from `data/ui/icon_families.json`. The world order markers name
@@ -125,7 +155,7 @@ which is Uproot's picture.
    `data/ui/dwarf_indicators.json`, the character sheet's mood faces are named
    by the mood steps in `task_config.json`, and the room window's symbols (the
    thermometer among them) by `room_symbols` in `data/ui/dock.json`, and the dwarf stats'
-   pictures (doc 41, "Stats") by `data/entities/dwarves/stats.json`. The event log names
+   pictures (doc 41, "Stats") by `data/dwarves/stats.json`. The event log names
    each kind's picture in `data/events/event_log.json` and each arrival's species in
    `data/world_events/arrivals.json`. `UiIconDataTest` checks that every named picture
    exists.
@@ -151,7 +181,7 @@ season's land. Each piece names its `framing`:
    `python3 tools/hearthblock/art/write_data.py`.
 2. Stage with `python3 tools/voxel_assets/build.py sky`. Like the icons, the family is
    staged only.
-3. Render with `tools/GenerateUiIcons.gd -- --sky` in an isolated profile. A run without
+3. Render with `python3 tools/run_offscreen.py res://tools/GenerateUiIcons.gd --sky`. A run without
    arguments renders the icons and then the sky. It writes each piece to
    `assets/ui/sky_dial/<piece>.png`:
    - at twice the dial's width;
@@ -162,10 +192,35 @@ season's land. Each piece names its `framing`:
    and render every layer again. A new piece the dial moves (another cloud) also needs
    its place in `data/ui/sky_dial.json` and its name in `SkyDial.gd`.
 
-Run Godot with `XDG_DATA_HOME`, `XDG_CONFIG_HOME` and `XDG_CACHE_HOME` pointed at a scratch
-folder (`isolated_env()` in `tools/run_job_reliability.py` does this) so the player's
-profile and saves are never touched. The project starts borderless fullscreen, so a
-windowed capture must switch the window to `WINDOWED` first.
+## Running a script that draws
+
+Godot's `--headless` draws nothing, so the galleries, the menu pictures, the icons and any
+rendered capture need a real renderer. Run them through the off-screen tool, never by
+launching Godot yourself:
+
+```
+python3 tools/run_offscreen.py [--save] res://tools/<Script>.gd [the script's arguments]
+```
+
+- **No window, no profile.** The tool gives Godot a hidden screen (a private KWin drawing to
+  a virtual framebuffer with the real graphics card) and an isolated profile
+  (`XDG_DATA_HOME`, `XDG_CONFIG_HOME` and `XDG_CACHE_HOME` in a scratch folder), so nothing
+  opens on the owner's desktop and the player's profile and saves are never touched.
+  `--save` puts a copy of the owner's quicksave in the profile and checks the original
+  afterwards. Several runs can go at once.
+- **Same pictures.** A picture comes out byte for byte as it does in a window on the desktop
+  (checked on 2026-11-11 for the menu pictures, the icons, studio renders and colony captures).
+- **The game's window.** The project starts borderless fullscreen and the hidden screen is
+  3840 x 2160, so a capture of the game's window switches it to `WINDOWED` and sets its size
+  first. The screen reports no pixel density, so the interface is laid out at 100%; a
+  capture that shows the interface sets `VideoSettings.dpi_override` (144 gives 150%).
+- **Comparing pictures.** Compare every channel (`a.tobytes() == b.tobytes()` in Pillow).
+  `ImageChops.difference(a, b).getbbox()` looks only at alpha when a picture has it, so it
+  calls a recoloured picture unchanged.
+- **A fresh render of an unchanged picture** can differ from the installed file in a few
+  pixels by a few colour steps: files rendered long ago, and the hearth, whose flame's foot
+  moves by two pixels with which pieces share the run. Put such files back, and keep a fresh
+  file only when its design or its colours changed.
 
 ## File conventions
 
@@ -173,7 +228,7 @@ windowed capture must switch the window to `WINDOWED` first.
 res://assets/models/
   animals/        wildlife, grouped by species
   characters/
-    dwarves/      modular appearance parts and work tools
+    dwarves/      modular appearance parts, trade hats and work tools
   flora/
     trees/  bushes/  flowers/  reeds/  crops/
   rocks/
@@ -230,5 +285,6 @@ Furniture is woodwork (owner, 2026-07-11): beds, chairs, benches, tables and she
 anything dwarves use rather than work at, are wood, warm against the stone. Stone and
 iron are for industrial anchors (anvil, trade counter, workshop bodies) and monuments.
 One exception (owner, 2026-11-01): the Stonemason's stone stool (doc 293).
-Within a tier, Tier 1 pieces stay axe-hewn (split, notched, lashed, no iron); joinery,
-planks and blankets wait for Tier 2.
+Within a tier, Tier 1 pieces stay axe-hewn (split, notched, lashed, no iron). Tier 2 is the
+Carpenter's: planks and pegs, sawn but plain (doc 64, "Furniture tiers"; doc 308). Fine
+joinery and blankets wait for later.

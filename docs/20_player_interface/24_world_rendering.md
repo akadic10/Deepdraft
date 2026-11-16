@@ -58,7 +58,7 @@ updates are incremental, and construction removes occupied interior air.
 **Torch reach (2026-10-17, 209):** the log torch lights a 20-voxel radius (12
 before). Its 0.6 attenuation spreads the smooth outer fade over that wider area;
 there is no extra shader cutoff or room-wide fill (`light_source` in
-`data/furniture/wooden_torch.json`: `range`, `attenuation`, `energy` 2.6). The wall
+`data/furniture/torch.json`: `range`, `attenuation`, `energy` 2.6). The wall
 torch shared this reach until it was retired (doc 234). Energy, warm colour, flicker
 and terrain/door shadowing are retained.
 
@@ -341,6 +341,13 @@ Logical 1×1×3 navigation and physical terrain remain unchanged. Readability
 color/opacity/reach/timing are loaded by TaskManager from task_config.json.
 The depth reconstruction follows the native renderer's reverse-Z convention.
 
+**Rock above the slice's cut is no cover (2026-11-12, doc 304).** The slice does not draw it,
+so nothing is behind it. Counted as cover, it painted the outline on a dwarf's own hair
+wherever that reached into a sliced-away ceiling: a pale shape on every head in a dark tunnel
+three blocks high. `DwarfReadability.refresh` ends each cover run at the cut, and a ladder's
+slab too. Parts hung on a dwarf later (a trade's hat) get their silhouettes through `cover()`;
+a candle's flame takes none.
+
 Campfire light energy is 3.2 and the log torch's 2.6 (both doubled in doc 120),
 held in each definition's `light_source`.
 
@@ -389,6 +396,33 @@ its brightest channel: the hue goes to `light_color`, the brightness to `light_e
 bluish curve value therefore becomes a fully blue light every frame. Never copy
 Stonehearth's bluish light values (tuned for their renderer); keep sun colours near-white,
 with the max channel setting the energy.
+
+**The sun's path leans (2026-11-11).** The sun rises on the horizon at `sunrise_start`, reaches
+the top of its path at `midday` and sets on the opposite horizon at `sunset_end`. That is
+`sun.angle_pitch` in `data/sky/sky_settings.json` (0, −90 and −180), turned to the heading the
+scene authors as the Sun's yaw (−30 in the world scene). The path leans off overhead by
+`sun.path_lean_degrees` (30), about the level line through sunrise and sunset:
+
+- The two ends of the path, where the sun meets the horizon (pitch 0 and −180), lie on that
+  line and keep their directions. At midday the sun stands 60° up instead of straight
+  overhead (90 minus the lean), and it stands lower all day: 39° instead of 47° at nine on a
+  midsummer morning.
+- A positive lean tips the midday sun to the right of someone facing the sunset. In the world
+  scene that is toward +X and a little +Z: it stands toward (0.43, 0.87, 0.25).
+- With no setting, or 0, the sun climbs straight overhead as it did before.
+- **Why:** under an overhead sun every top took all of the light and every side face was in
+  shade at once, so bark, table legs and faces went dark together while pale tops went paler.
+  With the lean, sides toward the sun are lit all day and shadows fall beside things at midday,
+  a little over half as long as the things are tall. The owner picked it on 2026-11-11 from a
+  study in a copy of the colony.
+- `SkyController._apply_light()` applies the lean between the light's yaw and its pitch (Euler
+  order YZX, the lean as the roll), so the light's yaw stays the path's heading and a rebind of
+  the same scene reads it back unchanged.
+- The moon keeps its upright path, opposite the sun's heading, and the lightning light its own
+  direction. The sun's disc in the sky and the sun's glow in the fog read the light's
+  direction, so they follow.
+- `DioramaSkyTest` checks the midday height and side, the unchanged sunrise and sunset, the
+  rebind, the moon, and the overhead midday at a lean of 0.
 
 **Sky data.** In `data/sky/sky_settings.json`, `sky_gradient_colors` holds the top,
 horizon and lower-hemisphere curves keyed to calendar events, and `starfield_brightness`
@@ -593,7 +627,7 @@ plane disappears (its data is untouched) and designation is WYSIWYG — see
 
 ### Underground Lighting Model
 
-**Torch lighting:** each installed log torch (`data/furniture/wooden_torch.json`) adds a
+**Torch lighting:** each installed log torch (`data/furniture/torch.json`) adds a
 bounded warm omni light and 75 heat units; packed torches are unlit. The terrain
 meshes (overview tiles, cavity shell and added terrain) cast local-light shadows,
 so rock blocks torchlight. `TerrainLighting.gd` reserves render layer 20 for terrain.
@@ -604,6 +638,32 @@ to the scene's sun on every bind; the terrain meshes get the layer through
 `configure_mesh()`. Camera and normal light masks include layer 20. A torch the slice
 cuts away keeps its light; see "Sliced lights" below. Terrain identity, material colors
 and discovery rules are unchanged.
+
+**The Miner's candle (doc 304):** the one light a dwarf carries (`DwarfHatLight`; values in
+the Miner's `hat_light` in `professions.json`; when it burns is in doc 41, "Profession
+System"). It is small: 8 blocks of reach against a torch's 20.
+- **It does not hang at the flame.** The hat stands in the ceiling's rock of a tunnel three
+  blocks high, and a light above the head is shadowed by the head: worked out from the hat's
+  breadth, not measured, its shadow would darken about five blocks of floor round the dwarf.
+  The light hangs before the brow (`position`, in the head's frame) and follows the head.
+- **Only rock and built walls shadow it** (`TerrainLighting.configure_carried_light`): the
+  terrain layer, the slice's shadow rock, and `BUILT_LAYER` (layer 17), which built logs'
+  shadow meshes also carry. Dwarves, goods and furniture throw no shadow in it, so the dwarf
+  that carries it never darkens its own ground. A closed door lets it through
+  (`00_todo.md`, "Trade hats left for later").
+- **It keeps out of rock.** A dwarf at a wall's face has that wall where the light would hang,
+  and a light inside a block lights nothing before it: it is drawn back toward the head, a
+  quarter block at a time, until it stands in air.
+- **It stays under the slice's cut.** Above the cut it would cross rock the slice no longer
+  draws and light the next tunnel. It is lowered to just under the cut instead, so it needs none
+  of the sliced lights' shadow rock.
+- **A second, shadowless glow** of 1.6 blocks at the flame lights the cap itself. The flame is
+  an unshaded mesh of the hat (`flame`), lifted past the glow threshold as a torch's is.
+- **Cost:** six lit candles in one tunnel added about 0.55 ms of CPU a frame (2026-11-12).
+  Holding the lights still did not lower it while the dwarves went on breathing; it fell only
+  when they stood still too.
+- A carried light looks for a lit fire in sight among `FurnitureLighting.LIGHT_GROUP`, the
+  group every installed piece's light joins.
 
 #### Sliced lights (doc 287)
 

@@ -1,14 +1,13 @@
 {
   "furniture_key": "base:furniture:crude_workbench",
   "furniture_category": "workshops",
-  "display_name": "Crude Workbench",
-  "description": "A broad bark-covered stump with a worn cut top, axe scars and chipped edges. Occupies a 3 by 3 space and can be worked from any open side.",
+  "display_name": "Crude workbench",
+  "description": "The stump of a felled tree, roots and all, with a worn cut top and the felling cut along one side. Occupies a 3 by 3 space and can be worked from any open side.",
   "model": "res://assets/models/furniture/crude_workbench.glb",
-  "item_key": "base:resources:furniture:crude_workbench",
+  "item_key": "base:item:crude_workbench",
   "placement": "floor",
   "yaw_steps": 4,
   "crafting_surface_height": 1.0,
-  "crafting_recipe": "base:recipe:worker:wooden_torch",
   "footprint": {
     "width": 3,
     "depth": 3
@@ -33,5 +32,5 @@
     "design": 1,
     "material_factor": 0.5
   },
-  "crafting_surface_radius": 0.625
+  "crafting_surface_radius": 0.5
 }

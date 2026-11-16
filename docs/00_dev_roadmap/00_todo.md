@@ -122,7 +122,11 @@ Found by the 2026-10-20 project review (doc 254) and re-checked against the code
   dwarf walks to haul, its hauling code runs during the teardown: a haul skips to its
   next item, a delivery drops its cargo, and the code reads a global transform after
   leaving the tree. Benchmarks logged the error three times on 2026-10-15 (docs 190, 191
-  and 193). Not re-run since, but the call chain is unchanged.
+  and 193). Not re-run since, but the call chain is unchanged. The owner's own game logged it
+  on quitting, 19 errors each time, in the runs of 2026-11-10 (evening) and 2026-11-12
+  (morning): a hauler's search for goods to move read a container's place
+  (`ContainerStorageComponent.anchor_position`) after the world had left the tree. Both
+  quicksaves were written before it, so no save was touched.
 - **Why.** `DwarfAgent._exit_tree()` calls `DwarfRestBehavior.cancel()` whether or not the
   dwarf rests. `cancel()` calls `agent.stop_walking()`, which emits `walk_finished(false)`,
   and `DwarfWorkExecution.walk_finished` takes that as a failed walk
@@ -177,13 +181,66 @@ Left open when doc 297 (the basic smelter) was retired (2026-11-02); the rules a
 ("Specialist workbenches", "The Smelter"), doc 41, doc 31 (COLLECT) and doc 34 (batch heat).
 
 - **Iron:** the Smelter and the Forge as the advanced benches, for a level-2 Blacksmith; tin
-  bars with them (owner, 2026-11-02: "tin waits"). No bronze yet.
+  bars with them (owner, 2026-11-02: "tin waits"). No bronze yet. The Forge's forged anvil
+  replaces the anvil stone, which works copper and whatever else comes before iron (owner,
+  2026-11-14: "copper, bronze, etc... until the iron anvil arrives later"; doc 44, "The anvil
+  stone").
+- **Bronze:** the owner named it on 2026-11-14 among the metals the anvil stone would work.
+  Nothing is planned for it yet; it needs tin and the owner's word on where it sits before iron.
 - **Copper tongs and hammer,** the better tool the career map previews.
-- **Copper fittings' use:** the brewery and the aging cellar.
-- **Charcoal** as a second fuel; recipes would take a `fuel` tag.
-- **Tune in play:** the melt's 4 hours, the smelter's 2,400 heat, and where a bar lies on the
-  bench while it is hammered (at the seam between furnace and casting stone).
-- **A set bar holds the smelter:** no fittings order takes it until the bar is taken off.
+- **Copper's later use:** the brewery and the aging cellar take copper bars. There are no copper
+  fittings (owner, 2026-11-13: "we'll just simplify this scenario and use copper bars").
+- **Charcoal** as a fuel of its own. Logs burn in the basic smelter since 2026-11-13 (doc 44, a
+  recipe's `one_of`); charcoal would be a good made from them.
+- **The fire answering the breath:** the coals could brighten with each breath, and the fire's
+  sound could swell with it. Today they glow and burn evenly from the moment the charge is in
+  (the smelter's sounds are doc 307; see "The smelter's sounds left for later").
+- **Tune in play:** the melt's 4 hours, the smelter's 2,400 heat, the anvil stone's cost (three
+  Rough Stones) and where a bar lies on it while it is hammered (the middle of its left cell).
+- **The anvil stone left for later (doc 310):** the casting stone still shows the peck marks of
+  the days when tools were hammered on it; the bar always lies along the world's X, so on a
+  stone turned a quarter it lies across the face; no binding motion shows the haft going on.
+
+### The profession path left for later
+
+Left open by doc 306 (2026-11-13); the rules are in doc 41 ("The profession path"), doc 44 (at
+the top, and "Specialist workbenches"), doc 43 ("Pickaxe upgrades") and doc 23 (the career map).
+
+- **Step 2, the tools in hand.** The copper pick in the mining pose (Workers keep the stone
+  pick), the pull saw in the Carpenter's hands with a sawing motion at the bench in place of the
+  adze stroke (`craft_tool` and `craft_motion` in `professions.json` still name the stone adze),
+  the chisel in the Stonemason's off hand under the maul, and the careers' icons, which still
+  show stone tools.
+- **Step 3, what copper tools make.** The copper Carpenter and Stonemason make the goods they
+  made with stone kits. Planks and dressed stone were held "until iron tools" (2026-11-01); a
+  saw and a chisel in hand make that worth a second look, and the owner left it for later
+  (2026-11-13). See "The Stonemason and the Carpenter left for later" below.
+- **Choosing the fuel and the haft.** A batch takes the first choice in stock: a coal before
+  logs, pine before the finer woods. When iron needs coal, a colony will want to keep its coal
+  from the copper: a switch on the order, or logs first, would do it.
+- **Signs of copper on the surface.** Ore is hidden until a tunnel touches it, so a start can
+  need a long dig (doc 41 has the numbers). A stained boulder or loose ore among the scree over
+  a shallow vein would let a player read the land; it must come from the generated blocks
+  (Hard Rules 8, 9 and 11).
+- **More than one tool a bar.** Each tool costs a whole bar; tune in play.
+- **A Miner loaded without a pick** keeps the trade and digs at a Worker's pace. Nothing sends
+  it for a pick.
+
+### Trade hats left for later
+
+Left open by doc 304 (2026-11-12); the rules are in doc 41 ("Profession System"), doc 41b
+("Trade hats"), doc 64 (the dwarves' contracts) and doc 24 ("Underground Lighting Model").
+
+- **A career that goes live needs its `hat`** in `professions.json`, or its dwarves read as
+  Workers. (The Farmer's straw hat came with farming, doc 309.)
+- **Doors and the candle.** Only rock and built log walls shadow the candle's light, so it
+  passes a closed door. A door's leaf could carry the built-wall shadow layer
+  (`TerrainLighting.BUILT_LAYER`).
+- **The hats on the career map.** Its cards show each career's icon; the hat could sit beside
+  it, so a player learns the hats before promoting anyone.
+- **Many Miners at once.** Six lit candles cost about half a millisecond of CPU a frame; the
+  cost at 30 dwarves with many Miners was not measured.
+- **A dwarf at a table or on a ladder in a hat** was not looked at.
 
 ### The Stonemason and the Carpenter left for later
 
@@ -192,26 +249,22 @@ workbenches", with the ladder), doc 41 (Profession System) and doc 64 ("Furnitur
 
 - **Iron tools and the advanced benches.** With the Blacksmith (doc 44): the iron saw and the
   iron chisels, which the career map already previews, then the joiner's and the carver's
-  benches made with them. A recipe names the tool its maker must hold (`tool`), so an order
+  benches made with them. Since 2026-11-13 both trades already start with a copper saw and a
+  copper chisel (doc 306), so iron is their second tool. A recipe names the tool its maker must hold (`tool`), so an order
   waits "Needs a Carpenter with an iron saw".
-- **Planks and dressed stone,** held until the iron tools (owner, 2026-11-01: "I don't know how
-  the dwarves can make these without a saw yet, hold off on this"; "not yet, dwarves lack fancy
-  tools for now"). As planned, a Carpenter splits and adzes a log into two planks of its wood,
-  and a Stonemason dresses a Rough Stone into one block of dressed stone; both are hauled and
-  stored like logs and stones. Tier 2 · Carpenter Era pieces and the plank stool take planks,
-  the Stonemason's finer pieces dressed stone, and Build both ("Build textures by
-  progression"). Tier 2 straight from logs was not taken: it leaves no plank for Build. Dressed
-  faces want a warm grey like the hearth's stones; the Rough Stone's cool grey read as ice on a
-  sunlit wall.
+- **Planks arrived with the copper saw** (doc 308, 2026-11-13): the hold of 2026-11-01 ("I
+  don't know how the dwarves can make these without a saw yet") ended when every Carpenter came
+  to hold one. What is left of them is under "Sawn timber left for later" below.
+- **Dressed stone,** still held (owner, 2026-11-13: "Stonemason later"). As planned, a
+  Stonemason dresses a Rough Stone into one block of dressed stone, hauled and stored like
+  stones; its finer pieces take it, and Build too ("Build textures by progression"). Dressed
+  faces want a warm grey like the older stone colours (`stone`, `stone_light`), which the hearth
+  wore until 2026-11-11; the Rough Stone's cool grey read as ice on a sunlit wall.
 - **Later pieces,** at the owner's choice: a plank bed, a standing stone for appeal and a great
   hearth that can warm a hall. The stone door is under "Better doors" above.
 - **Recordings.** The maul borrows the builder's hammer knock (`craft_sound` "hammer" in
   `professions.json`) and the adze the axe's chop. Record an adze on wood and stone struck with
   stone, by the sound workflow; the Worker's chop stays for Rudimentary.
-- **The careers' icons** (an open pick). The Carpenter's is a handsaw on a plank and the
-  Stonemason's a steel chisel in a dressed block, tools neither has yet
-  (`tools/hearthblock/art/icons.mjs`). Keep them as emblems, or redraw them with the stone adze
-  and the maul? The Ranger's kit was changed to match its icon.
 
 ## Furniture
 
@@ -247,6 +300,30 @@ review (doc 254), and re-checked against the code on 2026-10-26.
     makes the gate 56 tests, the count CLAUDE.md gives.
 
 ---
+
+## Rooms
+
+### Room types left for later
+
+Left out when the dining room, the pantry and the freezer came (2026-11-12; doc 34, "Room
+types").
+
+- **A storage zone set to food only** could count as a food store, so a larder kept on the
+  floor would be a pantry too. Today only storage furniture that takes food counts (the food
+  shelf): a zone takes every good until the player narrows it. It needs a rule for "food
+  only" (the zone's categories and its item exceptions), a count of such zones by room when
+  rooms are typed, and a signal from `StockpileManager` when zones or their filters change.
+- **"Food only" is by order alone.** A cool room with a food shelf is a pantry whatever else
+  stands in it, unless it fits a bed type or the dining room first. If a pantry should hold
+  nothing but storage, give the types needs with a `most` of 0 and words for "take out".
+- **Room types on the Rooms tool's outlines.** Every sealed room is green and a frozen one icy
+  blue. A colour for each type with a legend above the dock (as the Appeal view's scale is)
+  would show a colony's rooms at a glance.
+- **More types:** a workshop (a career's bench), a storeroom (storage furniture that takes no
+  food) and a cellar for aging (doc 42) when aging exists.
+- **Seats at the table.** A dining room counts every seat in the room, so a stool by the wall
+  or at the board game satisfies it. Counting stools on a dining table's guides would be
+  stricter.
 
 ## Performance
 
@@ -421,8 +498,9 @@ Left open when doc 287 was accepted (2026-10-30); not seen in play.
 - **Fix direction.**
   - The weather draws each day from one saved stream (`WeatherManager`), so the next days
     can be read exactly by drawing ahead on a copy of the stream, without moving it.
-  - Add it once weather changes play, when rain waters crops or storms keep dwarves
-    indoors. Until then it would be flavour only.
+  - Weather changes play since doc 309: on a day of rain or storm every open field is damp, so
+    crops grow a quarter faster and pumpkins grow at all. The forecast would now tell the
+    player something to act on.
   - The dial's plate is in doc 23, "The Sky Dial".
 
 ### Choosing keys
@@ -550,8 +628,9 @@ in [43 §Cave discovery](../40_economy_colony/43_mining_materials.md#cave-discov
 
 - **Pools, springs and irrigation.** Needs fluid containment, saturation, drainage and
   flooding first; never connect live lakes blindly.
-- **Fungi and cave plants.** Needs the farming/harvest loop, regrowth, light and water
-  needs, art and placement.
+- **Fungi and cave plants.** The farming loop exists (doc 309; doc 42, "Fields"), but a field
+  needs the open sky today. Still needed: ground and water underground, light, art and
+  placement ("Farming left for later", Underground crops).
 - **Ruins and signs of earlier inhabitants.** Needs discovery content, item uses and
   placement that keeps the space usable.
 - **Inhabitants and hazards.** Needs combat/hazard systems, readable warnings and
@@ -575,8 +654,8 @@ in [43 §Cave discovery](../40_economy_colony/43_mining_materials.md#cave-discov
 - **Alpine/snow species and cave flora.** No species is designed for high summits or
   caves yet.
 - **The blueberry cutting still asks for rocky ground.** Its description says "Plant it
-  on rocky high-ground soil for best results" (`base:resources:seed:blueberry_cutting` in
-  `data/entities/items/resources.json`). Since 2026-10-09 (doc 85) cultivated blueberries
+  on rocky high-ground soil for best results" (`base:item:blueberry_cutting` in
+  `data/items/items.json`). Since 2026-10-09 (doc 85) cultivated blueberries
   need grass, dirt or soil (`wild.transplant.ground_kinds`), bare rock is refused, and
   neither height nor soil changes growth. Reword it like the elderberry cutting's ("Root
   it in surface soil to grow a new bush"), and check the strawberry cutting's "good
@@ -604,7 +683,7 @@ Seeds".
   average; pine, apple and juniper are similar. A planted forest gives back fewer seeds than it
   took, so wild trees stay the seed supply.
 - **Fix direction.** Both are the owner's pick and data only: `stages.*.growth_duration_days`
-  and each stage's `harvest.yields` in `data/entities/flora/*_tree.json`. Wild trees don't
+  and each stage's `harvest.yields` in `data/flora/*_tree.json`. Wild trees don't
   grow, so the growth days change only planted trees.
 
 ---
@@ -714,8 +793,10 @@ becomes a building object (the weak spot of Stonehearth's building editor).
   cabin with a grass roof, builds 188 of its 367 blocks; everything on layers 6 to 11 needs DEV:
   Finish construction. A Shapes stair flight longer than 8 steps leaves holes at layers 6 and
   up, and its plan stays on "No construction access".
-- **Fix direction.** Raised with the owner on 2026-10-27; no pick yet. The builder-reach study
-  (`tmp/builder_reach_20261027/README.md`, "Options" and "Recommendation") recommends:
+- **The owner's pick (2026-11-09):** the reach stays at 5: "dwarves reaching 5 blocks is good, I
+  don't think we should make it higher or lower". `reach_up` is not to change.
+- **Fix direction.** Unscheduled. The builder-reach study (`tmp/builder_reach_20261027/README.md`,
+  "Options" and "Recommendation") recommends:
   - first, marking the blocks no floor reaches in Place, Build and Shapes, counting them on the
     tag and naming them on the plan's panel;
   - then automatic scaffolding, as its own milestone: towers the plan puts up beside such
@@ -754,11 +835,20 @@ becomes a building object (the weak spot of Stonehearth's building editor).
 ### The finished goods pallet's later goods
 
 - **Built with packed furniture** (doc 296, 2026-11-02): one piece to each of its four quarters.
+- **Metal goods joined it** (2026-11-12): copper bars, three to a quarter
+  (`per_slot_of` in its `storage`); copper fittings went on 2026-11-13.
+- **Planks joined it** (2026-11-13, doc 308), four to a quarter.
 - **Still to come.** Its first plan was "a Finished Goods pallets for metal bars, refined stones,
-  planks, etc..." (owner, 2026-11-02). Those wait for iron tools (doc 44). With the first of them,
-  add its storage category (a `stockpile_*` tag, with its entry in `data/ui/storage_filters.json`)
-  and add the tag to the pallet's `accepts`. Doc 62 planned three of those to a quarter; decide
-  the capacity then, since a quarter now holds one packed piece.
+  planks, etc..." (owner, 2026-11-02). Refined stone waits for the Stonemason's turn (doc 44).
+  With it, add its storage category (a `stockpile_*` tag, with its entry in
+  `data/ui/storage_filters.json` and in `StockpileZoneComponent.DEFAULT_FILTER_TAGS`), add the
+  tag to the pallet's `accepts`, and give it its number to a quarter in `per_slot_of`.
+- **A quarter shows one of its goods,** however many it holds, as the crate's quarters do.
+  Three bars could lie stacked on it.
+- **A pallet placed before a new kind of good joins it keeps its saved choice of goods.** The
+  owner's pallets of before 2026-11-12 take furniture only until All is pressed in their
+  storage windows. A container could remember what it leaves out instead of what it takes, so
+  that new kinds start accepted.
 
 ### Storage furniture's small leftovers
 
@@ -864,6 +954,18 @@ in doc 34 and doc 42 ("Spoilage").
 - **From the owner (2026-11-06):** no standing harvest order. Once the Farmer is built, bushes inside a
   farming zone get picked by the Farmer (doc 42, "Required future connection: bushes in a farming
   zone"). Until then, the "every bush picked" counts above take a new order for every crop.
+- **The Farmer is built (2026-11-14, doc 309).** Bushes and fruit trees in a field are picked
+  with no order, and a field adds a food the colony sows. The model run again with a field
+  (`tmp/farmer_20261114/winter_model.py`: carrots in summer, turnips in autumn, dry soil; a
+  model, not a game run). Hungry winter days of 21, cellar and yard:
+  - one Ranger and a 6 × 6 field: 0 and 0 at all four starts, the flag and the mountain included,
+    which had 21 and 21. A Farmer who arrives only on autumn's first day gives the same;
+  - no Ranger, a 6 × 6 field: 14 and 14 at the starts with few bushes, 0 to 3 and 11 at the bushy
+    ones. Two such fields: 0 and 11 everywhere;
+  - so a field lifts the poor starts, which no yield setting did. But with fish and a field the
+    yard is fed too: late turnips last half the winter in the open, and fresh fish carry the
+    rest. The cellar still decides it when the field is the colony's only food (0 against 11).
+    Whether the yard should fail there is the owner's call; the game run below comes first.
 - **Fix direction.** Hold the yields until the Farmer picks zoned bushes. Then a real game run from a
   bushy start and from the flag to replace the model, then tune what's left. Tune the supply, not the
   keeping times. Whether fish reach the racks before dwarves eat them doesn't depend on the Farmer, so
@@ -871,6 +973,58 @@ in doc 34 and doc 42 ("Spoilage").
 - **Done when** a five-dwarf colony that keeps its autumn harvest in a cool cellar gets through
   its first winter with at most a few hungry days, and one that leaves it in the yard goes
   hungry for most of the winter.
+
+### Farming left for later
+
+Left open by doc 309 (2026-11-14); the rules are in doc 42 ("Fields"), doc 41 ("Profession
+System"), doc 23 ("Fields") and doc 31 (FARM).
+
+- **Numbers to settle in play.** Every crop's days and yield, the levels (25, 100, 250 and 800
+  tiles), the two-day sowing margin and a quarter faster in damp soil are starting values. A
+  third round of carrots needs the Farmer to keep pace: the last sowing day is Summer 14.
+- **Underground crops.** Mushrooms in the dark, all year, are the dwarves' own crop. A field
+  needs grass or dirt under the open sky today. Needed: ground underground (dirt the colony
+  builds is already a field's ground), water there, a rule for light, the plump helmet's place
+  beside brewing, and the level that sows it.
+- **The brewing and weaving crops** (hops, grape vine, pig tail), with the Brewer. They join
+  `field_crops.json` with a `farmer_level`; their models are still placeholders (doc 64).
+- **Cooking.** A pot of stew, the crops that want it (potatoes, beans), and whether a cooked
+  meal fills more than a raw portion (also under "Grilling left for later").
+- **Seeds from traders:** new crops as goods a merchant brings (doc 51).
+- **Wildlife in the fields.** Rabbits and deer leave crops alone. Nibbling wants a small loss a
+  plant, a claim so two animals don't share one, and something to keep them out: the log fence
+  has no use yet (doc 45, "Planned food connections").
+- **A Keep for a field,** if rot becomes a nuisance. The owner chose none (2026-11-14): everything
+  ripe is picked and stored.
+- **Tending.** No weeding and no watering by hand: a Farmer's work is hoeing, sowing and
+  pulling. A bucket from the water would give a field above the spring something but rain.
+- **Height and frost.** A crop grows the same in the valley and under the summit, and no frost
+  takes it. The calendar's autumn runs from 9°C to −3°C, so a frost rule needs the crops'
+  seasons thought through first.
+- **Soil that tires, and compost** from food that rots (also under "Food keeping left for later").
+- **The harvest's crates** lie in the field until haulers come, in the open, where food spoils
+  fastest. A Farmer could carry its own pulls to the store.
+- **A field cannot be reshaped:** remove it and lay it again; its tilled soil stays. A tile that
+  is dug away stays in the field, and the field's edge is still drawn over the hole.
+- **Trees in a field** are found by their trunk's centre inside the field's rectangle, so a tree
+  on the edge of an odd-shaped field can be picked without standing on one of its tiles.
+- **A plant cannot be inspected.** A click on a tile opens the field's window; the object
+  explorer does not know a tile's plant, and there is no hover card for it.
+- **Drawing.** A field's plants are a node a tile, as bushes are. 30 dwarves' fields are some
+  300 to 1,500 tiles. A tile's model is 56 to 1,536 triangles (ripe kale is the most), and
+  its shadow proxy 80 to 764, since a one-cell ridge cannot fill a coarser grid. A full
+  16 × 16 field was not profiled. Batch them by crop and stage, or draw the ridges once a
+  field, only if a profile shows the need (the standing decision on performance work).
+- **A Farmer's craft page** (Crafters → Farmer) is still a preview: beehives and what else a
+  Farmer makes.
+- **Level 6 and the Green Thumb trait** (doc 41, "Planned trait effects").
+- **Picking in a field is silent,** as all hand gathering is ("Actions without a sound of their
+  own").
+- **The field's sounds wait on the owner's ear** (`tmp/farmer_20261114/sounds/review.html`).
+  If the mattock is too heavy for a hoe, a hoe in mud (Freesound 124916) is next to try; if the
+  four pulls sound like two things, the weed alone can supply them; the sowing may sit too low
+  to hear. The hoe's draw back through the soil has no sound, and all four sources are MP3
+  previews, not the lossless originals.
 
 ### Food keeping left for later
 
@@ -889,14 +1043,92 @@ Left out of the temperature and spoilage milestone (2026-10-29).
   the climate keeps no stored warmth, so ice would be the first feature to need thermal mass
   (doc 34, "No warm-up").
 
-### Fishing's cast has no sound
+### Sawn timber left for later
 
-- **What happens.** A catch plays the float's plop, the bite and the landing (`fish_plop`,
-  `fish_bite` and `fish_land`, the recorded duck splashes reused), but the cast itself is
-  silent: a rod's whoosh needs a recording of its own (doc 13, WorkFeedback).
-- **Fix direction.** Source a real recording of a cast through the sound workflow (CLAUDE.md),
-  add a `fish_cast` bank and profile beside the other three in `data/audio/work_feedback.json`,
-  and play it as each cast begins, where `DwarfWorkExecution` plays the other cues.
+Left open by doc 308 (2026-11-13); the rules are in doc 44 ("Specialist workbenches", Planks)
+and doc 64 ("Furniture tiers").
+
+- **Every piece on doc 308's list is built** (2026-11-13): seven plank pieces. The ideas the
+  owner passed over are kept under `tmp/plank_pieces_20261113/` and `tmp/plank_look_20261113/`.
+- **The fence and the gate stay logs** (doc 308; doc 64, "Field work stays hewn"). Their two
+  plank ideas are kept in `tmp/plank_pieces_20261113/fence_gate/` should that change.
+- **The saw in the Carpenter's hand.** A Carpenter still swings the stone adze at the bench and
+  is heard as an axe (doc 306, step 2; "Actions without a sound of their own" below). Sawing
+  planks wants the pull saw, a sawing motion and a saw's strokes.
+- **A plank bed, a plank door and a plank stool** on the Carpenter's page, beside the camp's
+  rough ones.
+- **Building with planks** ("Build textures by progression").
+- **A new promise for iron.** Planks were the iron saw's reward. It becomes finer work: the
+  joiner's bench, joinery and carving (doc 44, the ladder).
+- **The Stonemason's turn:** dressed stone and a dressed look, with its copper chisel (owner,
+  2026-11-13: "Stonemason later").
+- **One recipe for all planks.** Each wood has its own sawing recipe today. If four cards are
+  too many, one recipe could take any log and give that wood's planks; a recipe's output would
+  then depend on its goods, which standing orders and the cards' counts do not allow for yet.
+
+### Actions without a sound of their own (review 2026-11-13)
+
+From the owner: "can we see what other actions exist that might require sound, do some carpenter
+sounds need changed because they have a saw now". A review only: nothing here is chosen or built,
+and each wants real recordings (the sound workflow in CLAUDE.md). What plays today is in doc 13
+("WorkFeedback").
+
+- **Borrowed today, and due to change with the copper tools in hand** (doc 306, step 2):
+  - the Carpenter's bench work plays the axe's chop under an adze stroke; with the pull saw it
+    wants a saw's strokes, timed to the sawing motion;
+  - the Stonemason's bench work plays two stones struck together (the builders' hammer); with the
+    chisel under the maul it wants a chisel tapped into stone;
+  - the Blacksmith hammering a copper tool plays the same two stones; it wants stone on copper.
+  - The sound should come with the motion, as the smelter's did: a saw heard under an adze swing
+    would be worse than the chop.
+- **A field's work has its own cues** since doc 309 (the hoe in earth, a tile sown, a ripe one
+  pulled); picking a bush or a tree in a field is still silent, as below.
+- **Silent, and seen all the time:** goods picked up and set down (hauling, and every delivery);
+  gathering by hand (stones, berries, apples, juniper; clearing shrubs and plants; uprooting,
+  replanting and planting); furniture placed, packed and removed; ladders set and climbed; doors
+  swinging on their hinges.
+- **Silent, at rest:** eating; the board game; a log put on a nightly fire and the fire catching.
+  Grilling's sizzle and the drying rack are under their own headings below.
+- **Silent ends:** a mined block breaking and a boulder cleared show dust and make no sound; the
+  copper setting.
+- **The interface has no sounds** beyond the promotion chime: no click, no order placed, no
+  refusal, no event (the event log's own list has "a sound for new entries"). Whether the game
+  wants any is the owner's call.
+- **Fits as it is:** the Miner's copper pick (the recording is a metal pickaxe on rock, which the
+  Worker's stone pick shares), the Worker's axe at the crude workbench, a boulder cleared with
+  the pick, built wood taken down with the axe.
+
+### The smelter's sounds left for later
+
+Left open by doc 307 (2026-11-13); the cues are in doc 13 ("WorkFeedback") and doc 44 ("Charging
+the basic smelter", "Its batch on show").
+
+- **The owner's listening.** None of it has been heard; levels and choices wait on the owner's
+  ear (`tmp/smelter_sounds_20261113/review.html`).
+- **A roar under the crackle.** The fire is a kiln's crackle. No natural recording of a steady
+  roar turned up that is long enough to loop and audible on small speakers; one would suit a
+  blown fire better.
+- **A copper tool hammered on the anvil stone** still knocks as stone on stone (the builders'
+  hammer). Stone on copper wants its own recording.
+- **The copper setting** is silent: the coals go out and the bar shows. A tick or a hiss could
+  mark it.
+- **The basic smelter being made, and other benches' work,** have no sounds of their own beyond
+  the axe and the hammer.
+- **Lossless originals.** The nine masters are decoded HQ MP3 previews, as the other recorded
+  sounds are; the original uploads need a Freesound login.
+
+### Fishing sounds left for later
+
+Left open by doc 305 (2026-11-12); the cues are in doc 13 ("WorkFeedback") and doc 42 ("Fishing").
+
+- **The drying rack is silent:** hanging wet fish and taking down dry ones. Each wants a
+  recording of its own, through the sound workflow (CLAUDE.md).
+- **The wait is silent** by choice. A line's faint creak or the float's lapping could mark a long
+  wait if it reads as empty in play.
+- **Lossless originals.** The eight masters are decoded HQ MP3 previews, as the other recorded
+  sounds are; the original uploads need a Freesound login. With them the masters could be made
+  again from `source.json`'s pages.
+- **The grill's sizzle** is under "Grilling left for later".
 
 ### Fishing ideas left for later
 
@@ -924,7 +1156,7 @@ Left out of the temperature and spoilage milestone (2026-10-29).
   - A fire grills when its definition says `grilling` (only `campfire.json` today). A grill's
     places are the stools facing the fire, then the camp area's sides (`DwarfDining`); a hearth
     against its wall needs places of its own.
-  - A food grills with `food.grill` in `resources.json` and its own stick models, raw and
+  - A food grills with `food.grill` in `items.json` and its own stick models, raw and
     grilled (`DwarfAssets.grill_sticks`).
   - The sizzle would be a `fish_sizzle` bank in `data/audio/work_feedback.json`, through the
     sound workflow (CLAUDE.md), played while the fish browns (`DwarfGrillPose`).
@@ -944,7 +1176,7 @@ Left out of the temperature and spoilage milestone (2026-10-29).
   - The catch log gains a rare-fish row.
 - **Fix direction.** Art first, in the fish's look (doc 42, "Fishing"): each rare fish in
   crates at three fills, on the line, raw and grilled on the stick, and its inventory picture.
-  Then the rare fish in `resources.json`, each water's rare fish and odds in `fishing.waters`,
+  Then the rare fish in `items.json`, each water's rare fish and odds in `fishing.waters`,
   the rewards' words in the Ranger's `experience` (`professions.json`), the memory in
   `DwarfMood` with its journal lines, and the row in `CatchLog`.
 

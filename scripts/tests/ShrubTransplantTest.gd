@@ -1,7 +1,7 @@
 extends "res://scripts/tests/ShrubPilotTest.gd"
 
 const BLUE_KEY := "base:flora:blueberry_bush"
-const BLUE_ITEM := "base:resources:plant:blueberry_bush"
+const BLUE_ITEM := "base:item:blueberry_bush"
 var zone_controller
 
 
@@ -164,8 +164,8 @@ func _test_dev_spawns() -> void:
 
 
 func _stamp_bushes(stamper: Node) -> void:
-	for spec: Array in [["base:resources:plant:blueberry_bush", Vector3i(37,20,36)], ["base:resources:plant:elderberry_bush", Vector3i(38,20,36)],
-			["base:resources:plant:wild_strawberry_bush", Vector3i(36,20,36)]]:
+	for spec: Array in [["base:item:blueberry_bush", Vector3i(37,20,36)], ["base:item:elderberry_bush", Vector3i(38,20,36)],
+			["base:item:wild_strawberry_bush", Vector3i(36,20,36)]]:
 		stamper.choose(String(spec[0]), 1, "")
 		_expect(stamper.stamp_at(spec[1]) == 1, "the stamper makes %s through the flora owner" % spec[0])
 

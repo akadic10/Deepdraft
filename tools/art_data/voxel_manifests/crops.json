@@ -464,6 +464,765 @@
         "season": "summer",
         "integration": "art_and_data_only"
       }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 192,
+          "visual_triangles": 56,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8333333333333334,
+            "triangles": 24
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.0625,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 10344,
+      "sha256": "8feb3a2013661a47d19ced364822cd62780723be10d17fb5f5913659f80234a7",
+      "path": "assets/models/flora/crops/field/tilled_bare.glb",
+      "authoring": {
+        "species": "field",
+        "stage": "bare",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 228,
+          "visual_triangles": 400,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 236
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 67020,
+      "sha256": "307ea97cce8d66f1c55d49d06d5d75c058e65a6de280ce1e4e0a341a13e4c92f",
+      "path": "assets/models/flora/crops/radish/radish_sprout.glb",
+      "authoring": {
+        "species": "radish",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 336,
+          "visual_triangles": 844,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 392
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.25,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 129336,
+      "sha256": "7d38bb9448bfae8d6512ec0cccd59b24d91d78fac58c2aee3247166a8c0665e6",
+      "path": "assets/models/flora/crops/radish/radish_growing.glb",
+      "authoring": {
+        "species": "radish",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 388,
+          "visual_triangles": 900,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 456
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.3125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 141276,
+      "sha256": "3bd58df21124af72af41d1d04e52d3721d96fae797449adfc66fe64ff0a04347",
+      "path": "assets/models/flora/crops/radish/radish_ripe.glb",
+      "authoring": {
+        "species": "radish",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 240,
+          "visual_triangles": 540,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 256
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 83988,
+      "sha256": "0900e7f147629722e5781220ba48ab48ec13fc0e85c931f7b8dad7232fc336e9",
+      "path": "assets/models/flora/crops/carrot/carrot_sprout.glb",
+      "authoring": {
+        "species": "carrot",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 320,
+          "visual_triangles": 748,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 380
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.3125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 117868,
+      "sha256": "fc43ac8ddc4af048cce396d845ec1477696fd03947ba7fe89eb1bb26199ee06e",
+      "path": "assets/models/flora/crops/carrot/carrot_growing.glb",
+      "authoring": {
+        "species": "carrot",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 456,
+          "visual_triangles": 1204,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 764
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.5,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 202444,
+      "sha256": "7e5c0fe8b56314a97eef8484bb838461979ce3ef7fa41cd98945a59dd87ac854",
+      "path": "assets/models/flora/crops/carrot/carrot_ripe.glb",
+      "authoring": {
+        "species": "carrot",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 240,
+          "visual_triangles": 336,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 144
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 51644,
+      "sha256": "7fe5e92042f63c4dd82bd6fc63e2100739d6a341c6611559056a0448b04746b9",
+      "path": "assets/models/flora/crops/turnip/turnip_sprout.glb",
+      "authoring": {
+        "species": "turnip",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 352,
+          "visual_triangles": 828,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 408
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.3125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 129084,
+      "sha256": "d9fbab726b38984f782b8d9743dbbcfa344755b96045aa7c4a73d078dbc26d2e",
+      "path": "assets/models/flora/crops/turnip/turnip_growing.glb",
+      "authoring": {
+        "species": "turnip",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 608,
+          "visual_triangles": 1212,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 496
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.5,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 178648,
+      "sha256": "16998d178e0d94ae2bd1001470d03afa29026a2e6f49e2496530aa2c6bdc8640",
+      "path": "assets/models/flora/crops/turnip/turnip_ripe.glb",
+      "authoring": {
+        "species": "turnip",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 220,
+          "visual_triangles": 184,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 84
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 29708,
+      "sha256": "59c5e84403cb79b30719fe98735b94d74f68b131975f193a25d91bae6da1e598",
+      "path": "assets/models/flora/crops/cabbage/cabbage_sprout.glb",
+      "authoring": {
+        "species": "cabbage",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 464,
+          "visual_triangles": 656,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 208
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.375,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 92100,
+      "sha256": "b7187fd59958012e317cbf6903f9fab2b3ea87c36166d93f8f3afe39aa527eda",
+      "path": "assets/models/flora/crops/cabbage/cabbage_growing.glb",
+      "authoring": {
+        "species": "cabbage",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 788,
+          "visual_triangles": 762,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 228
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.5625,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 105392,
+      "sha256": "48b2fd9dfa174e17923fd5a74fe64dc3941b9775372554dcb3b5c5759cb82220",
+      "path": "assets/models/flora/crops/cabbage/cabbage_ripe.glb",
+      "authoring": {
+        "species": "cabbage",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 210,
+          "visual_triangles": 308,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 152
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 49356,
+      "sha256": "859c0c48838f062f589bf008e1130da2dfefb3f4e1d8c6f056257fbc9b58e474",
+      "path": "assets/models/flora/crops/onion/onion_sprout.glb",
+      "authoring": {
+        "species": "onion",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 252,
+          "visual_triangles": 740,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 320
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.25,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 111476,
+      "sha256": "069bb4db1c5bab511f7ae3c74d30b27c78fe40d5a996f87f06715e6dcef6cb00",
+      "path": "assets/models/flora/crops/onion/onion_growing.glb",
+      "authoring": {
+        "species": "onion",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 516,
+          "visual_triangles": 1032,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 696
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            0.5,
+            0.3125,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 177604,
+      "sha256": "bf8e7de41275e0c2367ddac138687c180f34c903b8b345aa63864e5eaea83250",
+      "path": "assets/models/flora/crops/onion/onion_ripe.glb",
+      "authoring": {
+        "species": "onion",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 228,
+          "visual_triangles": 210,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 108
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 34724,
+      "sha256": "623c6c86cc2e8b1d4254bbe3cbef0f2c2296261968e86c8a8978f8e539608548",
+      "path": "assets/models/flora/crops/pumpkin/pumpkin_sprout.glb",
+      "authoring": {
+        "species": "pumpkin",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 532,
+          "visual_triangles": 1014,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 474
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.4375,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 155244,
+      "sha256": "4b61847cd1840c6c69a905430a3e78f63db4b8e2c5e068ee6bf4b0a4bc13aa59",
+      "path": "assets/models/flora/crops/pumpkin/pumpkin_growing.glb",
+      "authoring": {
+        "species": "pumpkin",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 1047,
+          "visual_triangles": 1330,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 516
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.5
+          ],
+          "max": [
+            0.5,
+            0.6875,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 193232,
+      "sha256": "cdbc1a7b70921e8cf5f47f366d7cdb277ff1a194e3b30f866bd91f368a8bfc8b",
+      "path": "assets/models/flora/crops/pumpkin/pumpkin_ripe.glb",
+      "authoring": {
+        "species": "pumpkin",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 224,
+          "visual_triangles": 288,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 80
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.1875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 40568,
+      "sha256": "9e438cb5ff83b87d1b4cdb7224ac3749fddcf96f360e4bf3b7c1b32b87bf66f1",
+      "path": "assets/models/flora/crops/kale/kale_sprout.glb",
+      "authoring": {
+        "species": "kale",
+        "stage": "sprout",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 672,
+          "visual_triangles": 1256,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 608
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.5625,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 193716,
+      "sha256": "2f9c8ad0198a1fb048d24756c362d7b503377eedf58736a0595a45c2834a1292",
+      "path": "assets/models/flora/crops/kale/kale_growing.glb",
+      "authoring": {
+        "species": "kale",
+        "stage": "growing",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 992,
+          "visual_triangles": 1536,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 672
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.875,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 229840,
+      "sha256": "de927272a9b24407f14209cbd27fba581cea3e31144c4c9f76f31c200a0d154c",
+      "path": "assets/models/flora/crops/kale/kale_ripe.glb",
+      "authoring": {
+        "species": "kale",
+        "stage": "ripe",
+        "integration": "field_crop"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 448,
+          "visual_triangles": 808,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 272
+          },
+          "min": [
+            -0.5,
+            0.0,
+            -0.4375
+          ],
+          "max": [
+            0.5,
+            0.8125,
+            0.4375
+          ]
+        }
+      ],
+      "bytes": 114408,
+      "sha256": "44a5d954609133d5e1da145c8ad806f1aa45802602e08e261bc9757aa21b76be",
+      "path": "assets/models/flora/crops/kale/kale_picked.glb",
+      "authoring": {
+        "species": "kale",
+        "stage": "picked",
+        "integration": "field_crop"
+      }
     }
   ]
 }

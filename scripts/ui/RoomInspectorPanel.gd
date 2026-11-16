@@ -4,17 +4,23 @@ extends MarginContainer
 ## name and a banner, then rows of picture, value and goal.
 ## - The band names the room ("Birna's bedroom"). The header gives its kind with tags
 ##   (Sealed, the owner's bonus), who sleeps there, and the appeal banner.
-## - Overview: what makes it its kind, each need with its count and goal and a tick when
-##   met (a plain room is shown the kind it is nearest, and what is missing); its comfort
-##   (heating and temperature, each with its goal); and the furniture in it.
+## - Overview: what makes it its type, each need with its count and goal and a tick when
+##   met. A plain room holding a type's key piece (a bed, a dining table, a food shelf) is
+##   measured against that type, with the steps left; one holding none is shown what it could
+##   be, each type with the steps to it. Then its warmth, read for what the room is for:
+##   comfort where dwarves stay, keeping where food is stored. Then the furniture in it.
 ## - Appeal (doc 23 "Room appeal"): the appeal and its word on the scale, then each part with
 ##   its picture and value, and the share a large room counts.
 ## - Details: volume, doors, floor level, heating and the season's reach.
-## Presentation only: RoomManager owns rooms, their kinds (room_kinds.json), temperature
+## - Types (RoomTypesPage): every room type, what it needs and what it is for.
+## Presentation only: RoomManager owns rooms, their types (room_kinds.json), temperature
 ## and appeal. A selection overlay never represents the room's illumination.
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const Grid = preload("res://scripts/ui/PictureGrid.gd")
 const Appeal = preload("res://scripts/components/RoomAppeal.gd")
+const TypesPage = preload("res://scripts/ui/RoomTypesPage.gd")
+## A row's mark: none, a tick when its goal is met, or "!" when it is not.
+enum Mark { NONE, MET, UNMET }
 const HAY := Color("e2c06a")
 const MUTED := Color("aeb5ad")
 const MOSS := Color("8fbf5a")
@@ -28,21 +34,18 @@ const SMALL := UITheme.TYPE_SMALL
 ## from tab to tab, as far as the room above the dock allows, and longer pages scroll.
 const SIZES := {
 	"large": {"width": 860, "side": 20, "top": 12, "bottom": 10, "kind": LARGE.name, "tag": LARGE.small, "owner_tile": 64, "owner": LARGE.lead,
-		"note": LARGE.body, "banner": Vector2i(35, 49), "face": 60, "word": LARGE.lead, "value": LARGE.title, "tab": Vector2(200, 42),
+		"note": LARGE.body, "banner": Vector2i(35, 49), "face": 60, "word": LARGE.lead, "value": LARGE.title, "tab": Vector2(190, 42),
 		"tab_font": LARGE.body, "label": LARGE.small, "tile": 44, "name": LARGE.lead, "count": LARGE.lead, "goal": LARGE.body, "name_width": 200,
 		"count_width": 210, "row": 52, "furniture": 44, "hint": LARGE.body, "gap": 12, "body": 660, "type": LARGE},
 	"medium": {"width": 600, "side": 14, "top": 8, "bottom": 8, "kind": MEDIUM.name, "tag": MEDIUM.small, "owner_tile": 48, "owner": MEDIUM.lead,
-		"note": MEDIUM.body, "banner": Vector2i(26, 36), "face": 44, "word": MEDIUM.lead, "value": MEDIUM.title, "tab": Vector2(140, 34),
+		"note": MEDIUM.body, "banner": Vector2i(26, 36), "face": 44, "word": MEDIUM.lead, "value": MEDIUM.title, "tab": Vector2(132, 34),
 		"tab_font": MEDIUM.body, "label": MEDIUM.small, "tile": 34, "name": MEDIUM.lead, "count": MEDIUM.lead, "goal": MEDIUM.body, "name_width": 140,
 		"count_width": 150, "row": 40, "furniture": 34, "hint": MEDIUM.body, "gap": 8, "body": 420, "type": MEDIUM},
 	"small": {"width": 470, "side": 10, "top": 6, "bottom": 6, "kind": SMALL.name, "tag": SMALL.small, "owner_tile": 36, "owner": SMALL.lead,
-		"note": SMALL.body, "banner": Vector2i(20, 28), "face": 32, "word": SMALL.lead, "value": SMALL.title, "tab": Vector2(110, 30),
+		"note": SMALL.body, "banner": Vector2i(20, 28), "face": 32, "word": SMALL.lead, "value": SMALL.title, "tab": Vector2(104, 30),
 		"tab_font": SMALL.body, "label": SMALL.small, "tile": 28, "name": SMALL.lead, "count": SMALL.lead, "goal": SMALL.body, "name_width": 108,
 		"count_width": 118, "row": 34, "furniture": 30, "hint": SMALL.body, "gap": 6, "body": 260, "type": SMALL},
 }
-## How a missing need reads in "One step from a bedroom: add a light."
-const MISSING := {"beds": "a bed", "lights": "a light", "doors": "a door", "owner": "an owner for the bed"}
-
 var window: UIWindow
 var dock: Node   # DockUI, when there is one: the window fits above it
 var _size: Dictionary = {}
@@ -71,10 +74,11 @@ var _overview: VBoxContainer
 var _details: VBoxContainer
 var _needs_heading: Label
 var _needs: VBoxContainer
-var _need_rows := {}   # need id -> its row
+var _need_rows := {}   # need id -> its row; "type:<id>" -> a type's row where a plain room is shown what it could be
 var _short: Label
 var _comfort_heading: Label
-var _comfort := {}   # heating, temperature -> their rows
+var _comfort := {}   # heating, temperature, keeping -> their rows
+var _types: TypesPage
 var _furniture_heading: Label
 var _furniture
 var _furniture_empty: Label
@@ -103,7 +107,7 @@ func _ready() -> void:
 	var tab_row := HBoxContainer.new()
 	tab_row.add_theme_constant_override("separation", 6)
 	_column.add_child(tab_row)
-	for caption: String in ["Overview", "Appeal", "Details"]:
+	for caption: String in ["Overview", "Appeal", "Details", "Types"]:
 		var tab := Button.new()
 		tab.text = caption
 		tab.focus_mode = Control.FOCUS_ALL
@@ -127,7 +131,7 @@ func _ready() -> void:
 	_short = _text(needs, "", MEDIUM.body, HAY)
 	var comfort := _inset(_overview)
 	_comfort_heading = _heading(comfort, "COMFORT")
-	for id: String in ["heating", "temperature"]:
+	for id: String in ["heating", "temperature", "keeping"]:
 		_comfort[id] = _goal_row(comfort, id)
 	_furniture_heading = _heading(_overview, "IN THIS ROOM")
 	_furniture = Grid.new()
@@ -142,7 +146,9 @@ func _ready() -> void:
 	for entry: Array in [["volume", "Room volume"], ["doors", "Doors"], ["level", "Average floor level"],
 			["heat", "Heating"], ["season", "Seasonal influence"]]:
 		_detail_rows[entry[0]] = _detail_row(_details, entry[1])
-	_detail_note = _text(_details, "Rock shelters rooms from the weather. A stone hearth warms a room; torches mainly give light. Cold or hot sleep lowers happiness.", MEDIUM.body, MUTED)
+	_detail_note = _text(_details, "Rock shelters rooms from the weather. A stone hearth warms a room; torches mainly give light. Cold or hot sleep lowers happiness, and food keeps longer the cooler its room is.", MEDIUM.body, MUTED)
+	_types = TypesPage.new()
+	pages.add_child(_types)
 	_hint = _text(_column, "Select another room to inspect · Esc to finish", MEDIUM.body, MUTED)
 	get_viewport().size_changed.connect(func(): _fit.call_deferred())
 	_apply_size(SIZES.medium)
@@ -237,7 +243,7 @@ func _build_appeal(pages: Control) -> void:
 func show_room(room: Dictionary) -> void:
 	_room = room
 	var counts := RoomManager.room_counts(room)
-	var kind := RoomManager.nearest_kind(room)
+	var kind := RoomManager.nearest_kind(room)   # {}: a plain room on its way to no type
 	var own := RoomManager.room_kind(room)
 	_kind.text = RoomManager.room_label(room)
 	_show_tags(room, own)
@@ -248,30 +254,11 @@ func show_room(room: Dictionary) -> void:
 	_banner.tooltip_text = "Appeal %s · %s\nWhat the room holds, for its size. The Appeal tab lists each part." % [
 		_banner_value.text, _banner_word.text]
 	_show_appeal(room, appeal)
-	# What makes it its kind: each need with its count and goal.
-	var missing := RoomManager.missing_needs(room, kind)
-	_needs_heading.text = String(kind.get("shows", "What makes a room")).to_upper()
-	var needs: Dictionary = kind.get("needs", {})
-	var ids: Array = needs.keys() + ["walls"]
-	if _changed("needs", ids):
-		_clear(_needs)
-		_need_rows.clear()
-		for id: String in ids: _need_rows[id] = _goal_row(_needs, id)
-	for id: String in needs:
-		var rule: Dictionary = needs[id]
-		var count := int(counts.get(id, 0))
-		_set_row(_need_rows[id], {"beds": "Bed", "lights": "Light", "doors": "Door"}.get(id, id.capitalize()),
-			"%d source%s" % [count, "" if count == 1 else "s"] if id == "lights" else str(count), _needs_words(rule), not id in missing)
-	_set_row(_need_rows.walls, "Walls", "Sealed", "", true)   # a room is a sealed space
-	_short.visible = own.is_empty() and not missing.is_empty()
-	if _short.visible:
-		var noun := String(kind.get("shows", "")).trim_prefix("What makes it ")
-		var words: Array = missing.map(func(need: String): return MISSING.get(need, need))
-		_short.text = ("One step from %s: add %s." % [noun, words[0]]) if words.size() == 1 \
-			else "Add %s to make it %s." % [" and ".join(PackedStringArray(words)), noun]
+	_show_needs(room, own, kind, counts)
 	var pieces := RoomManager.room_furniture(room)
-	_show_comfort(room, pieces)
+	_show_comfort(room, pieces, kind)
 	_show_furniture(pieces)
+	_types.show_room(room)
 	# Details.
 	_detail_rows.volume.text = "%d blocks" % int(room.get("volume", 0))
 	_detail_rows.doors.text = str(int(counts.doors))
@@ -282,9 +269,54 @@ func show_room(room: Dictionary) -> void:
 	_fit.call_deferred()
 
 
+## What makes the room its type: each need with its count and goal, ticked when met. A plain
+## room is measured against the type it is on its way to, with the steps left; one on its way
+## to none is shown what it could be: each type, with the steps to it.
+func _show_needs(room: Dictionary, own: Dictionary, kind: Dictionary, counts: Dictionary) -> void:
+	var kinds = RoomManager.kinds
+	if kind.is_empty():
+		_needs_heading.text = "WHAT IT COULD BE"
+		var listed: Array = kinds.listed()
+		var types: Array = listed.map(func(entry: Dictionary) -> String: return "type:" + String(entry.id))
+		if _changed("needs", types):
+			_clear(_needs)
+			_need_rows.clear()
+			for entry: Dictionary in listed: _need_rows["type:" + String(entry.id)] = _goal_row(_needs, String(entry.get("symbol", "walls")))
+		for entry: Dictionary in listed:
+			var row: Dictionary = _need_rows["type:" + String(entry.id)]
+			_set_row(row, String(entry.label), "", kinds.capital(kinds.steps_words(room, entry)), Mark.NONE, HAY)
+			row.row.tooltip_text = "%s: %s\n%s" % [String(entry.label), kinds.needs_sentence(entry), String(entry.get("gives", ""))]
+		_short.visible = true
+		_short.text = "What a room holds decides its type. The Types tab tells what each is for."
+		return
+	var missing: Array[String] = kinds.missing(room, kind)
+	_needs_heading.text = String(kind.get("shows", "What makes a room")).to_upper()
+	var needs: Dictionary = kind.get("needs", {})
+	var ids: Array = needs.keys() + ["walls"]
+	if _changed("needs", ids):
+		_clear(_needs)
+		_need_rows.clear()
+		for id: String in ids: _need_rows[id] = _goal_row(_needs, String(kinds.things.get(id, {}).get("symbol", id)))
+	var temperature := float(room.get("temp_c", 0.0))
+	for id: String in needs:
+		var words: Dictionary = kinds.things.get(id, {})
+		var count := int(counts.get(id, 0))
+		var shown := str(count) if not words.has("unit") else "%d %s%s" % [count, String(words.unit), "" if count == 1 else "s"]
+		if id == "temperature": shown = "%.1f °C · %s" % [temperature, RoomManager.temperature_word(temperature)]
+		_set_row(_need_rows[id], String(words.get("label", id.capitalize())), shown, kinds.goal_words(id, needs[id]),
+			Mark.UNMET if id in missing else Mark.MET)
+	_set_row(_need_rows.walls, "Walls", "Sealed", "", Mark.MET)   # a room is a sealed space
+	_short.visible = own.is_empty() and not missing.is_empty()
+	if _short.visible:
+		var noun := String(kind.get("shows", "")).trim_prefix("What makes it ")
+		var steps: String = kinds.steps_words(room, kind)
+		_short.text = "One step from %s: %s." % [noun, steps] if missing.size() == 1 else "%s to make it %s." % [kinds.capital(steps), noun]
+
+
 func _show_tags(room: Dictionary, own: Dictionary) -> void:
 	var tags: Array = [["Sealed", "fine"]]
-	if bool(room.get("is_frozen_vault", false)): tags.append(["Frozen vault", "fine"])
+	# A type that needs its temperature says so among its needs (the freezer).
+	if bool(room.get("is_frozen_vault", false)) and not own.get("needs", {}).has("temperature"): tags.append(["Frozen vault", "fine"])
 	if bool(own.get("owner", false)):
 		var bonus := roundi(float(TaskManager.get_config_section("mood").personal_bedroom.bonus) * 100)
 		tags.append(["Owner's bonus +%d" % bonus, "fine"])
@@ -336,26 +368,73 @@ func _set_owner(agent: DwarfAgent) -> void:
 	_portrait_model = Portrait.create_model(_portrait, agent)
 
 
-## Comfort: the warmth the room's heat sources add and its temperature, each with its goal.
-## (Details keeps the heat in units.)
-func _show_comfort(room: Dictionary, pieces: Dictionary) -> void:
+## The room's warmth, read for what the room is for (its type's `climate`; Details keeps the
+## heat in units):
+## - comfort, where dwarves stay: the warmth its heat sources add and its temperature, each
+##   with the goal dwarves sleep well by;
+## - keeping, where food is stored: how long food keeps, and any heat source, marked when it
+##   warms the store by a degree or more (its temperature is among its needs above);
+## - a plain room on its way to no type: its temperature, its heating and how long food
+##   keeps, as facts with no goal.
+func _show_comfort(room: Dictionary, pieces: Dictionary, kind: Dictionary) -> void:
+	var mode := String(kind.get("climate", ""))
+	_comfort_heading.text = {"comfort": "COMFORT", "keeping": "KEEPING"}.get(mode, "TEMPERATURE")
 	var config := RoomManager.temperature_config
 	var heat := int(room.get("heat_units", 0))
+	var bonus := float(room.get("heat_bonus_c", 0.0))
 	var temperature := float(room.get("temp_c", 0.0))
 	var comfort := RoomManager.comfort_label(temperature)
 	var cosy := comfort == "Comfortable"
 	var sources := 0
 	for key: String in pieces:
 		if not ContentRegistry.furniture_def(key).get("heat_source", {}).is_empty(): sources += int(pieces[key])
-	if heat > 0:
-		_set_row(_comfort.heating, "Heating", "+%.1f °C" % float(room.get("heat_bonus_c", 0.0)),
-			"%d heat source%s" % [sources, "" if sources == 1 else "s"], true)
+	var source_words := "%d heat source%s" % [sources, "" if sources == 1 else "s"]
+	_comfort.temperature.row.visible = mode != "keeping"
+	_comfort.heating.row.visible = mode != "keeping" or heat > 0
+	if mode == "comfort":
+		if heat > 0: _set_row(_comfort.heating, "Heating", "+%.1f °C" % bonus, source_words, Mark.MET)
+		else: _set_row(_comfort.heating, "Heating", "None", "" if cosy else "Add a hearth", Mark.MET if cosy else Mark.UNMET)
+		var goal := ""
+		if comfort == "Hot": goal = "%d °C or less" % roundi(float(config.comfortable_max_c))
+		elif not cosy: goal = "%d °C or more" % roundi(float(config.comfortable_min_c))
+		_set_row(_comfort.temperature, "Temperature", "%.1f °C · %s" % [temperature, comfort], goal, Mark.MET if cosy else Mark.UNMET)
 	else:
-		_set_row(_comfort.heating, "Heating", "None", "" if cosy else "Add a hearth", cosy)
-	var goal := ""
-	if comfort == "Hot": goal = "%d °C or less" % roundi(float(config.comfortable_max_c))
-	elif not cosy: goal = "%d °C or more" % roundi(float(config.comfortable_min_c))
-	_set_row(_comfort.temperature, "Temperature", "%.1f °C · %s" % [temperature, comfort], goal, cosy)
+		var storing := mode == "keeping"
+		if heat > 0: _set_row(_comfort.heating, "Heating", "+%.1f °C" % bonus, source_words + (" warming it" if storing else ""),
+			Mark.UNMET if storing and bonus >= 1.0 else Mark.NONE)
+		else: _set_row(_comfort.heating, "Heating", "None", "", Mark.NONE)
+		_set_row(_comfort.temperature, "Temperature", "%.1f °C · %s" % [temperature, RoomManager.temperature_word(temperature)], "", Mark.NONE)
+	var keeping := [] if mode == "comfort" else _keeping(room)
+	_comfort.keeping.row.visible = not keeping.is_empty()
+	if not keeping.is_empty(): _set_row(_comfort.keeping, "Food keeps", String(keeping[0]), String(keeping[1]), Mark.NONE)
+	# A store leads with how long food keeps; a plain room with its temperature.
+	var order: Array = {"comfort": ["heating", "temperature", "keeping"], "keeping": ["keeping", "heating", "temperature"]}.get(mode,
+		["temperature", "heating", "keeping"])
+	if _changed("comfort_order", order):
+		for i in range(order.size()): _comfort_heading.get_parent().move_child(_comfort[order[i]].row, _comfort_heading.get_index() + 1 + i)
+
+
+## How long the reference food (the Temperature view's keeping_food, blueberries) keeps in the
+## room as it is now, from fresh, beside the days it keeps at the warmth its keeping time is
+## given for (doc 42 "Spoilage"): ["About 11 days", "Blueberries · 4 days at 20 °C"], or []
+## when it cannot be told.
+func _keeping(room: Dictionary) -> Array:
+	var drops := ItemDropManager.find(get_tree())
+	var key := String(UIRegistry.get_time_slice().get("temperature", {}).get("keeping_food", ""))
+	var cells: Dictionary = room.get("cells", {})
+	if drops == null or cells.is_empty() or drops.food_definition(key).is_empty(): return []
+	var cell := Vector3i.ZERO
+	for inside: Vector3i in cells:
+		cell = inside
+		break
+	var food: Dictionary = drops.food_definition(key)
+	var spoilage = StockpileManager.spoilage
+	var definition: Dictionary = drops.get_item_def(key)
+	var plural := String(definition.get("plural_name", String(definition.get("display_name", key)).to_lower()))
+	var listed := float(food.get("keeps_days", 0.0))
+	return [RoomManager.kinds.capital(spoilage.days_text(spoilage.keeps_days_at(food, cell))),
+		"%s · %s day%s at %d °C" % [RoomManager.kinds.capital(plural), Appeal.number(listed), "" if is_equal_approx(listed, 1.0) else "s",
+			roundi(float(spoilage.config.reference_c))]]
 
 
 func _show_furniture(pieces: Dictionary) -> void:
@@ -427,9 +506,9 @@ func _show_feeling(room: Dictionary, appeal: Dictionary) -> void:
 		String(felt.word.get("word", "")), Appeal.number(float(felt.score))]
 
 
-## Opens a tab by its name: overview, appeal (from the Appeal view) or details.
+## Opens a tab by its name: overview, appeal (from the Appeal view), details or types.
 func show_tab_named(tab: String) -> void:
-	var index := ["overview", "appeal", "details"].find(tab)
+	var index := ["overview", "appeal", "details", "types"].find(tab)
 	if index >= 0: _show_tab(index)
 
 
@@ -437,6 +516,7 @@ func _show_tab(index: int) -> void:
 	_overview.visible = index == 0
 	_appeal.visible = index == 1
 	_details.visible = index == 2
+	_types.visible = index == 3
 	for i in range(_tabs.size()): UITheme.show_tab(_tabs[i], i == index)
 	_scroll.scroll_vertical = 0
 	_fit.call_deferred()
@@ -495,6 +575,7 @@ func _apply_size(s: Dictionary) -> void:
 		tab.custom_minimum_size = s.tab
 		tab.add_theme_font_size_override("font_size", s.tab_font)
 	for page: VBoxContainer in [_overview, _appeal, _details]: page.add_theme_constant_override("separation", gap + 4)
+	_types.set_sizes(s)
 	for label: Label in _headings: label.add_theme_font_size_override("font_size", s.label)
 	for label: Label in [_short, _furniture_empty, _detail_note, _hint, _appeal_empty, _appeal_note, _appeal_feel]:
 		label.add_theme_font_size_override("font_size", int(s.hint))
@@ -525,13 +606,11 @@ func _goal_row(parent: Control, symbol: String) -> Dictionary:
 	var title := _text(row, "", MEDIUM.heading, UITheme.CARD_TITLE, true)
 	var count := _text(row, "", MEDIUM.heading, UITheme.CARD_TITLE, true)
 	var goal := _text(row, "", MEDIUM.lead, MUTED)
-	for label: Label in [title, count, goal]:
-		label.autowrap_mode = TextServer.AUTOWRAP_OFF
-		label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	# The name and the count keep their line; a long goal wraps onto a second, so none is cut.
+	for label: Label in [title, count]: label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	for label: Label in [title, count, goal]: label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	title.size_flags_horizontal = Control.SIZE_FILL
 	count.size_flags_horizontal = Control.SIZE_FILL
-	goal.clip_text = true
-	goal.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var mark := PanelContainer.new()
 	mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(mark)
@@ -543,16 +622,20 @@ func _goal_row(parent: Control, symbol: String) -> Dictionary:
 	return parts
 
 
-func _set_row(row: Dictionary, title: String, count: String, goal: String, met: bool) -> void:
+## A row with no count gives its goal the room; one with no mark states a fact.
+func _set_row(row: Dictionary, title: String, count: String, goal: String, mark: Mark, goal_colour := MUTED) -> void:
 	row.title.text = title
 	row.count.text = count
-	row.count.add_theme_color_override("font_color", UITheme.CARD_TITLE if met else HAY)
+	row.count.visible = not count.is_empty()
+	row.count.add_theme_color_override("font_color", HAY if mark == Mark.UNMET else UITheme.CARD_TITLE)
 	row.goal.text = goal
 	row.goal.tooltip_text = goal
-	row.row.tooltip_text = "%s · %s%s" % [title, count, "" if goal.is_empty() else " · " + goal]
-	var tone := "fine" if met else "waiting"
+	row.goal.add_theme_color_override("font_color", goal_colour)
+	row.row.tooltip_text = " · ".join(PackedStringArray([title, count, goal].filter(func(part: String) -> bool: return not part.is_empty())))
+	row.mark.visible = mark != Mark.NONE
+	var tone := "fine" if mark == Mark.MET else "waiting"
 	row.mark.add_theme_stylebox_override("panel", UITheme.cell_style("tag_" + tone, 3))
-	row.glyph.text = "✓" if met else "!"
+	row.glyph.text = "✓" if mark == Mark.MET else "!"
 	UITheme.format_label(row.glyph, true, int(_size.goal), UITheme.tag_ink(tone))
 
 
@@ -614,14 +697,6 @@ func _size_part(row: Dictionary) -> void:
 	row.note.add_theme_font_size_override("font_size", s.goal)
 	row.value.add_theme_font_size_override("font_size", s.count)
 	row.value.custom_minimum_size.x = float(s.count) * 3.5
-
-
-## How a need reads: "Needs 1", "Needs 2 or more", "Needs 1 to 3".
-static func _needs_words(rule: Dictionary) -> String:
-	var least := int(rule.get("least", 0))
-	if not rule.has("most"): return "Needs %d" % least if least <= 1 else "Needs %d or more" % least
-	var most := int(rule.most)
-	return "Needs %d" % least if most == least else "Needs %d to %d" % [least, most]
 
 
 func _detail_row(parent: Control, title: String) -> Label:

@@ -1,0 +1,310 @@
+{
+ "sources": [
+  {
+   "kind": "the copper hoe biting the ground (foley: a mattock digging a garden, not a hoe)",
+   "author": "maxthrower",
+   "id": "168810",
+   "title": "dig.wav",
+   "description": "The uploader's description: \"the sound of the garden being dug with a mattock. nice and chunky. can serve as an sfx in many digging scenarios.\". The page states no processing. Found by matching the file against itself: its stretch from 3.6 s to 22.0 s is heard a second time from 22.2 s to 40.6 s, an edit the page does not mention. Every cue is cut from the first copy or from the part after 40.6 s that is not repeated, so each is its own recorded stroke.",
+   "page": "https://freesound.org/people/maxthrower/sounds/168810/",
+   "download": "https://cdn.freesound.org/previews/168/168810_3063236-hq.mp3",
+   "license": "CC0-1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "license_on_page": "Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/)",
+   "uploaded": "October 31st, 2012",
+   "retrieved": "2026-11-14",
+   "original": "Wave (.wav), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login",
+   "download_sha256": "7ba19b379408373c1cb6ac1ddff5e55a387e9ff37c1975cedb95158be188de45",
+   "rate": 44100,
+   "channels": 2,
+   "seconds": 70.5266439909297,
+   "preview": "Public HQ MP3 preview, not the original lossless upload.",
+   "master": "mattock_garden.wav",
+   "master_sha256": "889b202f81b6c979c6baeed8d85a0293364070545e5703d6d82d390dd37ee90b",
+   "master_rate": 48000,
+   "master_channels": 1,
+   "master_encoding": "PCM_16",
+   "master_linear_gain": 1.2014309409271136,
+   "source_channel_correlation": 0.9999999393302131,
+   "selected_channel": "left (both channels are the same)",
+   "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel: left (both channels are the same). 44100 to 48000 Hz with a normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 20000 Hz, reflect-padded. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+   "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+  },
+  {
+   "kind": "a ripe plant pulled from the ground",
+   "author": "Jofae",
+   "id": "387083",
+   "title": "Pull Plant",
+   "description": "The uploader's description: \"This is a sound effect of a plant being grabbed and pulled up out of the ground. It's really quiet (and you may need to be amplified, depending on what you're using it for). It also has some snapping sound from the roots being pulled from the ground. Have fun! ;) P.S. I request that all my sound effects only be used for clean, appropriate media and projects. Thanks!\". The page states no processing.",
+   "page": "https://freesound.org/people/Jofae/sounds/387083/",
+   "download": "https://cdn.freesound.org/previews/387/387083_6512973-hq.mp3",
+   "license": "CC0-1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "license_on_page": "Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/)",
+   "uploaded": "April 4th, 2017",
+   "retrieved": "2026-11-14",
+   "original": "Wave (.wav), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login",
+   "download_sha256": "88c3b26b4d3bbfd90c0fd346246752866486e5bd15a2c0ce24a4cbdbcb598dd0",
+   "rate": 44100,
+   "channels": 2,
+   "seconds": 0.4006575963718821,
+   "preview": "Public HQ MP3 preview, not the original lossless upload.",
+   "master": "plant_pulled_up.wav",
+   "master_sha256": "d747b951ceabf506db6047e20e6386fc600e7df12f1af962e87e75794ff6e4d1",
+   "master_rate": 48000,
+   "master_channels": 1,
+   "master_encoding": "PCM_16",
+   "master_linear_gain": 5.501154416844936,
+   "source_channel_correlation": 0.9999805176873259,
+   "selected_channel": "left (both channels are the same)",
+   "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel: left (both channels are the same). 44100 to 48000 Hz with a normalized 256-tap rational-phase Kaiser-windowed sinc, radius 128, beta 8.6, cutoff 20000 Hz, reflect-padded. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+   "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+  },
+  {
+   "kind": "a ripe plant pulled from the ground (foley: a weed being torn, not a crop pulled)",
+   "author": "14FPanskaBenesova_Barbora",
+   "id": "420046",
+   "title": "4 weed.wav",
+   "description": "The uploader's description: \"tearing of weed\". Tagged CZ, Czech, Panska. The page states no processing.",
+   "page": "https://freesound.org/people/14FPanskaBenesova_Barbora/sounds/420046/",
+   "download": "https://cdn.freesound.org/previews/420/420046_8374679-hq.mp3",
+   "license": "CC0-1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "license_on_page": "Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/)",
+   "uploaded": "February 28th, 2018",
+   "retrieved": "2026-11-14",
+   "original": "Wave (.wav), 48 kHz, 24 bit, Stereo; downloading it needs a Freesound login",
+   "download_sha256": "c6e171586911c3aa009680f807fd424bb380687eb34eef70bb621f8529879450",
+   "rate": 48000,
+   "channels": 2,
+   "seconds": 11.114666666666666,
+   "preview": "Public HQ MP3 preview, not the original lossless upload.",
+   "master": "weed_torn.wav",
+   "master_sha256": "8120be9e85c22e346dd15f1dd4b212e1993332aef9c94d1e88a33a252dc31751",
+   "master_rate": 48000,
+   "master_channels": 1,
+   "master_encoding": "PCM_16",
+   "master_linear_gain": 2.0270505733665938,
+   "source_channel_correlation": 0.3871221728911596,
+   "selected_channel": "right microphone (the stronger of two that differ)",
+   "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel: right microphone (the stronger of two that differ). Original 48000 Hz rate retained. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+   "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+  },
+  {
+   "kind": "a tile sown by hand (foley: a hand brushing the ground; no seed is heard)",
+   "author": "NeoSpica",
+   "id": "426175",
+   "title": "Soil Brush",
+   "description": "The uploader's description: \"Brushing the ground with my hand, recorded with a Zoom H1.\". Tagged dirt, earth, forest, ground, soil. A quiet recording: above 150 Hz its strokes stand 16 to 18 dB over its own hiss. The page states no processing.",
+   "page": "https://freesound.org/people/NeoSpica/sounds/426175/",
+   "download": "https://cdn.freesound.org/previews/426/426175_7704891-hq.mp3",
+   "license": "CC0-1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "license_on_page": "Creative Commons 0 (http://creativecommons.org/publicdomain/zero/1.0/)",
+   "uploaded": "April 22nd, 2018",
+   "retrieved": "2026-11-14",
+   "original": "Wave (.wav), 96 kHz, 24 bit, Stereo; downloading it needs a Freesound login",
+   "download_sha256": "0c3f574747a21ef0ae5afa5163af8a70ee9f39f8d56ccd97c9ef728521f7d942",
+   "rate": 48000,
+   "channels": 2,
+   "seconds": 23.27,
+   "preview": "Public HQ MP3 preview, not the original lossless upload.",
+   "master": "soil_brushed_by_hand.wav",
+   "master_sha256": "b9d4f1bfe4e92da9d8031d3a30e75557329a7325a6b8406aae587b4f2e2c1774",
+   "master_rate": 48000,
+   "master_channels": 1,
+   "master_encoding": "PCM_16",
+   "master_linear_gain": 8.971390958440107,
+   "source_channel_correlation": 0.6527938029697138,
+   "selected_channel": "right microphone (the stronger of two that differ)",
+   "master_conversion": "Complete HQ MP3 preview decoded in floating point; channel: right microphone (the stronger of two that differ). Original 48000 Hz rate retained. Full-master peak normalized to 0.8 before PCM16 encoding. Original speed and pitch retained.",
+   "decoder": "soundfile 0.14.0 / libsndfile 1.2.2"
+  }
+ ],
+ "clips": {
+  "farm_hoe_01": {
+   "master": "mattock_garden.wav",
+   "high_pass_hz": 100,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.003,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    3.803,
+    4.19
+   ],
+   "output": "assets/audio/work/farm_hoe_01.wav",
+   "target_rms": 0.0341,
+   "peak_ceiling": 0.6
+  },
+  "farm_hoe_02": {
+   "master": "mattock_garden.wav",
+   "high_pass_hz": 100,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.003,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    7.634,
+    8.08
+   ],
+   "output": "assets/audio/work/farm_hoe_02.wav",
+   "target_rms": 0.0307,
+   "peak_ceiling": 0.6
+  },
+  "farm_hoe_03": {
+   "master": "mattock_garden.wav",
+   "high_pass_hz": 100,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.003,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    9.438,
+    9.9
+   ],
+   "output": "assets/audio/work/farm_hoe_03.wav",
+   "target_rms": 0.028,
+   "peak_ceiling": 0.6
+  },
+  "farm_hoe_04": {
+   "master": "mattock_garden.wav",
+   "high_pass_hz": 100,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.003,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    11.92,
+    12.38
+   ],
+   "output": "assets/audio/work/farm_hoe_04.wav",
+   "target_rms": 0.0286,
+   "peak_ceiling": 0.6
+  },
+  "farm_hoe_05": {
+   "master": "mattock_garden.wav",
+   "high_pass_hz": 100,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.003,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    16.678,
+    17.06
+   ],
+   "output": "assets/audio/work/farm_hoe_05.wav",
+   "target_rms": 0.0369,
+   "peak_ceiling": 0.6
+  },
+  "farm_hoe_06": {
+   "master": "mattock_garden.wav",
+   "high_pass_hz": 100,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.003,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    49.643,
+    50.1
+   ],
+   "output": "assets/audio/work/farm_hoe_06.wav",
+   "target_rms": 0.0286,
+   "peak_ceiling": 0.6
+  },
+  "farm_pull_01": {
+   "master": "plant_pulled_up.wav",
+   "high_pass_hz": 120,
+   "low_pass_hz": 11000,
+   "fade_in_seconds": 0.004,
+   "fade_out_seconds": 0.08,
+   "region_seconds": [
+    0.0,
+    0.33
+   ],
+   "output": "assets/audio/work/farm_pull_01.wav",
+   "target_rms": 0.0237,
+   "peak_ceiling": 0.62
+  },
+  "farm_pull_02": {
+   "master": "weed_torn.wav",
+   "high_pass_hz": 180,
+   "low_pass_hz": 11000,
+   "fade_in_seconds": 0.012,
+   "fade_out_seconds": 0.1,
+   "region_seconds": [
+    1.125,
+    1.5
+   ],
+   "output": "assets/audio/work/farm_pull_02.wav",
+   "target_rms": 0.0241,
+   "peak_ceiling": 0.62
+  },
+  "farm_pull_03": {
+   "master": "weed_torn.wav",
+   "high_pass_hz": 180,
+   "low_pass_hz": 11000,
+   "fade_in_seconds": 0.012,
+   "fade_out_seconds": 0.1,
+   "region_seconds": [
+    7.165,
+    7.52
+   ],
+   "output": "assets/audio/work/farm_pull_03.wav",
+   "target_rms": 0.0237,
+   "peak_ceiling": 0.62
+  },
+  "farm_pull_04": {
+   "master": "weed_torn.wav",
+   "high_pass_hz": 180,
+   "low_pass_hz": 11000,
+   "fade_in_seconds": 0.012,
+   "fade_out_seconds": 0.1,
+   "region_seconds": [
+    8.765,
+    9.1
+   ],
+   "output": "assets/audio/work/farm_pull_04.wav",
+   "target_rms": 0.0233,
+   "peak_ceiling": 0.62
+  },
+  "farm_sow_01": {
+   "master": "soil_brushed_by_hand.wav",
+   "high_pass_hz": 150,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.03,
+   "fade_out_seconds": 0.12,
+   "region_seconds": [
+    3.27,
+    3.64
+   ],
+   "output": "assets/audio/work/farm_sow_01.wav",
+   "target_rms": 0.0283,
+   "peak_ceiling": 0.45
+  },
+  "farm_sow_02": {
+   "master": "soil_brushed_by_hand.wav",
+   "high_pass_hz": 150,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.03,
+   "fade_out_seconds": 0.12,
+   "region_seconds": [
+    8.46,
+    8.96
+   ],
+   "output": "assets/audio/work/farm_sow_02.wav",
+   "target_rms": 0.0274,
+   "peak_ceiling": 0.45
+  },
+  "farm_sow_03": {
+   "master": "soil_brushed_by_hand.wav",
+   "high_pass_hz": 150,
+   "low_pass_hz": 9000,
+   "fade_in_seconds": 0.03,
+   "fade_out_seconds": 0.12,
+   "region_seconds": [
+    11.03,
+    11.5
+   ],
+   "output": "assets/audio/work/farm_sow_03.wav",
+   "target_rms": 0.0274,
+   "peak_ceiling": 0.45
+  }
+ },
+ "production_script": "tools/generate_farming_audio.py",
+ "processing": "Thirteen cues for a Farmer at work in a field (doc 42, Fields). Six strokes of a mattock digging a garden as foley for the copper hoe biting the ground (a mattock, not a hoe; it is the heavier tool, so the high-pass at 100 Hz turns its thud down). The upload repeats one stretch of itself, and the six are cut from the first copy of that stretch or from the part after it that is not repeated. One plant pulled up out of the ground with its roots snapping, and three tears of a weed as foley for a crop pulled (a weed torn, not a crop), for a ripe tile being pulled; the plant's upload begins on its first snap, so that cue fades in over the recording's first 4 ms. Three strokes of a hand brushing the ground as foley for a tile sown by hand (no seed is heard); that recording is quiet, so its own hiss stands 16 to 18 dB under the strokes. Each variant is a separate recorded event. Cropped to start on the event, DC removed, gently high- and low-pass filtered (zero phase), edge-faded and set to the level below subject to its peak ceiling. No synthesis, pitch shifting, time stretching, added reverberation or denoising. Each cue has its own target so that its kind's variants measure alike by the A-weighted level of their loudest eighth of a second: the hoe at -26 dB, the pull at -29 dB, the sowing at -27 dB. Runtime cosmetic pitch variation remains."
+}

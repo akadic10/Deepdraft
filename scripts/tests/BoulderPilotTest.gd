@@ -120,11 +120,11 @@ func _run() -> void:
 		if details._changes[DETAIL_ID].removed: break
 	_expect(details._changes[DETAIL_ID].removed and details._records[DETAIL_ID].occupancy < 0, "completion tombstones and frees occupancy")
 	_expect(root.get_node("NavGrid").is_walkable(Vector3i(40,20,40)), "cleared floor immediately becomes walkable")
-	_expect(_item_count("base:resources:stone:rough_stone") == 2, "completion yields exactly two rough stones")
+	_expect(_item_count("base:item:rough_stone") == 2, "completion yields exactly two rough stones")
 	var removed: Dictionary = JSON.parse_string(JSON.stringify(details.serialize_state()))
 	details.restore_state(removed)
 	details._spawn_visual(DETAIL_ID)
-	_expect(details._records[DETAIL_ID].node == null and _item_count("base:resources:stone:rough_stone") == 2, "restore does not resurrect stone or replay loot")
+	_expect(details._records[DETAIL_ID].node == null and _item_count("base:item:rough_stone") == 2, "restore does not resurrect stone or replay loot")
 	var support_id := "boulder:1234:1:2"
 	details.designate_clearing(support_id)
 	_expect(await _until_working(), "second boulder can be reached after clearing first")

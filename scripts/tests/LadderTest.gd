@@ -1,8 +1,8 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const LADDER := "base:furniture:crude_ladder"
-const SECTION := "base:resources:furniture:crude_ladder"
-const RECIPE := "base:recipe:worker:crude_ladder"
+const SECTION := "base:item:crude_ladder"
+const RECIPE := "base:recipe:crude_ladder"
 var ladders
 var nav
 var base := Vector3i(48,20,48)

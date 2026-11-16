@@ -205,7 +205,7 @@ func _stone_units(snapshot: Dictionary) -> int:
 func _sum_stone(value: Variant) -> int:
 	var total := 0
 	if value is Dictionary:
-		if value.get("item_key",value.get("item",""))=="base:resources:stone:rough_stone":
+		if value.get("item_key",value.get("item",""))=="base:item:rough_stone":
 			return int(value.get("count",1))
 		for child in value.values(): total+=_sum_stone(child)
 	elif value is Array:
@@ -242,7 +242,7 @@ func _find_camp() -> void:
 func _build_camp() -> void:
 	var defs: Dictionary = furniture.get_defs()
 	for i in range(48):
-		var short_key := "log_bed" if i<16 else "log_chair" if i<32 else "door" if i<40 else "campfire"
+		var short_key := "log_bed" if i<16 else "log_stool" if i<32 else "door_2" if i<40 else "campfire"
 		var key := "base:furniture:"+short_key
 		var reason: String = furniture._floor_placement_reason(defs[key],slots[i],0)
 		if not reason.is_empty(): report.failures.append("Invalid "+key+": "+reason); continue
@@ -295,7 +295,7 @@ func _build_camp() -> void:
 	var drops = scene.get_node("ItemDropManager")
 	for i in range(96):
 		var cell := free_cells[i%free_cells.size()]
-		drops.restore_loose_item("base:resources:stone:rough_stone",Vector3(cell)+Vector3(.5,1,.5),0,1,"benchmark:stone:%d"%i)
+		drops.restore_loose_item("base:item:rough_stone",Vector3(cell)+Vector3(.5,1,.5),0,1,"benchmark:stone:%d"%i)
 
 func _set_light(hour: float) -> void:
 	root.get_node("WeatherManager").set_weather("base:weather:clear")

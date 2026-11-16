@@ -1,0 +1,96 @@
+Deepdraft - recorded fishing sounds
+
+All eight recordings were released under CC0 1.0 Universal, as stated on each source page.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-11-12
+
+Each local master is a decoded copy of Freesound's public HQ MP3 preview, not the original
+lossless upload (the originals need a Freesound login). source.json records each download
+URL, the hashes, the conversion and the edit regions; tools/generate_fishing_audio.py rebuilds
+the game's cues from these masters without a download.
+
+Fishing Rod Swish Swoosh.wav
+Author: Mrthenoronha
+Source: https://freesound.org/people/Mrthenoronha/sounds/371313/
+Preview: https://cdn.freesound.org/previews/371/371313_2402876-hq.mp3
+Local master: bamboo_rod_swings.wav
+Used for: cast
+The uploader's description: "Many swings with a bamboo fishing rod". The page states no processing.
+Original upload: Wave (.wav), 44.1 kHz, 32 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Pebbles into a pond.wav
+Author: HenKonen
+Source: https://freesound.org/people/HenKonen/sounds/682165/
+Preview: https://cdn.freesound.org/previews/682/682165_10938187-hq.mp3
+Local master: pebbles_pond.wav
+Used for: float landing (foley: pebbles, not a float)
+The uploader's description: "The sounds pebbles make when falling into water. Blup blup blup!"; the title says a pond. The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Fish Jumping Splash 1.wav
+Author: paulprit
+Source: https://freesound.org/people/paulprit/sounds/507092/
+Preview: https://cdn.freesound.org/previews/507/507092_8682843-hq.mp3
+Local master: fish_jumping_1.wav
+Used for: bite
+The uploader's description: "A fishing jumping out of water and then landing back in the water". The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 32 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Fish Jumping Splash 2.wav
+Author: paulprit
+Source: https://freesound.org/people/paulprit/sounds/507091/
+Preview: https://cdn.freesound.org/previews/507/507091_8682843-hq.mp3
+Local master: fish_jumping_2.wav
+Used for: big fish landed
+The uploader's description: "A fishing jumping out of water and then landing back in the water". The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 32 bit, Stereo; downloading it needs a Freesound login
+Channel used: left (both channels are the same)
+
+Fish Splashing Release 1.wav
+Author: paulprit
+Source: https://freesound.org/people/paulprit/sounds/507094/
+Preview: https://cdn.freesound.org/previews/507/507094_8682843-hq.mp3
+Local master: fish_release_1.wav
+Used for: fish landed
+The uploader's description: "Splashing sounds of a fish being released back into the water". The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 32 bit, Stereo; downloading it needs a Freesound login
+Channel used: left (both channels are the same)
+
+Fish Splashing Release 2.wav
+Author: paulprit
+Source: https://freesound.org/people/paulprit/sounds/507093/
+Preview: https://cdn.freesound.org/previews/507/507093_8682843-hq.mp3
+Local master: fish_release_2.wav
+Used for: fish landed; bite
+The uploader's description: "Splashing sounds of a fish being released back into the water". The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 32 bit, Stereo; downloading it needs a Freesound login
+Channel used: left (both channels are the same)
+
+Hook and Release.wav
+Author: paulprit
+Source: https://freesound.org/people/paulprit/sounds/591348/
+Preview: https://cdn.freesound.org/previews/591/591348_8682843-hq.mp3
+Local master: hook_and_release.wav
+Used for: fish landed
+The uploader's description: "The sound of a fly hook being removed from a Golden Dorado before the fish is released back in to the water". Tagged field-recording. The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Fish Flopping.wav
+Author: RatBird
+Source: https://freesound.org/people/RatBird/sounds/570208/
+Preview: https://cdn.freesound.org/previews/570/570208_12508711-hq.mp3
+Local master: fish_flopping.wav
+Used for: the landed fish flapping
+The uploader's description: "Fish flopping on land". Tagged fishing, foley, nature. The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: left (both channels are the same)
+
+Substitutes, named as such: the float landing is pebbles falling into a pond, not a float; the
+landing is a fish splashing as it is released back into the water, not one being pulled out; the
+cast is a bamboo rod swung through the air, without a line. No synthetic layers, time stretching
+or pitch changes are baked into any cue.

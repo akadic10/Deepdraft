@@ -10,7 +10,7 @@ func advance_removal(seconds: float, _worker: int) -> float:
 
 func work_facing() -> Vector3i: return Vector3i.FORWARD
 
-func nearest_stand_target(from: Vector3i) -> Vector3i:
+func nearest_stand_target(from: Vector3i, _batch := false) -> Vector3i:
 	var best := Vector3i(-1,-1,-1)
 	var distance := INF
 	for stand in StorageComponent.ground_access_cells(origin_cell):

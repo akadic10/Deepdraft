@@ -98,7 +98,7 @@ func _guards() -> void:
 	order = construction.orders[id]
 	_stage(order,[STONE])
 	_expect((await _oracle(order)).is_empty(),"stone arms wait while the boxed-in centre's soil is not all in")
-	_stage(order,["base:resources:soil:soil"])
+	_stage(order,["base:item:soil"])
 	built = await _oracle(order)
 	_expect(order.cells.is_empty() and str(built.slice(0,2))==str([center,center+Vector3i.UP]),"once the soil is in, the dirt centre is built first: %s" % [built.slice(0,2)])
 	construction.cancel_order(id)

@@ -286,6 +286,8 @@ func spot_reason(cell: Vector3i) -> String:
 		return "Fishers stand on the shore, not in the water"
 	var stockpiles := get_tree().get_first_node_in_group("stockpile_controller")
 	if stockpiles != null and stockpiles.is_zone_cell(cell): return "A storage zone is here"
+	var farming := get_tree().get_first_node_in_group("farming_system")
+	if farming != null and farming.is_zone_cell(cell): return "A field is here"
 	var furniture := get_tree().get_first_node_in_group("furniture_controller")
 	if furniture != null and furniture.has_method("blocks_zone_cell") and bool(furniture.call("blocks_zone_cell", cell)):
 		return "Furniture stands here"
@@ -642,7 +644,7 @@ func zone_data(zone_id: int) -> Dictionary:
 		if agent == null: continue
 		var casting: bool = agent.current_cell() == cell and not agent.is_walking()
 		fishers.append({"name": agent.dwarf_name, "doing": "casting" if casting else "walking to the shore"})
-	return {"id": zone_id, "title": "Fishing Zone %d" % zone_id, "water": water_name(water),
+	return {"id": zone_id, "title": "Fishing zone %d" % zone_id, "water": water_name(water),
 		"item": item, "fish_name": String(definition.get("display_name", "Fish")),
 		"trait": String(config.get("waters", {}).get(water, {}).get("trait", "")),
 		"keeps_days": float(definition.get("food", {}).get("keeps_days", 0.0)),
@@ -718,7 +720,7 @@ func open_zone_window(zone_id: int) -> void:
 func _open_window(zone_id: int) -> void:
 	if not _zones.has(zone_id) or _window == null: return
 	_window_zone = zone_id
-	_window.set_window_title("Fishing Zone %d" % zone_id, "")
+	_window.set_window_title("Fishing zone %d" % zone_id, "")
 	_panel.show_zone(zone_data(zone_id))
 	_window_manager.open(WINDOW_ID)
 	_settle_window.call_deferred()

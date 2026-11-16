@@ -20,6 +20,13 @@ Rules
   file-length     game scripts over MAX_LINES may not grow
   type-size       a text size typed as a number instead of a step of UITheme's type scale
                   (doc 23, "Type"); 3D labels and sizes in proportion to art are not checked
+  naming          ids, files and shown names against the naming rules (doc 13, "Naming ids and
+                  files"; doc 23, "Names are sentence case"): an id carries no category, so an
+                  item is base:item:<name>, a recipe base:recipe:<name> and a piece
+                  base:furniture:<name>; a piece's file, model and packed good carry the last
+                  part of its id; its own name, its Place entry, its recipe and its packed good
+                  are spelled alike; no shown name has a capital after its first word; a data
+                  file sits one folder deep, data/<folder>/<file>.json
 """
 import argparse
 import json
@@ -266,12 +273,85 @@ def check_dock(findings):
                 findings.add("dev-gate", "data/ui/dock.json", "DEV entry outside a dev menu: " + menu_id, 0, entry.get("id", ""))
 
 
+NAME_KEYS = ("display_name", "name", "label", "title")
+# Whole sentences kept among the names, capitals and all.
+NAME_SENTENCES = {"Ready for iron when the Smelter comes"}
+
+
+def capital_inside(name):
+    """Whether a shown name has a capital after its first word. A part after " · " starts
+    again, words in brackets are notes, and all-capital words are abbreviations."""
+    for part in re.sub(r"\(.*?\)", "", name).split(" · "):
+        words = re.findall(r"[A-Za-z][A-Za-z']*", part)
+        if len(part) <= 48 and any(word[0].isupper() and not word.isupper() for word in words[1:]):
+            return True
+    return False
+
+
+def named_values(value):
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if isinstance(child, str) and key in NAME_KEYS:
+                yield child
+            else:
+                yield from named_values(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from named_values(child)
+
+
+def check_names(findings):
+    items_file, recipes_file = "data/items/items.json", "data/recipes/recipes.json"
+    items = json.loads(read(ROOT / items_file))
+    for key, value in items.items():
+        if isinstance(value, dict) and not re.fullmatch(r"base:item:[a-z0-9_]+", key):
+            findings.add("naming", items_file, "item id: " + key, 0, key)
+    recipes = json.loads(read(ROOT / recipes_file)).get("recipes", [])
+    for recipe in recipes:
+        if not re.fullmatch(r"base:recipe:[a-z0-9_]+", str(recipe.get("id", ""))):
+            findings.add("naming", recipes_file, "recipe id: " + str(recipe.get("id", "")), 0, str(recipe.get("id", "")))
+    place = {entry.get("key"): entry.get("label") for entry in json.loads(read(ROOT / "data/ui/place_catalog.json")).get("items", [])}
+    made = {recipe.get("furniture"): recipe.get("name") for recipe in recipes if recipe.get("furniture")}
+    for path in walk("data/furniture", {".json"}):
+        name = rel(path)
+        piece = json.loads(read(path))
+        key = str(piece.get("furniture_key", ""))
+        leaf = key.rsplit(":", 1)[-1]
+        item_key = str(piece.get("item_key", ""))
+        if not re.fullmatch(r"base:furniture:[a-z0-9_]+", key):
+            findings.add("naming", name, "furniture id: " + key, 0, key)
+        if path.stem != leaf:
+            findings.add("naming", name, "file not named for its id", 0, key)
+        if piece.get("model") and not Path(str(piece["model"])).stem.startswith(leaf):
+            findings.add("naming", name, "model not named for its id", 0, str(piece["model"]))
+        if item_key and item_key.rsplit(":", 1)[-1] != leaf:
+            findings.add("naming", name, "packed good not named for its id", 0, item_key)
+        shown = str(piece.get("display_name", ""))
+        packed = items.get(item_key, {}).get("display_name") if item_key else None
+        spellings = {"Place": place.get(key), "its recipe": made.get(key),
+                     "its packed good": re.sub(r" \(packed\)$", "", packed) if packed else None}
+        for where, other in spellings.items():
+            if other is not None and other != shown:
+                findings.add("naming", name, "%s calls it: %s" % (where, other), 0, shown)
+    for path in walk("data", {".json"}):
+        if len(path.relative_to(ROOT / "data").parts) != 2:
+            findings.add("naming", rel(path), "not one folder deep in data/", 0, rel(path))
+        try:
+            data = json.loads(read(path))
+        except ValueError:
+            continue
+        for value in named_values(data):
+            if value not in NAME_SENTENCES and capital_inside(value):
+                findings.add("naming", rel(path), "capital inside a name: " + value, 0, value)
+
+
 def scan():
     findings = Findings()
     check_scripts(findings)
     check_garbled(findings)
     check_data(findings)
     check_dock(findings)
+    check_names(findings)
     return findings
 
 

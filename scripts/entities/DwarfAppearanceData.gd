@@ -5,7 +5,7 @@ extends Resource
 ##
 ## A typed Resource so it serializes cleanly through SaveManager and
 ## can be passed around without loose dictionaries. Values are pool ids from
-## data/entities/dwarves/appearance.json — never display names.
+## data/dwarves/appearance.json — never display names.
 
 @export var gender: String = "male"          # "male" | "female"
 @export var age_tier: String = "adult"       # "young" | "adult" | "middle" | "elder"

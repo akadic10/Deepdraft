@@ -1,6 +1,6 @@
 extends MarginContainer
 
-## The Colony Inventory window (doc 262), in the Place window's shape:
+## The Colony inventory window (doc 262), in the Place window's shape:
 ## - every category open at once as a group of the picture grid: each good on the
 ##   settlement tile with how many the colony holds (dimmed when none are left), its name
 ##   on hover;

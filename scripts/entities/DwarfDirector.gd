@@ -125,7 +125,7 @@ func perform_explorer_action(id: Variant, action: String) -> void:
 	if action == "profession":
 		if _inspectable(id): open_professions(id)
 		return
-	if action == "crafting":   # Colony Dwarves' Details card: this profession's crafting
+	if action == "crafting":   # Colony dwarves' Details card: this profession's crafting
 		var section := Inspection.crafting_section(id) if _inspectable(id) else ""
 		if not section.is_empty() and _dock_ui != null: _dock_ui.open_crafting("", section)
 		return
@@ -509,7 +509,7 @@ func _register_window() -> void:
 	_roster_panel = preload("res://scripts/ui/DwarfRosterPanel.gd").new()
 	_roster_panel.director = self
 	_roster_panel.dock = _dock_ui
-	_roster_window = _window_manager.register_window("dwarves", "Colony Dwarves", "", _roster_panel,
+	_roster_window = _window_manager.register_window("dwarves", "Colony dwarves", "", _roster_panel,
 		{"persistent": false, "default_pos": Vector2(24, 76), "family": "people", "flush": true})
 	_roster_window.keep_body_on_screen = true
 	_roster_panel.window = _roster_window

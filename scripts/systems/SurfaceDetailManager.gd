@@ -319,7 +319,7 @@ func get_explorer_data(id: Variant) -> Dictionary:
 			id, status if marked else String(definition.seasonal_labels[WorldClock.season]), marked)
 	var item := String(definition.clearing.item)
 	return _compact({"title": definition.display_name, "rows": [
-		["Clearing", status], ["Yield", "%d × Rough Stone" % int(definition.clearing.count)]],
+		["Clearing", status], ["Yield", "%d × Rough stone" % int(definition.clearing.count)]],
 		"details": "Walkable loose stones. A worker can gather this clump. Construction displaces it without a yield. Partial work is kept if cancelled." if gathering else "Blocks movement and construction. A worker can break it from an open side. Partial work is kept if cancelled.",
 		"actions": [{"id": "cancel" if marked else "clear", "text": "Cancel gathering" if marked and gathering else "Cancel clearing" if marked else "Gather stones" if gathering else "Clear boulder",
 			"icon": "res://assets/ui/icons/cancel.png" if marked else "res://assets/ui/icons/clear_stones.png"}],

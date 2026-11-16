@@ -3,6 +3,7 @@
 import { writeFileSync } from 'node:fs';
 import * as P from './proposal.mjs';
 import * as T from './tier1.mjs';
+import * as C from './tier2.mjs';
 import * as D from './dwarves.mjs';
 import * as W from './wildlife.mjs';
 import * as I from './icons.mjs';
@@ -33,9 +34,10 @@ function replay(v, ops) {
 const out = {
   furniture: {
     stool: fromModel(P.stool()),
+    log_stool: fromModel(T.logStool()),
     split_slab_table: fromModel(T.splitSlabTable()),
     wall_torch: fromModel(P.wallTorch()),
-    campfire: fromModel(P.campfire()),
+    campfire: fromModel(T.campfire()),
     notched_log_bed: fromModel(P.notchedLogBed()),
     log_bench: fromModel(T.logBench()),
     game_table: fromModel(T.gameTable()),
@@ -62,6 +64,15 @@ const out = {
     food_shelf: fromModel(T.foodShelf()),
     basic_smelter: fromModel(T.basicSmelter()),
     basic_smelter_charge: fromModel(T.basicSmelterCharge()),
+    basic_smelter_bar: fromModel(T.basicSmelterBar()),
+    anvil_stone: fromModel(T.anvilStone()),
+    plank_table: fromModel(C.plankTable()),
+    plank_bench: fromModel(C.plankBench()),
+    plank_game_table: fromModel(C.plankGameTable()),
+    plank_pallet: fromModel(C.plankPallet()),
+    plank_tool_rack: fromModel(C.plankToolRack()),
+    plank_crate: fromModel(C.plankCrate()),
+    plank_food_shelf: fromModel(C.plankFoodShelf()),
   },
   dwarf: Object.fromEntries(D.NAMES.map(n => [n, fromModel(D.build(n))])),
   wildlife: Object.fromEntries(W.NAMES.map(n => [n, fromModel(W.build(n))])),

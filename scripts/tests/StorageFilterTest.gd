@@ -1,7 +1,7 @@
 extends "res://scripts/tests/ZoneWindowTest.gd"
 
-const PINE := "base:resources:wood:pine_log"
-const STAVE := "base:resources:wood:oak_stave"
+const PINE := "base:item:pine_log"
+const STAVE := "base:item:oak_stave"
 var _next_source := 30
 var _completed_stages := 0
 
@@ -196,7 +196,7 @@ func _ui_and_persistence() -> void:
 	var probe := InputProbe.new()
 	scene.add_child(probe)
 	# The picture filter (doc 261): the band names the zone; groups of category pictures.
-	_expect(storage._window_panel.get_title_label().text == "Storage Zone 501", "the window's band names the zone")
+	_expect(storage._window_panel.get_title_label().text == "Storage zone 501", "the window's band names the zone")
 	_expect(panel._rows.size() == 3 and panel.get_category_tile("stockpile_wood") != null and panel.get_category_tile("stockpile_misc") != null,
 		"the categories show as pictures in three groups")
 	_expect(panel.get_category_tile("stockpile_stone").get_node("Mark").get_global_rect().position.y >= panel._scroll.get_global_rect().position.y,

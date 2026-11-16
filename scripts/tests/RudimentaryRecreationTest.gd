@@ -1,7 +1,7 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const GAME := "base:furniture:board_game_table"
-const STOOL := "base:furniture:log_chair"
+const STOOL := "base:furniture:log_stool"
 const FENCE := "base:furniture:log_fence"
 const GATE := "base:furniture:log_gate"
 var table
@@ -39,17 +39,19 @@ func _clear_layout() -> void:
 func _craft_and_place() -> void:
 	# The fence, gate and game table are the Carpenter's (doc 44), made at the carpenter's bench.
 	_carpenter_bench_at(Vector3i(45,20,42))
-	drops.spawn_drop(PINE,4,Vector3i(42,21,40))
+	# The fence and the gate take a log each; the game table is a plank piece (doc 308): four planks and a Rough stone.
+	drops.spawn_drop(PINE,2,Vector3i(42,21,40))
+	drops.spawn_drop("base:item:pine_plank",4,Vector3i(43,21,40))
 	drops.spawn_drop(STONE,1,Vector3i(42,21,41))
 	# The enlarged workbench also fills the south boundary beside the old fence site.
 	var positions := [Vector3i(44,20,46),Vector3i(49,20,45),Vector3i(46,20,38)]
 	var index := 0
 	for key: String in [FENCE,GATE,GAME]:
 		worker._food.value = 1.0
-		var recipe := "base:recipe:worker:"+key.get_slice(":",2)
+		var recipe := "base:recipe:"+key.get_slice(":",2)
 		var id: int = crafting.queue_order(recipe,1)
 		_expect(id >= 0 and await _completed(id),"Carpenter crafts "+key+" using actual materials")
-		var item_key := "base:resources:furniture:"+key.get_slice(":",2)
+		var item_key := "base:item:"+key.get_slice(":",2)
 		_expect(_count(item_key)==1,"one packed output: "+key)
 		furniture.activate_for(key,true)
 		furniture._hover_cell = positions[index]
@@ -59,7 +61,7 @@ func _craft_and_place() -> void:
 		_expect(await _installed(key),"Worker hauls and installs "+key)
 		_expect(_count(item_key)==0,"installation consumes packed output")
 		index += 1
-	_expect(_count(PINE)==0 and _count(STONE)==0,"recipes consume exactly four logs and one stone")
+	_expect(_count(PINE)==0 and _count("base:item:pine_plank")==0 and _count(STONE)==0,"the recipes take exactly two logs, four planks and one stone")
 	var saved: Dictionary = furniture.serialize_state()
 	_expect(saved.installed.size()==4,"all three designs serialize with existing workshop")
 	_clear_layout()

@@ -1,15 +1,16 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-const BLUEBERRY := "base:resources:flora:blueberry"
-const APPLE := "base:resources:flora:apple"
+const BLUEBERRY := "base:item:blueberry"
+const APPLE := "base:item:apple"
 var second
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Food test timed out"); quit(1))
 	await _setup_crafting_fixture()
 	for node in drops._loose.keys(): drops.take(node); node.free()
-	_expect(drops.edible_keys().size() == 10 and "base:resources:fish:trout" in drops.edible_keys() and "base:resources:fish:dried_fish" in drops.edible_keys(),"the five fruits, the four fish and dried fish (doc 289) are the edible goods")
-	_expect(drops.food_definition(ACORN).is_empty() and drops.food_definition("base:resources:flora:plump_helmet").is_empty(),"seed and future food tags do not imply current edibility")
+	_expect(drops.edible_keys().size() == 17 and "base:item:trout" in drops.edible_keys() and "base:item:dried_fish" in drops.edible_keys()
+		and "base:item:turnip" in drops.edible_keys(),"the five fruits, the four fish, dried fish (doc 289) and the seven vegetables (doc 309) are the edible goods")
+	_expect(drops.food_definition(ACORN).is_empty() and drops.food_definition("base:item:plump_helmet").is_empty(),"seed and future food tags do not imply current edibility")
 	await _clock_checks()
 	_expect(worker.dev_make_hungry() and worker._food.hungry(),"development action triggers the ordinary hunger threshold")
 	_store(BLUEBERRY,24)

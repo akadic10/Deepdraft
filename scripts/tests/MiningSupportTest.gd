@@ -3,7 +3,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## Mining the floor under furniture or a storage cell leaves nothing floating (doc 31, doc 43).
 const BED := "base:furniture:log_bed"
 const CRATE := "base:furniture:raw_materials_crate"
-const STONE_KEY := "base:resources:stone:rough_stone"
+const STONE_KEY := "base:item:rough_stone"
 var zones
 
 func _run() -> void:

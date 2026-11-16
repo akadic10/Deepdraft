@@ -1,13 +1,13 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-const BED_RECIPE := "base:recipe:worker:log_bed"
-const BED_ITEM := "base:resources:furniture:log_bed"
-const OAK := "base:resources:wood:oak_log"
+const BED_RECIPE := "base:recipe:log_bed"
+const BED_ITEM := "base:item:log_bed"
+const OAK := "base:item:oak_log"
 
 func _run() -> void:
 	create_timer(140).timeout.connect(func(): push_error("Timber batch timeout"); quit(1))
 	await _setup_crafting_fixture()
-	_carpenter_bench_at(Vector3i(45,20,42))   # the log bed is the Carpenter's (doc 44)
+	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(45,20,42),0)   # the log bed is a Worker's again (doc 306)
 	drops.spawn_drop(PINE,3,Vector3i(42,21,42))
 	drops.spawn_drop(OAK,2,Vector3i(49,21,42))
 	var id: int = crafting.queue_order(BED_RECIPE,1,false,[PINE,OAK])

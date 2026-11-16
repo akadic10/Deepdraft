@@ -26,7 +26,7 @@ extends Node3D
 ## pieces register their collision_regions boxes with PlacedEntityRegistry —
 ## NavGrid invalidates via occupancy_changed (the flag/tree precedent).
 ##
-## DOC 22 (doors + sealed rooms): base:furniture:door ships with EMPTY
+## DOC 22 (doors + sealed rooms): base:furniture:door_2 ships with EMPTY
 ## collision_regions on purpose — it must stay walkable, only NavGrid-blocking
 ## furniture uses collision boxes. Every install/uninstall calls
 ## RoomManager.on_furniture_changed() directly (see that autoload's header for
@@ -206,7 +206,8 @@ func def_for_item(item_key: String) -> Dictionary:
 
 ## Requests without a committed item reserve shared loose/storage availability
 ## by item_key, including older saved plans. Claimed/fetched/carrying plans have
-## already removed their unit from that pool and must not subtract it again.
+## already removed their unit from that pool and must not subtract it again: a
+## plan claims one unit, and the rest of a crate it took it from stays counted.
 func get_catalog_stock() -> Dictionary:
 	var loose: Dictionary = _drop_manager.get_unreserved_counts() if is_instance_valid(_drop_manager) else {}
 	# Automatic storage hauling must not hide owned stock from placement.
@@ -218,8 +219,6 @@ func get_catalog_stock() -> Dictionary:
 	var pending := {}
 	var requested := {}
 	for ghost: FurnitureGhostComponent in _ghosts.values():
-		if ghost.has_method("spare_claimed_units"):
-			loose[ghost.item_key] = int(loose.get(ghost.item_key, 0)) + ghost.spare_claimed_units()
 		requested[ghost.furniture_key] = int(requested.get(ghost.furniture_key, 0)) + 1
 		if not ghost.has_committed_item() and ghost.required_instance_id.is_empty():
 			pending[ghost.item_key] = int(pending.get(ghost.item_key, 0)) + 1
@@ -668,14 +667,22 @@ func make_ghost_material() -> StandardMaterial3D:
 
 ## A workshop's batch (its `batch_model`) while a Worker works it, as CraftingManager says: the
 ## fish hung on the drying rack (doc 289). Laid over the piece's own model at its origin.
-func show_batch(installed_id: int, shown: bool) -> void:
+## `done`: the batch is finished. A workshop with a `batch_done_model` then shows that in place of
+## its batch: the basic smelter's coals and melt give way to the bar cast in its mould (doc 300).
+func show_batch(installed_id: int, shown: bool, done := false) -> void:
 	var piece := get_installed(installed_id)
 	if piece == null or not is_instance_valid(piece.node) or not piece.def.has("batch_model"): return
-	var batch: Node3D = piece.node.get_node_or_null("Batch")
+	var finished: bool = done and piece.def.has("batch_done_model")
+	_show_batch_part(piece, InstalledFurnitureComponent.BATCH_PART, String(piece.def.batch_model), shown and not finished)
+	if piece.def.has("batch_done_model"): _show_batch_part(piece, InstalledFurnitureComponent.BATCH_DONE_PART, String(piece.def.batch_done_model), shown and finished)
+
+
+func _show_batch_part(piece, part: String, model: String, shown: bool) -> void:
+	var batch: Node3D = piece.node.get_node_or_null(part)
 	if batch == null:
 		if not shown: return
-		batch = (load(String(piece.def.batch_model)) as PackedScene).instantiate()
-		batch.name = "Batch"
+		batch = (load(model) as PackedScene).instantiate()
+		batch.name = part
 		apply_material(batch, make_solid_material())
 		preload("res://scripts/components/VoxelShadowSetup.gd").set_casting(batch, true)
 		piece.node.add_child(batch)
@@ -1227,7 +1234,7 @@ func begin_water_stone_move(id: String) -> void:
 	if record.placed and record.disallowed: return
 	cancel_water_stone_moves(id)
 	if _dock_ui != null: _dock_ui.emit_signal("tool_requested",TOOL_ID)
-	activate_for("base:water:"+record.kind+"_stone")
+	activate_for("base:furniture:"+record.kind+"_stone")
 	_moving_water_stone = id
 
 

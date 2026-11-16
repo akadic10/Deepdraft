@@ -16,9 +16,9 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - the readouts: a food crate's tag says Fresh, Spoiling, Going bad or Frozen with its days
 ##   left, in its tone; the storage window's Keeping list gives each food's stalest crate;
 ## - the hourly pass runs over frames when the clock passes an hour, a little each frame.
-const BLUEBERRY := "base:resources:flora:blueberry"
-const APPLE := "base:resources:flora:apple"
-const ELDERBERRY := "base:resources:flora:elderberry"
+const BLUEBERRY := "base:item:blueberry"
+const APPLE := "base:item:apple"
+const ELDERBERRY := "base:item:elderberry"
 const YARD := Vector3i(30, 21, 30)
 var rooms
 var spoilage

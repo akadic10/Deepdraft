@@ -33,7 +33,9 @@ func _run() -> void:
 	original_navigation.source_code = FileAccess.get_file_as_string("res://docs/00_dev_roadmap/concepts/duck_performance_20261014/DuckNavigation.before.txt") + "\nfunc begin_update() -> void:\n\tpass\nfunc end_update() -> void:\n\tpass\n"
 	_expect(original_navigation.reload() == OK,"frozen navigation compiles")
 	original_manager = GDScript.new()
-	original_manager.source_code = FileAccess.get_file_as_string("res://docs/00_dev_roadmap/concepts/duck_performance_20261014/WildlifeManager.before.txt").replace('var duck_navigation := preload("res://scripts/components/DuckNavigation.gd").new()', 'var duck_navigation: RefCounted')
+	# The frozen copy is from before the data folders were made flat (2026-11-15): it reads the
+	# species files where they are today.
+	original_manager.source_code = FileAccess.get_file_as_string("res://docs/00_dev_roadmap/concepts/duck_performance_20261014/WildlifeManager.before.txt").replace('var duck_navigation := preload("res://scripts/components/DuckNavigation.gd").new()', 'var duck_navigation: RefCounted').replace("res://data/entities/animals/", "res://data/animals/")
 	_expect(original_manager.reload() == OK,"frozen manager compiles")
 	wildlife = _new_manager(false)
 	reference = _new_manager(true)

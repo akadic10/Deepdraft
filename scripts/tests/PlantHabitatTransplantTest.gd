@@ -3,7 +3,7 @@ extends "res://scripts/tests/ShrubMoveHandoffTest.gd"
 const FLOWER := "flowers:1234:3:3"
 const FLOWER_KEY := "base:detail:flowers"
 const FLOWER_CATALOG := "base:detail:flowers_3"
-const FLOWER_ITEM := "base:resources:plant:flowers_3"
+const FLOWER_ITEM := "base:item:flowers_3"
 
 
 func _run() -> void:

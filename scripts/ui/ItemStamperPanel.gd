@@ -234,20 +234,23 @@ func _text(text: String, font_size: int, color: Color, display := false) -> Labe
 
 # ── Items ─────────────────────────────────────────────────────────────────────
 
-## Every item with its name, picture, group and whether it can be stamped. An item whose
-## category no group names falls in the last group.
+## Every item with its name, picture, group and whether it can be stamped. An item belongs to
+## the first group that names one of its tags, as in the Inventory window; one that no group
+## names falls in the last group. An id says nothing of this (doc 13, "Naming ids and files").
 func _read_items() -> void:
 	_groups = UIRegistry.get_item_stamper().get("groups", [])
 	for key: String in ContentRegistry.items:
 		var definition: Dictionary = ContentRegistry.item_def(key)
-		var category := key.get_slice(":", 2) if key.get_slice_count(":") > 2 else ""
-		var group := String(_groups.back().id) if not _groups.is_empty() else ""
-		for entry: Dictionary in _groups:
-			if category in entry.get("categories", []):
-				group = String(entry.id)
-				break
 		_items[key] = {"key": key, "name": String(definition.get("display_name", key)), "picture": _picture_of(key),
-			"group": group, "refusal": Stamper.refusal(key)}
+			"group": group_of(definition.get("material_tags", []), _groups), "refusal": Stamper.refusal(key)}
+
+
+## The id of the first of `groups` that names one of `tags`, else of the last group.
+static func group_of(tags: Array, groups: Array) -> String:
+	for entry: Dictionary in groups:
+		for tag: String in entry.get("tags", []):
+			if tag in tags: return String(entry.id)
+	return "" if groups.is_empty() else String(groups.back().id)
 
 
 static func _picture_of(key: String) -> Texture2D:

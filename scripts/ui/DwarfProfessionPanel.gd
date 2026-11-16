@@ -4,19 +4,26 @@ extends VBoxContainer
 ## remain inspectable but only the registry's runtime allowlist can promote.
 ## Each profession wears a tag with the dwarf's fit for it, and the card names the two
 ## stats behind the chosen one's (doc 41 "Stats").
+## A line on the map is what this dwarf is promoted from, so every trade stands in one row under
+## the Worker. Who makes a trade's tool is said under the tiles, never by a line: with the copper
+## trades hung under the Blacksmith the owner read "the Dwarf has to be a blacksmith first before
+## becoming a farmer" (2026-11-13).
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const PREFIX := "base:profession:"
 # Text sizes come from the type scale (doc 23, "Type").
 const MEDIUM := UITheme.TYPE_MEDIUM
+const TILE_HEIGHT := 78.0
+const GROUP_ROOM := 42.0   # under the lowest row of tiles: a group's bracket and its name
 var director: Node
 var manager: UIWindowManager
 var dock: Node # injected by DwarfDirector; an open dock menu takes Esc first
 var window: UIWindow
 var _agent: DwarfAgent
-var _selected := PREFIX + "miner"
+var _selected := PREFIX + "blacksmith"
 var _entries := {}
 var _nodes := {}
+var _groups: Array[Dictionary] = []   # the trades whose tools one career makes: {maker, trades, caption}
 var _tree: Control
 var _body: HBoxContainer
 var _left_scroll: ScrollContainer
@@ -95,9 +102,10 @@ func _ready() -> void:
 		_entries[key] = entry
 		_build_node(key, entry)
 		lowest = maxf(lowest, float(entry.position[1]))
-	_tree.custom_minimum_size = Vector2(656, lowest + 78 + 14)   # down to the lowest row of tiles
+	_build_groups()
+	_tree.custom_minimum_size = Vector2(656, lowest + TILE_HEIGHT + GROUP_ROOM)   # down to the names under the lowest row
 	_tree.draw.connect(_draw_connections)
-	_label(left, "Current / Available = usable now    ·    Planned = future gameplay", MEDIUM.small, UITheme.HEARTH_MUTED)
+	_label(left, "Current / Available = usable now    ·    Needs tool = make its tool first    ·    Planned = future gameplay", MEDIUM.small, UITheme.HEARTH_MUTED)
 	var details := PanelContainer.new()
 	details.add_theme_stylebox_override("panel", UITheme.hearth_panel(true))
 	left.add_child(details)
@@ -176,7 +184,7 @@ func _ready() -> void:
 func _build_node(key: String, entry: Dictionary) -> void:
 	var button := Button.new()
 	button.position = Vector2(entry.position[0], entry.position[1])
-	button.size = Vector2(100, 78)
+	button.size = Vector2(100, TILE_HEIGHT)
 	button.toggle_mode = true
 	UITheme.apply_picture_tile(button)
 	button.tooltip_text = entry.summary
@@ -210,16 +218,70 @@ func _build_node(key: String, entry: Dictionary) -> void:
 	_nodes[key] = {"button": button, "state": state, "icon": icon, "fit": fit, "fit_word": fit_word, "fit_step": -1}
 
 
-func _draw_connections() -> void:
+## The career a tile hangs under on the map: the one a dwarf is promoted from, which is the
+## Worker for every trade. Never the career that makes its tool (see the note at the top).
+func _map_parent(key: String) -> String:
+	var parent: Variant = DwarfAssets.profession_definition(key).get("promotes_from")
+	return String(parent) if parent != null else ""
+
+
+## The trades grouped by who makes their tool (doc 306), in the map's order: the Ranger and the
+## Blacksmith, whose tools a Worker makes, then the copper trades, whose tools a Blacksmith makes.
+## Each group is named under its tiles ("A Blacksmith makes their tools").
+func _build_groups() -> void:
 	for key: String in _entries:
-		var parent: Variant = DwarfAssets.profession_definition(key).get("promotes_from")
-		if parent == null: continue
-		if not _nodes.has(parent): continue
-		var from: Vector2 = _nodes[parent].button.position + Vector2(_nodes[parent].button.size.x * .5, 78)
-		var to: Vector2 = _nodes[key].button.position + Vector2(_nodes[key].button.size.x * .5, 0)
-		var halfway := (from.y + to.y) * .5
-		var color := UITheme.HEARTH_COPPER if key == _selected else UITheme.HEARTH_EDGE
-		_tree.draw_polyline(PackedVector2Array([from, Vector2(from.x, halfway), Vector2(to.x, halfway), to]), color, 2, true)
+		var maker := DwarfAssets.tool_maker(String(_entries[key].get("starter_tool", "")))
+		if maker.is_empty(): continue
+		var group := {}
+		for known: Dictionary in _groups:
+			if known.maker == maker: group = known
+		if group.is_empty():
+			var caption := Label.new()
+			caption.text = "A %s makes their tools" % DwarfAssets.profession_definition(maker).get("display_name", "Worker")
+			caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			UITheme.format_label(caption, false, MEDIUM.small, UITheme.HEARTH_MUTED)
+			_tree.add_child(caption)
+			group = {"maker": maker, "trades": [], "caption": caption}
+			_groups.append(group)
+		group.trades.append(key)
+	_place_groups()
+
+
+## The part of the map a group's tiles take up.
+func _group_span(group: Dictionary) -> Rect2:
+	var first: Button = _nodes[group.trades[0]].button
+	var span := Rect2(first.position, first.size)
+	for key: String in group.trades: span = span.merge(Rect2(_nodes[key].button.position, _nodes[key].button.size))
+	return span
+
+
+## Each group's name sits under the middle of its bracket.
+func _place_groups() -> void:
+	for group: Dictionary in _groups:
+		var span := _group_span(group)
+		var caption: Label = group.caption
+		caption.reset_size()
+		caption.position = Vector2(span.get_center().x - caption.size.x * .5, span.end.y + 15).round()
+
+
+## The lines from the Worker to each trade, the chosen trade's last so no other line covers it,
+## and a bracket under each group of trades, in copper for the chosen trade's group.
+func _draw_connections() -> void:
+	for chosen: bool in [false, true]:
+		for key: String in _entries:
+			var parent := _map_parent(key)
+			if (key == _selected) != chosen or parent.is_empty() or not _nodes.has(parent): continue
+			var from: Vector2 = _nodes[parent].button.position + Vector2(_nodes[parent].button.size.x * .5, TILE_HEIGHT)
+			var to: Vector2 = _nodes[key].button.position + Vector2(_nodes[key].button.size.x * .5, 0)
+			var halfway := (from.y + to.y) * .5
+			_tree.draw_polyline(PackedVector2Array([from, Vector2(from.x, halfway), Vector2(to.x, halfway), to]), UITheme.HEARTH_COPPER if chosen else UITheme.HEARTH_EDGE, 2, true)
+	for group: Dictionary in _groups:
+		var span := _group_span(group)
+		var left := span.position.x + 1
+		var right := span.end.x - 1
+		var top := span.end.y + 5
+		_tree.draw_polyline(PackedVector2Array([Vector2(left, top), Vector2(left, top + 6), Vector2(right, top + 6), Vector2(right, top)]),
+			UITheme.HEARTH_COPPER if _selected in group.trades else UITheme.HEARTH_EDGE, 2, true)
 
 
 func begin_browsing(agent: DwarfAgent) -> void:
@@ -229,14 +291,15 @@ func begin_browsing(agent: DwarfAgent) -> void:
 	_identity.text = agent.dwarf_name
 	for node: Dictionary in _nodes.values(): node.fit_step = -1   # this dwarf's fits, named for them
 	window.set_window_title("Professions · " + agent.dwarf_name, "")
-	select_profession(agent.profession if agent.profession != PREFIX + "worker" else PREFIX + "miner")
+	# A Worker's map opens on the Blacksmith, whose copper opens the other trades (doc 306).
+	select_profession(agent.profession if agent.profession != PREFIX + "worker" else PREFIX + "blacksmith")
 	_left_scroll.scroll_vertical = 0
 	_left_scroll.scroll_horizontal = 0
 	set_process(true)
 	_fit.call_deferred()
 
 
-## Another dwarf picked while the map is open, in Colony Dwarves or the world: the map shows
+## Another dwarf picked while the map is open, in Colony dwarves or the world: the map shows
 ## them with the same career chosen, so dwarves can be compared for one career (owner,
 ## 2026-11-01).
 func follow(agent: DwarfAgent) -> void:
@@ -312,15 +375,16 @@ func refresh() -> void:
 			names.append(String(stat.get("name", "")))
 		_fit_text.text = "%s fit · %s, then %s" % [DwarfAssets.stat_word(fit), names[0], names[1]]
 	var starter_tool := String(entry.get("starter_tool", ""))
+	var crafting := get_tree().get_first_node_in_group("crafting_manager")
+	var stock: Dictionary = Inventory.snapshot(crafting.items, crafting.furniture) if crafting != null and is_instance_valid(crafting.items) else {}
 	if not starter_tool.is_empty():
-		var crafting := get_tree().get_first_node_in_group("crafting_manager")
 		if crafting != null and is_instance_valid(crafting.items):
 			var tool_name := String(crafting.items.get_item_def(starter_tool).get("display_name", "Starter tool"))
-			var stock := Inventory.snapshot(crafting.items, crafting.furniture)
 			var count_available := int(stock.get(starter_tool, {}).get("available", 0))
-			_requirements.text = "%s · %d available\nWorker · crude workbench\n\n%s" % [tool_name, count_available, entry.availability]
+			# Who makes it and where, from its recipe: "A Blacksmith makes it at the basic smelter."
+			_requirements.text = "%s · %d available\n%s\n\n%s" % [tool_name, count_available, DwarfAssets.tool_source_text(starter_tool), entry.availability]
 			if selected_pending: _requirements.text = "Tool collection in progress.\n\n" + _requirements.text
-			elif current: _requirements.text = "Equipped: %s" % tool_name + ("" if not DwarfAssets.craft_section(_selected).is_empty() else "\n\nSpecialist workshop and recipes are planned.")
+			elif current: _requirements.text = "Equipped: %s" % tool_name + ("" if not DwarfAssets.craft_section(_selected).is_empty() or not DwarfAssets.profession_work_first(_selected).is_empty() else "\n\nSpecialist workshop and recipes are planned.")
 	if not blocked.is_empty(): _requirements.text += "\n\n" + blocked
 	var equipment_preview: Dictionary = DwarfAssets.profession_definition(_selected).get("equipment_preview", {})
 	if equipment_preview.has("upgrade_status"):
@@ -358,11 +422,17 @@ func refresh() -> void:
 		var node: Dictionary = _nodes[key]
 		var usable := DwarfAssets.profession_enabled(key)
 		node.state.text = "Current" if key == _agent.profession else "Available" if usable else "Planned"
+		# A trade whose tool the colony has none of yet: the copper trades before the Blacksmith's first bars (doc 306).
+		var tool := DwarfAssets.profession_tool(key)
+		var lacks_tool: bool = usable and key != _agent.profession and not tool.is_empty() and crafting != null and int(stock.get(tool, {}).get("available", 0)) < 1
+		if lacks_tool: node.state.text = "Needs tool"
 		if pending and key == _agent.get_equipment().pending_role: node.state.text = "Collecting tool"
-		node.state.add_theme_color_override("font_color", UITheme.SUCCESS if usable else UITheme.HEARTH_MUTED)
+		node.state.add_theme_color_override("font_color", UITheme.HEARTH_MUTED if not usable else UITheme.HEARTH_COPPER if node.state.text == "Needs tool" else UITheme.SUCCESS)
 		node.icon.modulate = Color.WHITE if usable or key == _selected else Color(.48, .48, .48)   # dimmed like planned dock entries
 		node.button.set_pressed_no_signal(key == _selected)
 		_show_fit(key, node)
+	for group: Dictionary in _groups:
+		group.caption.add_theme_color_override("font_color", UITheme.HEARTH_COPPER if _selected in group.trades else UITheme.HEARTH_MUTED)
 	_tree.queue_redraw()
 
 
@@ -412,6 +482,7 @@ func _fit() -> void:
 		var entry: Dictionary = _entries[key]
 		_nodes[key].button.position = Vector2(float(entry.position[0]) * (.884 if narrow else 1.0), entry.position[1])
 		_nodes[key].button.size.x = 90 if narrow else 100
+	_place_groups()
 	window.reset_size()
 	window.position.y = maxf(8, minf(window.position.y, viewport.y - window.size.y - 104))
 	window.clamp_to_viewport()

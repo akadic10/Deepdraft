@@ -530,7 +530,7 @@ export const TIERS = [
   { id: 'tier2_carpenter', label: 'Tier 2 · Carpenter Era',
     note: 'Dressed planks, pegs and a butterfly key; a wool blanket and linen pillow. Kept unchanged from the first Hearthblock proposal.',
     models: [
-      { id: 'plank_dining_table', name: 'Plank Dining Table', role: 'table', build: () => diningTable(),
+      { id: 'plank_dining_table', name: 'Plank dining table', role: 'table', build: () => diningTable(),
         contacts: 'Top at Y24 across the 3×3 footprint; square post on a cross foot; four stools keep the 5×5 layout.' },
       { id: 'blanket_bed', name: 'Blanket Bed', role: 'bed', build: () => bed(),
         contacts: '4×3 footprint, head toward −X, blanket surface near Y13, posts to Y20.' },

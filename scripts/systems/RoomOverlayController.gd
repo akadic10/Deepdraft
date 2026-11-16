@@ -2,7 +2,7 @@ class_name RoomOverlayController
 extends Node3D
 
 ## The Rooms tool (🚪 dock entry, Alen's ask 2026-08-07) — makes sealed rooms
-## visible and clickable instead of hunting them with the Block Inspector.
+## visible and clickable instead of hunting them with the Block inspector.
 ##
 ## While active, every sealed room gets a volume outline and a faint floor
 ## tint. No filled walls or ceiling: unshaded fills hid the actual darkness.

@@ -131,7 +131,7 @@ func _run() -> void:
 		_expect(await _until_working(), "worker reaches strawberry patch")
 		for i in range(40): worker._process(.1)
 	_expect(_berry_count("wild_strawberry") == 6, "two strawberry seasons yield six fruit total")
-	for cutting: String in ["blueberry_cutting", "elderberry_cutting", "strawberry_cutting"]:
+	for cutting: String in ["blueberry_cutting", "elderberry_cutting", "wild_strawberry_cutting"]:
 		_expect(_cutting_count(cutting) == 0, "berry harvest never produces a cutting")
 	_expect(details.accepts_tool(BLUE,"harvest_plants"), "blueberry regrows next year")
 	details.designate_detail(BLUE,"clear_shrubs")
@@ -164,14 +164,14 @@ func _season(season: String, year := 1) -> void:
 func _berry_count(species: String) -> int:
 	var total := 0
 	for node in drops._loose:
-		if is_instance_valid(node) and drops.item_key_of(node) == "base:resources:flora:" + species: total += drops.quantity_of(node)
+		if is_instance_valid(node) and drops.item_key_of(node) == "base:item:" + species: total += drops.quantity_of(node)
 	return total
 
 
 func _cutting_count(cutting: String) -> int:
 	var total := 0
 	for node in drops._loose:
-		if is_instance_valid(node) and drops.item_key_of(node) == "base:resources:seed:" + cutting: total += drops.quantity_of(node)
+		if is_instance_valid(node) and drops.item_key_of(node) == "base:item:" + cutting: total += drops.quantity_of(node)
 	return total
 
 
@@ -183,8 +183,8 @@ func _test_cuttings() -> void:
 		["blueberry", "blueberry_cutting", Vector3i(32,20,46)],
 		["elderberry", "elderberry_cutting", Vector3i(39,20,51)],
 		["elderberry", "elderberry_cutting", Vector3i(32,20,51)],
-		["wild_strawberry", "strawberry_cutting", Vector3i(32,20,56)],
-		["wild_strawberry", "strawberry_cutting", Vector3i(35,20,56)]]
+		["wild_strawberry", "wild_strawberry_cutting", Vector3i(32,20,56)],
+		["wild_strawberry", "wild_strawberry_cutting", Vector3i(35,20,56)]]
 	_season("winter",4)
 	for i in range(fixtures.size()):
 		var fixture: Array = fixtures[i]
@@ -228,7 +228,7 @@ func _test_cuttings() -> void:
 	_expect(drops._missing_models.is_empty(), "all cutting crates have valid models")
 	# Restore actual item quantities, then exercise the established Seeds & cuttings filter.
 	var saved_items: Dictionary = JSON.parse_string(JSON.stringify(drops.serialize_state()))
-	var quantities: Array = [_cutting_count("blueberry_cutting"), _cutting_count("elderberry_cutting"), _cutting_count("strawberry_cutting")]
+	var quantities: Array = [_cutting_count("blueberry_cutting"), _cutting_count("elderberry_cutting"), _cutting_count("wild_strawberry_cutting")]
 	root.get_node("StockpileManager").reset_runtime_state()
 	drops.free()
 	drops = load("res://scripts/systems/ItemDropManager.gd").new()
@@ -242,15 +242,15 @@ func _test_cuttings() -> void:
 	zone.setup(502,cells)
 	zone.filter_tags.assign(["stockpile_seed"])
 	storage.register_zone(zone)
-	var cutting_names := ["blueberry_cutting", "elderberry_cutting", "strawberry_cutting"]
+	var cutting_names := ["blueberry_cutting", "elderberry_cutting", "wild_strawberry_cutting"]
 	for i in range(3): _expect(_cutting_count(cutting_names[i]) == quantities[i], "cutting quantities round-trip through item saves")
 	for step in range(2400):
 		storage._process(.3)
 		tasks._run_scheduler()
 		worker._process(.1)
-		if storage.get_total("base:resources:seed:"+cutting_names[0]) == quantities[0] and storage.get_total("base:resources:seed:"+cutting_names[1]) == quantities[1] and storage.get_total("base:resources:seed:"+cutting_names[2]) == quantities[2]: break
+		if storage.get_total("base:item:"+cutting_names[0]) == quantities[0] and storage.get_total("base:item:"+cutting_names[1]) == quantities[1] and storage.get_total("base:item:"+cutting_names[2]) == quantities[2]: break
 		if step % 30 == 0: await process_frame
-	for i in range(3): _expect(storage.get_total("base:resources:seed:"+cutting_names[i]) == quantities[i], "worker hauls cutting crates into Seeds & cuttings storage")
+	for i in range(3): _expect(storage.get_total("base:item:"+cutting_names[i]) == quantities[i], "worker hauls cutting crates into Seeds & cuttings storage")
 	_expect(_berry_count("blueberry") == 3 and _berry_count("elderberry") == 4 and _berry_count("wild_strawberry") == 6, "clearing and seed storage leave berries unchanged")
 	worker.force_interrupt()
 	storage.deregister_zone(zone)

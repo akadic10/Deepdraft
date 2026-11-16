@@ -112,7 +112,7 @@ func feedback_visible() -> bool:
 
 
 func display_name() -> String:
-	return "Fishing Zone %d" % zone_id
+	return "Fishing zone %d" % zone_id
 
 
 # WorkSourceTable routing contract.

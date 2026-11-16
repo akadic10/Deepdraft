@@ -63,7 +63,7 @@ func _run() -> void:
 	var feedback := root.get_node("WorkFeedback")
 	feedback.sound_started.connect(func(kind,_position,_variant): events.append(kind))
 	clock_node.set_paused(true)
-	_expect(explorer.select_object(wildlife,wolf) and explorer.get_compact_panel().get_title() == "Wild Wolf","compact panel shows wolf identity")
+	_expect(explorer.select_object(wildlife,wolf) and explorer.get_compact_panel().get_title() == "Wild wolf","compact panel shows wolf identity")
 	_expect(events == ["wolf_select"],"selection cue works while paused")
 	var paused: Dictionary = wildlife.serialize_state()
 	wildlife.advance(10,[])

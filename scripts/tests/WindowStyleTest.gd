@@ -129,7 +129,7 @@ func _check_grid() -> void:
 	grid.family = root.get_node("UIRegistry").get_icon_family_color("settlement")
 	scene.add_child(grid)
 	var bench: Texture2D = load("res://assets/ui/furniture/bench.png")
-	var torch: Texture2D = load("res://assets/ui/furniture/wooden_torch.png")
+	var torch: Texture2D = load("res://assets/ui/furniture/torch.png")
 	var groups := [
 		{"id": "dining", "title": "Dining", "items": [
 			{"id": "bench", "picture": bench, "count": 3, "mark": "on", "selected": true, "tooltip": "Log bench"},

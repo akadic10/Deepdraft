@@ -1,30 +1,90 @@
 {
   "furniture_key": "base:furniture:board_game_table",
   "furniture_category": "recreation",
-  "display_name": "Board-game Table",
-  "description": "A rough log table with a scratched board and loose stone counters. Add a stool to play alone, or two opposite stools to play together for more happiness.",
+  "display_name": "Board-game table",
+  "description": "A plank table, the dining table's own, with a board scratched across its top and loose stone counters. Add a stool to play alone, or two opposite stools to play together for more happiness.",
   "model": "res://assets/models/furniture/board_game_table.glb",
-  "item_key": "base:resources:furniture:board_game_table",
+  "item_key": "base:item:board_game_table",
   "placement": "floor",
   "yaw_steps": 4,
   "footprint": {
     "width": 3,
     "depth": 3
   },
-  "placement_label": "3 × 3 log game area",
+  "placement_label": "3 × 3 game area",
   "placement_note": "Place stools, log or stone, on the opposite guides outside the game area. Solo play restores some happiness; playing together restores more.",
   "show_placement_area": true,
   "collision_regions": [
     {
       "min": [
-        1,
+        0.0625,
         0,
-        1
+        0.0625
       ],
       "max": [
-        2,
-        1,
-        2
+        0.5625,
+        0.75,
+        0.5625
+      ]
+    },
+    {
+      "min": [
+        2.4375,
+        0,
+        0.0625
+      ],
+      "max": [
+        2.9375,
+        0.75,
+        0.5625
+      ]
+    },
+    {
+      "min": [
+        0.0625,
+        0,
+        2.4375
+      ],
+      "max": [
+        0.5625,
+        0.75,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        2.4375,
+        0,
+        2.4375
+      ],
+      "max": [
+        2.9375,
+        0.75,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        0.125,
+        0.75,
+        0.0625
+      ],
+      "max": [
+        0.5,
+        1.125,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        2.5,
+        0.75,
+        0.0625
+      ],
+      "max": [
+        2.875,
+        1.125,
+        2.9375
       ]
     },
     {
@@ -43,7 +103,7 @@
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {
-    "design": 2,
+    "design": 3,
     "material_factor": 1
   },
   "recreation": "board_game",
@@ -51,14 +111,74 @@
   "seating_obstacles": [
     {
       "min": [
-        1,
+        0.0625,
         0,
-        1
+        0.0625
       ],
       "max": [
-        2,
-        1,
-        2
+        0.5625,
+        0.75,
+        0.5625
+      ]
+    },
+    {
+      "min": [
+        2.4375,
+        0,
+        0.0625
+      ],
+      "max": [
+        2.9375,
+        0.75,
+        0.5625
+      ]
+    },
+    {
+      "min": [
+        0.0625,
+        0,
+        2.4375
+      ],
+      "max": [
+        0.5625,
+        0.75,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        2.4375,
+        0,
+        2.4375
+      ],
+      "max": [
+        2.9375,
+        0.75,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        0.125,
+        0.75,
+        0.0625
+      ],
+      "max": [
+        0.5,
+        1.125,
+        2.9375
+      ]
+    },
+    {
+      "min": [
+        2.5,
+        0.75,
+        0.0625
+      ],
+      "max": [
+        2.875,
+        1.125,
+        2.9375
       ]
     },
     {
@@ -88,7 +208,7 @@
   ],
   "seating": {
     "chair_keys": [
-      "base:furniture:log_chair",
+      "base:furniture:log_stool",
       "base:furniture:stone_stool"
     ],
     "snap_radius": 1.5,
@@ -123,7 +243,7 @@
         "left_foot": [
           0.3125,
           0,
-          0.25
+          -0.125
         ],
         "left_hand": [
           -0.5625,
@@ -138,7 +258,7 @@
         "right_foot": [
           -0.3125,
           0,
-          0.25
+          -0.125
         ],
         "head": [
           0,

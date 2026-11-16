@@ -8,9 +8,9 @@ extends "res://scripts/tests/ShrubCuttingTest.gd"
 const PINE := "base:flora:pine_tree"
 const JUNIPER := "base:flora:juniper_tree"
 const CONE := "base:flora:pine_cone"
-const CONE_ITEM := "base:resources:seed:pine_cone"
+const CONE_ITEM := "base:item:pine_cone"
 const SITE := Vector3i(50, 20, 52)
-const STONE := "base:resources:stone:rough_stone"
+const STONE := "base:item:rough_stone"
 var content
 var occupancy
 var Planting # TreePlanting.gd, loaded once the autoloads it names exist.
@@ -175,7 +175,7 @@ func _check_felling(id: Vector2i) -> void:
 	_expect(await _wait_for(func(): return bool(flora._tree_changes[id].felled)), "a dwarf fells the planted pine")
 	var logs := 0
 	for node: Node3D in drops._loose.keys():
-		if drops.item_key_of(node) == "base:resources:wood:pine_log": logs += drops.quantity_of(node)
+		if drops.item_key_of(node) == "base:item:pine_log": logs += drops.quantity_of(node)
 	_expect(logs == 10 and not occupancy.occupies(Vector3i(50, 21, 52)), "it gives an ancient pine's logs and frees its trunk")
 	_expect(flora.planting_reason(PINE, SITE).is_empty(), "its spot takes a new seed")
 	flora.plant_tree(PINE, SITE)

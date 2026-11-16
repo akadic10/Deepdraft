@@ -1,0 +1,36 @@
+{
+  "__comment": [
+    "Frameless log doors: 2/3 blocks single leaf, 4 blocks double leaf. Eight voxels per block, uneven 30/31-voxel tops beneath a four-block opening.",
+    "Doors stay walkable. RoomManager seals every footprint column regardless of cosmetic hinge state. All variants use the same placement, hauling and uninstall pipeline."
+  ],
+  "furniture_key": "base:furniture:door_2",
+  "furniture_category": "door",
+  "display_name": "Log door (2 wide)",
+  "description": "Rough logs pegged into one frameless leaf. Swings open as dwarves approach, fits a 2-block-wide opening and seals the room for warmth.",
+  "model": "res://assets/models/furniture/door_2.glb",
+  "item_key": "base:item:door_2",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "collision_regions": [],
+  "door_animation": {
+    "width": 2,
+    "double": false,
+    "hinge_inset": 0.0,
+    "open_degrees": 90,
+    "open_seconds": 0.3,
+    "close_seconds": 0.55,
+    "hold_seconds": 0.7,
+    "approach_distance": 2.8
+  },
+  "material_group": "wood",
+  "material_palette": "oak_log",
+  "appeal": {
+    "design": 2,
+    "material_factor": 1
+  },
+  "hit_points": 150
+}

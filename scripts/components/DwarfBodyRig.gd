@@ -17,9 +17,12 @@ const MiningPose = preload("res://scripts/components/DwarfMiningPose.gd")
 const ConstructionPose = preload("res://scripts/components/DwarfConstructionPose.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
 const FishingPose = preload("res://scripts/components/DwarfFishingPose.gd")
+const HoePose = preload("res://scripts/components/DwarfHoePose.gd")
 const GrillPose = preload("res://scripts/components/DwarfGrillPose.gd")
+const SmeltPose = preload("res://scripts/components/DwarfSmeltPose.gd")
 const ShadowSetup = preload("res://scripts/components/VoxelShadowSetup.gd")
 const IdleGesture = preload("res://scripts/components/DwarfIdleGesture.gd")
+const HatLight = preload("res://scripts/components/DwarfHatLight.gd")
 
 var agent: DwarfAgent
 var head: Node3D
@@ -33,7 +36,9 @@ var mining_pose: RefCounted
 var construction_pose: RefCounted
 var carry_pose: RefCounted
 var fishing_pose: RefCounted
+var hoe_pose: RefCounted
 var grill_pose: RefCounted
+var smelt_pose: RefCounted
 ## What the hands hold: [[node: Node3D, item_key: String], ...]. The work
 ## executor owns the pickup/set-down rules; the body only presents the cargo.
 var carried_entries: Array = []
@@ -89,6 +94,7 @@ func build() -> void:
 	_build_collision()
 	_build_name_label()
 	apply_tints()
+	wear_hat()
 	felling_pose = FellingPose.new()
 	felling_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
 	construction_pose = ConstructionPose.new()
@@ -99,8 +105,12 @@ func build() -> void:
 	carry_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
 	fishing_pose = FishingPose.new()
 	fishing_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
+	hoe_pose = HoePose.new()
+	hoe_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
 	grill_pose = GrillPose.new()
 	grill_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
+	smelt_pose = SmeltPose.new()
+	smelt_pose.setup(body,head,hand_l,hand_r,foot_l,foot_r)
 	var pivots := {body:Vector3(0,1.15,0),head:Vector3(0,2.45,0),hand_l:CarryPose.PALM,hand_r:CarryPose.PALM,
 		foot_l:Vector3(.5,.2,.15),foot_r:Vector3(.5,.2,.15)}
 	for part in [body,head,hand_l,hand_r,foot_l,foot_r]:
@@ -213,8 +223,12 @@ func reset_part_offsets() -> void:
 		felling_pose.reset()
 	if fishing_pose != null:
 		fishing_pose.reset()
+	if hoe_pose != null:
+		hoe_pose.reset()
 	if grill_pose != null:
 		grill_pose.reset()
+	if smelt_pose != null:
+		smelt_pose.reset()
 	if mining_pose != null:
 		mining_pose.reset()
 	if construction_pose != null:
@@ -263,6 +277,33 @@ func _build_parts() -> void:
 		if brows != null:
 			_attach(head, "MeshBrows", brows)
 		# Scar is PORTRAIT-ONLY (doc 41b §Map Mesh vs Portrait) — not added here.
+
+
+## A dwarf with a trade wears its hat (doc 304): costume, not a good, so nothing is crafted, carried
+## or saved. The hat hangs on the head, and the hair's cut for under a hat takes the place of the
+## full hair, which is only hidden; a Worker goes bare-headed. Called when the body is built and
+## whenever the profession changes.
+func wear_hat() -> void:
+	if head == null: return
+	for part_name: String in ["MeshHat", "MeshHairHatted"]:
+		var worn := head.get_node_or_null(part_name)
+		if worn == null: continue
+		head.remove_child(worn)
+		worn.queue_free()
+	var hair := head.get_node_or_null("MeshHair") as Node3D
+	var packed := DwarfAssets.profession_hat(agent.profession)
+	if hair != null: hair.visible = packed == null
+	if packed == null: return
+	if hair != null:
+		_tint(_attach(head, "MeshHairHatted", DwarfAssets.hair_under_hat(agent.appearance)),
+				DwarfAssets.HAIR_COLORS.get(agent.appearance.hair_color, Color.WHITE))
+	var hat := _attach(head, "MeshHat", packed)
+	_tint(hat, Color.WHITE)
+	var candle := DwarfAssets.profession_hat_light(agent.profession)
+	if not candle.is_empty(): HatLight.attach(agent, hat, candle)
+	# A dwarf already in the world: the outline that shows it behind walls takes the new parts.
+	var outline := agent.get_node_or_null("Readability")
+	if outline != null: outline.cover(head)
 
 
 ## Instantiates a part GLB under `parent` at identity (shared authoring frame).
@@ -442,7 +483,7 @@ func climb_back() -> float:
 
 
 func _work_tool_showing() -> bool:
-	for pose in [construction_pose,mining_pose,felling_pose]:
+	for pose in [construction_pose,mining_pose,felling_pose,hoe_pose]:
 		if pose != null and is_instance_valid(pose.tool) and pose.tool.visible: return true
 	return false
 

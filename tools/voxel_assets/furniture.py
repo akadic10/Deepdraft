@@ -63,7 +63,7 @@ def assets(only=None):
             metadata['source']='tools/art_data/voxel_hearthblock.json'
             metadata['direction']='docs/00_dev_roadmap/256_hearthblock_art_pilot.md'
         yield path,parts,metadata
-    for name in ['campfire','hearth','wooden_torch']:
+    for name in ['campfire','hearth','torch']:
         definition=read_json('data/furniture/'+name+'.json')['light_source']['flame_animation']
         path=definition['model'].removeprefix('res://')
         if only and only not in path: continue

@@ -1,7 +1,7 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const CAMP := "base:furniture:campfire"
-const CAMP_ITEM := "base:resources:furniture:campfire"
+const CAMP_ITEM := "base:item:campfire"
 const OUT := "res://tmp/campfire_area_review/"
 
 func _run() -> void:
@@ -58,7 +58,7 @@ func _run() -> void:
 		furniture.restore_state(saved)
 		_expect(JSON.parse_string(JSON.stringify(furniture.serialize_state()))==saved,"installed area and rotation survive save/load")
 		if yaw==0 and "--capture" in OS.get_cmdline_user_args():
-			var stool := "base:furniture:log_chair"
+			var stool := "base:furniture:log_stool"
 			for entry in [[Vector3i(49,20,42),0],[Vector3i(49,20,48),2],[Vector3i(46,20,45),1],[Vector3i(52,20,45),3]]:
 				_expect(furniture._floor_placement_reason(furniture.get_defs()[stool],entry[0],entry[1]).is_empty(),"stools align with each side of the center tile")
 				furniture._install(stool,furniture.get_defs()[stool],entry[0],entry[1])

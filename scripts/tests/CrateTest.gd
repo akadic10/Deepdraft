@@ -1,13 +1,14 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-## The raw materials crate (doc 294, step 4): a log crib on the floor that holds raw goods.
-## - only a Carpenter makes it, from two logs at the carpenter's bench; Place files it under
-##   Storage;
-## - it keeps Rough Stone, the ores and coal, and soil, three of a good to each of its four
+## The raw materials crate (doc 294, step 4): a crate on the floor that holds raw goods; an open plank bin since doc 308.
+## - only a Carpenter makes it, from four planks (two logs until doc 308) at the carpenter's bench;
+##   Place files it under Storage;
+## - it keeps Rough stone, the ores and coal, and soil, three of a good to each of its four
 ##   quarters, at priority 4: stones on the ground move up to it, two sharing a quarter;
 ## - new goods top up their own quarter before taking another, and a fifth kind finds no
 ##   quarter;
-## - each filled quarter shows one of its goods on the ground inside it, over the rim;
+## - each filled quarter shows one of its goods on the ground inside it, standing higher than the gap
+##   between a wall's two boards, so it shows through the gap as well as from above;
 ## - its window counts goods ("Used 8 / 12 goods") and lists only its kind;
 ## - a craft takes a stone out of it, one good at a time;
 ## - narrowed to one good its title names it, and the goods it stops keeping move out in a
@@ -15,18 +16,20 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - a save keeps a quarter of three, its goods and its priority;
 ## - marked for uninstall it takes nothing more, and uninstalled its goods drop beside it.
 const CRATE := "base:furniture:raw_materials_crate"
-const CRATE_ITEM := "base:resources:furniture:raw_materials_crate"
-const CRATE_RECIPE := "base:recipe:worker:raw_materials_crate"
+const CRATE_ITEM := "base:item:raw_materials_crate"
+const CRATE_RECIPE := "base:recipe:raw_materials_crate"
+const PINE_PLANK := "base:item:pine_plank"   # the crate is a plank piece since doc 308
 const CARPENTER := "base:profession:carpenter"
 const CARPENTER_BENCH := "base:furniture:carpenter_bench"
-const HOE := "base:resources:tools:stone_hoe"
-const HOE_RECIPE := "base:recipe:worker:stone_hoe"
-const IRON := "base:resources:ore:iron"
-const TIN := "base:resources:ore:tin"
-const COAL := "base:resources:ore:coal"
-const SOIL := "base:resources:soil:soil"
+const HOE := "base:item:stone_hammer"
+const HOE_RECIPE := "base:recipe:stone_hammer"
+const IRON := "base:item:iron_ore"
+const TIN := "base:item:tin_ore"
+const COAL := "base:item:coal"
+const SOIL := "base:item:soil"
 const ORIGIN := Vector3i(36, 20, 40)   # its back-left floor cell
-const RIM := 9.0 / 16                  # the top of its upper logs
+const GAP := 7.0 / 16                  # the top of the gap between a wall's two boards (the open bin, 2026-11-13;
+                                       # the log crib's rim was 9 cells and a good rose over it; the bin's rim is 12)
 const DROP := Vector3(41.5, 21, 40.5)  # where new goods turn up
 var storage_ui
 
@@ -36,7 +39,8 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	var recipe: Dictionary = crafting.recipes[CRATE_RECIPE]
 	_expect(String(recipe.get("section", "")) == "carpenter" and recipe.workshop == CARPENTER_BENCH and String(recipe.category) == "Storage"
-		and int(recipe.ingredient_count) == 2 and PINE in crafting.ingredient_keys(recipe), "the crate: two logs at the carpenter's bench, on the Carpenter's page")
+		and int(recipe.ingredient_count) == 4 and PINE_PLANK in crafting.ingredient_keys(recipe) and not PINE in crafting.ingredient_keys(recipe),
+		"the crate: four planks, never logs, at the carpenter's bench, on the Carpenter's page")
 	var placed: Array = root.get_node("UIRegistry").get_place_catalog().get("items", []).filter(func(entry): return entry.key == CRATE)
 	_expect(placed.size() == 1 and placed[0].category == "storage", "Place files it under Storage")
 	# The hoe the craft below makes stays loose, so the zone keeps its four cells for raw goods.
@@ -45,9 +49,9 @@ func _run() -> void:
 	worker.profession = CARPENTER
 	tasks.work_policy_changed()
 	furniture._install(CARPENTER_BENCH, furniture.get_defs()[CARPENTER_BENCH], Vector3i(44, 20, 41), 0, "base:material:pine")
-	drops.spawn_drop(PINE, 2, Vector3i(42, 21, 40))
+	drops.spawn_drop(PINE_PLANK, 4, Vector3i(42, 21, 40))
 	var id: int = crafting.queue_order(CRATE_RECIPE, 1)
-	_expect(await _completed(id) and _count(CRATE_ITEM) == 1 and _count(PINE) == 0, "two logs make one packed crate")
+	_expect(await _completed(id) and _count(CRATE_ITEM) == 1 and _count(PINE_PLANK) == 0, "four planks make one packed crate")
 	# With no crate yet, stones go to ground storage.
 	drops.restore_loose_item(STONE, DROP, 0, 2)
 	_expect(await _until_true(func(): return int(zone.contents().get(STONE, 0)) == 2), "with no crate, two stones go to ground storage")
@@ -85,7 +89,7 @@ func _run() -> void:
 	var allowed: Array = crate.allowed_keys()
 	_expect(crate.storage_used() == 8 and allowed.size() == 8 and STONE in allowed and IRON in allowed and SOIL in allowed and not PINE in allowed
 		and not HOE in allowed and not crate.accepts_key(PINE), "it keeps only raw goods: %s" % [allowed])
-	_expect(crate.stored_entries().keys().all(func(slot): return _shows(crate, slot)), "each filled quarter shows one of its goods on the ground inside it, over the rim")
+	_expect(crate.stored_entries().keys().all(func(slot): return _shows(crate, slot)), "each filled quarter shows one of its goods on the ground inside it, higher than the gap between its boards")
 	await _windows(piece, crate)
 	# A craft takes one stone out of its quarter. The stone hoe is a Worker's (Rudimentary), so the
 	# Carpenter steps back down to make it.
@@ -101,7 +105,7 @@ func _run() -> void:
 	crate.set_all_accepted(false)
 	crate.set_item_accepted(IRON, true)
 	var title: String = furniture.get_furniture_storage().title(piece)
-	_expect(crate.chosen_key() == IRON and title == "Pine raw materials crate · Iron Ore", "narrowed to iron ore, its title names its wood once and the ore: %s" % title)
+	_expect(crate.chosen_key() == IRON and title == "Pine raw materials crate · Iron ore", "narrowed to iron ore, its title names its wood once and the ore: %s" % title)
 	_expect(_quarter(crate, STONE) == 2, "the stones' quarter holds two")
 	var most_out := 0
 	for i in range(1600):
@@ -186,13 +190,14 @@ func _slot_of(crate, key: String) -> Variant:
 	return null
 
 
-## A quarter shows one of its goods, sitting on the ground at its anchor and rising over the rim.
+## A quarter shows one of its goods, sitting on the ground at its anchor and standing higher than the gap
+## between a wall's two boards, so it shows through the gap as well as from above.
 func _shows(crate, slot) -> bool:
 	var node: Node3D = crate._shown.get(slot)
 	if not is_instance_valid(node) or node.get_parent() != crate.display_parent or drops.quantity_of(node) != 1: return false
 	var box: AABB = node.global_transform * crate._bounds(node)
 	var floor_y: float = crate.display_parent.global_position.y
-	return node.global_position.is_equal_approx(crate.anchor_position(int(slot))) and absf(box.position.y - floor_y) < .01 and box.end.y > floor_y + RIM
+	return node.global_position.is_equal_approx(crate.anchor_position(int(slot))) and absf(box.position.y - floor_y) < .01 and box.end.y > floor_y + GAP
 
 
 func _crate_piece():

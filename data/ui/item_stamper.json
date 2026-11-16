@@ -1,13 +1,13 @@
 {
-  "__note": "The DEV item stamper (doc 23, \"The item stamper\"), read by ItemStamperPanel through UIRegistry: its groups of items, each gathering item categories (the third part of an item's key; anything else falls in the last group), the amounts it jumps to, and how many recent items it keeps.",
+  "__note": "The DEV item stamper (doc 23, \"The item stamper\"), read by ItemStamperPanel through UIRegistry: its groups of items, the amounts it jumps to, and how many recent items it keeps. A group gathers items by their tags, as the Inventory window does (inventory_catalog.json): an item goes to the first group that names one of its tags, and one that no group names falls in the last. So Tools stands before Other, which takes the rest of the other goods, and Plants takes what is stored with the seeds and is not a seed.",
   "groups": [
-    {"id": "materials", "title": "Materials", "categories": ["stone", "soil", "ore", "gem", "wood"]},
-    {"id": "furniture", "title": "Furniture", "categories": ["furniture", "special"]},
-    {"id": "tools", "title": "Tools", "categories": ["tools"]},
-    {"id": "food", "title": "Food & seeds", "categories": ["flora", "seed"]},
-    {"id": "drink", "title": "Drink", "categories": ["drink"]},
-    {"id": "plants", "title": "Plants", "categories": ["plant"]},
-    {"id": "other", "title": "Other", "categories": ["misc", "currency", "water"]}
+    {"id": "materials", "title": "Materials", "tags": ["stockpile_stone", "stockpile_soil", "stockpile_ore", "stockpile_gem", "stockpile_wood", "stockpile_plank", "stockpile_metal"]},
+    {"id": "furniture", "title": "Furniture", "tags": ["stockpile_furniture"]},
+    {"id": "tools", "title": "Tools", "tags": ["tool"]},
+    {"id": "food", "title": "Food & seeds", "tags": ["stockpile_food", "seed"]},
+    {"id": "drink", "title": "Drink", "tags": ["stockpile_drink"]},
+    {"id": "plants", "title": "Plants", "tags": ["stockpile_seed"]},
+    {"id": "other", "title": "Other", "tags": ["stockpile_misc", "stockpile_currency"]}
   ],
   "amounts": [5, 10, 20],
   "recent": 8

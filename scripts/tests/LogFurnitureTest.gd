@@ -5,18 +5,24 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	var rooms = root.get_node("RoomManager")
 	var nav = root.get_node("NavGrid")
-	_carpenter_bench_at(Vector3i(45,20,42))   # doors and the log bench are the Carpenter's (doc 44)
-	drops.spawn_drop(PINE,4,Vector3i(42,21,42))
-	for name in ["door", "log_door_3", "log_door_4", "bench"]:
+	# The doors are a Worker's again, at the crude workbench (doc 306); the bench is the Carpenter's (doc 44), of two planks since doc 308.
+	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(45,20,42),0)
+	var carpenter_bench := "base:furniture:carpenter_bench"
+	furniture._install(carpenter_bench,furniture.get_defs()[carpenter_bench],Vector3i(45,20,37),0,"base:material:pine")
+	drops.spawn_drop(PINE,3,Vector3i(42,21,42))
+	drops.spawn_drop("base:item:pine_plank",2,Vector3i(42,21,43))
+	for name in ["door_2", "door_3", "door_4", "bench"]:
+		worker.profession = "base:profession:carpenter" if name=="bench" else "base:profession:worker"
+		tasks.work_policy_changed()
 		worker.stop_walking()
 		worker.position = Vector3(42.5,21,40.5)
 		var key: String = "base:furniture:"+name
-		var recipe: String = "base:recipe:worker:"+name
-		var item: String = "base:resources:furniture:"+name
+		var recipe: String = "base:recipe:"+name
+		var item: String = "base:item:"+name
 		_expect(dock._place_catalog.has_design(key), "Place exposes "+name)
-		_expect(await _completed(crafting.queue_order(recipe,1)), "Carpenter crafts "+name)
+		_expect(await _completed(crafting.queue_order(recipe,1)), ("Carpenter crafts " if name=="bench" else "Worker crafts ")+name)
 		_expect(_count(item)==1, "exactly one packed "+name)
-		var origin := Vector3i(52,20,42) if name=="bench" else Vector3i(58+(["door","log_door_3","log_door_4"].find(name))*12,20,46)
+		var origin := Vector3i(52,20,42) if name=="bench" else Vector3i(58+(["door_2","door_3","door_4"].find(name))*12,20,46)
 		var def: Dictionary = furniture.get_defs()[key]
 		if name!="bench": _room(origin, int(def.footprint.width))
 		await _frames(2)
@@ -89,7 +95,7 @@ func _run() -> void:
 			hinge._process(.4)
 			_expect(rotated_piece.cells.size()==width and hinge._angle>1.5, "rotated doorway works: %s/%d" % [name,yaw])
 			furniture._teardown_installed(rotated_piece.installed_id,false)
-	_expect(_count(PINE)==0, "four crafts consume four logs")
+	_expect(_count(PINE)==0 and _count("base:item:pine_plank")==0, "the three doors take three logs and the bench two planks")
 	for failure in failures: push_error(failure)
 	print("LogFurnitureTest: ", "PASS" if failures.is_empty() else failures)
 	quit(0 if failures.is_empty() else 1)

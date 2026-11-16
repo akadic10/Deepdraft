@@ -663,6 +663,13 @@ func _open_action_panel(target: String) -> void:
 			presentation.planned = bool(section.get("planned", false))
 			presentation.status_label = "Catalog preview" if presentation.planned else ""
 			icon_button.disabled = _craft_panel == null or section.is_empty()
+			# A trade the colony has no dwarf of is dimmed and locked, and says the way to one; its
+			# page still opens, to show what the trade will make (owner, 2026-11-13).
+			var need: Dictionary = _craft_panel.controller.section_need(String(entry.target)) if _craft_panel != null and not section.is_empty() else {}
+			if not need.is_empty():
+				presentation.locked = true
+				presentation.status_label = String(need.tag)
+				presentation.tooltip = "%s\n%s" % [String(entry.get("tooltip", "")), String(need.how)]
 		icon_button.setup(presentation, UIRegistry.get_dock_icon(entry))
 		icon_button.shelf = _panel_container
 		icon_button.name = String(entry.id).to_pascal_case()
@@ -803,7 +810,7 @@ func _register_dock_windows() -> void:
 			_build_time_weather_tools(), {"persistent": true, "default_pos": Vector2(32, 130), "family": "dev"})
 
 	_inventory_panel = preload("res://scripts/ui/ColonyInventoryPanel.gd").new()
-	_inventory_window = _window_manager.register_window("inventory", "Colony Inventory", "", _inventory_panel,
+	_inventory_window = _window_manager.register_window("inventory", "Colony inventory", "", _inventory_panel,
 		{"persistent": false, "default_pos": Vector2(24, 76), "family": "settlement", "flush": true})
 	_inventory_window.keep_body_on_screen = true
 	_inventory_panel.window = _inventory_window
@@ -1074,7 +1081,7 @@ func _open_colony_entry(target: String) -> void:
 
 
 ## Push-registration from StockpileDesignationController (doc 18 Phase 1) —
-## the Storage Zone panel's actions route here.
+## the Storage zone panel's actions route here.
 func register_stockpile_controller(controller: Node) -> void:
 	_stockpile_controller = controller
 	_connect_tool_active(controller)
@@ -1086,6 +1093,13 @@ func register_stockpile_controller(controller: Node) -> void:
 func register_fishing_controller(controller: Node) -> void:
 	_connect_tool_active(controller)
 	if _orders != null: _orders.bind_controller("fishing_zone", controller)
+	_bind_tool(controller)
+
+
+## Push-registration from FarmingSystem (doc 309): Zones → Farming toggles its tool.
+func register_farming_controller(controller: Node) -> void:
+	_connect_tool_active(controller)
+	if _orders != null: _orders.bind_controller("farming_zone", controller)
 	_bind_tool(controller)
 
 

@@ -20,32 +20,34 @@
 
 
   "__comment_rock": [
-    "Authored rock bands (rock01-11) share one profile: mined rock sometimes drops Rough Stone (chance 0.25).",
+    "Authored rock bands (rock01-11) share one profile: mined rock sometimes drops rough stone (chance 0.25).",
     "Raised from 0.05 for building (doc 273, 2026-10-26): about four blocks dug for each block built. A playtest setting; revisit in the economy balance pass."
   ],
 
-  "base:terrain:rock:rock01":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock02":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock03":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock04":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock05":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock06":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock07":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock08":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock09":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock10":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
-  "base:terrain:rock:rock11":  { "drops": [{ "item": "base:resources:stone:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock01":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock02":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock03":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock04":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock05":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock06":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock07":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock08":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock09":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock10":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
+  "base:terrain:rock:rock11":  { "drops": [{ "item": "base:item:rough_stone", "count": 1, "chance": 0.25 }], "material_tags": ["stone", "rock", "stockpile_stone"] },
 
   "__comment_surface": "Surface blocks - grass and dirt drop the one Soil good",
 
-  "base:terrain:surface:grass":  { "drops": [{ "item": "base:resources:soil:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
-  "base:terrain:surface:dirt":  { "drops": [{ "item": "base:resources:soil:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
+  "base:terrain:surface:grass":  { "drops": [{ "item": "base:item:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
+  "base:terrain:surface:dirt":  { "drops": [{ "item": "base:item:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
 
   "__comment_soil": "Soft earth - cave soil keeps the 'farmable' tag for cave farms and drops the same Soil good as grass and dirt. Drop chance 0.25, a playtest setting matching rock.",
 
+  "base:terrain:soil:tilled":  { "drops": [{ "item": "base:item:soil", "count": 1, "chance": 0.25 }], "material_tags": ["dirt", "soil", "surface", "stockpile_soil"] },
+
   "base:terrain:soil:cave": {
     "drops": [
-      { "item": "base:resources:soil:soil", "count": 1, "chance": 0.25 }
+      { "item": "base:item:soil", "count": 1, "chance": 0.25 }
     ],
     "depth_bias": { "min_y": 18, "max_y": 60 },
     "noise_threshold": 0.66,
@@ -56,25 +58,25 @@
 
   "__comment_logs": "Built logs give their log back whole (doc 275).",
 
-  "base:construction:log:oak:up": { "drops": [{ "item": "base:resources:wood:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:oak:x": { "drops": [{ "item": "base:resources:wood:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:oak:z": { "drops": [{ "item": "base:resources:wood:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:pine:up": { "drops": [{ "item": "base:resources:wood:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:pine:x": { "drops": [{ "item": "base:resources:wood:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:pine:z": { "drops": [{ "item": "base:resources:wood:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:juniper:up": { "drops": [{ "item": "base:resources:wood:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:juniper:x": { "drops": [{ "item": "base:resources:wood:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:juniper:z": { "drops": [{ "item": "base:resources:wood:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:apple:up": { "drops": [{ "item": "base:resources:wood:apple_wood", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:apple:x": { "drops": [{ "item": "base:resources:wood:apple_wood", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
-  "base:construction:log:apple:z": { "drops": [{ "item": "base:resources:wood:apple_wood", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:oak:up": { "drops": [{ "item": "base:item:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:oak:x": { "drops": [{ "item": "base:item:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:oak:z": { "drops": [{ "item": "base:item:oak_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:pine:up": { "drops": [{ "item": "base:item:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:pine:x": { "drops": [{ "item": "base:item:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:pine:z": { "drops": [{ "item": "base:item:pine_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:juniper:up": { "drops": [{ "item": "base:item:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:juniper:x": { "drops": [{ "item": "base:item:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:juniper:z": { "drops": [{ "item": "base:item:juniper_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:apple:up": { "drops": [{ "item": "base:item:apple_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:apple:x": { "drops": [{ "item": "base:item:apple_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
+  "base:construction:log:apple:z": { "drops": [{ "item": "base:item:apple_log", "count": 1, "chance": 1.0 }], "material_tags": ["wood"] },
 
   "__comment_ore": "Ore veins - depth-biased; deeper = rarer. Drop chance 0.10 for all ores is a temporary playtest setting, like rock and soil - not a balance number; revisit in the economy pass. Gems use their own chances.",
 
   "base:terrain:ore:copper": {
     "drops": [
       {
-        "item": "base:resources:ore:copper",
+        "item": "base:item:copper_ore",
         "count": 1,
         "chance": 0.4
       }
@@ -103,7 +105,7 @@
   "base:terrain:ore:tin": {
     "drops": [
       {
-        "item": "base:resources:ore:tin",
+        "item": "base:item:tin_ore",
         "count": 1,
         "chance": 0.4
       }
@@ -130,7 +132,7 @@
   "base:terrain:ore:iron": {
     "drops": [
       {
-        "item": "base:resources:ore:iron",
+        "item": "base:item:iron_ore",
         "count": 1,
         "chance": 0.4
       }
@@ -157,7 +159,7 @@
   "base:terrain:ore:silver": {
     "drops": [
       {
-        "item": "base:resources:ore:silver",
+        "item": "base:item:silver_ore",
         "count": 1,
         "chance": 0.4
       }
@@ -185,7 +187,7 @@
   "base:terrain:ore:coal": {
     "drops": [
       {
-        "item": "base:resources:ore:coal",
+        "item": "base:item:coal",
         "count": 1,
         "chance": 0.4
       }
@@ -213,7 +215,7 @@
   "base:terrain:ore:gold": {
     "drops": [
       {
-        "item": "base:resources:ore:gold",
+        "item": "base:item:gold_ore",
         "count": 1,
         "chance": 0.4
       }
@@ -243,7 +245,7 @@
   "base:terrain:gem:jade": {
     "drops": [
       {
-        "item": "base:resources:gem:jade_raw",
+        "item": "base:item:jade_raw",
         "count": 1,
         "chance": 0.9
       }
@@ -265,7 +267,7 @@
   "base:terrain:gem:amethyst": {
     "drops": [
       {
-        "item": "base:resources:gem:amethyst_raw",
+        "item": "base:item:amethyst_raw",
         "count": 1,
         "chance": 0.9
       }
@@ -287,7 +289,7 @@
   "base:terrain:gem:ruby": {
     "drops": [
       {
-        "item": "base:resources:gem:ruby_raw",
+        "item": "base:item:ruby_raw",
         "count": 1,
         "chance": 0.85
       }
@@ -309,7 +311,7 @@
   "base:terrain:gem:sapphire": {
     "drops": [
       {
-        "item": "base:resources:gem:sapphire_raw",
+        "item": "base:item:sapphire_raw",
         "count": 1,
         "chance": 0.85
       }
@@ -331,7 +333,7 @@
   "base:terrain:gem:emerald": {
     "drops": [
       {
-        "item": "base:resources:gem:emerald_raw",
+        "item": "base:item:emerald_raw",
         "count": 1,
         "chance": 0.82
       }
@@ -354,7 +356,7 @@
   "base:terrain:gem:diamond": {
     "drops": [
       {
-        "item": "base:resources:gem:diamond_raw",
+        "item": "base:item:diamond_raw",
         "count": 1,
         "chance": 0.65
       }

@@ -1,8 +1,8 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-const OAK := "base:resources:wood:oak_log"
-const APPLE := "base:resources:wood:apple_wood"
-const JUNIPER := "base:resources:wood:juniper_log"
+const OAK := "base:item:oak_log"
+const APPLE := "base:item:apple_log"
+const JUNIPER := "base:item:juniper_log"
 const WOOD_OUT := "res://tmp/worker_crafting_review/wood_filters"
 
 func _run() -> void:
@@ -56,7 +56,7 @@ func _run() -> void:
 	_expect(crafting.orders[0].allowed_ingredients==[APPLE],"nondefault wood selection survives JSON round trip")
 	crafting.restore_state({"orders":[
 		{"recipe":TORCH_RECIPE,"quantity":1,"allowed_ingredients":[]},
-		{"recipe":BENCH_RECIPE,"quantity":1,"allowed_ingredients":["base:resources:wood:oak_stave","missing:key"]}]})
+		{"recipe":BENCH_RECIPE,"quantity":1,"allowed_ingredients":["base:item:oak_stave","missing:key"]}]})
 	await _frames(2)
 	_expect(crafting.orders[0].allowed_ingredients.is_empty() and crafting.orders[1].allowed_ingredients.is_empty(),"empty or invalid saved choices never widen to other wood")
 	for entry in crafting.orders.duplicate(): crafting.remove_order(entry.id)

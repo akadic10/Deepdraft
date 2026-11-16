@@ -9,6 +9,7 @@
     "cancel_orders": [["Click", "or drag across marked work"]],
     "storage_zone": [["Drag", "over clear, walkable ground"], ["Click", "a zone to open it"]],
     "fishing_zone": [["Drag", "along a shore"], ["Click", "a zone to open it"]],
+    "farming_zone": [["Drag", "over open grass or dirt"], ["Click", "a field to open it"]],
     "construct_build": [["Click", "or drag to build"], ["Q / E", "changes material"], ["R", "turns a log"], ["F", "replaces blocks"], ["Ctrl + Drag", "takes plans out"]],
     "construct_replace": [["Click", "or drag over blocks to replace"], ["Q / E", "changes material"], ["F", "back to building"], ["Ctrl + Drag", "takes plans out"]],
     "construct_shapes": [["Drag", "draws the shape"], ["Tab", "changes shape"], ["Q / E", "changes material"], ["Ctrl + Drag", "takes plans out"]],

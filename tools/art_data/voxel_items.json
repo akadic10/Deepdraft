@@ -21,12 +21,6 @@
       "light": "E09A5C",
       "shade": "8A4A26",
       "rivet": "6E3A1F"
-    },
-    "copper_fitting": {
-      "body": "C0703A",
-      "light": "E09A5C",
-      "shade": "8A4A26",
-      "rivet": "6E3A1F"
     }
   },
   "gems": {
@@ -76,8 +70,14 @@
   "timber": {
     "oak_log": "base:material:oak",
     "pine_log": "base:material:pine",
-    "apple_wood": "base:material:applewood",
+    "apple_log": "base:material:applewood",
     "juniper_log": "base:material:juniper"
+  },
+  "planks": {
+    "oak_plank": "base:material:oak",
+    "pine_plank": "base:material:pine",
+    "apple_plank": "base:material:applewood",
+    "juniper_plank": "base:material:juniper"
   },
   "crate_contents": {
     "apple": [
@@ -150,7 +150,7 @@
       "65823B",
       "A6B95C"
     ],
-    "strawberry_cutting": [
+    "wild_strawberry_cutting": [
       "cutting",
       "386448",
       "6F9650"
@@ -179,7 +179,85 @@
       "fish",
       "3E2416",
       "C27448"
+    ],
+    "radish": [
+      "radish",
+      "A8283C",
+      "CE3F52"
+    ],
+    "carrot": [
+      "carrot",
+      "A85A16",
+      "E07A1E"
+    ],
+    "turnip": [
+      "turnip",
+      "C9BDA6",
+      "EDE6D6"
+    ],
+    "cabbage": [
+      "cabbage",
+      "5F8A40",
+      "7FAE4E"
+    ],
+    "onion": [
+      "onion",
+      "8F5A14",
+      "CC8C20"
+    ],
+    "pumpkin": [
+      "pumpkin",
+      "98400F",
+      "CE5A16"
+    ],
+    "kale": [
+      "kale",
+      "1E4038",
+      "2C5A4E"
+    ],
+    "torch": [
+      "torch",
+      "2C2320",
+      "CFAB69"
     ]
+  },
+  "vegetable_styles": {
+    "radish": {
+      "deep": "B93048",
+      "tip": "F1E6DC",
+      "leaf": "5C8C3A",
+      "leaf_light": "7DAE4C"
+    },
+    "carrot": {
+      "deep": "C96A18",
+      "tip": "B85E14",
+      "leaf": "5C8C3A",
+      "leaf_light": "7DAE4C"
+    },
+    "turnip": {
+      "flank": "DDD3BE",
+      "shoulder": "9B5A8C",
+      "shoulder_dark": "7C4470",
+      "leaf": "5C8C3A"
+    },
+    "cabbage": {
+      "crown": "A9D06C"
+    },
+    "onion": {
+      "deep": "B87818",
+      "neck": "C9B078",
+      "sheen": "DBA030"
+    },
+    "pumpkin": {
+      "rib": "98400F",
+      "crown": "DE6E22",
+      "stem": "6E5A2C",
+      "stem_light": "8A7438"
+    },
+    "kale": {
+      "frill": "3E7A66",
+      "rib": "9DBE8A"
+    }
   },
   "fish_styles": {
     "perch": {

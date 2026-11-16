@@ -248,7 +248,7 @@ orders; its recipes come from `ContentRegistry`. It depends on the scene's items
 registers transient work sources with TaskManager. See `44_crafting_workshops.md`.
 
 `WildlifeManager` (updated 2026-10-10) follows the same scene-owner lifetime: sole loader
-of the species files in `data/entities/animals/` (rabbit, deer, wolf, duck; it scans the folder), seeded populations,
+of the species files in `data/animals/` (rabbit, deer, wolf, duck; it scans the folder), seeded populations,
 inspector provider and save section `wildlife` (priority 65). RabbitAgent and
 DeerAgent receive their definitions and share GrazerAgent's gentle needs and
 state machine. AnimalNavigation checks species footprints/clearance (rabbit
@@ -286,8 +286,8 @@ No new autoload or global class is required. The scheduling rules and provider c
 including edge-to-water duck flights, in [Wildlife](../40_economy_colony/45_wildlife.md)
 (roadmap 94, 95 and 111).
 
-`SurfaceDetailRegistry` (2026-10-08) loads `data/entities/surface_details.json`
-(stones, seasonal flowers and reeds) and every `data/entities/flora/*_bush.json` once
+`SurfaceDetailRegistry` (2026-10-08) loads `data/terrain/surface_details.json`
+(stones, seasonal flowers and reeds) and every `data/flora/*_bush.json` once
 (it owns the flora folder listing, `flora_files()`),
 with no runtime world dependencies. Scene-owned `SurfaceDetailManager`
 combines immutable seeded candidates with persistent clearing/removal deltas,
@@ -329,8 +329,8 @@ until the final clock signals, preserving observational saves and winter dormanc
 
 Sole loader of the static content a save can name: `data/furniture/*.json` (with
 SurfaceDetailRegistry's plant place entries merged in, so it loads after it),
-`data/entities/items/resources.json`, `data/workshops/worker_crafting.json` and the
-tree species in `data/entities/flora/*_tree.json` (each file's `placement.pick_order`
+`data/items/items.json`, `data/recipes/recipes.json` and the
+tree species in `data/flora/*_tree.json` (each file's `placement.pick_order`
 is the seeded species pick order). API: `furniture_def`/`has_furniture`, `item_def`/`has_item`,
 `recipe`/`has_recipe`, `tree_species`/`has_tree_species`, the read-only
 dictionaries `furniture`, `items`, `recipes`, `recipe_sections`, `trees` and
@@ -341,6 +341,59 @@ ids. `FurniturePlacementController`, `ItemDropManager`, `CraftingManager` and
 `SurfaceFloraSpawner` take their own copy of these definitions when created (so a
 test or one manager can adjust it without touching the registry) and keep only runtime
 state.
+
+#### Naming ids and files (owner, 2026-11-15)
+
+From the owner's review of the data files: the Copper Pull Saw sat in `resources.json` though
+"it is not really a resource", and `log_table.json` held a plank table. The rules since:
+- **An id names a thing by its use,** not by what it is made of or how it looks today:
+  `base:furniture:dining_table`, `torch`, `bench`, `hearth`. A change of wood or look then
+  never makes an id wrong, as the plank table made `log_table` wrong.
+  - Where two pieces share a use, their make tells them apart: `log_stool`, `stone_stool`.
+  - Sizes of one piece take a number: `door_2`, `door_3`, `door_4`.
+  - Ids that still name a make and are true today were left alone (`log_bed`, `log_fence`,
+    `log_gate`, `crude_ladder`); rename them by this rule the day their look changes.
+- **An id carries no category:** `base:<family>:<name>`, as `base:item:pine_log`,
+  `base:item:copper_saw`, `base:furniture:stone_stool`, `base:recipe:anvil_stone`. What a thing
+  belongs to is said by its fields and tags (`furniture_category`, an item's `material_tags`,
+  a recipe's `section`), where it can belong to several groups and move between them without
+  a rename.
+  - Items carried a kind until the owner's review of 2026-11-15 (`base:item:wood:pine_log`).
+    It decided nothing in play, disagreed with the storage categories (planks were `wood`
+    though stored on their own; Food took two kinds, `flora` and `fish`) and would have made
+    every regrouping a rename.
+  - A name has to stand alone: the metal ores are `copper_ore`, `iron_ore`, as their models
+    and shown names are.
+  - The item stamper and the Inventory window group items by tag (`data/ui/item_stamper.json`,
+    `data/ui/inventory_catalog.json`), storage by the one `stockpile_*` tag each item has.
+  - Blocks keep their kind, `base:terrain:<kind>:<name>` (doc 12): it is a block's geology,
+    which does not change, and code reads it.
+- **A recipe's id names no trade:** `base:recipe:<name>`. Its `section` says who makes it.
+- **A file is named for what it holds:** `data/items/items.json` (every item),
+  `data/recipes/recipes.json` (every trade's recipes).
+- **Data files sit one folder deep:** `data/<folder>/<file>.json`. The folder says what its
+  files are about: a kind of thing (`data/furniture/`, `data/items/`, `data/flora/`) or a part
+  of the game (`data/tasks/`, `data/ui/`). No folder groups other folders, as no id carries a
+  category.
+  - Until the owner's review of 2026-11-15, `data/entities/` held the animals, dwarves, flora
+    and items, while furniture, materials and professions sat beside it. No code read it as a
+    group.
+  - A folder is named for what it holds, as a file is: the recipes are in `data/recipes/`
+    (`data/workshops/` before, which held no workshop; a workshop is a furniture piece).
+  - A kind kept as one table still has its folder (`data/items/items.json`), so every path has
+    one shape and a kind can grow a second file.
+  - The surface details (reeds, flowers, boulders, scree) are in `data/terrain/`, beside the
+    surface palettes.
+  - The lint's `naming` rule checks the depth with every gate.
+- **A piece's files carry the last part of its id:** `data/furniture/torch.json`,
+  `assets/models/furniture/torch.glb`, `assets/ui/furniture/torch.png`. An item's picture is
+  its whole key with underscores: `assets/ui/items/base_item_pine_log.png`
+  (`ColonyInventory.thumbnail_path`). Models are named in the art pipeline (`piece=` in
+  `tools/hearthblock/art/write_data.py`, the profiles in `tools/art_data/`) and embed their
+  name, so a renamed model is installed again through `build.py`, not moved.
+- **Renaming an id ends older saves.** Saves store ids (Hard Rule 3), and no migration is
+  written during development (CLAUDE.md, "Saves").
+- **Shown names** follow doc 23, "Names are sentence case".
 
 ### `CraftMaterials` *(roadmap 118 — crafted materials and appeal)*
 
@@ -612,9 +665,13 @@ updates. `count_room_lights(cells)` counts installed sources independently of
 heating. `SaveManager` calls `clear_runtime_state()` before world reload so old
 doors, heat and light counts cannot survive or duplicate during furniture restore.
 
-Room kinds come from `data/rooms/room_kinds.json`. `classify()` decides a
-room's kind, and the room window reads `room_kind()`, `nearest_kind()`,
-`missing_needs()`, `room_counts()`, `room_furniture(room)` and `room_appeal(room)`.
+Room types come from `data/rooms/room_kinds.json`, worked out by RoomManager's preloaded
+`RoomKinds` component (`RoomManager.kinds`; doc 34 "Room types"). `classify()` decides a
+room's type whenever its temperature is worked out, and the room window reads `room_kind()`,
+`nearest_kind()`, `missing_needs()`, `room_counts()`, `room_furniture(room)` and
+`room_appeal(room)`, and the types' words from `kinds` (`listed()`, `goal_words()`,
+`steps_words()`, `needs_sentence()`). `thing_anchors()` gives a scan the pieces a type counts
+beyond beds, lights and doors.
 
 Room appeal (doc 23 "Room appeal") is worked out when asked and never saved:
 `room_appeal(room)` returns its parts, total, floor tiles, the share its size counts, the
@@ -714,7 +771,7 @@ Availability is the explicit `promotion_enabled` flag (`profession_enabled()`);
 `work_category()` caches each task type's permission category. The live scope and the
 planned careers are in `41_dwarf_agents.md`, Profession System (doc 96).
 
-It also owns the dwarf stats (doc 41, "Stats"), `data/entities/dwarves/stats.json`:
+It also owns the dwarf stats (doc 41, "Stats"), `data/dwarves/stats.json`:
 `get_stat_data()`, `stat_ids()` in the sheet's order, `stat_definition()`, `stat_steps()`
 and `stat_word()`; and each profession's main and second stat, `profession_stats()` and
 `profession_fit()`. Each `DwarfAgent` holds its own `stats` (stat id → step), and
@@ -887,6 +944,7 @@ first; equal priorities have no dependency on each other):
 | 20 | `settlement_flag` | `FlagPlacementController` | Founded state, last anchor, the settlement's name and founding day (the physical flag belongs to furniture/items) |
 | 30 | `stockpiles` | `StockpileDesignationController` | Zones, filters, priorities and stored stacks |
 | 35 | `fishing` | `FishingSystem` | Fishing zones (their spots and Keep) and each water's fish stock with the day it was counted (doc 289). Zones are player orders and catches change the stock, so neither comes from the seed; spots and their leases are rebuilt on restore |
+| 36 | `farming` | `FarmingSystem` | Fields (doc 309): each field's tiles, its plan (a crop for each season, or rest) and its plants with the days grown, ripe or picked, and work begun on a tile. Tilled soil saves with the terrain; a Farmer's places and their leases are rebuilt on restore, and growth starts afresh at the first hour after a load |
 | 40 | `furniture` | `FurniturePlacementController` | Ghosts, installed pieces (a storage piece with its stacks, filter and priority, doc 294), uninstall flags, Move records |
 | 41 | `ladders` | `LadderSystem` | Routes, build/removal progress, next ID |
 | 50 | `items` | `ItemDropManager` | Loose items: key, position, yaw, count, permission, identity, material |
@@ -1099,11 +1157,73 @@ Their quack interval is a saved behavior timer driven by the duck's RNG;
 playback variation uses cosmetic RNG and voices are not serialized. Work impacts
 retain their existing real-time tail and attenuation defaults.
 
-Fishing's cues (doc 289) share the bus and pool: `fish_plop` as the float lands, `fish_bite`
-at the bite and `fish_land` as the fish comes out, each played as `DwarfFishingPose` crosses its
-frame (`DwarfWorkExecution`, `WorkFeedback.play_fishing`). Each is its own kind with its own
-cooldown and voice cap, so one never silences the next. They reuse the recorded duck splashes;
-the cast itself has no sound yet (`00_todo.md`, Food).
+Fishing's cues share the bus and pool, each played as `DwarfFishingPose` crosses its mark
+(`DwarfWorkExecution`, `WorkFeedback.play_fishing`): `fish_cast` as the rod starts forward
+(`CAST_SWING`), `fish_plop` as the float lands (`CAST_END`), `fish_bite` at the bite
+(`BITE_START`), `fish_land` as the fish comes out (`LANDED`; `fish_land_big` for a Ranger's big
+fish) and `fish_flop` at each of the two flaps of the catch on the line (`FLAPS`). Each is its
+own kind with its own level, cooldown and voice cap, so one never silences the next.
+
+All 17 fishing one-shots are recordings (2026-11-12, doc 305), mono 48 kHz like the other work
+cues, rebuilt by `tools/generate_fishing_audio.py` through the shared recorded-work helper.
+`tools/audio_sources/fishing/` holds eight CC0 masters decoded from public HQ MP3 previews, the
+credits, hashes and each cue's crop, filters, fades and level:
+- **the cast:** three swings of a bamboo fishing rod (Mrthenoronha), a rod without a line;
+- **the float landing:** three pebbles falling into a pond (HenKonen), foley for the float;
+- **the bite:** a fish jumping and splashing at the surface (paulprit);
+- **the landing:** a fish splashing as it is released back into the water (paulprit), which
+  stands for one coming out; a big fish takes two longer stretches of a fish jumping;
+- **the flaps:** three single flops of a fish on land (RatBird).
+
+Until then the three cues a catch had all reused the ducks' lake splash at −18, −13 and −10 dB,
+which sat at or under a footstep. By the same measure (the A-weighted level of a cue's loudest
+eighth of a second, at its in-game level) the swish and the plop now sit just above a footstep
+and the landing about level with a duck's quack; a big fish's landing is a little louder, still
+under an axe. The owner's ear decides the levels (`fish_*` in `profiles`).
+
+The basic smelter's cues share the bus and pool too (2026-11-13, doc 307; doc 44, "Charging the
+basic smelter"). A copper bar's charge plays `smelt_toss` as each lump lands in the pot,
+`smelt_log` as a log goes into the fire hole and `smelt_blow` as each breath's blow starts, each
+when the work passes its mark (`DwarfSmeltPose.cues`, `WorkFeedback.play_smelting`); `smelt_bar`
+plays when the cast bar is taken off, as the recipe's `collect_sound` (`play_collect`). All twelve
+are recordings, mono 48 kHz, rebuilt by `tools/generate_smelter_audio.py`;
+`tools/audio_sources/smelter/` holds nine CC0 masters decoded from public HQ MP3 previews, the
+credits, hashes and each cue's crop, filters, fades and level:
+- **the lumps:** three rocks thrown onto a pile of rocks (Nox_Sound);
+- **the logs:** three logs thrown onto other logs (Vrymaa), foley for a log pushed into a stone
+  hole;
+- **the breaths:** one blown through the plastic pipe its uploader blows a charcoal fire with
+  (pbimal) and two through a cardboard tube (SuzieHanna); no fire burns in any of them, and each
+  is 1.2 s of a longer breath, to fit the pose's blow;
+- **the bar:** three drops of an aluminium ingot on a concrete floor (wjoojoo), foley for copper
+  on stone, low-passed at 8 kHz because aluminium rings brighter.
+
+By the measure above the lump and the log sit about level with a fish being landed, under an axe;
+the breath sits between a rod's swish and that landing; the bar is level with the landing. The
+smelter's fire is under `FurnitureFireSound` below. None of it has been listened to: the owner's
+ear decides the levels (`smelt_*` in `profiles`).
+
+A field's cues share the bus and pool too (2026-11-14, doc 309; doc 42, "Fields"). `farm_hoe` plays
+each time the copper hoe bites the ground, as the work passes the pose's contact
+(`DwarfHoePose.CONTACT_PHASE`, `WorkFeedback.hoe_impact`, which also raises the dust a pick raises
+from that soil); `farm_sow` plays as a tile's sowing ends and `farm_pull` as a ripe tile's pulling
+ends (`DwarfWorkExecution`, `WorkFeedback.play_farming`). Each is its own kind with its own level,
+cooldown and voice cap, heard as far as a catch is. All thirteen are recordings, mono 48 kHz,
+rebuilt by `tools/generate_farming_audio.py`; `tools/audio_sources/farming/` holds four CC0 masters
+decoded from public HQ MP3 previews, the credits, hashes and each cue's crop, filters, fades and
+level:
+- **the hoe:** six strokes of a mattock digging a garden (maxthrower), foley for the hoe. A mattock
+  is the heavier tool, so its thud under 100 Hz is turned down. Each cue is the chop and the soil
+  crumbling after it. The upload repeats one stretch of itself; each cue is a stroke of its own;
+- **the pull:** one plant pulled up out of the ground with its roots snapping (Jofae), and three
+  tears of a weed (14FPanskaBenesova_Barbora), which stand for a crop pulled;
+- **the sowing:** three strokes of a hand brushing the ground (NeoSpica), foley for a hand sowing:
+  no seed is heard.
+
+By the measure above the hoe sits between an axe and a fish being landed, under the pick's own soil
+cue; the pull about level with a breath on the smelter's coals; the sowing just under a duck's
+splash, between a footstep on earth and one on stone. None of it has been listened to: the owner's
+ear decides the levels (`farm_*` in `profiles`).
 
 `WaterSound`, a child of `WaterRenderer` (doc 108), owns exactly two spatial loop
 players on the Work bus: a waterfall rush and a softer river bed. `WaterAudioBank`
@@ -1126,15 +1246,22 @@ the river at −17 dB out to 30 blocks. Beyond each layer's `max_zoom` it fades 
 
 `FurnitureFireSound`, a child of `FurniturePlacementController` (doc 117), gives
 installed fires their crackle: every definition with a `fire_sound` (`campfire` for
-the campfire and the hearth, `torch` for the log torch). A nightly fire is silent while
-cold (doc 279). It keeps at most four spatial
+the campfire and the hearth, `torch` for the log torch, `smelter` for the basic smelter). A
+nightly fire is silent while cold (doc 279), and a workshop whose fire is its batch's (the
+basic smelter) while its coals do not show (`FurnitureFires.burning`, doc 44). It loads a loop
+for every kind `fire_ambience` holds. It keeps at most four spatial
 loop players on the Work bus and every quarter-second picks the strongest visible
 sources by camera focus, zoom and height difference. Voices share one power budget,
 keep their playback phase while chosen, and fade. Pause, zero speed, loading, a
 missing camera, hidden or sliced-away sources and removed pieces are silent; plans
 and packed pieces never sound, and speed never changes pitch. Tuning is `fire_ambience`
-in `data/audio/work_feedback.json` (campfire 20 blocks at −10 dB, torch 12 at −15 dB).
-The loops in `assets/audio/ambience/` use two CC0 wood-fire recordings: aerror's
+in `data/audio/work_feedback.json` (campfire 20 blocks at −10 dB, torch 12 at −15 dB,
+smelter 20 at −13 dB: its loop is brighter, so that level matches the campfire's by the
+A-weighted measure). The smelter's 29-second loop is the fire of a wood-fired pottery kiln
+(nicotep, CC0), foley for a smelting fire; its master, credits and edit profile are with the
+smelter's other sounds in `tools/audio_sources/smelter/`, and `tools/generate_smelter_audio.py`
+makes it as the campfire's is made (2026-11-13, doc 307).
+The campfire and torch loops in `assets/audio/ambience/` use two CC0 wood-fire recordings: aerror's
 campfire supplies the 29-second campfire/hearth loop, and TheWoodlandNomad's log
 fire supplies the 12-second torch loop as small-flame foley. The torch source is
 a log fire, not a recording of a torch. Source masters, credits and edit profiles
@@ -1273,7 +1400,7 @@ older proposed `AudioManager` name does not identify a live system.
 On application startup, autoloads run their `_ready()` in registration order, before the main scene's nodes run `_ready()`. **The main scene is instantiated before any autoload's `_ready()`**, though, so scene-script member initializers (`var x = Registry.table`) and `_init()` see only what an autoload loaded in its own `_init()`. A registry whose tables scene scripts copy at construction must load in `_init()`; otherwise scene systems read it from `_ready()` on.
 
 1. **`CraftMaterials._ready()`** — loads `data/materials/craft_materials.json` and builds the ingredient-to-material lookup before any consumers initialise.
-2. **`SurfaceDetailRegistry._init()`** — loads `data/entities/surface_details.json` and every `data/entities/flora/*_bush.json` definition.
+2. **`SurfaceDetailRegistry._init()`** — loads `data/terrain/surface_details.json` and every `data/flora/*_bush.json` definition.
 3. **`ContentRegistry._init()`** — loads furniture (plus the plant place entries from step 2), item, worker-recipe and tree-species definitions. `FurniturePlacementController`, `ItemDropManager` and `CraftingManager` copy these tables in member initializers.
 4. **`BlockRegistry._ready()`** — loads `data/terrain/terrain_blocks.json` (block definitions: `kind` + `hex_color`) and `data/terrain/surface_palettes.json` (per-season grass/dirt colours), assigning runtime integer IDs in file order. It then resolves and caches `AIR_ID = get_id("base:terrain:void")`. Documentation-comment keys (any JSON key beginning with `__`) are skipped.
 5. **`WorldClock._ready()`** — loads `data/calendar/calendar.json` and starts the live clock (`_process` advances `hour`/`day`/`season`, honouring `speed` and `paused`).
@@ -1444,6 +1571,15 @@ set for its process only, so its `user://` lies inside its profile; eight run at
 (`--parallel`). Godot comes from `$GODOT`, then the Steam install, then `godot` on `PATH`.
 `python3 tools/import_assets.py` runs Godot's headless import in an isolated profile the
 same way: run it after adding a WAV, PNG or GLB, before tests load the new asset.
+`python3 tools/run_offscreen.py res://<script>.gd` runs a script that has to draw (a menu
+picture, a gallery, a rendered capture) in an isolated profile too, on a hidden screen:
+`--headless` draws nothing, and a window on the owner's desktop gets in their way (doc 61,
+"Running a script that draws").
+- **Frozen copies.** Seven tests compile an older copy of a script, kept as
+  `docs/00_dev_roadmap/concepts/<study>/*.before.txt`, and compare today's code with it
+  (`DuckQueryReuseTest`, `RoomRebuildSchedulingTest` and five more). The copies stay as
+  written. When a path or name one of them reads moves, the test that compiles it replaces
+  that text as it loads the copy, as `DuckQueryReuseTest` does for the animals folder.
 - **Pass rule.** Exit 0 within the timeout, the pass marker (`_OK`, `_PASS` or
   `<Test>: PASS`) and no `SCRIPT ERROR` on stderr. A runtime error in an awaited coroutine
   ends only that coroutine, so a test can still print its marker and exit 0 with its later

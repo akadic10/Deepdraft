@@ -1,6 +1,9 @@
 extends RefCounted
 
 const LIGHT_META := &"furniture_light"
+## Every installed piece's light, lit or not, wherever the slice has put it: a carried candle looks
+## here for a torch or fire that already lights its spot (DwarfHatLight, doc 304).
+const LIGHT_GROUP := &"furniture_lights"
 
 
 ## Installed visuals only: caller supplies the definition from the furniture owner.
@@ -28,6 +31,7 @@ static func attach(node: Node3D, def: Dictionary) -> void:
 	var key := String(def.get("furniture_key", ""))
 	if warm.has(key): light.set_meta("hearthblock_color", Color(String(warm[key])))
 	node.add_child(light)
+	light.add_to_group(LIGHT_GROUP)
 	node.set_meta(LIGHT_META, light)
 	var mesh_name := String(light_def.get("emissive_mesh", ""))
 	for mesh: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):

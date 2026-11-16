@@ -364,6 +364,9 @@ func _is_valid_cell(cell: Vector3i, plane_y: int) -> bool:
 	var fishing := get_tree().get_first_node_in_group("fishing_system")
 	if fishing != null and fishing.is_zone_cell(cell):
 		return false   # a fishing spot is a zone too (doc 289)
+	var farming := get_tree().get_first_node_in_group("farming_system")
+	if farming != null and farming.is_zone_cell(cell):
+		return false   # and so is a field's tile (doc 309)
 	return NavGrid.is_walkable(cell)
 
 
@@ -689,7 +692,7 @@ func _open_zone_window(zone_id: int) -> void:
 	if zone == null or _window_panel == null:
 		return
 	_window_zone_id = zone_id
-	_storage_panel.show_storage(zone, [{"id": "remove", "text": "Remove zone", "variant": "danger"}], "Storage Zone %d" % zone_id)
+	_storage_panel.show_storage(zone, [{"id": "remove", "text": "Remove zone", "variant": "danger"}], "Storage zone %d" % zone_id)
 	_window_manager.open(ZONE_WINDOW_ID)
 
 

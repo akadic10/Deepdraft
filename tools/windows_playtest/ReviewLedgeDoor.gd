@@ -2,7 +2,7 @@ extends "res://scripts/tests/SaveManagerRoundTripTest.gd"
 
 ## Supply a copied save in this review's isolated user://save_copy directory.
 const OUT := "res://tmp/ledge_door_20261013/"
-const COPPER := "base:resources:ore:copper"
+const COPPER := "base:item:copper_ore"
 
 func _run() -> void:
 	if not "/ledge_door_20261013/" in OS.get_user_data_dir().replace("\\", "/"):
@@ -62,9 +62,9 @@ func _run() -> void:
 	var furniture = _owner("furniture")
 	furniture.set_process(false)
 	var results := {"doors": [], "pickups": []}
-	for name in ["door", "log_door_3", "log_door_4"]:
+	for name in ["door_2", "door_3", "door_4"]:
 		var key: String = "base:furniture:" + name
-		var origin := Vector3i(579,43,599) if name != "log_door_4" else Vector3i(579,43,597)
+		var origin := Vector3i(579,43,599) if name != "door_4" else Vector3i(579,43,597)
 		furniture.activate_for(key, false)
 		furniture._yaw = 0
 		furniture._update_hover(true, camera.unproject_position(Vector3(origin) + Vector3(.5,1,.5)))

@@ -1,6 +1,6 @@
 extends "res://scripts/tests/HaulingAnimationTest.gd"
 
-const COPPER := "base:resources:ore:copper"
+const COPPER := "base:item:copper_ore"
 
 
 func _ledge_trip(height := 2, count := 1) -> void:

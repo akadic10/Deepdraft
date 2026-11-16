@@ -1,6 +1,6 @@
 extends VBoxContainer
 
-## Colony Dwarves' Details card (doc 261), after Stonehearth's Citizens: who the selected
+## Colony dwarves' Details card (doc 261), after Stonehearth's Citizens: who the selected
 ## dwarf is, and the ways into more.
 ## - The portrait on the people tile, the name, the profession with its level and the way
 ##   to the next, and the traits as tags.

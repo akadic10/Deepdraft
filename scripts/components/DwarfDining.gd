@@ -21,6 +21,7 @@ var elapsed := 0.0
 var travel_left := 0.0
 var revision := -1
 var radius := 16.0
+var walk_radius := 16.0
 var focus_radius := 6.0
 var fire: InstalledFurnitureComponent
 
@@ -29,7 +30,12 @@ func _init(dwarf: DwarfAgent, grill_fire: InstalledFurnitureComponent = null) ->
 	fire = grill_fire
 	# Dining starts only after collecting a real portion. Hunger must not hide
 	# nearby seats now that food is secured; search and travel remain bounded.
-	radius = float(agent._food.config.dining_distance)
+	# The reach is how far away a place may be, as the player sees it on the ground. The walk to
+	# it follows the grid and goes round furniture, so it is longer than that and has its own,
+	# wider bound: a table 23 blocks off is a 34-block walk (owner's colony, 2026-11-10).
+	var limits: Dictionary = agent._food.config
+	radius = float(limits.dining_distance)
+	walk_radius = maxf(radius, float(limits.get("dining_walk_distance", radius)))
 	focus_radius = float(TaskManager.get_config_section("idle").get("seat_focus_radius",6))
 	furniture = agent.get_tree().get_first_node_in_group("furniture_controller")
 	if furniture == null: return
@@ -50,7 +56,9 @@ func _init(dwarf: DwarfAgent, grill_fire: InstalledFurnitureComponent = null) ->
 
 func tick(seconds: float) -> bool:
 	if state == "ready": return true
-	elapsed += seconds
+	# The search is sliced over frames (a seat a frame, a route over several), so its budget is
+	# real time. Counted in game seconds, x3 left it a third of the frames.
+	elapsed += seconds / maxf(1.0, float(WorldClock.speed))
 	if state == "walking":
 		travel_left -= seconds
 		if not valid() or travel_left <= 0 or agent._move_path.is_empty():
@@ -79,11 +87,18 @@ func tick(seconds: float) -> bool:
 	var result := Route.advance(route,agent.current_cell(),goals.keys()[0],int(agent._food.config.search_nodes),
 		Time.get_ticks_usec()+int(agent._food.config.search_budget_usec),false,goals)
 	if result == NavGrid.ProbeResult.SEARCHING: return false
-	if result != NavGrid.ProbeResult.REACHABLE or Travel.path_length(agent.current_cell(),route.get("path",[])) > radius or not _private_route():
+	if result != NavGrid.ProbeResult.REACHABLE or Travel.path_length(agent.current_cell(),route.get("path",[])) > walk_radius or not _private_route():
 		choice = {}; route = {}
 		return false
 	goal = route.path.back() if not route.path.is_empty() else agent.current_cell()
-	if not _available(choice) or (choice.get("table") != null and choice.table.dining_claims.has(goal)):
+	if _available(choice) and choice.get("table") != null and choice.table.dining_claims.has(goal):
+		# Another diner claimed this place while the route was searched. The table has other
+		# places: look again without this one, rather than give the table up.
+		goals.erase(goal)
+		route = {}
+		if goals.is_empty(): choice = {}
+		return false
+	if not _available(choice):
 		choice = {}; route = {}
 		return false
 	if choice.get("seat") != null:

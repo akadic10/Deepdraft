@@ -1,0 +1,37 @@
+{
+  "id": "base:animal:wolf",
+  "display_name": "Wild wolf",
+  "description": "A cautious predator. Hunts only when hungry, gives up long chases and rests after feeding. Avoids approaching dwarves.",
+  "__comment_hit_points": "Hit points (doc 45): what the Ranger's blows will have to wear down once hunting comes. Nothing hurts an animal yet.",
+  "hit_points": 60,
+  "model_parts": {
+    "body": "res://assets/models/animals/wolf/body.glb",
+    "head": "res://assets/models/animals/wolf/head.glb",
+    "ears": "res://assets/models/animals/wolf/ears.glb",
+    "tail": "res://assets/models/animals/wolf/tail.glb",
+    "leg": "res://assets/models/animals/wolf/leg.glb"
+  },
+  "population": {"count": 4, "salt": 541903, "attempts": 4000, "min_spacing": 128, "max_ground_y": 43, "prey_min_distance": 18, "prey_max_distance": 36, "initial_hunger": [0.45, 0.72]},
+  "visual_scale": [1.0, 1.0, 1.0],
+  "visual_pose": {"head": [0, 1.125, -0.6875], "tail": [0, 1.0, 0.75], "hip_x": 0.375, "hip_y": 0.5, "hip_z": 0.5, "knee_y": -0.25, "rest_y": -0.16, "hop_amplitude": 1.3, "fold_angle": 1.4, "squash": 0.045},
+  "navigation": {"footprint": 4, "clearance": 3, "home_radius": 32, "hop_height": 0.025, "hop_seconds": 0.95, "flee_hop_seconds": 0.3, "fall_speed": 6},
+  "behavior": {
+    "threat_radius": 8, "safe_radius": 14, "calm_seconds": 5,
+    "idle_seconds": [1.0, 3.0],
+    "hunger_per_hour": 0.012, "hungry_threshold": 0.6,
+    "fatigue_per_hour": 0.04, "sleep_threshold": 0.5, "exhausted_threshold": 0.85,
+    "wake_hunger_threshold": 0.95, "sleep_recovery_per_hour": 0.3, "wake_threshold": 0.08,
+    "rest_hours": [[8, 17]]
+  },
+  "hunting": {
+    "search_radius": 40, "pursuit_radius": 48, "pursuit_seconds": 12,
+    "stride_seconds": 0.28, "route_budget": 64, "capture_radius": 1.6,
+    "retry_hours": 1, "eat_seconds": 9,
+    "prey": {
+      "base:animal:rabbit": {"minimum_population": 32, "meal_relief": 0.75, "satisfied_hours": 36},
+      "base:animal:deer": {"minimum_population": 12, "meal_relief": 1.0, "satisfied_hours": 72}
+    }
+  },
+  "forage_kinds": [],
+  "feedback": {"selection_sound": "wolf_select", "eating_sound": "wolf_eat", "eating_cues": [0.12, 0.58]}
+}

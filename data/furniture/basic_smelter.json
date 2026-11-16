@@ -1,41 +1,55 @@
 {
   "__comment": [
-    "The Blacksmith's own workbench (doc 297): a squat bowl furnace of three stone courses daubed with soil, a clay crucible sunk in its top and a fire mouth at the front, beside a flat casting stone with two bar moulds cut in it. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
-    "Blacksmiths make it at the crude workbench from a log, four Rough Stones and a Soil. Like the mason's bench it keeps no wood identity.",
-    "Copper bars are made here as a batch (batch_hours in the recipe): charged in 12 s, it melts by itself on the world clock, then a Blacksmith takes the cast bar off the stone (COLLECT). The charge part (batch_model) shows while a batch is on. Copper fittings are hammered cold here, with no wait.",
+    "The Blacksmith's own workbench (doc 297; reworked in doc 300, the owner's pick E of the second round of rudimentary concepts): one great rough stone knocked hollow with the maul, a stone pot standing in the hole in its top and a fire hole knocked in its foot, beside a casting stone, a thick slab on two log rounds with a bar mould pecked in its top. Rebuilt in worked stone at 3 x 1 on 2026-11-10 (doc 301, the owner's pick B): the boulder is two cells broad, the casting stone the third cell. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Blacksmiths make it at the crude workbench from a log, four rough stones and a Soil. Like the mason's bench it keeps no wood identity.",
+    "Copper bars are made here as a batch (batch_hours in the recipe): charged in 12 s, it melts by itself on the world clock, then a Blacksmith takes the cast bar off the stone (COLLECT). The other trades' copper tools (doc 306) were hammered cold here until 2026-11-14; they are made on the anvil stone now (doc 310), so the smelter only melts and casts. A batch's fuel is a coal, or two logs when the colony has none: the logs go to the fire hole, the coal into the pot with the ore.",
+    "What shows (doc 300): the charge part (batch_model: coals in the fire hole and round the pot, copper melting in it) from when the whole charge is in the pot until the copper has set; then the bar in the mould (batch_done_model) until it is taken off.",
+    "Work spots (doc 44): a batch is worked at batch_cell, the boulder: each lump is tipped into its pot by hand and the fire is blown on through a hollow stick (batch_crafting_motion charge), the pot's mouth at batch_surface_height over the cell's centre (batch_surface_radius 0). batch_fire_hole is the fire hole's mouth in the model's own blocks: the Blacksmith charges from the floor cell before it when that cell is free. The bar is taken off the casting stone, crafting_cell, at crafting_surface_height; nothing else is worked there since the tools moved to the anvil stone.",
     "batch_heat: its heat_source counts only while a batch melts (WorkshopBatch.update_heat), never when it stands idle or once the copper has set (doc 44, the Smelter's heat rule). The heat is a first figure, to tune in play.",
-    "The casting stone's top stands 0.375 blocks high; the furnace's rim 1.125, inside the collision regions."
+    "fire_sound smelter: its fire is heard only while its coals show, from the whole charge in the pot until the copper has set (FurnitureFires.burning; the loop and its levels are fire_ambience.smelter in data/audio/work_feedback.json). An idle smelter and one whose bar has set are silent. The charge's own sounds (each lump, each log, each breath) come from the Blacksmith's pose (DwarfSmeltPose.cues), and the bar's from its recipe's collect_sound.",
+    "The casting stone's top stands 0.9375 blocks high (15 cells, bench height); the boulder's crown 1.5 (24 cells), its pot's rim a cell higher, inside the collision regions."
   ],
   "furniture_key": "base:furniture:basic_smelter",
   "furniture_category": "workshops",
-  "display_name": "Basic Smelter",
-  "description": "A bowl furnace of daubed stones with a clay crucible, beside a casting stone with bar moulds: the Blacksmith's own workbench. Copper ore and coal melt in it for a few hours, then a Blacksmith takes the cast bar off the stone. Warms its room while it melts. Occupies a 2 by 1 space.",
+  "display_name": "Basic smelter",
+  "description": "One great rough stone knocked hollow, a stone pot in its top and a fire hole in its foot, beside a casting stone with a bar mould: the Blacksmith's own workbench. Copper ore melts in it over coal or logs for a few hours, then a Blacksmith takes the cast bar off the stone. The bars are hammered into tools on an anvil stone. Warms its room while it melts. Occupies a 3 by 1 space.",
   "model": "res://assets/models/furniture/basic_smelter.glb",
-  "item_key": "base:resources:furniture:basic_smelter",
+  "item_key": "base:item:basic_smelter",
   "placement": "floor",
   "yaw_steps": 4,
-  "crafting_surface_height": 0.375,
-  "crafting_surface_radius": 0.5,
-  "crafting_recipe": "base:recipe:worker:copper_bar",
+  "crafting_surface_height": 0.9375,
+  "crafting_surface_radius": 0.25,
+  "crafting_cell": [2, 0],
+  "batch_cell": [0, 0],
+  "batch_surface_height": 1.5,
+  "batch_surface_radius": 0.0,
+  "batch_crafting_motion": "charge",
+  "batch_fire_hole": [-1.0625, 0.25, 0.5],
   "crafting_action": "Smelt copper",
   "batch_model": "res://assets/models/furniture/parts/basic_smelter_charge.glb",
+  "batch_done_model": "res://assets/models/furniture/parts/basic_smelter_bar.glb",
   "batch_heat": true,
+  "fire_sound": "smelter",
   "heat_source": {
     "heat_units": 2400,
     "radius": 4
   },
   "footprint": {
-    "width": 2,
+    "width": 3,
     "depth": 1
   },
   "collision_regions": [
     {
       "min": [0, 0, 0],
-      "max": [1, 1.125, 1]
+      "max": [1, 1.5625, 1]
     },
     {
       "min": [1, 0, 0],
-      "max": [2, 0.375, 1]
+      "max": [2, 1.1875, 1]
+    },
+    {
+      "min": [2, 0, 0],
+      "max": [3, 0.9375, 1]
     }
   ],
   "appeal": {

@@ -28,7 +28,7 @@ func _capture_inspector() -> void:
 	explorer.clear_selection()
 	manager.close("time_weather_dev")
 	furniture._process(0)
-	drops.spawn_drop("base:resources:furniture:wooden_table", 2, Vector3i(34,21,34))
+	drops.spawn_drop("base:item:wooden_table", 2, Vector3i(34,21,34))
 	var catalog = dock._place_catalog
 	catalog._all_toggle.button_pressed = true
 

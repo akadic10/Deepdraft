@@ -29,7 +29,7 @@
     "budget_ms": 2.0,
     "settle_seconds": 0.5,
     "hover_seconds": 0.1,
-    "keeping_food": "base:resources:flora:blueberry"
+    "keeping_food": "base:item:blueberry"
   },
   "buttons": {
     "pause": {"label": "Pause / resume", "tooltip": "Pause the settlement, or resume at the previous speed.", "key_action": "time_pause", "icon": "res://assets/ui/icons/pause.png", "family": "system"},

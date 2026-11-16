@@ -76,21 +76,76 @@
       "res://assets/audio/wildlife/duck_splash_02.wav",
       "res://assets/audio/wildlife/duck_splash_03.wav"
     ],
-    "__comment_fishing": "Fishing (doc 289) reuses the recorded duck splashes: fish_plop, quiet, as the float lands; fish_bite as a fish takes the bait; fish_land as it is landed.",
+    "__comment_fishing": "Fishing (doc 42): one catch plays fish_cast as the rod swings, fish_plop as the float lands, fish_bite as a fish takes it, fish_land as it comes out (fish_land_big for a Ranger's big fish) and fish_flop twice as it flaps on the line. Recorded cues, built by tools/generate_fishing_audio.py from tools/audio_sources/fishing/.",
+    "fish_cast": [
+      "res://assets/audio/work/fish_cast_01.wav",
+      "res://assets/audio/work/fish_cast_02.wav",
+      "res://assets/audio/work/fish_cast_03.wav"
+    ],
     "fish_plop": [
-      "res://assets/audio/wildlife/duck_splash_01.wav",
-      "res://assets/audio/wildlife/duck_splash_02.wav",
-      "res://assets/audio/wildlife/duck_splash_03.wav"
+      "res://assets/audio/work/fish_plop_01.wav",
+      "res://assets/audio/work/fish_plop_02.wav",
+      "res://assets/audio/work/fish_plop_03.wav"
     ],
     "fish_bite": [
-      "res://assets/audio/wildlife/duck_splash_01.wav",
-      "res://assets/audio/wildlife/duck_splash_02.wav",
-      "res://assets/audio/wildlife/duck_splash_03.wav"
+      "res://assets/audio/work/fish_bite_01.wav",
+      "res://assets/audio/work/fish_bite_02.wav",
+      "res://assets/audio/work/fish_bite_03.wav"
     ],
     "fish_land": [
-      "res://assets/audio/wildlife/duck_splash_01.wav",
-      "res://assets/audio/wildlife/duck_splash_02.wav",
-      "res://assets/audio/wildlife/duck_splash_03.wav"
+      "res://assets/audio/work/fish_land_01.wav",
+      "res://assets/audio/work/fish_land_02.wav",
+      "res://assets/audio/work/fish_land_03.wav"
+    ],
+    "fish_land_big": [
+      "res://assets/audio/work/fish_land_big_01.wav",
+      "res://assets/audio/work/fish_land_big_02.wav"
+    ],
+    "fish_flop": [
+      "res://assets/audio/work/fish_flop_01.wav",
+      "res://assets/audio/work/fish_flop_02.wav",
+      "res://assets/audio/work/fish_flop_03.wav"
+    ],
+    "__comment_smelting": "The basic smelter (doc 44): a copper bar's batch plays smelt_toss as each lump lands in the stone pot (smelt_log for a log pushed into the fire hole), smelt_blow for each breath through the hollow stick, and smelt_bar when the cast bar is taken off (the recipe's collect_sound). Its fire is fire_ambience.smelter, heard while its coals show. Recorded cues, built by tools/generate_smelter_audio.py from tools/audio_sources/smelter/.",
+    "smelt_toss": [
+      "res://assets/audio/work/smelt_toss_01.wav",
+      "res://assets/audio/work/smelt_toss_02.wav",
+      "res://assets/audio/work/smelt_toss_03.wav"
+    ],
+    "smelt_log": [
+      "res://assets/audio/work/smelt_log_01.wav",
+      "res://assets/audio/work/smelt_log_02.wav",
+      "res://assets/audio/work/smelt_log_03.wav"
+    ],
+    "smelt_blow": [
+      "res://assets/audio/work/smelt_blow_01.wav",
+      "res://assets/audio/work/smelt_blow_02.wav",
+      "res://assets/audio/work/smelt_blow_03.wav"
+    ],
+    "smelt_bar": [
+      "res://assets/audio/work/smelt_bar_01.wav",
+      "res://assets/audio/work/smelt_bar_02.wav",
+      "res://assets/audio/work/smelt_bar_03.wav"
+    ],
+    "__comment_farming": "Fields (doc 42): a Farmer's work plays farm_hoe each time the copper hoe bites the ground, farm_sow as a tile is sown by hand and farm_pull as a ripe tile is pulled. Recorded cues, built by tools/generate_farming_audio.py from tools/audio_sources/farming/.",
+    "farm_hoe": [
+      "res://assets/audio/work/farm_hoe_01.wav",
+      "res://assets/audio/work/farm_hoe_02.wav",
+      "res://assets/audio/work/farm_hoe_03.wav",
+      "res://assets/audio/work/farm_hoe_04.wav",
+      "res://assets/audio/work/farm_hoe_05.wav",
+      "res://assets/audio/work/farm_hoe_06.wav"
+    ],
+    "farm_sow": [
+      "res://assets/audio/work/farm_sow_01.wav",
+      "res://assets/audio/work/farm_sow_02.wav",
+      "res://assets/audio/work/farm_sow_03.wav"
+    ],
+    "farm_pull": [
+      "res://assets/audio/work/farm_pull_01.wav",
+      "res://assets/audio/work/farm_pull_02.wav",
+      "res://assets/audio/work/farm_pull_03.wav",
+      "res://assets/audio/work/farm_pull_04.wav"
     ],
     "snore": [
       "res://assets/audio/dwarves/snore_01.wav",
@@ -130,17 +185,57 @@
         "level_db": -9.0, "cooldown_seconds": 1.0, "max_voices": 2,
         "pause_with_simulation": true, "requires_sleep_pose": true
       },
+      "fish_cast": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -15.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
       "fish_plop": {
         "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
-        "level_db": -18.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+        "level_db": -9.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
       },
       "fish_bite": {
         "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
-        "level_db": -13.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+        "level_db": -8.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
       },
       "fish_land": {
         "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -7.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "fish_land_big": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -7.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "fish_flop": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -10.0, "cooldown_seconds": 0.15, "max_voices": 2, "pause_with_simulation": true
+      },
+      "smelt_toss": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -6.0, "cooldown_seconds": 0.2, "max_voices": 2, "pause_with_simulation": true
+      },
+      "smelt_log": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -7.0, "cooldown_seconds": 0.2, "max_voices": 2, "pause_with_simulation": true
+      },
+      "smelt_blow": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -13.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "smelt_bar": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
         "level_db": -10.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "farm_hoe": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -2.0, "cooldown_seconds": 0.2, "max_voices": 2, "pause_with_simulation": true
+      },
+      "farm_sow": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -13.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
+      },
+      "farm_pull": {
+        "near_radius": 3.0, "far_radius": 26.0, "zoom_reference": 18.0, "zoom_exponent": 1.6, "max_zoom": 64.0,
+        "level_db": -5.0, "cooldown_seconds": 0.3, "max_voices": 2, "pause_with_simulation": true
       },
       "duck_splash": {
         "near_radius": 3.0,
@@ -269,6 +364,14 @@
       "zoom_reference": 16,
       "max_zoom": 48,
       "level_db": -15
+    },
+    "smelter": {
+      "stream": "res://assets/audio/ambience/smelter.wav",
+      "near_radius": 2,
+      "far_radius": 20,
+      "zoom_reference": 18,
+      "max_zoom": 56,
+      "level_db": -13
     }
   }
 }

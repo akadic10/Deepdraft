@@ -14,6 +14,9 @@ under `assets/models/characters/dwarves/` plus the two work tools. The parts are
 - a cuffed square boot;
 - all 14 hairstyles, 7 beards, 8 brow styles and 4 portrait scars.
 
+A dwarf with a trade also wears its hat: five hat GLBs, and each of the 14 hairstyles
+once more as it lies under a hat (see [Trade hats](#trade-hats)).
+
 All appearance IDs, pools and save fields are kept. Parts share one frame in world
 units with root scale 1. Hands and feet are detached, and the logical body is 1×1×3.
 The head layout rules and tool grips are listed in 64.
@@ -37,7 +40,7 @@ This document catalogues every visual attribute a dwarf can have and defines the
 
 ## Attribute Catalogue
 
-All attributes are drawn from `data/entities/dwarves/appearance.json`. They fall into two categories: **color attributes** (applied via runtime material/shader tinting — no separate mesh per value) and **shape attributes** (each variant is a distinct GLB file).
+All attributes are drawn from `data/dwarves/appearance.json`. They fall into two categories: **color attributes** (applied via runtime material/shader tinting — no separate mesh per value) and **shape attributes** (each variant is a distinct GLB file).
 
 ### Color Attributes — Both Genders
 
@@ -128,6 +131,14 @@ assets/models/characters/dwarves/
     scar_brow_notch.glb
     scar_nose_bridge.glb
     scar_chin_split.glb
+
+  hair_hatted/        ← each of the 14 hairstyles as it lies under a hat, under its hair/ name
+  hats/
+    hat_miner.glb     ← the hat, and its candle's flame as a second mesh
+    hat_ranger.glb
+    hat_carpenter.glb
+    hat_stonemason.glb
+    hat_blacksmith.glb
 ```
 
 > **bald** male hair style and **none** beard/scar = simply no child node added. No GLB needed.
@@ -142,7 +153,9 @@ Every dwarf scene at runtime follows this structure:
 DwarfAgent (CharacterBody3D)
   ├─ MeshHead    (MeshInstance3D)  ← head_[age_tier].glb
   │   ├─ MeshEyes  (MeshInstance3D)  ← eyes.glb                      (always present; tinted per eye_color)
-  │   ├─ MeshHair  (MeshInstance3D)  ← hair_[gender]_[style].glb     (absent if bald)
+  │   ├─ MeshHair  (MeshInstance3D)  ← hair_[gender]_[style].glb     (absent if bald; hidden under a hat)
+  │   ├─ MeshHairHatted               ← hair_hatted/ the same style       (only under a hat)
+  │   ├─ MeshHat                      ← hats/hat_[trade].glb              (only with a trade; holds HatLight for the Miner)
   │   ├─ MeshBeard (MeshInstance3D)  ← beard_[style].glb             (absent if none)
   │   ├─ MeshBrows (MeshInstance3D)  ← brows_[gender]_[style].glb    (always present; map mesh + portrait)
   │   └─ MeshScar  (MeshInstance3D)  ← scar_[id].glb                 (absent if none; portrait only)
@@ -251,6 +264,8 @@ The same scene is used for both representations. The difference is which childre
 | MeshBeard | ✓ | ✓ |
 | MeshBrows | ✓ | ✓ |
 | MeshScar | ✗ | ✓ |
+| MeshHat, MeshHairHatted | ✓ | ✓ |
+| The candle's flame and light | ✓ | ✗ |
 
 Eyebrows are visible at colony zoom and contribute meaningfully to character silhouette and personality — they should always be present. Only scars are portrait-only. For the map mesh, simply skip adding `MeshScar`. For the portrait render, add all applicable children.
 
@@ -407,6 +422,65 @@ func _attach(parent: Node3D, node_name: String, mesh: Mesh) -> void:
 
 ---
 
+## Trade hats
+
+A dwarf with a trade wears its hat, and a Worker goes bare-headed (owner, 2026-11-12: "it's hard
+to tell for me who's who from looking at the game only"; doc 304). Hats are costume, not goods:
+nothing is crafted, stored, hauled or saved. The hat follows `profession`.
+
+| Trade | Hat | What tells it apart from above and behind |
+|---|---|---|
+| Miner | A hard ochre cap, one seam over the top | A tallow candle standing on it in a rope ring |
+| Ranger | A moss cap swept back to a point | A pheasant's feather pinned flat along its top |
+| Carpenter | A soft plum cap, broad and flat, slumped to one side | Sewn in four, buttoned with a slice of branch |
+| Stonemason | A flat-topped cap of grey felt, square as a knocked stone | Stone dust pale on its top, inside the rim |
+| Blacksmith | A rust kerchief tied tight over the skull | Its knot and two tails behind, one corner scorched |
+| Farmer | A broad-brimmed straw hat pushed back on the head, the brim wide at the sides and behind and a short lip in front (doc 309) | A slate-blue band round the crown, knotted at one side; the round the straw was woven in shows on its top |
+
+- **Who wears one.** A career names its `hat` in `professions.json`. `DwarfBodyRig.wear_hat` hangs
+  it on the head when the body is built and whenever the profession changes
+  (`DwarfAgent._complete_profession_change`). A career without one leaves the head bare: the
+  Worker, and careers still planned. A career that goes live needs its hat, or its dwarves read
+  as Workers.
+- **The hat line is y 45.** Brows end at y 44. A hat is solid from the line up and covers the
+  head of every age (an elder's dome reaches y 52), so one model sits alike on a bald head, a
+  cropped one and a full head of hair.
+- **Hair under a hat.** `MeshHair` is hidden, not removed, and `MeshHairHatted` takes its place:
+  the same style cut at the hat line (`under_hat` in `tools/voxel_assets/dwarves.py`: the cells
+  below y 45, and those behind z -13 up to y 49, which only the bun has). The cuts are built
+  beside the full styles, in `hair_hatted/` (`DwarfAssets.hair_under_hat`). Hair below the line
+  stays, so plaits, buns and beards still say who the dwarf is.
+- **What every hat keeps** (`test_hats_sit_on_every_head` in `test_dwarves.py`, for every hat
+  on every head, brow, beard and hairstyle):
+  - it covers the head from the hat line up;
+  - below y 50 nothing goes past z 12, three cells proud of the face: more hides the brows and
+    eyes from a camera that looks down 45 to 60 degrees. Trades differ on top, at the sides and
+    behind, never in front;
+  - its back stands at z -13 where a bun can lie (the kerchief's knot does it), so the bun's
+    cut meets it;
+  - it shares no face with what it sits on: two faces in one place flicker.
+- **Height.** Hats end at y 54 as hair does, but for the Ranger's feather (y 60) and the Miner's
+  candle (y 60, its flame y 65). In a tunnel three blocks high these stand in the ceiling's
+  rock, as hair tops do, and show under the slice.
+- **Colours.** Ochre, moss, plum and rust are the tunics' own dyes (`DwarfAssets.CLOTHING`); the
+  Stonemason's greys are the worked stone of the benches. Teal was tried for the Carpenter: by
+  torch it turned the Ranger's green. Torchlight pulls ochre and rust together, so shape and the
+  mark on top carry a hat, never colour alone.
+- **Portraits** copy the head with what it wears, so they show the hat. `DwarfPortrait` leaves
+  out the candle's light and hides its flame.
+- **Sleep.** A dwarf sleeps in its hat. The lying head rests as its hair does
+  (`DwarfRestBehavior` leaves the hat out of its measure), and the hat gives into the bed.
+- **The Miner's candle** is `DwarfHatLight`, hung on the hat when the career has a `hat_light`.
+  Its rule is in [41](41_dwarf_agents.md#profession-system) and its light in
+  [24](../20_player_interface/24_world_rendering.md#underground-lighting-model).
+- **A new hat:** draw it in `dwarves.mjs` under `hats/`, list it in `voxel_dwarves.json` (`parts`)
+  and `voxel_expected.json`, build the `dwarves` family ([61](../60_asset_creation/61_voxel_art_guide.md)),
+  and name it as the career's `hat`. Show the owner first
+  ([64](../60_asset_creation/64_hearthblock_art_direction.md), "Making new art").
+
+The concepts and the option passed over (one cap in five colours) are in
+`tmp/proposals_20261111/hats/`.
+
 ## Work tools — felling axe and mining pick
 
 `assets/models/characters/dwarves/tools/felling_axe.glb` is separate from the 41 appearance parts.
@@ -415,9 +489,15 @@ right hand when felling starts and hides it when work stops. Dwarves implicitly
 carry their work tools, with no inventory, delivery or durability requirement.
 
 Both tools are Hearthblock models (`tools/felling_axe` and `tools/mining_pickaxe` in
-`dwarves.mjs`). They have square hafts with a lit grain face and leather wraps. The axe
-has a square socket collar, a heavy cheek and a flared bit with a bright steel edge.
-The pickaxe has a square socket and two square arms stepping down to steel points.
+`dwarves.mjs`). They are stone bound with rope, as the careers' crafting tools are (owner,
+2026-11-10, doc 301): square hafts with a lit grain face and rope grip bindings, heads in the
+benches' worked stone, a dark skin with pale fresh stone where it was ground or knocked. The
+axe is a ground blade set through the haft's swollen head and bound above and below it, its
+butt showing at the back. The pickaxe is one long stone knapped to a point at each end,
+seated across the haft's top and lashed there. The Carpenter's adze is a flat blade lashed
+under the haft's bent knee, and the Stonemason's maul a hammerstone with a rope band round it.
+The iron axe and pickaxe are drawn and wait in `tools/art_data/studies/iron_work_tools.mjs`
+for the Blacksmith's upgrade; nothing builds that file.
 They are exported in world units with a unit root.
 Unlike the shared-frame body parts, its origin is the lower hand grip, with the
 haft along +Y and blade facing +Z. Both hands rotate around their authored palm
@@ -426,6 +506,54 @@ the right hand's reflection; pose cleanup explicitly restores the original signe
 scales so subsequent walking cannot flip the mirrored hand or boot. The axe uses
 its own lit vertex-color material and is never skin-tinted. Navigation and
 collision retain their existing logical footprint.
+
+**The copper hoe** (`tools/copper_hoe` in `dwarves.mjs`, doc 309) is the Farmer's, and the first
+copper tool in a dwarf's hands: the hoe good's own blade (the owner's pick B), lashed under the
+bent knee of a haft nearly as long as the pickaxe's, set across it and swept forward and down
+to an edge ground bright. It keeps the tools' grips (the lower grip at the origin, the upper at
+`(0,.625,0)`), and its edge is `(0,1.375,.625)` (cell 0, 22, 10). `DwarfHoePose` raises it
+beside the head, chops it into the tile a step ahead and draws it back through the soil; the
+career names it as its `field_tool` (`DwarfAssets.field_tool`). `FarmingTest` checks the edge
+and the hand it is held in.
+
+**The blowing stick** (`tools/blow_stick` in `dwarves.mjs`, doc 300) is a hand prop of the same
+kind: a peeled green stick 21 cells long with the pith pushed out, bark left on where the hand
+holds it, its far end burnt black. Its origin is the grip, three cells from the mouth end, and
+it runs up +Y. `DwarfSmeltPose` holds it in the right hand only while a Blacksmith blows on the
+basic smelter's fire, and stretches it a little along its length so that its burnt end stays in
+the fire hole.
+
+The tool goods and the UI icons draw these same tools (owner, 2026-11-11). A tool good is the
+item a dwarf collects on promotion (`starter()` in `tools/voxel_assets/hearthblock_goods.py`).
+- **The Ranger's kit** is two tools crossed on the ground and lashed where they cross, heads
+  together, so from above it is an X and never a bundle of sticks: a stone-tipped spear and the
+  peeled rod, its line wound on and its float tied beside. The hafts run aslant, so they are
+  drawn in one-cell steps. The crude carpentry and masonry kits, drawn the same way, were retired
+  on 2026-11-13 (doc 306).
+- **The copper tools** (doc 306; the owner's picks of 2026-11-13 from the sheet
+  `tmp/profession_path_20261113/tools_sheet.png`: A for the pick, the saw and the chisel, B for
+  the hoe): the pick is the stone
+  pick's outline cast as one copper bar pointed at both ends, seated across the haft's top and
+  lashed; the saw is a Japanese pull saw (the owner's words), a ryoba with a long corded handle
+  in line with a blade that widens to its end, fine teeth down one edge and coarse down the
+  other; the chisel lies crossed with the hammerstone maul that drives it, lashed where they
+  cross as the kits were; the hoe has its blade lashed under the haft's bent knee, as the old
+  carpentry kit's adze was, and lies on its side, the blade on edge, so from above it is a hoe's
+  own profile.
+  Copper is the copper bar's body colour on its shade, with its pale colour only on ground
+  edges, points and teeth (doc 64, "Copper tools"); no tool holds more copper than one bar.
+- **On the rack.** A tool hangs from a tool rack's hook by the end its head is at. The Ranger's
+  kit is 39 cells long, which is the hook's height, so a longer tool would reach into the floor;
+  the copper tools are 27 to 37 (`test_items.py` pins it).
+- **In the hands.** The dwarves still hold the stone tools, but for the Farmer's copper hoe
+  (above): the copper pick, the saw and the chisel in hand are doc 306's step 2. The nine icons that show a hand tool
+(Orders, Mine, Chop, Clear stones, Clear plants, Miner, Carpenter, Stonemason and Blacksmith in
+`icons.mjs`) draw it in worked stone and rope too, each in its own picture: the pickaxe, the
+axe, a hammerstone maul, a stone sickle, the adze biting a split log, a stone point and the
+maul at a Rough Stone knocked square, and the smelter's hollowed boulder with its fire and its
+pot. None of them draws an iron tool before the Blacksmith makes one; the Miner's, the
+Carpenter's and the Stonemason's still show stone tools, which doc 306's step 2 redraws in copper. The Worker's icon replays
+the axe and the pickaxe themselves.
 
 Both impact points are vertices in the meshes. The contract: the lower grip is the
 origin, the upper grip is `(0,.625,0)`, the axe edge is `(0,1.0625,.6875)` (cell
@@ -453,7 +581,7 @@ To have a fully working male dwarf with all options:
 - **4** scar overlays
 - **Total for males: 27 GLBs**
 
-Add female hair styles (+10 GLBs) and female eyebrows (+4 GLBs) for full gender coverage: **41 GLBs total**, plus the two work tools.
+Add female hair styles (+10 GLBs) and female eyebrows (+4 GLBs) for full gender coverage: **41 GLBs total**, plus the work tools, the five trade hats and the 14 hairstyles as they lie under a hat.
 
 Colours need no extra files: 8 hair and 4 skin colours are runtime tints, 6 eye colours
 show on the portrait glint, and 6 tunic colours are shared recoloured meshes.

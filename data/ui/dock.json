@@ -16,7 +16,7 @@
       "label": "Zones",
       "icon": "res://assets/ui/icons/zones.png",
       "family": "work",
-      "tooltip": "Designate storage areas. Farming and animal pastures are planned.",
+      "tooltip": "Designate storage areas, fishing spots and fields. Animal pastures are planned.",
       "action": "open_panel",
       "target": "zones"
     },
@@ -184,7 +184,7 @@
           "label": "Blacksmith",
           "icon": "res://assets/ui/icons/blacksmith.png",
           "family": "settlement",
-          "tooltip": "Browse planned metalwork: tools, fittings, weapons and armor.",
+          "tooltip": "Copper bars and the tools that open the other trades. Iron, weapons and armor come later.",
           "action": "open_crafting",
           "target": "blacksmith"
         },
@@ -193,7 +193,7 @@
           "label": "Farmer",
           "icon": "res://assets/ui/icons/farmer.png",
           "family": "settlement",
-          "tooltip": "Browse planned farming tools and supplies.",
+          "tooltip": "A Farmer's work is in its fields (Zones). What it will craft is planned.",
           "action": "open_crafting",
           "target": "farmer"
         },
@@ -316,8 +316,7 @@
           "label": "Farming",
           "icon": "res://assets/ui/icons/farming_zone.png",
           "family": "work",
-          "tooltip": "Crop-growing zones are planned. Fields and farming work are not available yet.",
-          "planned": true,
+          "tooltip": "Drag over open grass or dirt to lay out a field. A Farmer hoes it, sows each season's crop and pulls it when ripe.",
           "action": "activate_tool",
           "target": "farming_zone"
         },
@@ -377,7 +376,7 @@
       ]
     },
     "stocks": {
-      "title": "Colony Inventory"
+      "title": "Colony inventory"
     },
     "place": {
       "title": "Place an item"
@@ -388,7 +387,7 @@
       "items": [
         {
           "id": "block_inspector",
-          "label": "Block Inspector",
+          "label": "Block inspector",
           "action": "toggle_window",
           "target": "block_inspector",
           "tooltip": "Inspect technical terrain data and generation diagnostics",
@@ -397,7 +396,7 @@
         },
         {
           "id": "world_info",
-          "label": "World Build",
+          "label": "World build",
           "action": "toggle_window",
           "target": "world_info",
           "tooltip": "Inspect terrain generation and world-building diagnostics.",
@@ -479,16 +478,31 @@
       "icon": "res://assets/ui/furniture/log_bed.png"
     },
     "lights": {
-      "icon": "res://assets/ui/furniture/wooden_torch.png"
+      "icon": "res://assets/ui/furniture/torch.png"
     },
     "doors": {
-      "icon": "res://assets/ui/furniture/door.png"
+      "icon": "res://assets/ui/furniture/door_2.png"
     },
     "walls": {
       "icon": "res://assets/ui/icons/rooms.png"
     },
+    "tables": {
+      "icon": "res://assets/ui/furniture/dining_table.png"
+    },
+    "seats": {
+      "icon": "res://assets/ui/furniture/log_stool.png"
+    },
+    "fires": {
+      "icon": "res://assets/ui/furniture/hearth.png"
+    },
+    "food_stores": {
+      "icon": "res://assets/ui/furniture/food_shelf.png"
+    },
     "heating": {
       "icon": "res://assets/ui/furniture/hearth.png"
+    },
+    "keeping": {
+      "icon": "res://assets/ui/icons/food.png"
     },
     "temperature": {
       "icon": "res://assets/ui/icons/thermometer.png"
@@ -497,7 +511,7 @@
       "icon": "res://assets/ui/icons/appeal.png"
     },
     "loose": {
-      "icon": "res://assets/ui/items/base_resources_stone_rough_stone.png"
+      "icon": "res://assets/ui/items/base_item_rough_stone.png"
     },
     "stocked": {
       "icon": "res://assets/ui/icons/storage_zone.png"

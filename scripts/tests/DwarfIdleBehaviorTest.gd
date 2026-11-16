@@ -1,8 +1,8 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 var inspection
-const CHAIR := "base:furniture:log_chair"
-const TABLE := "base:furniture:log_table"
+const CHAIR := "base:furniture:log_stool"
+const TABLE := "base:furniture:dining_table"
 
 func _run() -> void:
 	create_timer(100).timeout.connect(func(): push_error("Idle behavior timed out"); quit(1))

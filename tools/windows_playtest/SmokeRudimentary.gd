@@ -41,7 +41,7 @@ func _run() -> void:
 	for id: String in ["log_fence","log_gate","board_game_table"]:
 		var key := "base:furniture:"+id
 		check(furniture.get_defs().has(key),"packed definition: "+id)
-		check(crafting.recipes.has("base:recipe:worker:"+id),"packed Worker recipe: "+id)
+		check(crafting.recipes.has("base:recipe:"+id),"packed Worker recipe: "+id)
 		var model: Node3D = load("res://assets/models/furniture/"+id+".glb").instantiate()
 		check(model != null,"packed imported model: "+id)
 		model.free()

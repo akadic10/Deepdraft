@@ -150,6 +150,7 @@ def assets(only=None):
     for name,colors in PROFILE['gems'].items(): hearthblock_add('gem',name,lambda c=colors:goods.gem(c))
     for name in PROFILE['metal']: hearthblock_add('metal',name,lambda n=name:goods.metal(n))
     for name,material in PROFILE['timber'].items(): hearthblock_add('wood',name,lambda m=material:goods.log(m))
+    for name,material in PROFILE['planks'].items(): hearthblock_add('wood',name,lambda m=material:goods.plank(m))
     def stave():
         v=Voxels(); block(v,(-2,0,-7),(2,2,7),'crate_board'); return v
     add('wood','oak_stave',stave)
@@ -157,7 +158,7 @@ def assets(only=None):
         for i,stage in enumerate(['low','half','full']):
             if name in NOT_IN_GAME: add('crates',name+'_'+stage,lambda n=name,i=i:crate(n,i))
             else: hearthblock_add('crates',name+'_'+stage,lambda n=name,i=i:goods.crate(n,i))
-    for name in ['stone_hoe','stone_hammer','ranger_kit','carpentry_kit','masonry_kit']: hearthblock_add('tools',name,lambda n=name:goods.starter(n))
+    for name in ['stone_hammer','ranger_kit','copper_pick','copper_saw','copper_chisel','copper_hoe']: hearthblock_add('tools',name,lambda n=name:goods.starter(n))
     for name in PROFILE['drink_marks']: add('drink',name,lambda n=name:drink(n))
     for name in ['cloth_bolt','water_bucket','honey_jar','fossil_fragment']: add('misc',name,lambda n=name:misc(n))
     for name in ['plump_helmet','pig_tail','hops','grape']: add('flora',name,lambda n=name:flora(n))
@@ -171,5 +172,7 @@ def assets(only=None):
             if path in square: metadata['source']='tools/voxel_assets/hearthblock_goods.py'
             if metadata['item'] in PROFILE['timber']:
                 metadata.update(material=PROFILE['timber'][metadata['item']],orientation='horizontal_z')
+            if metadata['item'] in PROFILE['planks']:
+                metadata.update(material=PROFILE['planks'][metadata['item']],orientation='horizontal_z')
             occlusion=hearthblock.occlusion()|{'ground':0} if path in square else None
             yield path,{'main':Part(fn(),occlusion=occlusion)},metadata

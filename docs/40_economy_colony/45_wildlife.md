@@ -107,7 +107,7 @@ arrivals shipped subsequently in milestone 94; the reserve floors remain intact.
 ## Ownership and navigation
 
 `WildlifeManager` is a scene owner alongside DwarfDirector and CraftingManager.
-It alone loads the species files in `data/entities/animals/` (rabbit, deer, wolf, duck), loads their
+It alone loads the species files in `data/animals/` (rabbit, deer, wolf, duck), loads their
 shared model parts, and owns generation, inspection and the `wildlife` save
 section. `GrazerAgent` owns common needs, decisions, terrain support and saved
 state; `RabbitAgent` supplies the original rabbit model/poses, while `DeerAgent`

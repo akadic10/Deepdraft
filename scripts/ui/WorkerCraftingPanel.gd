@@ -339,6 +339,7 @@ func bind_controller(value: Node) -> void:
 		tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 		tile.focus_mode = Control.FOCUS_ALL
 		tile.tooltip_text = "%s\n%s" % [entry.get("label", key), entry.get("tooltip", "")]
+		tile.set_meta("about", tile.tooltip_text)
 		tile.pressed.connect(select_section.bind(key))
 		_crafters.add_child(tile)
 		_crafter_tiles[key] = tile
@@ -468,13 +469,19 @@ func refresh() -> void:
 func _show_header(section: Dictionary, planned: bool) -> void:
 	var rudimentary := section_id == "rudimentary"
 	_heading.text = "%s · Worker" % section.name if rudimentary else ("%s · %s" % [section.name, section.get("status_label", "Planned")] if planned else String(section.name))
+	# A page nobody in the colony can craft from says so (owner, 2026-11-13).
+	var page_need: Dictionary = controller.section_need(section_id)
+	if not page_need.is_empty(): _heading.text = "%s · %s" % [section.name, page_need.tag]
 	_subtitle.text = "Every Worker can craft. No promotion needed." if rudimentary else String(section.get("description", ""))
 	_subtitle.tooltip_text = String(section.get("hint", ""))
 	if _crafter_tiles.has(section_id): _section_icon.texture = (_crafter_tiles[section_id] as Button).icon
 	var people := _family("people")
 	for key: String in _crafter_tiles:
 		var tile: Button = _crafter_tiles[key]
-		var lit := not bool(controller.sections[key].get("planned", false))
+		# Lit when the colony can craft from the page today: a live page with a dwarf of its career.
+		var need: Dictionary = controller.section_need(key)
+		var lit := not bool(controller.sections[key].get("planned", false)) and need.is_empty()
+		tile.tooltip_text = String(tile.get_meta("about", "")) + ("" if need.is_empty() else "\n\n%s. %s" % [need.tag, need.how])
 		var state := "selected" if key == section_id else ("normal" if lit else "planned")
 		tile.add_theme_stylebox_override("normal", UITheme.icon_tile_style(people, state))
 		tile.add_theme_stylebox_override("pressed", UITheme.icon_tile_style(people, state))
@@ -556,6 +563,22 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 		extras.append({"id": "extra:" + key, "picture": _item_picture(key), "count": available,
 			"mark": "on" if available >= int(extra_counts[key]) else "missing",
 			"tooltip": "%d %s · %d available" % [int(extra_counts[key]), controller.ingredient_label(key), available]})
+	# The goods it takes one choice of (doc 306): a coal or two logs under the copper, a haft in any
+	# wood. One tile stands for the choice: what the next batch takes, or the first choice marked
+	# missing when the colony can supply none, so the board grows no taller than with a fixed good.
+	var choice_lines: Array[String] = []
+	var choices: Array = controller.choices(recipe)
+	if not choices.is_empty():
+		var chosen: Array[String] = controller.choice_keys(recipe, totals)
+		var choice_words: Dictionary = controller.choice_words(recipe)
+		var shown: Array[String] = chosen if not chosen.is_empty() else choices[0]
+		var available := int(totals.get(shown[0], {}).get("available", 0))
+		var takes := "takes %d %s now" % [shown.size(), controller.ingredient_label(shown[0])] if not chosen.is_empty() else "none in stock"
+		extras.append({"id": "extra:choice", "picture": _item_picture(shown[0]), "count": available,
+			"mark": "on" if not chosen.is_empty() else "missing",
+			"tooltip": "%s: %s\n%s · %d available" % [choice_words.label, choice_words.words, takes.capitalize() if chosen.is_empty() else "The next batch " + takes, available]})
+		heading += " · %s" % choice_words.words
+		choice_lines.append("%s: %s · %s" % [choice_words.label, choice_words.words, takes])
 	_ingredients_heading.text = heading
 	var groups: Array = [{"id": "woods", "items": woods}]
 	if not extras.is_empty(): groups.append({"id": "extras", "items": extras})
@@ -564,6 +587,7 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	if int(recipe.ingredient_count) > 1: lines.append(String(words.same))
 	for key: String in extra_counts:
 		lines.append("%d %s · %d available" % [int(extra_counts[key]), controller.ingredient_label(key), int(totals.get(key, {}).get("available", 0))])
+	lines.append_array(choice_lines)
 	lines.append(String(words.pick))
 	_requirements.text = "\n".join(lines)
 	_description.text = String(recipe.description)
@@ -579,7 +603,8 @@ func _show_recipe(recipe: Dictionary, totals: Dictionary) -> void:
 	else:
 		# A busy bench is fine: the order waits its turn in the queue.
 		var bench: String = controller.bench_name(workshop)
-		tags.append(["✓ A " + bench, "fine"] if controller.has_bench(workshop) else ["Needs a " + bench, "waiting"])
+		var named: String = controller.with_article(bench)   # "a mason's bench", "an anvil stone"
+		tags.append(["✓ " + named.left(1).to_upper() + named.substr(1), "fine"] if controller.has_bench(workshop) else ["Needs " + named, "waiting"])
 	# Who makes it: any Worker, or the section's own career (doc 292), named while there is one.
 	if section_id == "rudimentary": tags.append(["✓ Any Worker", "fine"])
 	else:

@@ -10,6 +10,8 @@ extends StorageComponent
 ## - `per_slot`: the goods a slot holds (the crate's quarters 3, step 4); 1 when absent. A slot
 ##   shows one of its goods, and its window counts goods ("Used 9 / 12"). With 1 it counts its
 ##   places, and its goods too when crates of produce hold more ("Used 4 / 6 places · 96 goods");
+## - `per_slot_of`: the goods a slot holds of goods with a tag, where that is more than `per_slot`
+##   (the finished goods pallet's quarters: one packed piece, or three metal goods);
 ## - `priority`: where it starts in line (4, ahead of ground storage at 5);
 ## - `anchors`: where each slot's goods show, in footprint-local blocks from the back-left floor
 ##   corner, filled in that order. With `hang`, goods hang upright from their tops (tools on
@@ -22,6 +24,7 @@ const HANG := Basis(Vector3.UP, PI) * Basis(Vector3.RIGHT, -PI * .5)   # old z u
 
 var capacity := 1
 var per_slot := 1                      # goods to a slot
+var per_slot_of: Dictionary = {}       # material tag -> goods to a slot, for goods with that tag
 var accepts_tags: Array[String] = []
 var slot_word := "places"
 var slot_good := "One good"            # what a slot takes, for its window's capacity bar
@@ -43,6 +46,7 @@ func setup_container(def: Dictionary, footprint_cells: Array[Vector3i], node: No
 	var storage: Dictionary = def.get("storage", {})
 	capacity = int(storage.get("capacity", 1))
 	per_slot = maxi(1, int(storage.get("per_slot", 1)))
+	per_slot_of = storage.get("per_slot_of", {})
 	accepts_tags.assign(storage.get("accepts", []))
 	slot_word = String(storage.get("slot_word", "places"))
 	slot_good = String(storage.get("slot_good", "One good"))
@@ -103,9 +107,14 @@ func stored_count() -> int:
 	return total
 
 
-## A slot holds `per_slot` goods, or one crate of produce.
+## A slot holds `per_slot` goods, or one crate of produce, or what `per_slot_of` gives its kind.
 func _slot_capacity(key: String) -> int:
-	return maxi(per_slot, _item_capacity(key))
+	var most := maxi(per_slot, _item_capacity(key))
+	if per_slot_of.is_empty() or not is_instance_valid(drop_manager): return most
+	var tags: Array = drop_manager.get_item_def(key).get("material_tags", [])
+	for tag: String in per_slot_of:
+		if tag in tags: most = maxi(most, int(per_slot_of[tag]))
+	return most
 
 
 ## How many of a slot's goods its one shown model counts: one good, or a crate's quantity.

@@ -7,7 +7,7 @@ extends Node3D
 ## get_explorer_bounds(id), optional perform_explorer_action(id,action).
 ## Optional on_explorer_selected(id) runs on explicit selection, never refresh.
 ## Every selection shows in the compact panel beside the dock (doc 260), except a
-## dwarf while Colony Dwarves hosts it on its Details card. The one window is the
+## dwarf while Colony dwarves hosts it on its Details card. The one window is the
 ## selected dwarf's character sheet, opened from either; rooms, storage and DEV tools
 ## keep their own windows.
 @export var window_manager_path: NodePath
@@ -81,7 +81,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _click_tool_active():
 		return
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		# Colony Dwarves owns its close action while it hosts the selected dwarf; a
+		# Colony dwarves owns its close action while it hosts the selected dwarf; a
 		# character sheet open over it closes first.
 		if is_instance_valid(_dwarf_host) and _object_id is DwarfAgent:
 			if _sheet_open:
@@ -352,7 +352,7 @@ func _perform_action(action_id: String) -> void:
 func _perform_dwarf_action(action_id: String) -> void:
 	if not is_instance_valid(_provider):
 		return
-	if action_id == "character_sheet":   # Colony Dwarves' Details card
+	if action_id == "character_sheet":   # Colony dwarves' Details card
 		open_character_sheet()
 		return
 	if action_id == "follow" and bool(_provider.call("is_following", _object_id)):

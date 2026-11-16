@@ -1,9 +1,9 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const CAMP := "base:furniture:campfire"
-const LOG_CHAIR := "base:furniture:log_chair"
-const RECIPE := "base:recipe:worker:"
-const ITEM := "base:resources:furniture:"
+const LOG_CHAIR := "base:furniture:log_stool"
+const RECIPE := "base:recipe:"
+const ITEM := "base:item:"
 const OUT := "res://tmp/profession_crafting_review/"
 
 func _run() -> void:
@@ -24,16 +24,16 @@ func _run() -> void:
 	var id: int = crafting.queue_order(RECIPE+"campfire",1)
 	drops.spawn_drop(PINE,2,Vector3i(42,21,42))
 	await _frames(2)
-	_expect(crafting.status(crafting.get_order(id),crafting.stock_snapshot())=="Waiting for Rough Stone","campfire cannot be made from wood alone")
+	_expect(crafting.status(crafting.get_order(id),crafting.stock_snapshot())=="Waiting for Rough stone","campfire cannot be made from wood alone")
 	drops.spawn_drop(STONE,1,Vector3i(44,21,44))
 	await _frames(2)
 	_expect(crafting.get_order(id).lease_id<0,"campfire waits for crude workbench")
 	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(45,20,42),0)
 	_expect(await _completed(id),"campfire completes through normal material hauling and crafting")
 	_expect(_count(ITEM+"campfire")==1 and _count(PINE)==1 and _count(STONE)==0,"campfire costs exactly one log and one stone")
-	id = crafting.queue_order(RECIPE+"log_chair",1)
+	id = crafting.queue_order(RECIPE+"log_stool",1)
 	_expect(await _completed(id),"log chair completes through Worker crafting")
-	_expect(_count(ITEM+"log_chair")==1 and _count(PINE)==0,"log chair costs exactly one log")
+	_expect(_count(ITEM+"log_stool")==1 and _count(PINE)==0,"log chair costs exactly one log")
 	# Exercise Craft -> Place as well as the regular Place catalog. Neither path
 	# should silently lose a newly craftable design because its UI entry is absent.
 	dock.open_crafting(RECIPE+"campfire")
@@ -65,7 +65,7 @@ func _run() -> void:
 		manager.close("place")
 		clock_node.set_paused(false)
 		_expect(await _installed(entry[0]),"worker installs crafted "+entry[0])
-	_expect(_count(ITEM+"campfire")==0 and _count(ITEM+"log_chair")==0,"installation consumes packed goods exactly once")
+	_expect(_count(ITEM+"campfire")==0 and _count(ITEM+"log_stool")==0,"installation consumes packed goods exactly once")
 	var fire = _piece(CAMP)
 	var animation = fire.node.get_node_or_null("FlameAnimation")
 	_expect(animation!=null and animation._frames.size()==8,"installed campfire has eight animated flame frames")
@@ -100,13 +100,13 @@ func _run() -> void:
 	# Development removal refunds packed goods; loading an installed-only save
 	# must start without those temporary refunds.
 	for node in drops._loose.keys():
-		if drops.item_key_of(node) in [BENCH_ITEM,ITEM+"campfire",ITEM+"log_chair"]:
+		if drops.item_key_of(node) in [BENCH_ITEM,ITEM+"campfire",ITEM+"log_stool"]:
 			drops.take(node)
 			node.free()
 	furniture.restore_state(saved)
 	await _frames(3)
 	_expect(_piece(CAMP)!=null and _piece(LOG_CHAIR)!=null,"camp furniture survives JSON restore")
-	_expect(_count(ITEM+"campfire")==0 and _count(ITEM+"log_chair")==0,"restoring installed furniture does not duplicate packed goods")
+	_expect(_count(ITEM+"campfire")==0 and _count(ITEM+"log_stool")==0,"restoring installed furniture does not duplicate packed goods")
 	_expect(_piece(CAMP).node.get_node_or_null("FlameAnimation")!=null and _piece(LOG_CHAIR).idle_seat_owner<0,"restored light runs and transient chair claim is clear")
 	await _review_menu()
 	for failure in failures: push_error(failure)
@@ -137,7 +137,7 @@ func _review_menu() -> void:
 		_click(dock._panel_body.get_node("CrafterRudimentary").get_global_rect().get_center())
 		await _frames(8)
 		_expect(manager.is_open("craft") and not dock.is_action_menu_open() and panel.section_id=="rudimentary","Rudimentary button opens its recipe menu")
-		for recipe in ["campfire","log_chair","stone_hoe","wooden_torch"]:
+		for recipe in ["campfire","log_stool","stone_hammer","log_bed","door_4","torch"]:
 			panel.select_recipe(RECIPE+recipe)
 			await _frames(4)
 			var rect: Rect2 = dock._craft_window.get_global_rect()
@@ -162,7 +162,7 @@ func _review_menu() -> void:
 		await _frames(3)
 		if "--capture" in OS.get_cmdline_user_args(): await _capture_camp("carpenter_%d" % viewport.x)
 		await _choose_crafter("rudimentary")
-		_expect(panel.selected==RECIPE+"wooden_torch","returning remembers previous real recipe")
+		_expect(panel.selected==RECIPE+"torch","returning remembers previous real recipe")
 		_expect(panel._rows.has(order_id),"returning to Rudimentary restores its real order controls")
 		await _choose_crafter("miner")
 		dock.open_crafting(RECIPE+"campfire")

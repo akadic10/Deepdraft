@@ -40,7 +40,7 @@ func _run() -> void:
 	_expect(_lit_visuals(fire) and log_node != null and String(log_node.get_meta("item_key", "")) == PINE, "a lit fire shows its flame, light and the pine log it burns")
 	_expect(log_node != null and Vector2(log_node.global_position.x, log_node.global_position.z).distance_to(Vector2(45.5,45.5)) < .05, "the log lies in the middle of the ring")
 	_expect(int(rooms._heat_cells.get(anchor, 0)) == int(fire.def.heat_source.heat_units) and rooms.count_room_lights({anchor + Vector3i.UP: true}) == 1, "a lit fire counts its heat and light once")
-	_expect(_fire_row(fire) == "Burning until dawn" and _rows(fire).get("Burning") == "Pine Log", "the inspector names the burning log")
+	_expect(_fire_row(fire) == "Burning until dawn" and _rows(fire).get("Burning") == "Pine log", "the inspector names the burning log")
 	_expect(load("res://scripts/components/FurnitureFires.gd").burning(fire), "the crackle and the panel treat it as burning")
 	# Saves keep the burning log; restoring counts its heat once.
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
@@ -98,7 +98,7 @@ func _test_warm_rooms(rooms: Node, fires: RefCounted) -> void:
 			for y in range(21,26):
 				if x in [83,84] and z == 60 and y < 25: continue
 				if x in [80,87] or z in [60,67] or y == 25: world.set_block(x,y,z,stone)
-	_install("base:furniture:door", Vector3i(83,20,60))
+	_install("base:furniture:door_2", Vector3i(83,20,60))
 	var first = _install(HEARTH, Vector3i(81,20,62))
 	var second = _install(HEARTH, Vector3i(85,20,62))
 	rooms._rebuild_all_rooms()
@@ -128,7 +128,7 @@ func _test_bedtime(rooms: Node, fires: RefCounted) -> void:
 	for node in drops._loose.keys():
 		drops.take(node)
 		node.free()
-	_install("base:furniture:door", Vector3i(83,20,60))
+	_install("base:furniture:door_2", Vector3i(83,20,60))
 	var hearth = _install(HEARTH, Vector3i(85,20,61))
 	var bed = _install("base:furniture:log_bed", Vector3i(82,20,64))
 	clock_node.season = "winter"

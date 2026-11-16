@@ -67,11 +67,11 @@ func _run() -> void:
 	drops.restore_loose_item(PINE,Vector3(sealed)+Vector3(.5,1,.5),0,1)
 	drops.restore_loose_item(PINE,Vector3(36.5,21,58.5),0,1)
 	drops.restore_loose_item(STONE,Vector3(40.5,21,40.5),0,1)
-	var craft_id: int = crafting.queue_order("base:recipe:worker:stone_hoe",1)
+	var craft_id: int = crafting.queue_order("base:recipe:stone_hammer",1)
 	tasks._probe_node_cap = 32
 	tasks._max_probes_per_wake = 2
 	_expect(await _completed(craft_id),"later ingredient planning skips a disconnected supply without abandoning the batch")
-	_expect(_count(PINE)==1 and _count(STONE)==0 and _count("base:resources:tools:stone_hoe")==1,"two-leg continuation preserves unused material and produces exactly one tool")
+	_expect(_count(PINE)==1 and _count(STONE)==0 and _count("base:item:stone_hammer")==1,"two-leg continuation preserves unused material and produces exactly one tool")
 	for failure: String in failures: push_error(failure)
 	print("JOB_PLANNING_OK" if failures.is_empty() else "JOB_PLANNING_FAIL")
 	quit(0 if failures.is_empty() else 1)

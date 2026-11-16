@@ -11,7 +11,7 @@ class TreeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.profile=read_json('tools/art_data/voxel_trees.json')
-        cls.definitions={s:read_json(f'data/entities/flora/{s}_tree.json')[f'base:flora:{s}_tree'] for s in SPECIES}
+        cls.definitions={s:read_json(f'data/flora/{s}_tree.json')[f'base:flora:{s}_tree'] for s in SPECIES}
 
     def layers(self,s,stage='mature',season='summer',picked=False,variant=0):
         return tree_layers(self.profile,s,stage,variant,season,picked,

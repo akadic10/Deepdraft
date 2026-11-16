@@ -71,7 +71,7 @@ func _run() -> void:
 	await _settle()
 	_expect(roster._rows.size() == 5 and roster._filters.working.button.text == "Working  1" and roster._filters.resting.button.text == "Resting  1", "filters show actual workforce counts")
 	_expect(roster._rows[worker].activity.text == "Hauling" and "12" in roster._rows[worker].note.text, "row reports real hauling and crate contents")
-	_expect(roster._rows[worker].cargo_icon.texture.resource_path.ends_with("base_resources_seed_oak_acorn.png"), "cargo uses existing model thumbnail")
+	_expect(roster._rows[worker].cargo_icon.texture.resource_path.ends_with("base_item_oak_acorn.png"), "cargo uses existing model thumbnail")
 	# The profession's picture on a tile the portrait's size; the bar to the next level only
 	# where the profession earns levels, but its room on every row (doc 23).
 	var assets: Node = root.get_node("DwarfAssets")
@@ -115,7 +115,7 @@ func _run() -> void:
 	_click(roster._card._buttons.character_sheet.get_global_rect().get_center())
 	await _settle()
 	_expect(manager.is_open("character_sheet") and manager.is_open("dwarves") and explorer._dwarf_panel._agent == worker,
-		"Character sheet opens the dwarf's sheet beside Colony Dwarves")
+		"Character sheet opens the dwarf's sheet beside Colony dwarves")
 	# The sheet opens beside the Sky Dial, over the middle of the rows on a small screen: click
 	# a row by its portrait.
 	_click(roster._rows[idle_worker].button.get_global_rect().position + Vector2(30,28))
@@ -123,7 +123,7 @@ func _run() -> void:
 	_expect(manager.is_open("character_sheet") and explorer._dwarf_panel._agent == idle_worker and roster._card._agent == idle_worker,
 		"an open sheet follows the roster's selection")
 	_key(KEY_ESCAPE)
-	_expect(not manager.is_open("character_sheet") and manager.is_open("dwarves"), "Escape closes the sheet first, then Colony Dwarves")
+	_expect(not manager.is_open("character_sheet") and manager.is_open("dwarves"), "Escape closes the sheet first, then Colony dwarves")
 	# The career map follows the roster's selection too, keeping its chosen career, so dwarves
 	# can be compared for one career (owner, 2026-11-01).
 	_click(roster._rows[worker].button.get_global_rect().position + Vector2(30,28))

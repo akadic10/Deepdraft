@@ -9,6 +9,672 @@ milestone doc link, and whether the owner should restart Play or reload the proj
 
 ---
 
+**Data folders made flat (2026-11-15):** From the owner, reviewing the data folder: "some
+items are nested in the /data/entities folder while /data/furniture is not". `data/entities/`
+was the only folder with folders inside it, and no code read it as a group. Of four answers
+(flatten it, nest furniture too, group all of `data/` by area, leave it) the owner took the
+first, and `data/recipes/` for the recipes. Nothing changes in play.
+- **Every data file sits one folder deep,** `data/<folder>/<file>.json`, and the folder says
+  what its files are about. `data/animals/`, `data/dwarves/`, `data/flora/` and `data/items/`
+  now sit beside `data/furniture/`, and `data/entities/` is gone. 24 files moved.
+- **The recipes are in `data/recipes/recipes.json`** (`data/workshops/` before, which held no
+  workshop: a workshop is a furniture piece).
+- **The surface details** (reeds, flowers, boulders, scree) are in `data/terrain/`, beside the
+  surface palettes.
+- **Saves keep loading:** no id changed. No file's contents changed but the paths in two
+  comments.
+- **Kept in order from here:** the rule is in CLAUDE.md ("Names") and
+  [doc 13](../10_core_foundation/13_architecture.md) ("Naming ids and files"), and the lint's
+  `naming` rule fails on a data file at any other depth. The lint's list of known violations
+  follows three of the moved files: the same entries, the same 207.
+- **Seen in the same review and left alone:** ten folders hold one file
+  (`data/items/items.json`), so every path keeps one shape; `data/professions/` stands beside
+  `data/dwarves/`; `data/events/` and `data/world_events/` are each named for their own system.
+  The model folders under `assets/` were not part of this.
+- **Evidence:** `tmp/data_layout_20261115/` holds the script that did it (`flatten_data.py`),
+  every move (`moves.txt`), every file touched (`changed_files.txt`) and a copy of the sources
+  from before (`before_sources.tar.gz`).
+
+The full run after the move passed 242 of 243 tests with the lint clean (207 known, none new).
+The one failure was `DuckQueryReuseTest`: it compiles a frozen copy of the old wildlife code,
+which read the animals folder by its old path. The test now points that copy at
+`data/animals/` and passes; the copy is left as written (doc 13, "Running tests"). The 76
+art-pipeline tests pass. Restart Play; no project reload is needed.
+
+**A workshop's window follows its recipes (2026-11-15):** From the owner, of the crude
+workbench's file: "it lists "crafting_recipe": "base:recipe:torch", but it can make more things".
+The line never limited the bench: it only chose where the bench's Craft items opened. Of three
+answers (remove it, rename it, leave it) the owner took the first. Not yet seen in play.
+- **The crude workbench says who crafts at it:** "Workers and 4 trades craft here" on its panel
+  ("Any Worker crafts here" before). Rangers, Carpenters, Stonemasons and Blacksmiths each make
+  their first station on it, and hovering its description names all five.
+- **The carpenter's bench's Craft items opens at the top of what is made there,** the pine
+  plank. It opened at the tool rack, which stood first before the planks were added above it.
+  The other workshops open where they did.
+- **No piece's file names a recipe.** A piece is a workshop when a recipe names it as its
+  `workshop`, so what a bench makes is written once, on the recipes. The `crafting_recipe` line
+  is gone from the six workshops; the button's own words (`crafting_action`) stay
+  ([doc 44](../40_economy_colony/44_crafting_workshops.md), "Its window's action").
+- **This ends no saves:** no id changed.
+- **Mine to confirm:** the workbench's short line. The panel's tag has room for one short line,
+  so its five careers are counted there and named on hover.
+
+All 243 tests passed after the change, the new `WorkshopWindowTest` among them. After the hover
+text was added the gate is 55 of 55, the crafting, furniture, UI and fishing areas 81 of 81, and
+the lint is clean. Restart Play; no project reload needed.
+
+**Item ids made flat (2026-11-15):** From the owner, reviewing the keys after the naming pass:
+"should the category be within the key for all items?" Of three answers (take the kind out of
+item ids, leave them, or put a category in every key) the owner took the first, "flatten items
+and fix the water stones". Nothing looks different in play; not yet seen in play.
+- **Saves from before this no longer load.** Every item's id changed again, so start a new
+  colony.
+- **An item's id is `base:item:<name>`,** with no kind in it: `base:item:pine_log`,
+  `base:item:copper_saw`, `base:item:stone_stool` (`base:item:wood:pine_log` before). All 109
+  changed, and the 84 item pictures moved with them.
+  - The metal ores take their kind into the name, as their models and shown names already
+    did: `copper_ore`, `tin_ore`, `iron_ore`, `silver_ore`, `gold_ore`. Coal is `coal`.
+  - What an item belongs to is said by its tags, which storage, the Inventory window and
+    recipes already used. The kind in the id decided nothing in play.
+- **The water stones are furniture by id:** `base:furniture:wet_stone` and
+  `base:furniture:dry_stone` (`base:water:...` before), like the other 26 pieces. The naming
+  pass had missed them.
+- **The DEV item stamper groups items by their tags,** as the Inventory window does, since an
+  id holds no kind to group by. Its seven groups are as they were, but for six items that had
+  fallen in Other: the copper bar is under Materials and the five fish under Food & seeds.
+- **Kept in order from here:** the rule is in CLAUDE.md ("Names") and doc 13 ("Naming ids and
+  files"), and the lint checks item and furniture ids with every gate. Blocks keep their kind
+  (`base:terrain:rock:rock01`): it is a block's geology, and code reads it.
+- **Old `.import` files removed.** The 84 `.import` files of the old picture names were deleted
+  on the owner's word the same day (listed in `tmp/item_ids_20261115/orphans.txt`). No
+  leftover `.import` file remains, and every model, picture and sound still has its own.
+- **Mine to confirm:** the stamper grouped by tags, not by a new kind field on every item;
+  coal left as `coal`.
+- **Evidence:** `tmp/item_ids_20261115/` holds the script that did it (`flatten_ids.py`), every
+  id before and after (`ids.txt`), the pictures moved (`moves.txt`), every file touched
+  (`changed_files.txt`) and a copy of the sources from before (`before_sources.tar.gz`).
+
+All 242 tests passed after the change (the gate's 55 among them), the lint is clean and the 76
+Python art tests passed. The lint's count of known findings fell from 209 to 207 without a fix:
+two unused ore profiles in `data/terrain/appearance_profiles.json` (`iron_ore`, `tin_ore`) now
+share a word with an item id, so its text search no longer sees them as unused. Restart Play;
+no project reload needed (the moved pictures are imported already).
+
+**Names put in order (2026-11-15):** From the owner, reviewing the data files: "the Copper Pull
+Saw is in ... resources.json but it is not really a resource", and "log_table.json ... is no
+longer a log table, we made it a plank table". Of the four kinds of fix found in the 106 data
+files the owner took all four, with ids by use and shown names in sentence case. Not yet seen
+in play.
+- **Saves from before today no longer load.** Every item's id changed, so start a new colony.
+- **Shown names take one capital,** on their first word, everywhere: "Tool rack", "Plank dining
+  table", "Copper pick", "Rough stone", "Wild deer", "Born miner", "Colony inventory", "Storage
+  zone 3". 134 names in the data and eight titles in the code changed.
+  - A piece now reads the same in its own window, as a packed good, in Place and in crafting.
+    Fourteen read two ways ("Tool Rack", "Tool rack").
+  - Two names changed their words with their ids: "Apple Wood" is "Apple log", as the other
+    logs are, and "Strawberry Cutting" is "Wild strawberry cutting".
+  - The ladder is "Ladder section" in Place too, as in crafting and storage. A built ladder's
+    own window still says "Rough wooden ladder".
+  - Inside a sentence a good takes no capital: "a rough stone knocked square".
+- **Files say what they hold:** `resources.json` is `items.json` (every item, tools and packed
+  furniture among them) and `worker_crafting.json` is `recipes.json` (every trade's recipes).
+- **Ids say what a thing is for.** Each one's data file, model and menu picture moved with it:
+  - `log_table` is `dining_table`, `log_chair` is `log_stool`, `wooden_torch` is `torch`;
+  - the doors `door`, `log_door_3` and `log_door_4` are `door_2`, `door_3` and `door_4`;
+  - `apple_wood` is `apple_log` and `strawberry_cutting` is `wild_strawberry_cutting`.
+- **Every item is `base:item:<kind>:<name>`** (`base:resources:...` before, for tools, furniture,
+  drinks and coins too), and a recipe is `base:recipe:<name>`, with no trade in its id. The kind
+  left item ids later the same day (the entry above).
+- **Left as they are, on purpose:** `log_bed`, `log_fence`, `log_gate` and `crude_ladder`, which
+  are true today; gems' `_raw` (a standing decision); and the names of tests and scripts, such as
+  `LogDiningTableTest` and `WorkerCraftingPanel`.
+- **Kept in order from here:** the rules are in CLAUDE.md ("Names"), doc 13 ("Naming ids and
+  files") and doc 23 ("Names are sentence case"), and the lint checks them with every gate.
+- **Old `.import` files removed.** The 104 `.import` files of the old model and picture names
+  were deleted on the owner's word the same day (listed in `tmp/naming_20261115/orphans.txt`),
+  and with them the eight older ones of the retired kits, stone hoe and copper fitting
+  ([doc 306](306_profession_path.md)). No leftover `.import` file remains, and every model,
+  picture and sound still has its own.
+- **Mine to confirm:** the doors by number; "Ladder section" as the ladder's one name in the
+  data; trait, look and animal names and window titles in sentence case too.
+- **Evidence:** `tmp/naming_20261115/` holds the scripts that did it, the lists of what moved
+  (`moves.txt`), which names changed (`names.txt`) and every file touched (`changed_files.txt`),
+  and a copy of the sources from before (`before_sources.tar.gz`).
+
+All 242 tests passed after the ids and files changed. After the names changed one test failed,
+a recipe's wood label that cut " Log" off a name; it is fixed and passes. Gate 55 of 55 and lint
+clean at the end. Restart Play; no project reload needed (an open editor imports the moved models
+and pictures by itself).
+
+**Log torches, 24 to a crate (2026-11-15):** From the owner: "The torch in our game takes too
+much space up as a furniture shipping container, can we make the torch behave similar to fruit
+where 24 of them fit in a crate?" Not yet seen in play.
+- **Torches share a crate.** A bench's four torches land as one crate, and later batches join it,
+  up to 24. A crate takes one stockpile cell, one quarter of the finished goods pallet and one
+  carrying trip, whatever it holds. Before, every torch was a shipping crate of its own.
+- **A crate of its own.** It shows the torches lying in it at three fills, and its sticks show
+  their wood. Torches of different woods keep different crates, as other goods do.
+- **Hanging one takes one.** A plan takes a single torch out of a crate, loose or stored. Several
+  plans on one crate each get their torch and their dwarf at once. Cancelling a plan puts its
+  torch back, and a torch taken down joins a crate again.
+- **Cuttings and tree seeds follow.** Several plans on one loose crate of them are served at once
+  too. Before, each waited until the one before it had been picked up.
+- **Mine to confirm:** the crate's look; its name in a crate, "Log torch" without "(packed)"; and
+  that a crate of torches stays a heavy load, as packed furniture is, where fruit is light.
+- **Rules:** doc 62, "Log torches are kept 24 to a crate"; doc 31, "A plan claims one unit".
+- **Picture:** `tmp/torch_crate_20261115/review.png`: the three fills, the four woods, and four
+  crates in use beside them.
+
+Gate 55 of 55, lint clean. Restart Play; no project reload needed.
+
+**The anvil stone (2026-11-14):** From the owner, of the sheet's three ideas: "B, perhaps this
+work station can work for copper, bronze, etc... until the iron anvil arrives later"
+([doc 310](310_anvil_stone.md)); not yet seen in play.
+- **A second station for the Blacksmith.** The anvil stone is one great stone with its top split
+  off level, 2 × 1, with no wood. A Blacksmith makes it at the crude workbench from three Rough
+  Stones (Crafters → Blacksmith → Workshops), and it is installed through Place → Workshops.
+- **The four copper tools are hammered on it,** no longer at the smelter, so a tool can be made
+  while copper melts. With a smelter but no anvil stone, a tool's order says "Needs an anvil
+  stone".
+- **The basic smelter only melts and casts.** Its casting stone still holds the bar's mould.
+- **Until iron.** The anvil stone is where copper is hammered, and whatever else comes before
+  iron; the Forge's forged anvil replaces it then (doc 44). There is no bronze in the game yet.
+- **Mine to confirm:** its name, its cost and its 18 seconds; the bar always lies at the middle
+  of the stone's left cell; the casting stone keeps its old peck marks.
+- **Your colony of this evening still loads** (checked on a copy of its quicksave).
+- **Picture:** `tmp/anvil_20261114/installed_in_game.png`, the installed stone beside a smelter.
+
+Gate 55 of 55, lint clean. Restart Play; no project reload needed.
+
+**The anvil stone, proposed (2026-11-14):** No change in play, and nothing is built. From the
+owner, of the copper saw: "I think the smelter should not be that workstation, does the
+blacksmith need another workstation?", then "1 yes, 2 draw a sheet of looks first"
+([doc 310](310_anvil_stone.md)).
+- **Today** a Blacksmith hammers every copper tool on the basic smelter's casting stone, and
+  cannot while copper melts there.
+- **Agreed:** a station of its own, the anvil stone. The four copper tools will move to it and
+  the smelter will make only bars.
+- **For your pick:** `tmp/anvil_20261114/anvil_stone_sheet.png` shows three ideas beside today's
+  casting stone: A, a stone on a stump (1 × 1); B, one great stone (2 × 1, no wood; my pick);
+  C, the stone and a hafting block (2 × 1).
+
+**The Farmer and its fields (2026-11-14):** From the owner: "plan the farmer next and we need to
+plan several vegetables the farmer can grow, some low level that he can farm during a specific
+season and then later more complicated crops as the farmer levels up", then, of the plan and its
+five questions, "proceed with the full plan" ([doc 309](309_the_farmer.md)); not yet seen in play.
+- **A new trade: the Farmer.** A Worker becomes one by collecting a copper hoe, which a
+  Blacksmith makes. It wears a straw hat. Only Farmers work fields; between field jobs they
+  take the common work.
+- **Fields.** Zones → Farming lays out a field: drag over open grass or dirt, at most 16 × 16.
+  The Farmer hoes it into tilled soil, a block of its own with furrows, sows the season's crop
+  and pulls it when ripe. Stores, fishing spots and fields keep to their own ground.
+- **A plan for the year.** A click on a field opens its window: a crop for each season, or
+  rest, followed year after year. A new field plans radish, carrot and turnip.
+- **Seven vegetables,** all eaten raw, a portion each, as fruit is:
+  - a new Farmer knows **radish** (spring, 4 days, 2 a tile), **carrot** (summer, 6 days, 3)
+    and **turnip** (autumn, 8 days, 4, and it keeps like apples);
+  - level 2 learns **cabbage** (spring to autumn, 9 days, 6 a tile, but it wilts in days);
+  - level 3 learns **onion** (sown in spring, pulled in summer, 14 a tile, and it keeps longest);
+  - level 4 learns **pumpkin** (sown in summer, cut in autumn, 24 a tile; it grows only in
+    damp soil);
+  - level 5 learns **kale** (sown in autumn, then picked every three days until spring).
+- **Levels** come at 25, 100, 250 and 800 tiles harvested. A crop is sown only by a Farmer of
+  its level; any Farmer pulls it.
+- **No seeds.** Sowing costs work alone, and a Farmer never sows what cannot ripen in time: the
+  window says "Sown until Summer 14".
+- **Water helps.** Soil within three cells of water is damp, and damp soil grows every crop a
+  quarter faster. On a day of rain every open field is damp.
+- **Seasons.** Nothing grows in winter. When a season turns, ripe plants are still pulled and
+  unripe ones are hoed under, and Events says how many.
+- **Bushes and fruit trees in a field** are picked by the Farmer as they ripen, with no order
+  (your ask of 2026-11-06). A field that rests all year is an orchard.
+- **The hoe is heard** in the earth, and a tile as it is sown and as it is pulled. **Not
+  listened to:** I cannot hear audio, so the choices and levels wait on your ear, at
+  `tmp/farmer_20261114/sounds/review.html`.
+- **Pictures for your look:** `tmp/farmer_20261114/` (the crops, the goods, the hat and the
+  hoe, the field in a world and its window).
+- **Saves from before today do not load:** the save now carries the fields. Start a new colony.
+- **Left for later** (`00_todo.md`, "Farming left for later"): underground crops, the brewing
+  crops, cooking, animals in the fields, and settling the numbers in play.
+
+Restart Play to see it; no project reload needed.
+
+**The Farmer and its crops, planned (2026-11-14):** No change in play, and nothing is built.
+From the owner: "plan the farmer next and we need to plan several vegetables the farmer can
+grow, some low level that he can farm during a specific season and then later more complicated
+crops as the farmer levels up" ([doc 309](309_the_farmer.md)).
+- **The plan.** A Farmer with a copper hoe works fields the player drags on open ground: it
+  hoes the ground into tilled soil, sows the crop the field's plan names for the season and
+  pulls it when ripe. Bushes inside a field are picked with no order.
+- **Seven vegetables.** A new Farmer knows radish (spring), carrot (summer) and turnip
+  (autumn). Levels 2 to 5 teach cabbage, onion, pumpkin and kale, each with one new idea.
+- **Waiting on the owner:** five questions in the doc (the roster, seeds, the field's plan,
+  water, and trees and surplus).
+
+**Planks, and the first plank furniture (2026-11-13):** From the owner: "the carpenter starts with
+a saw, therefore I think the initial set of items the carpenter can make don't need to be
+rudimentary anymore", then "agree with planks" and "Stonemason later", and of the looks "Plank,
+A / Dining Table, B / Bench, A", then "Tool rack, A / … / Pallet, A / Game Board, A" and
+"Crate, A / Food Shelf, A" ([doc 308](308_sawn_timber.md)); not yet seen in play.
+- **A new good: planks,** in pine, oak, juniper and applewood. A plank is a thick squared board
+  with saw strokes across its face.
+- **Sawing.** Crafters → Carpenter → Timber has one recipe a wood: a Carpenter saws one log into
+  two planks of that wood at the carpenter's bench.
+- **Storage.** Planks is its own category under Materials. Ground storage takes planks, and the
+  finished goods pallet takes them four to a quarter. A store placed before today refuses
+  planks until All is pressed in its window.
+- **No fire burns a plank,** and furniture made from planks takes their wood.
+- **Also fixed:** a new storage zone refused copper bars until Metal was ticked. New zones now
+  accept every category.
+- **The dining table is a plank table:** four broad boards pegged across two plank ends, made
+  from four matching planks. Its size, its top and its stools' places are as they were.
+- **The bench is a plank bench:** two boards on two plank ends with a stretcher, made from two
+  matching planks.
+- **The tool rack is a peg rail:** one broad sawn board on the wall with three pegs, made from
+  two matching planks.
+- **The finished goods pallet is a plain pallet:** four deck boards across three runners, made
+  from four matching planks.
+- **The board-game table is the plank dining table** with the game scratched across its top,
+  made from four matching planks and a Rough Stone. The two tables match again.
+- **The raw materials crate is an open plank bin:** a post at each corner and two boards a
+  side, nothing inside but its goods, made from four matching planks.
+- **The food shelf is two plank shelves** between two plank ends, the upper one shallower so
+  both rows show, made from four matching planks.
+- **All seven carry one more point of appeal** than their log forms, and all keep their wood.
+- **The pieces you already have change look,** since they are the same pieces; your save loads
+  as before.
+- **Their log forms are gone from the game.** The designs are kept.
+- **The fence and the gate stay logs:** you found both plank fences too busy, and a rail fence
+  is split, not sawn.
+- **The carpenter's bench stays as it is:** it is made from logs before any plank exists.
+- **Still to come:** the saw in the Carpenter's hand: it still swings the stone adze and is
+  heard as an axe, sawing planks included.
+
+Restart Play to see it; no project reload needed.
+
+**The basic smelter has its sounds (2026-11-13):** From the owner: "The basic smelter could use
+some audio as well when it is in action, use the audio guide from claude.md"
+([doc 307](307_smelter_sounds.md)). **Not listened to:** I cannot hear audio, so the choices and
+the levels wait on your ear, at `tmp/smelter_sounds_20261113/review.html`.
+- **What was there.** Nothing: the charge, the blowing, the four hours of melting and the bar
+  coming off were all silent. Only a tool hammered on the casting stone was heard.
+- **Each lump is heard landing in the pot,** as rocks thrown onto rocks; a log pushed into the
+  fire hole knocks as a log does.
+- **Each breath through the stick is heard,** three to a charge.
+- **A fire burns in the boulder while its coals show:** from the last lump going in, through the
+  blowing and the melt, until the copper sets. It is as loud as a campfire and carries as far.
+- **The cast bar is heard** as it comes off and lands beside the smelter.
+- **The recordings** are nine CC0 ones from Freesound. Four stand in for the real thing and are
+  named so: logs thrown onto logs, breath through a plastic pipe and a cardboard tube, an
+  aluminium ingot on concrete for the copper bar, and a pottery kiln's fire for the smelter's.
+- **Still silent:** the moment the copper sets. A tool being hammered keeps the stone knock.
+
+Restart Play to hear it; no project reload needed.
+
+**The career map no longer reads as "Blacksmith first" (2026-11-13):** From the owner, promoting
+dwarves: "this page is confusing and it would seem as if the Dwarf has to be a blacksmith first
+before becoming a farmer" ([doc 306](306_profession_path.md)). The owner's look the same day:
+"this makes more sense now".
+- **What was there.** The map was a tree with the Miner, the Carpenter, the Stonemason and the
+  Farmer hanging under the Blacksmith, because the Blacksmith makes their tools. The lines read as
+  the dwarf's own way through the trades.
+- **Now every trade stands in one row under the Worker.** A line means only "a Worker can become
+  this", which is true of all of them.
+- **Who makes the tool is written under the tiles:** a bracket under the Ranger and the Blacksmith
+  says "A Worker makes their tools", and one under the Miner, the Carpenter, the Stonemason and the
+  Farmer says "A Blacksmith makes their tools".
+- **The trade you pick** lights its line, its bracket and those words in copper.
+- Nothing else on the page changed: "Needs tool", the card and its words are as they were.
+
+Restart Play to see it; no project reload needed.
+
+**The crafting screen lights only the trades you have (2026-11-13):** From the owner's first new
+game on the new profession path: "carpenter for example is lit up even though I cannot build it,
+same with others" ([doc 306](306_profession_path.md)); not yet seen in play.
+- **What was there.** Every trade with a crafting page was lit, on the Craft menu above the dock
+  and in the crafting window's row of trades, whether or not the colony had a dwarf of it.
+- **Now** a trade is lit only while a dwarf of it is in the colony. At the start that is
+  Rudimentary alone; the rest are dimmed and wear a lock.
+- **A dimmed trade says the way to it:** "No Carpenter yet. A dwarf becomes one by collecting a
+  copper saw. A Blacksmith makes it at the basic smelter."
+- **Its page still opens,** so you can see what the trade will make, and headed "Carpenter · No
+  Carpenter yet". Orders can still be queued there; they wait for the trade.
+- **Rudimentary dims too** if every dwarf has a trade and no Worker is left to make its goods.
+
+Restart Play to see it; no project reload needed.
+
+**The trades are earned: copper tools from the Blacksmith (2026-11-13):** From the owner: "I am not
+sure it feels great that all of them can start right away … it doesn't feel rewarding at all", with
+the idea to put the Miner, the Carpenter and the Stonemason behind the Blacksmith, then six picks
+on the plan ([doc 306](306_profession_path.md)); step 1 of three, not yet seen in play.
+- **Two trades start the camp.** A Worker still makes the Ranger's kit and the Blacksmith's stone
+  hammer from a log and a Rough Stone.
+- **The Blacksmith opens the rest.** Crafters → Blacksmith → Tools has a copper pick, a copper saw,
+  a copper chisel and a copper hoe, each hammered on the basic smelter's casting stone from one
+  copper bar and a log. A Miner needs the pick, a Carpenter the saw, a Stonemason the chisel; the
+  hoe waits for the Farmer. The crude carpentry and masonry kits and the stone hoe are gone.
+- **The copper pick digs faster:** a Miner needs a fifth less time a block than a Worker with the
+  stone pick, before its levels. Workers still mine.
+- **The bed and the doors are a Worker's again.** The log bed and all three log doors are under
+  Crafters → Rudimentary → Rooms, made at the crude workbench, so a camp can have a bedroom before
+  it has copper. Storage, tables, fences, the board game and the hearth stay with the trades.
+- **Copper melts over logs too.** A copper bar takes two copper ore and a coal, or two logs of one
+  wood when the colony has no coal, so only copper has to be found. The Blacksmith throws the ore
+  into the pot and pushes the logs into the fire hole.
+- **No more copper fittings.** What brewing would have taken as fittings will take bars.
+- **The career map is a tree:** the Ranger and the Blacksmith under the Worker, the copper trades
+  under the Blacksmith. A trade whose tool the colony lacks reads "Needs tool", and its card says
+  who makes it.
+- **The tools' look is your pick** from `tmp/profession_path_20261113/tools_sheet.png`: the pick
+  is the stone pick's outline cast in copper; the saw is a Japanese pull saw, a ryoba with teeth
+  on both edges; the chisel lies crossed with the hammerstone maul that drives it; the hoe has its
+  blade under a bent knee and lies on its side.
+- **Still to come:** the copper tools in the dwarves' hands (the Carpenter still swings a stone
+  adze at the bench), and whether a copper saw and chisel bring planks and dressed stone.
+- **Your Skarberg save no longer loads:** it holds a masonry kit, which the game no longer knows.
+  Copies from before are in `tmp/profession_path_20261113/saves_before/`. Start a new colony to
+  feel the new start.
+
+Restart Play to see it; no project reload needed.
+
+**Fishing has its own sounds (2026-11-12):** From the owner: "can we review the ranger when he is
+fishing, I think we could add some sounds" ([doc 305](305_fishing_sounds.md)); not yet listened to.
+- **What was there.** A catch had three sounds, all one recording of a splash in a lake that the
+  ducks also land with, played so low that they sat at or under a footstep. The cast was silent.
+- **Five moments of a catch are heard now:** the rod's swish as it is cast, the float's plop, a
+  splash at the bite, a longer splash as the fish comes out, and two flops as it flaps on the
+  line. Its tail swings with each flop. The wait between stays quiet.
+- **A Ranger's big fish** comes out with a heavier, longer splash.
+- **All are real recordings,** each variant a separate recorded event: a bamboo rod swung through
+  the air, pebbles falling into a pond (for the float), a fish jumping and one being released
+  (for the bite and the landing), and a fish flopping on land. Eight public-domain recordings
+  from Freesound; credits, edits and a generator that rebuilds them are in
+  `tools/audio_sources/fishing/` and `tools/generate_fishing_audio.py`.
+- **Louder than before, still quiet.** By measurement the swish and the plop sit just above a
+  footstep and the landing about level with a duck's quack; a big fish's landing is a little
+  louder, still under an axe. I could not listen; the levels are yours to set by ear.
+- **Listen first:** `tmp/fishing_sounds_20261112/review.html` plays a whole catch before and
+  after, each cue, and the recordings as downloaded.
+
+Restart Play to hear it; no project reload needed.
+
+**Hats show a dwarf's trade, and the Miner's has a candle (2026-11-12):** From the owner: "it's
+hard to tell for me who's who from looking at the game only. I think Dwarves with jobs should get
+a hat", the Miner's with a candle that lights in the dark and not in sleep; then, of two concepts,
+"A / candle on top / agree with your direction" ([doc 304](304_trade_hats.md)). The owner's look the
+same day: "Looks good".
+- **A hat for each trade.** The Miner wears a hard ochre cap with a candle on it, the Ranger a
+  moss cap with a pheasant's feather, the Carpenter a broad plum cap buttoned with a slice of
+  branch, the Stonemason a flat grey cap with stone dust on top, the Blacksmith a rust kerchief
+  scorched at one corner. Each differs on top, where the camera looks, and from behind.
+- **A bare head is a Worker.** A dwarf gets the hat with the trade and loses it on going back to
+  Worker. Hats are not goods: nothing to craft, store or haul. Your three specialists wear theirs
+  as soon as the save loads.
+- **Hair stays below the brow line,** so plaits, buns and beards still say who the dwarf is.
+- **The Miner's candle** burns while they are awake and it is dark where they stand: underground
+  away from daylight, or outdoors at night. It is out in daylight, where a lit torch or fire is in
+  sight, and once they settle down to sleep. Its light is small (8 blocks against a torch's 20)
+  and shows the rock they work and whoever is near.
+- **Portraits** show the hat, the candle unlit.
+- **Fixed on the way:** in a dark tunnel three blocks high under the slice, every dwarf showed a
+  pale shape on its head. The faint outline that shows a dwarf behind a wall was counting rock the
+  slice had cut away.
+
+Restart Play to see it; no project reload needed.
+
+**Copper bars go on the finished goods pallet (2026-11-12):** From the owner: "the copper bars, a
+finished good, is not able to be stored on the finished goods pallet"
+([doc 296](296_finished_goods_pallet.md)); not yet seen in play.
+- **The pallet takes metal goods:** copper bars and fittings, three to a quarter, beside its
+  packed furniture, one piece to a quarter. A quarter keeps one kind of good. Haulers bring
+  bars to a pallet ahead of a Metal zone on the ground.
+- **Its window** counts quarters and goods ("Used 3 / 4 quarters · 5 goods").
+- **Pallets already placed take furniture only until All is pressed** in their storage window:
+  each keeps the choice of goods its save holds. A pallet placed from now on takes metal from
+  the start.
+
+Restart Play to see it; no project reload needed.
+
+**The Blacksmith charges the smelter and blows on its fire (2026-11-12):** From the owner:
+"proceed with smelter step 2 and also review the animation for step 1, the blacksmith just moves
+in a weird way when adding the ingredients" ([doc 300](300_boulder_smelter.md)). The owner's
+look the same day: "The animation looks better."
+- **What was wrong.** The charge borrowed the drying rack's motion: the Blacksmith stood in the
+  boulder and raised two empty hands to it for twelve seconds while the ore lay at its feet,
+  and the cast bar lay in its mould from the first second.
+- **The charge goes in.** The Blacksmith stops a long step back from the boulder, before its
+  fire hole, sets the charge down, and throws each lump into the pot: two ore and a coal.
+- **Then the fire.** It crouches and blows on the fire through a hollow stick held to the fire
+  hole, three breaths.
+- **What the smelter shows.** Coals and melting copper once the charge is in; the bar in its
+  mould only when the copper has set, when the coals go out.
+- **A charge given up half way** lies beside the smelter again, all of it.
+- **The status line** reads "Charging the smelter", then "Blowing on the smelter's fire".
+- **A cramped smelter still works:** charged from another side if nothing can stand before the
+  fire hole, and with a stoop if a wall is right behind the Blacksmith.
+- Also: `WorkerCraftingStumpTest` had expected the stump's old reach since 2026-11-10; it reads
+  the bench's data now.
+
+Restart Play to see it; no project reload needed.
+
+**Room types: dining room, pantry and freezer (2026-11-12):** From the owner's screenshot: a
+cool room holding two food shelves was told "One step from a bedroom: add a bed.", with its
+11.4 °C marked as a fault. Accepted by the owner the same day ("great change", then "1
+accepted"); its milestone doc 303 is retired, with the rules in docs 34 ("Room types") and 23
+("The Rooms Tool").
+- **Three new room types.** A sealed room with a dining table, a seat, a fire (a hearth or a
+  campfire) and a light is a **Dining room**. One with a food shelf is a **Pantry** above 0 °C
+  and below 16 °C, and a **Freezer** at 0 °C or below. Bedrooms and barracks come first. The
+  owner's room now reads "Pantry 1".
+- **Types follow the temperature.** A pantry that warms past 16 °C is a plain room again, "One
+  step from a pantry: get it below 16 °C.", and a frozen one is a freezer.
+- **The room window stops guessing a bedroom.** A plain room is measured only against a type it
+  has begun: a bed for a bedroom, a dining table for a dining room, a food shelf for a pantry.
+  A room holding none shows **What it could be**: every type, with the steps to it.
+- **Warmth is read for what the room is for.** Comfort where dwarves stay, as before. Where
+  food is stored the block is **Keeping**: "Food keeps · About 9 days · Blueberries · 4 days at
+  20 °C", and a heat source reads "warming it". A plain room gets its temperature as a fact.
+- **A Types tab** on every room lists the room types, what each needs and what it is for.
+- **No new rules.** Food already keeps longer in the cool and meals already take in their
+  room; the types name it. A storage zone on the floor does not make a pantry
+  (`00_todo.md`, "Room types left for later").
+
+Restart Play to see it; no project reload needed.
+
+**Picture runs stay off the desktop (2026-11-11):** The owner asked whether Godot has to open
+in the foreground while proposals are drawn ("GoDot opens up in the foreground 50+ times").
+- **`python3 tools/run_offscreen.py`** runs any script that has to draw (galleries, menu
+  pictures, icons, colony captures) on a hidden screen in an isolated profile, so no window
+  opens on the desktop. Godot's own `--headless` draws nothing. Pictures come out byte for byte
+  as they do in a window (doc 61, "Running a script that draws"; CLAUDE.md, "Tests").
+- **Build → Wood, pine:** the Upright log and Horizontal log pictures are now pine's honey, as
+  pine walls have been since 2026-11-10. Today's first picture check compared outlines only
+  and had put the two old pictures back ([doc 302](302_art_leftovers_built.md), "Checked").
+
+Restart Play to see the two pictures; no project reload needed.
+
+**The art review's leftovers, built (2026-11-11):** From the owner's eleven picks on the
+proposal sheets ([doc 302](302_art_leftovers_built.md)); not yet seen in play.
+- **Log bench:** one whole log lying on the ground, wedged so it cannot roll, with a seat hewn
+  flat along its top.
+- **Finished goods pallet:** the same log skids, the deck laid as four broad split halves.
+- **Food shelf:** the same lean-to rack, its decks broad split halves, its posts' bark in ridges.
+- **Tool rack:** the same pegged log, hung bark side out.
+- **Pine beds, doors, ladders and torches** take pine's honey: a pine door's slabs are no longer
+  cream beside a honey table.
+- **Rudimentary hearth:** its fire-back is one split boulder in worked stone, and the piece
+  split from it is the hearthstone.
+- **Campfire:** five great stones in worked stone, on ground burnt black.
+- **Fence and gate:** the post's top is chopped in two steps, its knot and check show, and the
+  rails are lashed on with rope.
+- **Career kits:** each kit is its two tools crossed and lashed where they cross, with the heads
+  the dwarves now hold.
+- **Tool icons:** Orders, Mine, Chop, Clear stones, Clear plants, Miner, Carpenter, Stonemason
+  and Blacksmith show stone tools; the Blacksmith's shows his boulder smelter.
+- **The sun's path leans 30°.** At the sky's midday it stands 60° up, not straight overhead, so
+  side faces are lit and shadows fall beside things all day (doc 24, "Sky").
+
+Menu pictures and icons were re-rendered. Two old shape checks changed with the art: the bench's
+(a log has no air under its seat) and the hearth's (the boulder's crown stands 5 cells over the
+flame, the slabs stood 7). Gate 55 of 55, lint clean. Restart Play; no project reload needed.
+
+**The art review's leftovers, proposed (2026-11-11):** No change in play, and nothing is
+installed. The owner: "Propose them all so I can review the three options and pick one".
+- **Eleven sheets** are in `tmp/proposals_20261111/sheets/`, each with today's piece and three
+  options: the log bench, the goods pallet, the food shelf, the tool rack, pine's log colours,
+  the hearth, the campfire, the career kits, the tool icons, the fence and the midday light.
+  The owner's picks are awaited; the options, what each needs and the builder's notes are in
+  [`00_todo.md`](00_todo.md), "The art review's leftovers".
+- **Pieces the owner had already picked from three concepts** (the pallet, the rack, the shelf,
+  the hearth, what each kit holds) keep their designs: their sheets offer three ways to draw
+  the pick, not the concepts passed over.
+- **Two findings** joined doc 64. The owner's camera differs from save to save (60° down at
+  zoom 29 in the newest, 45° at zoom 20 the day before), so every sheet shows both. The sky's
+  midday is 14:00 by the clock in that save, not noon: the sun is then straight overhead and
+  every side face is in shade, which is what the midday light sheet is about.
+
+No restart or reload needed.
+
+**The art review is accepted; doc 301 retired (2026-11-11):** No change in play. From the owner,
+after a first look in play on 2026-11-10: "the new furniture looks good". Asked on 2026-11-11
+about the three things that look had not named (the stone hand tools, pine's deeper colour and
+the boots of seated dwarves) and whether "Pine Color, B" had meant the sheet's second option,
+honey: "2 is good". So doc 301 is retired:
+- **Its rules** were already in the design docs: doc 64 ("Furniture tiers" for stone drawn as
+  wood is, a top as a split log's face, bark in ridges and what noon does to light colours; "Art
+  over rigs" for the tables' seats), doc 61 (the worked-stone colours, the two stool models, the
+  iron tools kept as a study), doc 41b (the hand tools), doc 44 (the benches) and doc 62 (each
+  piece's design).
+- **Two of its lessons** join doc 64, "Making new art": show the owner concepts before anything
+  is installed, at their own camera; and check a concept against a seat or collision contract
+  with the piece's own test, not by hand.
+- **Pine stays honey,** the sheet's second option.
+- **Later,** in [00_todo.md](00_todo.md) (Furniture, "The art review's leftovers"): the older
+  log pieces by the new rules, pine on the bed, doors, ladder and torch, the hearth and the
+  campfire in worked stone, the fence, the career kits' shapes, the icons that still draw iron,
+  and the noon light. None is picked.
+- **Pictures** stay in `tmp/`: the review's graded sheets (`art_review_20261110/`, with a copy
+  of doc 301), the proposal sheets with the concepts passed over (`stone_concepts_20261110/`,
+  `smelter_stone_20261110/`, `bulk_concepts_20261110/`) and the installed checks
+  (`stone_build_20261110/`, `smelter_build_20261110/`, `art_build_20261110/`).
+- Doc 300 (the boulder smelter) stays open for its step 2 and no longer leans on doc 301. Code
+  and data comments still cite doc 301, as they cite other retired milestones.
+
+No restart or reload needed.
+
+---
+
+**Dwarves eat at a table that is near but a longer walk away (2026-11-10):** From the owner:
+"dwarves have access to tables but refuse to eat there". In their colony the table stood 23 blocks
+from the food shelves, but the walk to it was 34 to 42, and the 32-block reach was counted along
+the walk, so every dwarf ate standing at the shelves.
+- The reach is now how far away a table or seat is, as you see it on the ground (32 blocks). The
+  walk to it may be up to 64.
+- A dwarf whose place at the table is taken while it looks now takes another place there. Before,
+  it gave the table up.
+- The two-second search for a place is counted in real time, so ×3 no longer cuts it to a third.
+- Checked in a copy of the owner's save, at ×1 and ×3: all five dwarves eat at the table, seated
+  when a stool is free and standing at it when both are taken. It has two of its four stools.
+
+Doc 41 ("Dining"); `DwarfDiningTest` (the winding walk, the taken place, the search's budget).
+
+Restart Play.
+
+---
+
+**The drying rack shows the two fish it dries (2026-11-10):** From the owner: "it displays three
+fish even though a dwarf just hung only two up". The hanging fish are one model, and it drew
+three; a batch is two. It draws two now, and a test keeps the model and the recipe in step.
+Doc 62; `test_hearthblock`.
+
+Restart Play.
+
+---
+
+**The crude workbench is a felled tree's stump (2026-11-10):** From the owner, of three concepts:
+"A for the crude workbench". It is still one great stump, 3 × 3 with its top at one block and made
+from one log, but no longer a squared slab with bark plates: buttress roots run out over its
+ground, its bark is in ridges, and the felling cut with its splintered hinge lies along one side.
+A worker's material lies a little nearer its middle, because the top is narrower.
+[Doc 301](301_art_review_and_stone.md); docs 44, 62 and 64; `CompactPanelTest`.
+
+Restart Play. A workbench already placed takes the new look where it stands.
+
+---
+
+**The owner's picks from six art sheets, built (2026-11-10):** From the owner, of six proposal
+sheets reviewed together: "Dining Table, B / Carpenter Bench, B / Materials Crate, A / Pine Color,
+B / ... you can apply it to the log stool though / Proposed hand tools, Stone".
+- **The dining table** stands on a stump at each corner, with two bearer logs and three split
+  poles for a top. The board-game table has the same legs under two halves that carry its board.
+  Dwarves at either table keep their boots beside the stool.
+- **The carpenter's bench** has a chopping block: one end of its slab is let into a bark stump.
+- **The raw materials crate** is three courses of stouter logs, so it stands as a bin when empty.
+- **Pine is a step deeper and yellower** on every hand-hewn pine piece, built logs and fences
+  among them. "B" was read as the sheet's second option; say if another was meant.
+- **The log stool's bark** is in ridges where it had raised plates. The crude workbench is
+  unchanged: the owner wants it reworked, which needs its own proposal.
+- **Hand tools are stone bound with rope:** the felling axe, the pickaxe, the Carpenter's adze,
+  the Stonemason's maul, the stone hammer and the stone hoe. The career kits took the same stone.
+  The iron axe and pickaxe are kept, drawn, for the Blacksmith's upgrade.
+
+The orders' and careers' own icons still draw iron heads; only the Worker icon follows the new
+tools.
+[Doc 301](301_art_review_and_stone.md); docs 23, 41b, 44, 61, 62 and 64; `LogDiningTableTest`,
+`test_game_table`.
+
+Restart Play. Tables already placed take the new legs where they stand; a crate already placed
+is four cells taller.
+
+---
+
+**The basic smelter in the new stone, a cell broader (2026-11-10):** From the owner: "proceed with
+the smelters stone", then of three sizes shown beside a dwarf, "B". The smelter keeps its idea (one
+great stone knocked hollow, a pot in its top, a fire hole in its foot, a casting stone beside it)
+and is drawn like the mason's bench: big square steps, a dark skin, a pale lip round the pot, soot
+at the fire. It is now 3 × 1. The boulder is two cells broad and 24 cells high, and the Blacksmith
+tips the charge in at 1.5 blocks. The casting stone has one bar mould and a spot for hammering
+fittings.
+[Doc 301](301_art_review_and_stone.md) and [doc 300](300_boulder_smelter.md); docs 44, 61, 62 and
+64; `BasicSmelterTest`.
+
+Restart Play. A smelter already placed grows by one cell on its boulder's side.
+
+---
+
+**The mason's bench and the stone stool, built as stone (2026-11-10):** From the owner, after an
+art review graded these two lowest: "we can start with 1, but will you propose the new art first?",
+then of the concepts, "proceed with your picks". Both keep their size, heights and recipes and get
+new models. Stone furniture now has a dark weathered skin and pale fresh stone where it was split
+or knocked, as a log has bark and a cut face. The bench's slab is twice as thick on short stout
+stumps, with a corner broken away, a crack, peck marks and spalls at one foot. The stool is one
+square block with a fresh seat, a corner knocked off and a crack down its back. The smelter takes
+the same stone in its step 2.
+[Doc 301](301_art_review_and_stone.md), which also holds the review's grades and the next steps;
+docs 44, 61, 62 and 64; the art tests.
+
+Restart Play. Benches and stools already placed take the new look.
+
+---
+
+**The boulder smelter (2026-11-09):** From the owner: "the blacksmith is hammering on the copper
+ore, then it smelts", and of the first concepts, "we don't have clay … keep it rudimentary". The basic
+smelter is now one great Rough Stone knocked hollow, a stone pot in its top and a fire hole in its
+foot, beside a casting stone on two log rounds at bench height (their pick E of the second round).
+The Blacksmith tips the copper charge into the boulder by hand from beside it, and hammers fittings
+with the maul at the casting stone. Blowing on the fire through a hollow stick is step 2.
+[Doc 300](300_boulder_smelter.md); docs 44 and 62; `BasicSmelterTest`.
+
+Restart Play. Smelters already placed take the new look.
+
+---
+
+**Builders keep their 5-block reach (2026-11-09):** From the owner: "dwarves reaching 5 blocks is good,
+I don't think we should make it higher or lower". Nothing changes in play; doc 31 and `00_todo.md`
+record it. Taller plans still need stairs to stand on until scaffolding comes.
+
+---
+
 **"Trash" instead of "Recycle Bin" (2026-11-09):** From the owner: "make the recycle bin to trash
 change". Deleting a save from the Load page now says its files go to the Trash, as KDE calls it, and
 the notice reads "The quick save is in the Trash." Docs 13 and 23; `GameMenuTest`.

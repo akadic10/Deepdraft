@@ -12,8 +12,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - Esc, closing the window and another tool all end stamping;
 ## - without DEV tools the tool never registers.
 const STAMPER := "res://scripts/systems/ItemStamperController.gd"
-const BED := "base:resources:furniture:log_bed"
-const FLOWERS := "base:resources:plant:flowers_1"
+const BED := "base:item:log_bed"
+const FLOWERS := "base:item:flowers_1"
 const OAK := "base:material:oak"
 
 
@@ -44,6 +44,16 @@ func _run() -> void:
 	var missing: Array = items.keys().filter(func(key: String) -> bool: return panel._items[key].picture == null)
 	_expect(panel._items.size() == items.size() and panel.grid._tiles.size() == items.size() and missing.is_empty(),
 		"every item has a tile with its picture: " + str(missing))
+	# An item's tags choose its group, since its id holds no kind (doc 13, "Naming ids and files"):
+	# a tool is no "other good", a fish is food, and an uprooted plant is no seed.
+	var grouped := {"base:item:rough_stone": "materials", "base:item:copper_bar": "materials", "base:item:oak_plank": "materials",
+		BED: "furniture", "base:item:settlement_flag": "furniture", "base:item:copper_pick": "tools", "base:item:apple": "food",
+		"base:item:perch": "food", "base:item:apple_seed": "food", "base:item:ale": "drink", FLOWERS: "plants",
+		"base:item:gold_coin": "other", "base:item:wet_stone": "other"}
+	var misplaced: Array = grouped.keys().filter(func(key: String) -> bool: return String(panel._items[key].group) != grouped[key])
+	_expect(misplaced.is_empty(), "an item's tags choose its group: " + str(misplaced))
+	_expect(items.keys().all(func(key: String) -> bool: return key.get_slice_count(":") == 3 and key.begins_with("base:item:")),
+		"an item's id is base:item:<name>, with no kind in it")
 	# Search: by name, by id, nothing, and Enter for the first.
 	panel.search.text = "pine"
 	panel.search.text_changed.emit("pine")
@@ -52,13 +62,13 @@ func _run() -> void:
 		return String(panel._items[key].name).to_lower().contains("pine") or key.contains("pine")), "the search keeps the items it names: " + str(shown))
 	panel.search.text = "rough_stone"
 	panel.search.text_changed.emit("rough_stone")
-	_expect(_shown(panel) == ["base:resources:stone:rough_stone"], "an id finds its item")
+	_expect(_shown(panel) == ["base:item:rough_stone"], "an id finds its item")
 	panel.search.text = "xyzzy"
 	panel.search.text_changed.emit("xyzzy")
 	_expect(_shown(panel).is_empty() and panel._nothing.visible and panel._nothing.text.contains("xyzzy"), "nothing matching says so")
 	panel.search.text = "pine log"
 	panel.search.text_submitted.emit("pine log")
-	_expect(panel.selected_key == "base:resources:wood:pine_log" and stamper.key == panel.selected_key, "Enter picks the first match")
+	_expect(panel.selected_key == "base:item:pine_log" and stamper.key == panel.selected_key, "Enter picks the first match")
 	panel.search.text = ""
 	panel.search.text_changed.emit("")
 	# Furniture: its woods, Pine first; the amount.
@@ -97,9 +107,9 @@ func _run() -> void:
 	panel._select(FLOWERS)
 	_expect(not stamper.is_active() and panel.stamp_button.disabled and panel._refusal.visible and stamper.stamp_at(floor) == 0,
 		"wildflowers are refused, with the reason")
-	_expect(not load(STAMPER).refusal("base:resources:water:wet_stone").is_empty(), "a wet stone is refused")
+	_expect(not load(STAMPER).refusal("base:item:wet_stone").is_empty(), "a wet stone is refused")
 	# By the flag's real key (the project review, 2026-11-09: a wrong key refused nothing).
-	_expect(load(STAMPER).refusal("base:items:special:settlement_flag") == "The colony has one flag.", "the settlement flag is refused: the colony has one")
+	_expect(load(STAMPER).refusal("base:item:settlement_flag") == "The colony has one flag.", "the settlement flag is refused: the colony has one")
 	# Ending: Esc, closing the window, another tool.
 	panel._select(BED)
 	panel.stamp_button.pressed.emit()

@@ -1,12 +1,12 @@
 extends "res://scripts/tests/HaulingAnimationTest.gd"
 
 const BENCH := "base:furniture:crude_workbench"
-const TORCH := "base:furniture:wooden_torch"
-const BENCH_ITEM := "base:resources:furniture:crude_workbench"
-const TORCH_ITEM := "base:resources:furniture:wooden_torch"
-const BENCH_RECIPE := "base:recipe:worker:crude_workbench"
-const TORCH_RECIPE := "base:recipe:worker:wooden_torch"
-const PINE := "base:resources:wood:pine_log"
+const TORCH := "base:furniture:torch"
+const BENCH_ITEM := "base:item:crude_workbench"
+const TORCH_ITEM := "base:item:torch"
+const BENCH_RECIPE := "base:recipe:crude_workbench"
+const TORCH_RECIPE := "base:recipe:torch"
+const PINE := "base:item:pine_log"
 var inventory_script
 var crafting
 var dock

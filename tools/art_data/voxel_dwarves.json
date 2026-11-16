@@ -5600,6 +5600,7 @@
     ],
     "tools/stone_adze": [],
     "tools/stone_maul": [],
+    "tools/copper_hoe": [],
     "tools/felling_axe": [
       [
         "box",
@@ -5825,6 +5826,13 @@
     "tools/grill_stick_char": [],
     "tools/grill_stick_char_grilled": [],
     "tools/grill_stick_cave_fish": [],
-    "tools/grill_stick_cave_fish_grilled": []
+    "tools/grill_stick_cave_fish_grilled": [],
+    "tools/blow_stick": [],
+    "hats/hat_miner": [],
+    "hats/hat_ranger": [],
+    "hats/hat_carpenter": [],
+    "hats/hat_stonemason": [],
+    "hats/hat_blacksmith": [],
+    "hats/hat_farmer": []
   }
 }

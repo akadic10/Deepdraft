@@ -7,8 +7,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## installs through Place and a save keeps it. The Stonemason's side is StonemasonTest.
 const CARPENTER := "base:profession:carpenter"
 const CARPENTER_BENCH := "base:furniture:carpenter_bench"
-const CARPENTER_ITEM := "base:resources:furniture:carpenter_bench"
-const CARPENTER_RECIPE := "base:recipe:worker:carpenter_bench"
+const CARPENTER_ITEM := "base:item:carpenter_bench"
+const CARPENTER_RECIPE := "base:recipe:carpenter_bench"
 const ADZE := "res://assets/models/characters/dwarves/tools/stone_adze.glb"
 
 
@@ -22,15 +22,16 @@ func _run() -> void:
 		and int(recipe.ingredient_count) == 3 and not recipe.has("additional_ingredients"), "the carpenter's bench: three logs at the crude workbench")
 	var placed: Array = root.get_node("UIRegistry").get_place_catalog().get("items", []).filter(func(entry): return entry.key == CARPENTER_BENCH)
 	_expect(placed.size() == 1 and placed[0].category == "workshops", "Place files it under Workshops")
-	# Rudimentary is the first camp's basics; log furniture is the Carpenter's and the hearth the
-	# Stonemason's (owner, 2026-11-02).
-	for name: String in ["log_table", "bench", "log_bed", "door", "log_door_3", "log_door_4", "log_fence", "log_gate", "board_game_table"]:
-		var moved: Dictionary = crafting.recipes["base:recipe:worker:" + name]
+	# Rudimentary is the first camp's goods; the rest of the log furniture is the Carpenter's and the
+	# hearth the Stonemason's (owner, 2026-11-02). The bed and the doors went back to Workers when the
+	# Carpenter came to need copper (owner, 2026-11-13; doc 306).
+	for name: String in ["dining_table", "bench", "log_fence", "log_gate", "board_game_table"]:
+		var moved: Dictionary = crafting.recipes["base:recipe:" + name]
 		_expect(String(moved.get("section", "")) == "carpenter" and moved.workshop == CARPENTER_BENCH, "the Carpenter makes %s at their bench" % name)
-	var hearth: Dictionary = crafting.recipes["base:recipe:worker:hearth"]
+	var hearth: Dictionary = crafting.recipes["base:recipe:hearth"]
 	_expect(String(hearth.get("section", "")) == "stonemason" and hearth.workshop == "base:furniture:mason_bench", "the Stonemason makes the hearth at their bench")
-	for name: String in ["log_chair", "campfire", "crude_ladder", "wooden_torch"]:
-		var kept: Dictionary = crafting.recipes["base:recipe:worker:" + name]
+	for name: String in ["log_stool", "campfire", "crude_ladder", "torch", "log_bed", "door_2", "door_3", "door_4"]:
+		var kept: Dictionary = crafting.recipes["base:recipe:" + name]
 		_expect(String(kept.get("section", "rudimentary")) == "rudimentary" and kept.workshop == BENCH, "Workers keep %s at the crude workbench" % name)
 	# The page looks like Rudimentary (owner, 2026-11-01): the bench, real orders, nothing planned.
 	dock.open_crafting(CARPENTER_RECIPE)

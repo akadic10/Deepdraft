@@ -1,5 +1,15 @@
 # 41 — Dwarf Agents
 
+**2026-11-10 — Dining reach, as the player sees it:** the reach (`food.dining_distance`, 32) is
+how far away a seat or table may be from where the food was taken, as the crow flies. The walk
+there has its own bound (`food.dining_walk_distance`, 64). The reach used to be counted along
+the walk, which follows the grid and goes round furniture: in the owner's colony a table 23
+blocks from the food shelves was a walk of 34 to 42, so every dwarf ate where it stood. Two
+more causes showed at ×3 in the same colony and went with it: a diner whose place at the table
+was claimed while it looked now takes another place at that table, where it gave the table up;
+and the two-second search is counted in real time, where game seconds left it a third of its
+frames at ×3.
+
 **2026-10-30 — Dining reach:** a dwarf holding food now looks for a seat or table up to
 32 walking blocks from where it took the food (`food.dining_distance`; it was 16). In the
 owner's lobby the food pile and a free table with four stools were 17–20 blocks apart,
@@ -92,7 +102,7 @@ direction; runtime population enforcement has not been added. See
 [11 — Overview](../10_core_foundation/11_overview.md); the scaling benchmark for
 these cases is in [13 — Measuring performance](../10_core_foundation/13_architecture.md#measuring-performance).
 
-**Proportions:** `DwarfAssets` owns `data/entities/dwarves/proportions.json`. Body and
+**Proportions:** `DwarfAssets` owns `data/dwarves/proportions.json`. Body and
 head widths are 1 because the Hearthblock parts carry their own shape; the file sets
 the relaxed hand and foot stance. Standing height and the logical 1×1×3 body stay
 fixed. Assembly, work/rest resets and static portraits use those values. Tool/carry
@@ -107,7 +117,7 @@ Hungry/famished dwarves lose 5/15 happiness and work 10%/25% slower. No damage o
 death. Serving art, last-meal details and the Events food warning are live; the
 character sheet (doc 23) replaced the planned stage 3 screen.
 Fresh fruit is the first edible content; future meals/meats use the same metadata
-(the item's `food` block in `resources.json`: `edible`, `nutrition`, `keeps_days`,
+(the item's `food` block in `items.json`: `edible`, `nutrition`, `keeps_days`,
 `serving`). A storage or cooking tag alone never makes an item edible, and one unit is one
 portion, so a meal never empties a crate. Tuning is `food` in `task_config.json`.
 
@@ -139,10 +149,13 @@ Rotten food a dwarf has claimed or holds is eaten as usual; there is no sickness
   a fire to cook, so by day or at a cold fire the meal is ordinary, and dawn doesn't stop a
   grill already under way. Only the campfire grills so far (`00_todo.md`, Food).
 - **Dining** (`DwarfDining`): the diner considers seats and tables within
-  `food.dining_distance` (32) walking blocks of where it took the food. It checks seats
-  one per frame, nearest first, and routes the first seat at a table it finds; a seat
-  alone, then a table alone, only after every piece is checked. After
-  `food.dining_search_seconds` (2 game seconds) it eats where it stands. Backed seats
+  `food.dining_distance` (32) blocks of where it took the food, as the crow flies, and takes
+  one only if the walk to it is no longer than `food.dining_walk_distance` (64). It checks
+  seats one per frame, nearest first, and routes the first seat at a table it finds; a seat
+  alone, then a table alone, only after every piece is checked. If another diner claims its
+  place while it looks, it tries the table's other places. After
+  `food.dining_search_seconds` (2 seconds of real time, whatever the game's speed) it eats
+  where it stands. Backed seats
   must face the tabletop; round stools (`face_nearby_fire`) may turn to it. A seat used without a table faces as idle sitting
   does (see Idle activity), so a stool by a campfire turns to the fire, lit or cold;
   until 2026-10-29 diners kept the stool's placed facing, often away from the fire. Headroom,
@@ -218,7 +231,8 @@ with up to 20% less digging time. Workers keep normal mining and basic crafting.
 Level 6 and all other career bonuses below remain future design.
 
 2026-10-09 follow-ups: Carpenter promotion now requires collecting and equipping
-a crude carpentry kit. The shared Equipment tab shows the real kit, materials,
+a crude carpentry kit (since 2026-11-13 a copper saw a Blacksmith makes; see "The profession
+path" under Profession System). The shared Equipment tab shows the real kit, materials,
 benefit and planned upgrades; completed specialist promotions play a chime.
 Upgraded-tool bonuses remain planned; the Carpenter's own bench came with doc 293. The rules
 are under Profession System below (docs 101, 102 and 293).
@@ -487,7 +501,7 @@ When multiple needs are critical simultaneously, dwarves resolve in this order:
 
 | Measurement | Value | Notes |
 |---|---|---|
-| Visual mesh height | 3.3 blocks (1.65 m) | Includes helmet/hat |
+| Visual mesh height | 3.3 blocks (1.65 m) | Head and hair. A trade hat's feather or candle rises to about 4 blocks (doc 41b, "Trade hats") |
 | Logical grid footprint | 3 blocks tall (1.5 m) | Used for collision and pathfinding clearance |
 | XZ footprint | 1 × 1 block | Single tile |
 
@@ -734,9 +748,9 @@ Every dwarf is procedurally generated at creation time from three component pool
 
 | File | Contents |
 |---|---|
-| `data/entities/dwarves/names.json` | Male and female prefix/suffix pools — 500 distinct names per gender |
-| `data/entities/dwarves/appearance.json` | Shared and gender-specific visual component pools (skin, hair, eyes, etc.) |
-| `data/entities/dwarves/traits.json` | Trait definitions, rarity weights, generation_config distribution, exclusion groups |
+| `data/dwarves/names.json` | Male and female prefix/suffix pools — 500 distinct names per gender |
+| `data/dwarves/appearance.json` | Shared and gender-specific visual component pools (skin, hair, eyes, etc.) |
+| `data/dwarves/traits.json` | Trait definitions, rarity weights, generation_config distribution, exclusion groups |
 
 ### Name Generation
 
@@ -773,18 +787,18 @@ polarity, rarity weight, exclusion group). The effects below are design only.
 | Trait | Planned effect |
 |---|---|
 | Born Miner, Brewmaster's Intuition, Green Thumb, Architect's Eye, Merchant's Tongue, Warm Host, Born Hauler | ×1.5 experience gain in Miner, Brewer, Farmer, Builder, Merchant, Innkeeper or Worker respectively, and unlock level 6 in that profession |
-| Loves to Cook | Reserves a future Cook profession for this dwarf |
+| Loves to cook | Reserves a future Cook profession for this dwarf |
 | Cheerful / Grumpy | Mood baseline +0.06 / −0.05 |
 | Hardworking / Lazy | All task durations ×0.90 / ×1.12 |
 | Iron Constitution / Frail | Live: Toughness Good or better / Fair or worse at birth (Stats, below) |
 | Deep Sleeper / Light Sleeper | −1 / +1 hour of sleep per cycle |
-| Iron Stomach | Ignores food-variety thoughts |
+| Iron stomach | Ignores food-variety thoughts |
 | Brave | Ignores the invader flee trigger |
 | Fearful | Flees invaders within 15 tiles |
-| Hates the Outdoors | −0.05 mood during outdoor tasks (planting, tending, harvesting, beehives, honey, hauling, clearing rubble) |
-| Cave Sick | −0.05 mood inside a sealed room with no sky |
+| Hates the outdoors | −0.05 mood during outdoor tasks (planting, tending, harvesting, beehives, honey, hauling, clearing rubble) |
+| Cave sick | −0.05 mood inside a sealed room with no sky |
 | Glutton | Hunger drains ×1.5 |
-| Alcohol Dependent | Must drink every 16 h; each missed window adds −0.06 mood, up to 4 stacks (−0.24). Alcohol thoughts are ×1.5 stronger |
+| Alcohol dependent | Must drink every 16 h; each missed window adds −0.06 mood, up to 4 stacks (−0.24). Alcohol thoughts are ×1.5 stronger |
 | Loner | −0.04 mood with 4+ dwarves within 5 tiles |
 | Social | +0.03 mood with 3+ dwarves within 5 tiles |
 | Homesick | −0.08 mood on arrival, fading linearly over 42 days (two seasons) |
@@ -804,7 +818,7 @@ Traits in the same **exclusion group** (e.g. `mood_baseline`, `work_pace`) canno
 
 ### Tastes
 
-Personal tastes (2026-10-25; `DwarfTastes`, `data/entities/dwarves/tastes.json`, read by
+Personal tastes (2026-10-25; `DwarfTastes`, `data/dwarves/tastes.json`, read by
 DwarfAssets). The owner chose furniture and woods the dwarves use over adding foods and
 plants, or two broad leanings known from the start (2026-10-25).
 - **What they name:** furniture designs a dwarf uses (log bed, log stool, stone stool,
@@ -845,7 +859,7 @@ better ("perhaps a strength dwarf is a better miner or warrior"). Stats are what
 born good at. They sit beside the three kinds of progression approved on 2026-10-09:
 promotion picks the job, experience is practice, and equipment is tools.
 
-Six stats, given at birth and kept for life (`data/entities/dwarves/stats.json`, read by
+Six stats, given at birth and kept for life (`data/dwarves/stats.json`, read by
 DwarfAssets): Strength, Agility and Toughness (Body); Wits, Wisdom and Charisma (Mind).
 The owner's picks (2026-10-31): six stats in two groups; five steps shown as pips and a
 word; fixed at birth; the ledger on the Traits tab, chosen from three concepts (doc 23).
@@ -894,12 +908,13 @@ word; fixed at birth; the ledger on the Traits tab, chosen from three concepts (
     felling trees, clearing stones, and a Stonemason's or a Blacksmith's crafting
     (`stonework`, the career's `craft_work`, docs 293 and 297);
   - **Wits:** every other career's crafting at a bench, and building blocks and ladders;
-  - **Wisdom:** fishing (doc 289): each catch comes that much sooner.
+  - **Wisdom:** fishing (doc 289): each catch comes that much sooner; and a field's work
+    (doc 309): hoeing, sowing and pulling.
   It multiplies with hunger's slowdown and the levels (the Miner's digging, the Carpenter's
   and the Stonemason's crafting); a level-5 Miner with
   Excellent Strength swings in 0.8 ÷ 1.12 of the time, so practice still counts for more
   than birth. Gathering, planting, hauling, walking and furniture work keep their speed.
-  The sheet says how much: "Crafts and builds 6% faster", "Fishes 6% faster".
+  The sheet says how much: "Crafts and builds 6% faster", "Fishes and farms 6% faster".
 - **Toughness** gives the hit points (Health, below). Agility and Charisma do nothing yet,
   and the sheet says "Not active yet: …". What each stat is meant to do later:
 
@@ -909,7 +924,7 @@ word; fixed at birth; the ledger on the Traits tab, chosen from three concepts (
   | Agility | Hunting, aim and dodging; perhaps walking and climbing |
   | Toughness | Healing speed, blows taken |
   | Wits | Smithing |
-  | Wisdom | Fishing now (doc 289); later yields, brewing, tracking, healing others |
+  | Wisdom | Fishing (doc 289) and farming (doc 309) now; later brewing, tracking, healing others |
   | Charisma | Prices, hosting, squad morale |
 
 - **Never a gate, never a job picker.** Any dwarf can take any profession, and nothing a
@@ -954,7 +969,57 @@ health to show from the start, full until something can hurt a dwarf.
 
 ## Profession System
 
-Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. Change profession (on the character sheet's Profession tab or Colony Dwarves' Details card) opens the career map. Worker and Miner are assignable immediately; Carpenter requires physical collection of a crude carpentry kit, Stonemason of a crude masonry kit (doc 293), Blacksmith of a stone hammer (doc 297) and Ranger of a Ranger's kit (a spear bound to a fishing rod). Other careers are planned previews. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases; Ranger experience counts catches; Carpenter, Stonemason and Blacksmith experience counts batches made on their own page. The Blacksmith practises on copper: iron will need Blacksmith level 2 (owner, 2026-11-02). Per-dwarf work permissions are independent of the active profession.
+Every dwarf has exactly **one active profession** at a time. All dwarves start as `base:profession:worker`. Change profession (on the character sheet's Profession tab or Colony Dwarves' Details card) opens the career map. Only Worker is assignable at once; every trade takes the physical collection of its tool (see "The profession path" below): the Ranger's kit and the Blacksmith's stone hammer, which Workers make, and the Miner's copper pick, the Carpenter's copper saw, the Stonemason's copper chisel and the Farmer's copper hoe, which only a Blacksmith makes. Other careers are planned. Switching professions never resets accumulated experience. Miner experience counts successfully removed blocks, not zone leases; Ranger experience counts catches; Farmer experience counts tiles harvested; Carpenter, Stonemason and Blacksmith experience counts batches made on their own page. The Blacksmith practises on copper: iron will need Blacksmith level 2 (owner, 2026-11-02). Per-dwarf work permissions are independent of the active profession.
+
+### The profession path (owner, 2026-11-13)
+
+From the owner: "I am not sure it feels great that all of them can start right away … it doesn't
+feel rewarding at all", and the idea that became the rule: "the Miner, Carpenter and Stonemason have
+to be gated behind the blacksmith and instead of getting rudimentary tools they get a copper saw,
+copper chisel and copper mining pick". Until then every trade's tool cost a Worker one log and one
+Rough Stone, the Miner's nothing, and no trade opened another.
+
+| Stage | Trade | Its tool | Made by |
+|---|---|---|---|
+| Camp | Ranger | Ranger's kit | a Worker at the crude workbench, a log and a Rough Stone |
+| Camp | Blacksmith | Stone hammer | a Worker at the crude workbench, a log and a Rough Stone |
+| Copper | Miner | Copper pick | a Blacksmith on the anvil stone (doc 310), a copper bar and a log |
+| Copper | Carpenter | Copper saw (a pull saw) | a Blacksmith on the anvil stone (doc 310), a copper bar and a log |
+| Copper | Stonemason | Copper chisel, with its maul | a Blacksmith on the anvil stone (doc 310), a copper bar and a log |
+| Copper | Farmer | Copper hoe | a Blacksmith on the anvil stone (doc 310), a copper bar and a log |
+| Iron, planned | the copper trades | Iron pick, saw and chisels | the Blacksmith's Smelter and Forge (doc 44) |
+
+- **The Blacksmith opens the copper trades.** A trade's tool is its `required_tool`
+  (`professions.json`); who makes it is read from the tool's recipe (`DwarfAssets.tool_maker`,
+  `ContentRegistry.recipe_for`), never written twice. The crude carpentry and masonry kits and the
+  stone hoe are gone.
+- **No trade waits on itself, and the camp trades wait on nobody.** Workers make the Ranger's kit
+  and the stone hammer, and the Blacksmith makes its own basic smelter from raw goods. Copper comes
+  from under the ground, and Workers mine, so the colony can always reach it.
+- **Workers keep the stone pick.** Mining is common work. The Miner is the dwarf who holds a copper
+  pick: it takes a fifth off the digging time (the tool's `equipment.dig_time`, 0.8), and the
+  Miner's levels take theirs off that (`DwarfAssets.mining_duration_multiplier`). A Miner loaded
+  from a save without a pick digs at a Worker's pace.
+- **The trades arrive one at a time.** A bar takes four game hours to melt (doc 44), so the first
+  pick, saw and chisel come in the order the player chooses.
+- **What the camp can make without a trade** is in doc 44 ("Rudimentary is the first camp"): light,
+  a way down, a seat, a bed and every log door.
+- **No dwarf has to hold one trade before another.** Every trade is promoted from the Worker; the
+  Blacksmith opens the copper trades for the colony by making their tools, not for itself. The
+  career map (`DwarfProfessionPanel`, doc 23) shows it that way: every trade in one row under the
+  Worker, and under the tiles who makes their `starter_tool`, "A Worker makes their tools" for the
+  Ranger and the Blacksmith and "A Blacksmith makes their tools" for the copper trades. The copper
+  trades were first drawn hanging under the Blacksmith, and the owner read that as "the Dwarf has
+  to be a blacksmith first before becoming a farmer" (2026-11-13). A trade whose tool the colony
+  has none of reads "Needs tool" on its tile, and its card names the tool, how many are free and
+  who makes it ("A Blacksmith makes it at the anvil stone."). A Worker's map opens on the
+  Blacksmith.
+- **Finding copper** is the player's first reason to dig. Measured over 61 starts in 8 worlds
+  (2026-11-13): a stair dug down meets copper within 32 steps in 3 starts of 4, and coal within 64
+  in 7 of 10. A basic smelter therefore burns logs when it has no coal (doc 44), so only copper has
+  to be found; coal stays the fuel iron will need.
+- **Still to come** (`00_todo.md`, "The profession path left for later"): the copper tools in the
+  dwarves' hands, and what the copper Carpenter and Stonemason make beyond today's goods.
 
 The live rules (doc 96):
 - **Who can be assigned.** Only professions with `promotion_enabled`, from the career map
@@ -982,18 +1047,23 @@ The live rules (doc 96):
   They keep the common work, unlike the Ranger: nothing ties them to one place, and a small
   colony can't spare idle hands, so a Carpenter with nothing to make fells the trees that feed
   the bench.
+- **The Farmer's fields first** (doc 309; doc 42, "Fields"). The Farmer's `work_first` is FARM,
+  work no other career takes: it pulls, sows and hoes its fields before anything else, and with
+  nothing due there takes the common work, so it carries its own harvest to the store. Only
+  work the dwarf may do holds it: a field whose one job is sowing a crop above its level never
+  keeps a Farmer from hauling (`FarmFieldWork.allows_worker`).
 - **Work permissions** (`work_permissions` in professions.json: Haul, Gather, Mine, Build,
-  Craft and Fish, each listing its task types) are saved per dwarf and kept across careers;
+  Craft, Fish and Farm, each listing its task types) are saved per dwarf and kept across careers;
   a category with no entry is allowed. Unticking one releases a current job of that kind.
   Carrying supplies for an allowed job is not Haul, and rest is automatic. Labor greys out
   a box whose work the career can't do (`DwarfAssets.profession_allows`) and keeps its
   setting for a career that can, so a Miner's Craft setting returns with the Worker role.
-  A career map card warns when the career's own work (Mine, Fish) is unticked.
+  A career map card warns when the career's own work (Mine, Fish, Farm) is unticked.
 - **Miner experience** is one per block the Miner removes, awarded before that commit can
   end the zone lease, so a zone's last block counts. Partial swings, cancelled blocks,
   walking, hauling and Worker mining earn none.
 - **Experience by career.** A career with an `experience` entry earns it: `earned_by` names
-  the task (MINE, FISH, CRAFT), `noun` what the bar counts, and `rewards` what each level
+  the task (MINE, FISH, CRAFT, FARM), `noun` what the bar counts, and `rewards` what each level
   gives. Levels use the career's own `thresholds` or the shared ones (10, 100, 500, 2,500);
   the time a level saves comes from `work_speed_bonus_per_level`, its reward worded by
   `speed_text` ("5% less digging time", "5% less work time crafting"). Level 1's reward is
@@ -1007,6 +1077,29 @@ The live rules (doc 96):
 - **The tool in hand** (doc 293): a career's `craft_tool` replaces the axe in the crafting
   swing (the Carpenter's stone adze, the Stonemason's maul), striking where the axe's edge
   does; `craft_sound` "hammer" makes the maul knock as the builder's hammer does.
+- **Charging the smelter** (doc 300; `DwarfSmeltPose`): the Blacksmith works the basic smelter's
+  charge from a long step back, before the boulder's fire hole. It throws each lump into the pot,
+  then crouches, a hand on its knee, and blows on the fire through a hollow stick
+  (`DwarfAssets.blow_stick`) held from its mouth to the fire hole. The rules are in doc 44,
+  "Charging the basic smelter".
+- **The trade's hat** (doc 304; doc 41b, "Trade hats"). A dwarf wears its career's hat from the
+  moment the career is theirs, and a Worker goes bare-headed, so the trades can be told apart on
+  the ground (owner, 2026-11-12). It is costume: nothing is crafted, carried or saved, and a
+  change of career swaps it at once. A tool career's hat comes with the promotion, when the kit
+  is in hand.
+- **The Miner's candle** (`hat_light` in professions.json; `DwarfHatLight`). It burns while the
+  Miner is awake and it is dark where they stand, whatever they are doing: mining, hauling,
+  eating or idle (owner, 2026-11-12, agreeing to it over "only while mining").
+  - **Dark** means little daylight reaches the dwarf, read a few times a second: the sky that
+    reaches the spot (the light solver's own figure) times how far the day has come
+    (`SkyController.night_amount`). So it is dark underground away from an entrance, and
+    outdoors at night. The spot turns dark below `dark_below` and light again above
+    `bright_above`, so a candle does not gutter at a tunnel's mouth.
+  - **A lit torch, campfire or hearth in sight** within `fire_reach` of its own range lights the
+    spot, and the candle is out; a fire behind rock does not count. Another Miner's candle never
+    counts, or two Miners would put each other's out.
+  - **Sleep.** It burns on the walk to a bed and goes out as the dwarf settles down.
+  - It gives light and nothing else: no job, mood or room reads it.
 - **Ranger experience** (doc 292) is one per catch, awarded before the lease can end, so a
   catch that fills the zone's Keep counts. Levels at 10, 50, 150 and 400 catches make
   catches bigger, not faster, because each water's stock limits fishing:
@@ -1016,6 +1109,18 @@ The live rules (doc 96):
     on the spot, so the cast shows what lands;
   - patience from level 3: winter's half speed becomes three quarters, as a work rate the
     spot gives (`FishingSystem.patience`), so the pose and the catch keep step.
+- **Farmer experience** (doc 309) is one for each tile harvested, and one for each bush or
+  fruit tree picked in a field. Levels at 25, 100, 250 and 800 tiles each teach one more crop:
+  a new Farmer knows radish, carrot and turnip, level 2 learns cabbage, level 3 onion, level 4
+  pumpkin and level 5 kale (`farmer_level` in `field_crops.json`; the rewards' words name the
+  same crops, and `FarmingTest` holds the two together). A crop is sown only by a Farmer of its
+  level; any Farmer pulls it. A level gives its crop and nothing else: the land, the seasons and
+  the water limit a field, as its water limits a Ranger. This replaces the earlier plan of
+  better yields at levels 2 and 4.
+- **The Farmer's hoe in hand** (`field_tool` in professions.json; `DwarfHoePose`): hoeing
+  ground and hoeing a plant under are done with the copper hoe, raised, chopped into the tile
+  a step ahead and drawn back through the soil, heard as a pick in soil is. Sowing and pulling
+  are hand work, in the gather motion.
 - **The catch log** (`CatchLog.gd`): each Ranger's catches by fish, big fish, the best day
   and the fish dried. The character sheet's Profession tab shows it in place of the list
   of rewards, with the next reward and the catches to go (concept C). It saves with the
@@ -1023,8 +1128,8 @@ The live rules (doc 96):
 
 `data/professions/professions.json` holds what the game uses: the career-map
 entries, work permissions, the shared experience thresholds, display names, promotion
-parents, required tools, equipment previews, each career's work, craft section and
-experience (its thresholds and level rewards). Each profession also names its one
+parents, required tools, equipment previews, each career's work, craft section,
+experience (its thresholds and level rewards), its hat and the hat's candle. Each profession also names its one
 Hearthblock icon (`icon`, doc 259). The career map, the equipment view and the
 Crafters menu all show it. The planned design for every
 profession is recorded below.
@@ -1040,16 +1145,16 @@ profession's primary tasks (5% unless noted), so level 5 is 20% faster and level
 | Profession | Primary tasks | Room | Notes |
 |---|---|---|---|
 | Worker | `HAUL`, `CLEAR_RUBBLE`, `COLLECT_FLOOR_ITEMS`, `CRAFT` | — | Base profession; cannot be removed. Planned: haul speed improves with level |
-| Miner (live) | `MINE`, `CLEAR_RUBBLE`, `HAUL_ORE` | — | Live: digging speed. Planned: level 3 spots ore before it is fully exposed; level 6 small chance of bonus ore or gem fragments |
-| Farmer | `PLANT_SEED`, `TEND_FARM`, `HARVEST_CROP`, `TEND_BEEHIVE`, `COLLECT_HONEY` | — | Picks the bushes inside a farming zone without an order (owner, 2026-11-06; doc 42, "Required future connection: bushes in a farming zone"). Yields improve at levels 2 and 4; level 6 occasional double harvests |
+| Miner (live) | `MINE`, `CLEAR_RUBBLE`, `HAUL_ORE` | — | Live: promotes with a copper pick a Blacksmith makes (doc 306); the pick takes a fifth off the digging time and each level 5% more. Planned: level 3 spots ore before it is fully exposed; level 6 small chance of bonus ore or gem fragments |
+| Farmer (live) | `FARM` first, then the common work; `TEND_BEEHIVE`, `COLLECT_HONEY` later | — | Live (doc 309): promotes with a copper hoe a Blacksmith makes (owner, 2026-11-13; the stone hoe is gone) and works the colony's fields: hoes, sows each season's crop and pulls it (doc 42, "Fields"). Picks the bushes and fruit trees inside a field without an order (owner, 2026-11-06). Each level teaches one more crop. Planned: underground crops, the brewing crops and beehives |
 | Brewer | `BREW`, `LOAD_AGING_CELLAR`, `COLLECT_AGING_CELLAR`, `WEAVE_CLOTH` | — | Not on the career map. Level gates recipes (see Recipe Gates); level 6 gives a 10% chance of a bonus output unit |
 | Builder | `BUILD_BLOCK`, `DEMOLISH_BLOCK`, `PLACE_FURNITURE`, `REMOVE_FURNITURE` | — | Not on the career map. Level 6 gives buildings a small structural-integrity bonus |
 | Merchant | `STAFF_TRADE_COUNTER`, `COLLECT_SHOP_COINS`, `RESTOCK_SHOP_STORAGE` | Shop | Not on the career map. +2% sale price per level instead of speed; see `51_visitors.md` |
 | Innkeeper | `SERVE_DRINK`, `SEAT_GUEST`, `COLLECT_NIGHT_STAND_COINS`, `RESTOCK_TAVERN_STORAGE` | Tavern | Not on the career map. +1 coin lodging fee per level; see `51_visitors.md` |
-| Carpenter (live) | `CRAFT` (the Carpenter's page) first, then the common work | — | Live (doc 293): promotes with a carpentry kit and makes its own carpenter's bench, a peeled log workbench, at the crude workbench, a stone adze in hand. Levels: 5% less crafting time. At the bench it makes storage furniture, the tool rack and the raw materials crate (doc 294). Planned: planks and Tier 2 pieces wait for the iron saw and a joiner's bench (doc 44, "Specialist workbenches") |
-| Blacksmith (live) | `COLLECT`, then `CRAFT` (the Blacksmith's page), then the common work | — | The one metalworking profession: no Weaponsmith or Armorsmith (owner, 2026-10-31). Live (doc 297): promotes with a stone hammer and makes its own basic smelter at the crude workbench, melts copper ore with coal into copper bars and hammers them into fittings; its crafting is stonework, by Strength. Levels: 5% less crafting time. Planned: the Smelter and the Forge, iron, then tools, weapons and armour (doc 44) |
+| Carpenter (live) | `CRAFT` (the Carpenter's page) first, then the common work | — | Live (doc 293): promotes with a copper saw a Blacksmith makes (doc 306) and makes its own carpenter's bench, a peeled log workbench, at the crude workbench; at the bench it still swings a stone adze until the saw is drawn in its hands. Levels: 5% less crafting time. At the bench it makes storage furniture (doc 294), tables, benches, fences and the board-game table; the bed and the doors are a Worker's (doc 44). Planned: planks and Tier 2 pieces, held by the owner, and a joiner's bench (doc 44, "Specialist workbenches") |
+| Blacksmith (live) | `COLLECT`, then `CRAFT` (the Blacksmith's page), then the common work | — | The one metalworking profession: no Weaponsmith or Armorsmith (owner, 2026-10-31). Live (doc 297): promotes with a stone hammer and makes its own basic smelter at the crude workbench, melts copper ore over coal or logs into copper bars and hammers each, with a log, into one of the other trades' tools (doc 306): the copper pick, saw, chisel and hoe; its crafting is stonework, by Strength. Levels: 5% less crafting time. Planned: the Smelter and the Forge, iron, then iron tools, weapons and armour (doc 44) |
 | Ranger (live) | `COLLECT` (dried fish off the rack), `CRAFT` (the Ranger's page: the drying rack and hanging fish), then `FISH`, then `HAUL`; hunting later | — | Live (doc 292): promotes with the Ranger's kit, a spear bound to the rod it fishes with, and its levels make catches bigger instead of faster. The owner renamed the Hunter on 2026-11-01 when it took fishing; Hunter had been their pick over Trapper (2026-10-09). Planned: fish that differ and rare fish (`00_todo.md`, Food), then hunting (doc 45) |
-| Stonemason (live) | `CRAFT` (the Stonemason's page) first, then the common work | — | The owner's name, not Stonesmith (2026-10-09). Live (doc 293): promotes with a crude masonry kit and makes its own mason's bench, a split slab on two stumps, at the crude workbench, a maul in hand; its crafting is stonework, by Strength. Levels: 5% less crafting time. Makes the stone stool at the mason's bench from a Rough Stone. Planned: dressed stone waits for iron chisels and a carver's bench (doc 44, "Specialist workbenches") |
+| Stonemason (live) | `CRAFT` (the Stonemason's page) first, then the common work | — | The owner's name, not Stonesmith (2026-10-09). Live (doc 293): promotes with a copper chisel a Blacksmith makes (doc 306) and makes its own mason's bench, a split slab on two stumps, at the crude workbench, a maul in hand; its crafting is stonework, by Strength. Levels: 5% less crafting time. Makes the stone stool and the hearth at the mason's bench. Planned: dressed stone, held by the owner, and a carver's bench (doc 44, "Specialist workbenches") |
 
 Level 6 needs both 10,000 tasks and the profession's calling trait (see Planned
 trait effects).
@@ -1058,9 +1163,10 @@ trait effects).
 
 **Live follow-up (doc 101):** Carpenter's kit requirement (`required_tool`), physical
 collection, cancellation, equipped-item ownership, inspector/inventory presentation and
-current saves are implemented. Miner keeps its implicit pickaxe and promotes at once.
-The Carpenter's and the Stonemason's own benches are live (doc 293); all equipment
-bonuses/upgrades remain planned. The live
+current saves are implemented. Since 2026-11-13 the Miner collects a copper pick the same way
+(doc 306, "The profession path" above), and the pick is the first tool with a benefit of its own.
+The Carpenter's and the Stonemason's own benches are live (doc 293); the iron upgrades remain
+planned. The live
 rules:
 - **A personal appointment.** `DwarfEquipment` holds one pending appointment and one
   equipped item per dwarf; no other dwarf can take it as a job. Choosing a tool career
@@ -1092,30 +1198,29 @@ rules:
 
 The Equipment view (doc 102; the character sheet's Equipment tab, doc 23) shows the
 owned tool's picture, tier, materials and actual benefit, from the tool's `equipment` block in
-`resources.json`. Each tool a career equips needs one: without it the stone hammer read
+`items.json`. Each tool a career equips needs one: without it the stone hammer read
 "A stone hammer is required" while equipped (fixed 2026-11-09). Iron saw/pickaxe are explicit
-planned previews; no upgrade goods or bonuses exist yet.
+planned previews; no upgrade goods exist yet. The copper pick's block also carries its effect,
+`dig_time`.
 
 The player approved three connected forms of progression:
 
-- **Promotion** selects a profession. Selected careers will require an available
-  starting tool. Milestone 97 adds craftable stone hoes, hunting spears, carpentry
-  kits and stone hammers for Farmer, Ranger (then the Hunter), Carpenter and Blacksmith.
-  Doc 293 adds the crude masonry kit for the Stonemason. The Carpenter's, the
-  Stonemason's and the Ranger's requirements and physical equipping are live; other tool
-  careers remain planned.
-  Carpenter starts with a
-  mallet/adze kit; its saw is a later upgrade. The dependency review is recorded in
+- **Promotion** selects a profession. Every trade requires an available tool, collected by
+  hand. Milestone 97 added Worker-made stone hoes, hunting spears, carpentry kits and stone
+  hammers, and doc 293 the crude masonry kit. On 2026-11-13 the owner replaced the kits and the
+  hoe with copper tools only a Blacksmith makes ("The profession path" above, doc 306); the
+  Ranger's kit and the stone hammer stay Worker-made. The earlier review of why the Carpenter
+  did not start with a saw is kept in
   [44 — Carpenter entry tools](44_crafting_workshops.md#carpenter-entry-tools--dependency-review-2026-10-09).
 - **Experience** improves the dwarf through practice. Existing Miner levels and
   digging-time bonuses remain independent of equipment.
 - **Equipment** provides crafted upgrades with visible tools and meaningful
   benefits. Leveling up does not create a free upgraded tool or weapon.
 
-Miner promotion remains free, with no crafted-tool or level requirement. The
-existing implicit pickaxe is sufficient to begin mining and stays the baseline.
-Carpenter already owns a physical kit; the **iron pickaxe is
-the first planned equipment upgrade**, followed by steel or another advanced metal.
+Until 2026-11-13 Miner promotion was free. It now takes a copper pick (doc 306); the
+implicit stone pick stays every Worker's, so mining never waits for a Miner.
+The **iron pickaxe is the next planned equipment upgrade**, followed by steel or another
+advanced metal.
 Mining benefits and limits are specified in
 [43 — Pickaxe upgrades](43_mining_materials.md#pickaxe-upgrades--planned-2026-10-09).
 
@@ -1126,12 +1231,12 @@ Equipment must represent owned goods, with one item assigned to one dwarf;
 switching professions must preserve experience and account for the physical item.
 
 Workers must have a route to craft the crude tools needed to establish the first
-specialists, without a profession requiring its own exclusive product to start.
+specialists (the Ranger and the Blacksmith), and no profession may require its own product to
+start; a trade may wait on another's product, as the copper trades wait on the Blacksmith
+(owner, 2026-11-13).
 Tool durability and repairs are deferred beyond the first equipment version.
-These are agreed requirements; beyond the Carpenter's, the Stonemason's and the Ranger's
-kits, tool gates and all tool upgrades are not implemented. The starter tools (doc 97, and
-the masonry kit of doc 293) are ordinary goods (doc 44) and grant no bonus; the career map
-shows each tool's stock and maker.
+Tool upgrades are not implemented. The tools are ordinary goods (doc 44); only the copper pick
+grants a bonus. The career map shows each tool's stock and maker.
 
 ### Agent Fields
 
@@ -1183,7 +1288,7 @@ Miner's `work_speed_bonus_per_level` lives in professions.json; other profession
 task_duration × (1.0 - (experience_level - 1) × work_speed_bonus_per_level)
 ```
 
-At `work_speed_bonus_per_level: 0.05`, level 5 mining takes 20% less work time than level 1. The live bonus applies only to mining while the dwarf is a Miner. Fallback work and Workers keep normal speed; Worker progression and level 6 remain planned.
+At `work_speed_bonus_per_level: 0.05`, level 5 mining takes 20% less work time than level 1. The live bonus applies only to mining while the dwarf is a Miner. A Miner's copper pick multiplies the result by its `dig_time` (0.8; doc 306), so a level-1 Miner needs 80% of a Worker's digging time and a level-5 Miner 64%. Fallback work and Workers keep normal speed; Worker progression and level 6 remain planned.
 
 ### Recipe Gates (Brewer)
 

@@ -334,6 +334,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 2293,
+          "visual_triangles": 282,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.8791975577845617,
+            "triangles": 54
+          },
+          "min": [
+            -0.9375,
+            2.125,
+            -0.6875
+          ],
+          "max": [
+            0.9375,
+            2.8125,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 37548,
+      "sha256": "74a9cb7452279bc33790566ff2ee516532ce3b4e2a085b8bc53fe30e6effb6e5",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_m_short_back.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_m_short_back",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 3014,
           "visual_triangles": 408,
           "occlusion": true,
@@ -359,6 +393,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_m_shaved.glb",
       "authoring": {
         "part": "hair/hair_m_shaved",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 226,
+          "visual_triangles": 126,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 36
+          },
+          "min": [
+            -0.875,
+            2.375,
+            -0.625
+          ],
+          "max": [
+            0.875,
+            2.8125,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 19032,
+      "sha256": "9091fe5bde73b75ee98679ae654ab45f83fe28a0d0a811177d705e6b5dc64648",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_m_shaved.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_m_shaved",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -402,6 +470,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 2899,
+          "visual_triangles": 444,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9244567092100724,
+            "triangles": 106
+          },
+          "min": [
+            -1.0,
+            2.0,
+            -0.75
+          ],
+          "max": [
+            1.125,
+            2.8125,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 59816,
+      "sha256": "019ef85bac988dbe12116f1ab2204b3c028a80459d910858525a58b8d6e71dbb",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_m_wild_loose.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_m_wild_loose",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 5709,
           "visual_triangles": 1422,
           "occlusion": true,
@@ -427,6 +529,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_m_braided_back.glb",
       "authoring": {
         "part": "hair/hair_m_braided_back",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2286,
+          "visual_triangles": 622,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7909011373578303,
+            "triangles": 128
+          },
+          "min": [
+            -0.9375,
+            1.375,
+            -0.75
+          ],
+          "max": [
+            0.9375,
+            2.8125,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 81084,
+      "sha256": "ca1eeae37cfa8eabe29864c5e968ead18ebb357d8ffe4c537d88de0ed2827b05",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_m_braided_back.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_m_braided_back",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -470,6 +606,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 2548,
+          "visual_triangles": 480,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 164
+          },
+          "min": [
+            -0.9375,
+            2.25,
+            -1.125
+          ],
+          "max": [
+            0.9375,
+            3.0625,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 69044,
+      "sha256": "5de819adbe47b172ddfc276470cb94bc3c3bd8b80117dd91fa0bb54c297ae730",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_bun.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_bun",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 6106,
           "visual_triangles": 1632,
           "occlusion": true,
@@ -495,6 +665,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_f_braid_side.glb",
       "authoring": {
         "part": "hair/hair_f_braid_side",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2645,
+          "visual_triangles": 838,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8226843100189036,
+            "triangles": 210
+          },
+          "min": [
+            -1.0,
+            1.3125,
+            -0.6875
+          ],
+          "max": [
+            0.9375,
+            2.8125,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 111960,
+      "sha256": "998eb73ea8dbe0983d0cbb74974fee6de7015d1b48d7c44ba7d078dd69ce99be",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_braid_side.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_braid_side",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -538,6 +742,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 2592,
+          "visual_triangles": 614,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8024691358024691,
+            "triangles": 132
+          },
+          "min": [
+            -0.9375,
+            1.375,
+            -0.75
+          ],
+          "max": [
+            0.9375,
+            2.8125,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 80584,
+      "sha256": "7684d231605b13751fdf4cfd4c7c64f3a379d1a5b4fb8426b33d06f3ae4f67c8",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_braid_long.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_braid_long",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 5732,
           "visual_triangles": 1124,
           "occlusion": true,
@@ -563,6 +801,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_f_short_practical.glb",
       "authoring": {
         "part": "hair/hair_f_short_practical",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 2294,
+          "visual_triangles": 386,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7776809067131648,
+            "triangles": 90
+          },
+          "min": [
+            -1.0,
+            2.125,
+            -0.6875
+          ],
+          "max": [
+            1.0,
+            2.8125,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 52088,
+      "sha256": "f615809d1e26cddf0dee48069938bb5a592d6fd7065ca1a5d109f76bb3a24248",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_short_practical.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_short_practical",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -606,6 +878,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 3576,
+          "visual_triangles": 926,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8098434004474273,
+            "triangles": 168
+          },
+          "min": [
+            -1.0,
+            1.375,
+            -0.6875
+          ],
+          "max": [
+            1.0,
+            2.8125,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 117596,
+      "sha256": "a664a373ca33af3f3276c5ae6d705fc73557f2c99f4e1e1129ce82385daf917e",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_twin_braids.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_twin_braids",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 7401,
           "visual_triangles": 1338,
           "occlusion": true,
@@ -631,6 +937,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_f_half_up.glb",
       "authoring": {
         "part": "hair/hair_f_half_up",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 3864,
+          "visual_triangles": 428,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8488612836438924,
+            "triangles": 114
+          },
+          "min": [
+            -0.9375,
+            1.625,
+            -0.75
+          ],
+          "max": [
+            0.9375,
+            2.8125,
+            0.25
+          ]
+        }
+      ],
+      "bytes": 58832,
+      "sha256": "71f0a8a8d64c3c6146ef96ecd7999e8b5248dcfd989af7770b5bb3d1e55679a0",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_half_up.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_half_up",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -674,6 +1014,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 5348,
+          "visual_triangles": 552,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8302169035153328,
+            "triangles": 120
+          },
+          "min": [
+            -1.0,
+            1.375,
+            -0.75
+          ],
+          "max": [
+            1.0,
+            2.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 72776,
+      "sha256": "806fc1204ec153c987c52dcc1277abf16ec119307401eda73a50b5c768461dd7",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_loose_long.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_loose_long",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 1382,
           "visual_triangles": 432,
           "occlusion": true,
@@ -699,6 +1073,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_f_shaved_sides.glb",
       "authoring": {
         "part": "hair/hair_f_shaved_sides",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 214,
+          "visual_triangles": 150,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 50
+          },
+          "min": [
+            -0.875,
+            2.375,
+            -0.75
+          ],
+          "max": [
+            0.875,
+            2.8125,
+            0.375
+          ]
+        }
+      ],
+      "bytes": 22916,
+      "sha256": "fe7f82ea25b07b29ef3615a3f49cbe0e0491257ef2d829004a9f5945cd038e4d",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_shaved_sides.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_shaved_sides",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -742,6 +1150,40 @@
       "parts": [
         {
           "name": "main",
+          "cells": 1292,
+          "visual_triangles": 302,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9009287925696594,
+            "triangles": 54
+          },
+          "min": [
+            -1.0,
+            2.4375,
+            -0.6875
+          ],
+          "max": [
+            1.0,
+            2.8125,
+            0.1875
+          ]
+        }
+      ],
+      "bytes": 39700,
+      "sha256": "b03aeabb947f6d14c7dedcaa480a2c753832dcb42c4de5b206ba9dbb975d583d",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_cropped.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_cropped",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
           "cells": 9667,
           "visual_triangles": 1432,
           "occlusion": true,
@@ -767,6 +1209,40 @@
       "path": "assets/models/characters/dwarves/hair/hair_f_wild.glb",
       "authoring": {
         "part": "hair/hair_f_wild",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4842,
+          "visual_triangles": 520,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.7930607187112764,
+            "triangles": 70
+          },
+          "min": [
+            -1.1875,
+            1.875,
+            -0.75
+          ],
+          "max": [
+            1.1875,
+            2.8125,
+            0.3125
+          ]
+        }
+      ],
+      "bytes": 64724,
+      "sha256": "52777e61bd39ccc10d81163c5505f0bb651a13c11277f756b7cf9a5fdd5e000d",
+      "path": "assets/models/characters/dwarves/hair_hatted/hair_f_wild.glb",
+      "authoring": {
+        "part": "hair_hatted/hair_f_wild",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"
@@ -1422,18 +1898,18 @@
       "parts": [
         {
           "name": "main",
-          "cells": 372,
-          "visual_triangles": 234,
+          "cells": 280,
+          "visual_triangles": 292,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 68
+            "triangles": 80
           },
           "min": [
             -0.1875,
             -0.25,
-            -0.125
+            -0.0625
           ],
           "max": [
             0.1875,
@@ -1442,8 +1918,8 @@
           ]
         }
       ],
-      "bytes": 33644,
-      "sha256": "18aa1caf1962560aa79aeab2f92f45d2a953161e09e8dcb9aecf3866f9d2352e",
+      "bytes": 41016,
+      "sha256": "aeff346c2c5370a262c4945f6d77c8127cc550f14b37404c96f4088c212a1719",
       "path": "assets/models/characters/dwarves/tools/stone_adze.glb",
       "authoring": {
         "part": "tools/stone_adze",
@@ -1456,13 +1932,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 648,
-          "visual_triangles": 270,
+          "cells": 696,
+          "visual_triangles": 414,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 88
+            "triangles": 92
           },
           "min": [
             -0.25,
@@ -1471,13 +1947,13 @@
           ],
           "max": [
             0.25,
-            1.3125,
+            1.375,
             0.6875
           ]
         }
       ],
-      "bytes": 39368,
-      "sha256": "87b3bdb0b57924f6eb711643883cf481a21b1d08f887a8bb084f3de3bfd502de",
+      "bytes": 55288,
+      "sha256": "c7afe39f0813ec7065238b9cc79c8fc0f1137354a968f0e40b09817e3605b110",
       "path": "assets/models/characters/dwarves/tools/stone_maul.glb",
       "authoring": {
         "part": "tools/stone_maul",
@@ -1490,28 +1966,62 @@
       "parts": [
         {
           "name": "main",
-          "cells": 468,
-          "visual_triangles": 262,
+          "cells": 368,
+          "visual_triangles": 368,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 84
+            "triangles": 102
+          },
+          "min": [
+            -0.25,
+            -0.25,
+            -0.0625
+          ],
+          "max": [
+            0.25,
+            1.875,
+            0.625
+          ]
+        }
+      ],
+      "bytes": 51240,
+      "sha256": "74fdd044e778c8081dfffaa4f95abf8ec6908606bdd9f5c2682b6f8b3d9de062",
+      "path": "assets/models/characters/dwarves/tools/copper_hoe.glb",
+      "authoring": {
+        "part": "tools/copper_hoe",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 340,
+          "visual_triangles": 322,
+          "occlusion": true,
+          "shadow": {
+            "stride": 1,
+            "retained_volume": 1.0,
+            "triangles": 96
           },
           "min": [
             -0.125,
             -0.25,
-            -0.1875
+            -0.25
           ],
           "max": [
             0.125,
-            1.4375,
+            1.375,
             0.6875
           ]
         }
       ],
-      "bytes": 38140,
-      "sha256": "6b02f18b540f63f342d7e5c29c14a102574e398f7cd212c642feab4d3655f493",
+      "bytes": 45720,
+      "sha256": "1d3140f97c6914f0a54fc620026d88f71c3251fbf0414df17c55128127a9fe16",
       "path": "assets/models/characters/dwarves/tools/felling_axe.glb",
       "authoring": {
         "part": "tools/felling_axe",
@@ -1524,13 +2034,13 @@
       "parts": [
         {
           "name": "main",
-          "cells": 520,
-          "visual_triangles": 434,
+          "cells": 480,
+          "visual_triangles": 442,
           "occlusion": true,
           "shadow": {
             "stride": 1,
             "retained_volume": 1.0,
-            "triangles": 140
+            "triangles": 148
           },
           "min": [
             -0.125,
@@ -1539,13 +2049,13 @@
           ],
           "max": [
             0.125,
-            1.875,
+            1.9375,
             0.9375
           ]
         }
       ],
-      "bytes": 61876,
-      "sha256": "4e237af53cdc4669ebc2b04833d7f44554c63775330594dcf7ab3b1da5ba912a",
+      "bytes": 63476,
+      "sha256": "060624a1d1189235653c8affe5b0218e107d0ff6fd552c21bca10b0c894c6ddf",
       "path": "assets/models/characters/dwarves/tools/mining_pickaxe.glb",
       "authoring": {
         "part": "tools/mining_pickaxe",
@@ -2161,6 +2671,260 @@
       "path": "assets/models/characters/dwarves/tools/grill_stick_cave_fish_grilled.glb",
       "authoring": {
         "part": "tools/grill_stick_cave_fish_grilled",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 84,
+          "visual_triangles": 92,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 1.0,
+            "triangles": 12
+          },
+          "min": [
+            -0.0625,
+            -0.1875,
+            -0.0625
+          ],
+          "max": [
+            0.0625,
+            1.125,
+            0.0625
+          ]
+        }
+      ],
+      "bytes": 13152,
+      "sha256": "545c35bd54b23f85025908bce0f44a6104ecf52277b26a6b8705a70f47b605f2",
+      "path": "assets/models/characters/dwarves/tools/blow_stick.glb",
+      "authoring": {
+        "part": "tools/blow_stick",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "hat",
+          "cells": 6380,
+          "visual_triangles": 1088,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.9404388714733543,
+            "triangles": 190
+          },
+          "min": [
+            -1.0,
+            2.8125,
+            -0.8125
+          ],
+          "max": [
+            1.0,
+            3.75,
+            0.8125
+          ]
+        },
+        {
+          "name": "flame",
+          "cells": 41,
+          "visual_triangles": 40,
+          "shadow": null,
+          "min": [
+            -0.125,
+            3.75,
+            0.25
+          ],
+          "max": [
+            0.125,
+            4.0625,
+            0.5
+          ]
+        }
+      ],
+      "bytes": 141748,
+      "sha256": "fa6214a1cbe1664a08805faf27807116c39bd6ef02ad771607504e3297fad874",
+      "path": "assets/models/characters/dwarves/hats/hat_miner.glb",
+      "authoring": {
+        "part": "hats/hat_miner",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 7228,
+          "visual_triangles": 1594,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8793580520199226,
+            "triangles": 256
+          },
+          "min": [
+            -1.0,
+            2.8125,
+            -1.4375
+          ],
+          "max": [
+            1.0,
+            3.75,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 197828,
+      "sha256": "a6c4f91503fcaf013f33973c952fb7ab6b578d8d549dc08cc16461b9f78574a5",
+      "path": "assets/models/characters/dwarves/hats/hat_ranger.glb",
+      "authoring": {
+        "part": "hats/hat_ranger",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 6130,
+          "visual_triangles": 990,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.6433931484502446,
+            "triangles": 54
+          },
+          "min": [
+            -1.1875,
+            2.8125,
+            -0.8125
+          ],
+          "max": [
+            1.0,
+            3.375,
+            0.8125
+          ]
+        }
+      ],
+      "bytes": 114016,
+      "sha256": "53991d4def450559385fb468c4c61139bd36173eb4e2c5ec760ce2a18b39617a",
+      "path": "assets/models/characters/dwarves/hats/hat_carpenter.glb",
+      "authoring": {
+        "part": "hats/hat_carpenter",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 6714,
+          "visual_triangles": 244,
+          "occlusion": true,
+          "shadow": {
+            "stride": 4,
+            "retained_volume": 0.9651474530831099,
+            "triangles": 36
+          },
+          "min": [
+            -0.9375,
+            2.8125,
+            -0.8125
+          ],
+          "max": [
+            0.9375,
+            3.375,
+            0.75
+          ]
+        }
+      ],
+      "bytes": 31780,
+      "sha256": "ff500249384221fb685c0ff767f5795ae3b5f9a6c42649417115f3e947c97537",
+      "path": "assets/models/characters/dwarves/hats/hat_stonemason.glb",
+      "authoring": {
+        "part": "hats/hat_stonemason",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 4562,
+          "visual_triangles": 808,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.7821131082858396,
+            "triangles": 148
+          },
+          "min": [
+            -0.875,
+            2.25,
+            -0.8125
+          ],
+          "max": [
+            0.875,
+            3.3125,
+            0.6875
+          ]
+        }
+      ],
+      "bytes": 103008,
+      "sha256": "32b53776e0fb1b7925e5fb420ca949fb23c6f78dda7c820d8fc88d3631b71404",
+      "path": "assets/models/characters/dwarves/hats/hat_blacksmith.glb",
+      "authoring": {
+        "part": "hats/hat_blacksmith",
+        "baked_proportions": true,
+        "portrait_only": false,
+        "source": "tools/art_data/voxel_hearthblock.json"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "main",
+          "cells": 7372,
+          "visual_triangles": 1444,
+          "occlusion": true,
+          "shadow": {
+            "stride": 2,
+            "retained_volume": 0.8638090070537168,
+            "triangles": 168
+          },
+          "min": [
+            -1.25,
+            2.8125,
+            -1.125
+          ],
+          "max": [
+            1.25,
+            3.375,
+            0.9375
+          ]
+        }
+      ],
+      "bytes": 173536,
+      "sha256": "1d6eec7cdda24d2ef9eee632698ef7134a847e6fd43df2a85a23237f2d53a26e",
+      "path": "assets/models/characters/dwarves/hats/hat_farmer.glb",
+      "authoring": {
+        "part": "hats/hat_farmer",
         "baked_proportions": true,
         "portrait_only": false,
         "source": "tools/art_data/voxel_hearthblock.json"

@@ -4,7 +4,7 @@
   "display_name": "Log bed",
   "description": "Rough bark-covered logs cradle loose hay and dried leaves. One dwarf can sleep here. Add a door and light to a sealed room to make a bedroom.",
   "model": "res://assets/models/furniture/log_bed.glb",
-  "item_key": "base:resources:furniture:log_bed",
+  "item_key": "base:item:log_bed",
   "placement": "floor",
   "yaw_steps": 4,
   "footprint": {"width": 4, "depth": 3},

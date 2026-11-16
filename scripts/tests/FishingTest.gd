@@ -8,8 +8,8 @@ extends "res://scripts/tests/TreeFellingTest.gd"
 ## the zone's window, saves (a load never refills a water, and a zone loaded while its water has
 ## drained comes back whole) and a real drag.
 ## Step 2: each water's fish, the bank's reach, honest refusals, seasons and Wisdom.
-const PERCH := "base:resources:fish:perch"
-const TROUT := "base:resources:fish:trout"
+const PERCH := "base:item:perch"
+const TROUT := "base:item:trout"
 const SHORE_X := 49
 var fishing: Node
 var water: Node
@@ -43,8 +43,8 @@ func _run() -> void:
 	generator.tarn_columns.erase(Vector2i(100, 100))
 	generator.spring_cave = {}
 	fishing._pool.clear()
-	_expect(fishing.water_item("river") == TROUT and fishing.water_item("tarn") == "base:resources:fish:char"
-		and fishing.water_item("spring_cave") == "base:resources:fish:cave_fish", "each water has its own fish")
+	_expect(fishing.water_item("river") == TROUT and fishing.water_item("tarn") == "base:item:char"
+		and fishing.water_item("spring_cave") == "base:item:cave_fish", "each water has its own fish")
 	_expect(fishing.spot_reason(Vector3i(52, 19, 33)) == "Fishers stand on the shore, not in the water", "the lake's own cells are refused")
 	_expect(fishing.water_in_front(Vector3i(SHORE_X, 20, 33)) == Vector3i(51, 20, 33), "the float lands two blocks out, in water deep enough")
 	# A zone of four spots posts four leases.
@@ -68,7 +68,20 @@ func _run() -> void:
 	camera.set_meta("work_zoom", 12.0)
 	root.get_node("WorkFeedback").sound_started.connect(func(kind, _at, _voice): sounds.append(kind))
 	_expect(await _until_perch(1), "the catch lands")
-	_expect("fish_plop" in sounds and "fish_bite" in sounds and "fish_land" in sounds, "the float plops; the bite and the landing splash: %s" % [sounds])
+	# One catch, heard in order. The test's catch is over in a blink, so the second flap can fall
+	# inside the first one's cooldown; in play they are more than half a second apart.
+	_expect(sounds.slice(0, 5) == ["fish_cast", "fish_plop", "fish_bite", "fish_land", "fish_flop"] and sounds.size() <= 6 and sounds.back() == "fish_flop",
+		"the rod swings, the float plops, the bite and the landing splash, and the catch flaps on the line: %s" % [sounds])
+	_expect(DwarfFishingPoseMarks.ordered(), "the marks of a catch come in order: swing, float, bite, landing, two flaps")
+	var feedback: Node = root.get_node("WorkFeedback")
+	var lengths := {"fish_cast": [0.2, 0.6], "fish_plop": [0.08, 0.3], "fish_bite": [0.3, 1.0], "fish_land": [0.8, 1.6], "fish_land_big": [1.5, 2.6], "fish_flop": [0.15, 0.35]}
+	for kind: String in lengths:
+		var bank: Array = feedback._streams.get(kind, [])
+		var recorded := bank.size() >= 2
+		for stream: AudioStreamWAV in bank:
+			recorded = recorded and not stream.stereo and stream.mix_rate == 48000 and stream.loop_mode == AudioStreamWAV.LOOP_DISABLED \
+				and stream.resource_path.contains("/work/" + kind + "_") and stream.get_length() >= lengths[kind][0] and stream.get_length() <= lengths[kind][1]
+		_expect(recorded and feedback._profile(kind).has("level_db"), "%s is a bank of its own recorded one-shots with a level: %d" % [kind, bank.size()])
 	_expect(_perch_at(spot.origin + Vector3i.UP) == 1, "the perch lies at the fisher's feet")
 	_expect(absf(fishing.stock("lake") - (before - 1.0)) < 0.01, "the catch comes off the lake's stock")
 	# A release mid-cast loses nothing and frees the spot.
@@ -292,3 +305,16 @@ func _perch_at(cell: Vector3i) -> int:
 	for node: Node3D in drops._loose:
 		if drops._loose[node] == PERCH and Vector3i(node.global_position.floor()) == cell: count += 1
 	return count
+
+
+
+class DwarfFishingPoseMarks:
+	static func ordered() -> bool:
+		var pose: GDScript = load("res://scripts/components/DwarfFishingPose.gd")
+		var marks: Array = [0.0, pose.CAST_SWING, pose.CAST_END, pose.BITE_START, pose.BITE_END, pose.LANDED]
+		marks.append_array(pose.FLAPS)
+		marks.append(pose.FLAPS.back() + pose.FLAP_SPAN)
+		marks.append(1.0)
+		for i in range(1, marks.size()):
+			if float(marks[i]) <= float(marks[i - 1]): return false
+		return true

@@ -7,6 +7,7 @@ extends Node3D
 ## whole over the lower log's cut shoulders: along X on even layers, along Z on odd ones. Every
 ## other system still sees a whole solid block. WorldRenderer keeps the faces behind a log
 ## (BlockRegistry.fills_cell) and calls cell_changed, rescan and refresh.
+const TerrainLighting = preload("res://scripts/components/TerrainLighting.gd")
 const MODEL := "res://assets/models/construction/logs.glb"
 const PALETTE := {"material_palette": "hand_hewn_timber"}
 const VARIANTS := 4
@@ -71,6 +72,7 @@ func refresh(slice_y: int) -> void:
 		var node := _instances(_shadows[piece], shadow[piece])
 		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		node.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+		node.layers |= TerrainLighting.BUILT_LAYER   # a carried light (the Miner's candle) is shadowed by log walls too
 		_drawn.append(node)
 
 

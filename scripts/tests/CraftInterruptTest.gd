@@ -7,10 +7,10 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## lifts the last log and finishes the hearth with exactly those goods while hauling runs.
 ## The hearth is the Stonemason's (doc 44), so both dwarves are Stonemasons and a stone stool is
 ## the order that takes the mason's bench in turn.
-const HEARTH_RECIPE := "base:recipe:worker:hearth"
-const HEARTH_ITEM := "base:resources:furniture:hearth"
-const STOOL_RECIPE := "base:recipe:worker:stone_stool"
-const STOOL_ITEM := "base:resources:furniture:stone_stool"
+const HEARTH_RECIPE := "base:recipe:hearth"
+const HEARTH_ITEM := "base:item:hearth"
+const STOOL_RECIPE := "base:recipe:stone_stool"
+const STOOL_ITEM := "base:item:stone_stool"
 const STONEMASON := "base:profession:stonemason"
 var hauling_live := false
 var kept: Array[int] = [] # instance ids of the six goods at the bench when the crafter fell asleep

@@ -3,8 +3,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## DEV Instant Build skips the dwarf, not the item: it uses up one matching
 ## packed item (loose or stored) and installs the piece in that item's material.
 
-const CHAIR := "base:furniture:log_chair"
-const CHAIR_ITEM := "base:resources:furniture:log_chair"
+const CHAIR := "base:furniture:log_stool"
+const CHAIR_ITEM := "base:item:log_stool"
 const BIRCH := "base:material:birch"
 
 func _run() -> void:

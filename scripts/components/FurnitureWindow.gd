@@ -336,16 +336,25 @@ func get_explorer_data(object_id: Variant) -> Dictionary:
 	if WallMount.is_wall(piece.def):
 		rows.append(["Mount level",str(WallMount.mount_cell(piece.def,piece.origin_cell).y)])
 		if piece is InstalledFurnitureComponent and piece.flagged_uninstall and piece.wall_work_stands().is_empty(): rows[0][1] = "Waiting for reachable work position"
-	# A workshop (its `crafting_recipe`): the workbench's Craft items, the drying rack's Dry fish (doc 289).
-	if piece is InstalledFurnitureComponent and piece.def.has("crafting_recipe") and not piece.flagged_uninstall:
+	# A workshop is a piece some recipe is made at (doc 44, "Its window's action"): the workbench's
+	# Craft items, the drying rack's Dry fish (doc 289).
+	var made_here: Array = ContentRegistry.recipes_at(piece.furniture_key) if piece is InstalledFurnitureComponent and not piece.flagged_uninstall else []
+	if not made_here.is_empty():
 		actions.push_front({"id":"craft", "text":String(piece.def.get("crafting_action", "Craft items"))})
-		# The career that makes its recipe (doc 292): Workers at the workbench, Rangers at the rack.
-		var crafting: Node = controller.get_tree().get_first_node_in_group("crafting_manager")
-		var recipe: Dictionary = crafting.recipes.get(String(piece.def.crafting_recipe), {}) if crafting != null else {}
-		var crafter: String = crafting.crafter_name(recipe) if not recipe.is_empty() else "Worker"
-		rows.append(["Crafter", "Any " + crafter])
-		in_use = {"text": "Any %s crafts here" % crafter, "tone": "fine"}
+		# The careers of those recipes (doc 292), each once: Rangers at the rack; Workers at the
+		# workbench, and the four trades that make their first station on it.
+		var crafters: Array[String] = []
+		for recipe: Dictionary in made_here:
+			var crafter := DwarfAssets.crafter_name(recipe)
+			if not crafter in crafters: crafters.append(crafter)
+		var others := crafters.size() - 1
+		rows.append(["Crafter", "Any " + (crafters[0] if others == 0 else ", ".join(PackedStringArray(crafters.slice(0, others))) + " or " + crafters[others])])
+		# The panel's line is short: one career by name, several as the first and a count, with
+		# every one named after the description, which shows on hover.
+		in_use = {"text": "Any %s crafts here" % crafters[0] if others == 0 else "%ss and %d trade%s craft here" % [crafters[0], others, "" if others == 1 else "s"], "tone": "fine"}
+		if others > 0: details += " %ss and %ss craft here." % ["s, ".join(PackedStringArray(crafters.slice(0, others))), crafters[others]]
 		# A batch left on it to dry or melt, and when it comes down.
+		var crafting: Node = controller.get_tree().get_first_node_in_group("crafting_manager")
 		var hanging: Dictionary = crafting.hanging_status(piece.installed_id) if crafting != null else {}
 		if not hanging.is_empty():
 			rows.append([String(hanging.get("label", "Drying")), String(hanging.row)])
@@ -399,9 +408,11 @@ func perform_explorer_action(object_id: Variant, action_id: String) -> void:
 			controller.cancel_ghost(piece.ghost_id)
 		elif action_id == "build":
 			controller.dev_instant_build(piece.ghost_id)
-	elif action_id == "craft" and piece.def.has("crafting_recipe") and not piece.flagged_uninstall:
+	elif action_id == "craft" and not piece.flagged_uninstall:
+		# Crafting opens at the first recipe made here, on its career's page.
+		var made_here: Array = ContentRegistry.recipes_at(piece.furniture_key)
 		var dock_ui: Node = controller.get_dock_ui()
-		if dock_ui != null: dock_ui.open_crafting(String(piece.def.crafting_recipe))
+		if dock_ui != null and not made_here.is_empty(): dock_ui.open_crafting(String(made_here[0].id))
 	elif action_id == "storage" and piece.storage != null:
 		controller.get_furniture_storage().open_window(piece)
 	elif action_id.begins_with("assign_bed:"):

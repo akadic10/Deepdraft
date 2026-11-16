@@ -28,9 +28,7 @@ static func advance(order: RefCounted, worker: DwarfAgent, context: Dictionary, 
 		start = context.pickup_stand
 		if order.bench_id<0: goals[start] = true
 		elif order.manager.bench_valid(order.bench_id,order.id):
-			for cell: Vector3i in order.manager.furniture.get_installed(order.bench_id).cells:
-				for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
-					if NavGrid.is_walkable(cell+offset): goals[cell+offset] = true
+			for stand: Vector3i in order.manager.furniture.get_installed(order.bench_id).work_stands(order.is_batch()): goals[stand] = true
 	var result := NavGrid.ProbeResult.UNREACHABLE
 	if not goals.is_empty():
 		var nodes := int(TaskManager.get_config_section("supervision").get("ingredient_planning_node_cap",32))

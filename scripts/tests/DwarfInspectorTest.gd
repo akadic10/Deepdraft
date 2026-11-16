@@ -172,7 +172,7 @@ func _run() -> void:
 	_expect(compact._activity_label.text == "Picking up supplies", "the panel's activity follows live work")
 	worker._process(.35)
 	explorer._refresh_selected()
-	_expect("12 × Oak Acorn (1 crate)" == panel._cargo.text, "crate displays actual contents and physical count")
+	_expect("12 × Oak acorn (1 crate)" == panel._cargo.text, "crate displays actual contents and physical count")
 	_expect(panel._carry_heading.text == "CARRYING · 4 / 4" and panel._carry_tiles.get_child_count() == 1, "one crate uses four carry points and shows as its picture")
 	_expect(await _until(worker.TaskPhase.HAUL_TO_ZONE), "scheduler reaches delivery")
 	explorer._refresh_selected()

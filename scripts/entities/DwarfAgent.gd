@@ -341,6 +341,7 @@ func dev_make_hungry() -> bool:
 func _complete_profession_change(key: String) -> void:
 	var promoted := key != profession and key != "base:profession:worker"
 	profession = key
+	_rig.wear_hat()   # the trade's hat, or a Worker's bare head (doc 304)
 	if not profession_experience.has(key): profession_experience[key] = 0
 	TaskManager.work_policy_changed()
 	if not promoted: return

@@ -1,7 +1,7 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const BED := "base:furniture:log_bed"
-const BED_ITEM := "base:resources:furniture:log_bed"
+const BED_ITEM := "base:item:log_bed"
 var rooms
 var bed
 var door
@@ -19,13 +19,13 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	rooms = root.get_node("RoomManager")
 	rooms.clear_runtime_state()
-	_carpenter_bench_at(Vector3i(45,20,42))   # the log bed is the Carpenter's (doc 44)
+	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(45,20,42),0)   # the log bed is a Worker's again (doc 306)
 	drops.spawn_drop(PINE,4,Vector3i(42,21,42))
-	_expect(await _completed(crafting.queue_order("base:recipe:worker:log_bed",1)),"a Carpenter crafts the log bed")
+	_expect(await _completed(crafting.queue_order("base:recipe:log_bed",1)),"a Worker crafts the log bed")
 	_expect(_count(BED_ITEM)==1 and _count(PINE)==0,"four timber become one packed bed")
 	_expect(dock._place_catalog.has_design(BED),"log bed available in Place catalog")
 	_build_bedroom()
-	door = _put("door",Vector3i(63,20,60))
+	door = _put("door_2",Vector3i(63,20,60))
 	_expect(_room_data().get("room_type")=="room","sealed door alone is a room")
 	furniture.activate_for(BED,true)
 	furniture._yaw = 0
@@ -37,24 +37,24 @@ func _run() -> void:
 	bed = furniture._installed.values().filter(func(p): return p.furniture_key==BED)[0]
 	_expect(bed.material_id=="base:material:pine" and _count(BED_ITEM)==0,"installed bed retains timber and consumes crate")
 	_expect(_room_data().get("room_type")=="room","bed without light does not create bedroom")
-	var outside = _put("wooden_torch",Vector3i(62,20,58))
+	var outside = _put("torch",Vector3i(62,20,58))
 	_expect(_room_data().get("room_type")=="room","outside light does not qualify")
 	furniture._teardown_installed(outside.installed_id,false)
-	lamp = _put("wooden_torch",Vector3i(68,20,64))
+	lamp = _put("torch",Vector3i(68,20,64))
 	var room := _room_data()
 	_expect(room.get("room_type")=="bedroom" and room.bed_count==1 and room.light_count==1 and room.door_cells.size()==1,"bed + door + light + sealed enclosure creates bedroom")
 	await _check_room_window(true)
-	for key in ["wooden_torch","campfire"]:
+	for key in ["torch","campfire"]:
 		var def: Dictionary = furniture.get_defs()["base:furniture:"+key]
-		_expect(is_equal_approx(float(def.light_source.energy),2.6 if key=="wooden_torch" else 3.2),"doubled firelight: "+key)
+		_expect(is_equal_approx(float(def.light_source.energy),2.6 if key=="torch" else 3.2),"doubled firelight: "+key)
 	# Every required component must remain present.
 	furniture._teardown_installed(lamp.installed_id,false)
 	_expect(_room_data().get("room_type")=="room","light removal revokes bedroom")
 	await _check_room_window(false)
-	lamp = _put("wooden_torch",Vector3i(68,20,64))
+	lamp = _put("torch",Vector3i(68,20,64))
 	furniture._teardown_installed(door.installed_id,false)
 	_expect(_room_data().is_empty(),"door removal unseals bedroom")
-	door = _put("door",Vector3i(63,20,60))
+	door = _put("door_2",Vector3i(63,20,60))
 	world.set_block(64,25,64,blocks.AIR_ID)
 	_expect(_room_data().is_empty(),"roof breach unseals bedroom")
 	world.set_block(64,25,64,blocks.get_id("base:terrain:rock:rock01"))
@@ -165,7 +165,7 @@ func _check_room_window(bedroom: bool) -> void:
 			"a bedroom's needs each show their count, ticked")
 		_expect(panel._owner_row.visible and panel._owner_line.text == "No one owns the bed", "an unowned bedroom says no one owns the bed")
 		var tiles: Array = panel._furniture.find_children("Tile_*", "Button", true, false)
-		_expect(tiles.size() == 3 and [BED, "base:furniture:wooden_torch", "base:furniture:door"].all(func(key: String): return panel._furniture.get_tile(key) != null),
+		_expect(tiles.size() == 3 and [BED, "base:furniture:torch", "base:furniture:door_2"].all(func(key: String): return panel._furniture.get_tile(key) != null),
 			"In this room shows the bed, the torch and the door it seals")
 		var appeal: Dictionary = rooms.room_appeal(rooms.get_room_at(room_probe))
 		_expect(float(appeal.total) > 0.0 and panel._banner_word.text == String(appeal.word.word) and panel._banner_value.text == load("res://scripts/components/RoomAppeal.gd").number(float(appeal.score)),

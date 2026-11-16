@@ -1,5 +1,5 @@
 {
-  "__comment": "Offline 1:16 art for already-defined crop paths. No farming gameplay, recipes or growth rules are introduced.",
+  "__comment": "Colours and sizes for tools/voxel_assets/crops.py. plump_helmet, pig_tail_plant, hops_plant and grape_vine are placeholders for brewing and weaving crops whose features are not built: offline 1:16 art for already-defined paths, not Hearthblock yet. 'field' holds the Farmer's vegetables (doc 309), which are.",
   "plump_helmet": {
     "palette": {"stem":"D5C7A7","cap":"82506F","speck":"BB8EAA"},
     "heights": {"sprouting":0.5,"mature":1.5},
@@ -17,5 +17,52 @@
   "grape_vine": {
     "palette": {"wood":"7A6044","stem":"62583E","leaf":"60834A","autumn":"B39757","fruit":"6C4D77","bud":"D3C2A1"},
     "heights": {"cutting":0.625,"fruiting":1.75}
+  },
+  "field": {
+    "__comment": [
+      "The Farmer's field vegetables (doc 309), Hearthblock. Every tile's model carries the tile's two soil ridges.",
+      "soil: the ridges' lit top, a little lighter than the tilled block (5E452F), and their darker sides.",
+      "Each crop: height = the tallest its ripe plant may stand, in cells, the ridge included (a sprout stands 3 at most);",
+      "plant = leaves and stalks, which any stage may show; crop = the vegetable's own colours, which only a ripe tile shows.",
+      "The colours were chosen by how they come out at the sky's midday, not by their stored values: that light lifts and",
+      "pales light colours (a stored A3CA5C cabbage head shows as cream) and turns a dark teal cyan, so the cabbage's head,",
+      "the onion's bulb and the pumpkin's top are stored deeper than they look, and the kale greener."
+    ],
+    "soil": {"soil":"6B5137","soil_side":"4D3826"},
+    "radish": {
+      "height": 5,
+      "plant": {"leaf_dark":"2F6B34","leaf":"44893F","leaf_light":"5FA64A"},
+      "crop": {"root_dark":"9C2038","root":"CC2F48"}
+    },
+    "carrot": {
+      "height": 8,
+      "plant": {"leaf_dark":"4F8530","leaf":"6FA537","leaf_light":"86BA3E"},
+      "crop": {"root":"DB6A14","root_light":"E57A18"}
+    },
+    "turnip": {
+      "height": 8,
+      "plant": {"leaf_dark":"3A7340","leaf":"4F924D","leaf_light":"68A856"},
+      "crop": {"root_dark":"BDB49C","root":"E4DDC8","shoulder_dark":"74305F","shoulder":"A0468A"}
+    },
+    "cabbage": {
+      "height": 9,
+      "plant": {"leaf_dark":"2A5E3C","leaf":"3A7A4D","leaf_light":"549A62","wrap":"74AE55"},
+      "crop": {"head_dark":"78A83C","head":"86BE3C","head_light":"9FCF4C"}
+    },
+    "onion": {
+      "height": 9,
+      "plant": {"leaf_dark":"2F6F52","leaf":"468C6A","leaf_light":"5EA57E","tip":"A9A64C"},
+      "crop": {"bulb_dark":"A9731B","bulb":"C48A20","bulb_light":"D69C26"}
+    },
+    "pumpkin": {
+      "height": 11,
+      "plant": {"leaf_dark":"28592D","leaf":"357435","leaf_light":"4A8B3E","vine":"4E7A34"},
+      "crop": {"fruit_dark":"8F4010","fruit":"D0620F","fruit_light":"DE6F14","rib":"A84A0C","stem":"6C6A33","stem_dark":"4E4E28"}
+    },
+    "kale": {
+      "height": 14,
+      "plant": {"stalk_dark":"5F7748","stalk":"85A062","leaf_dark":"1C4030","leaf":"28523E","leaf_light":"326848"},
+      "crop": {"frill":"4F8F66"}
+    }
   }
 }

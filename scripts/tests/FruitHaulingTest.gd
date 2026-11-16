@@ -1,7 +1,7 @@
 extends "res://scripts/tests/HaulingAnimationTest.gd"
 
-const APPLE := "base:resources:flora:apple"
-const BERRY := "base:resources:flora:juniper_berry"
+const APPLE := "base:item:apple"
+const BERRY := "base:item:juniper_berry"
 var expected_units := 0
 var topups := 0
 

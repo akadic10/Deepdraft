@@ -11,7 +11,7 @@ extends Node3D
 ## overlapping trunks. Streams in/out with the camera like the terrain.
 ##
 ## Design + decisions: docs/40_economy_colony/42_farming_brewing.md (World placement)
-## Placement data:     data/entities/flora/<species>_tree.json -> "placement"
+## Placement data:     data/flora/<species>_tree.json -> "placement"
 ## Footprint / rules:  docs/40_economy_colony/42_farming_brewing.md (Surface Trees:
 ##                     collision, physics layers, rendering)
 ##

@@ -1,6 +1,6 @@
 extends "res://scripts/tests/JuniperHarvestTest.gd"
 
-const APPLE := "base:resources:flora:apple"
+const APPLE := "base:item:apple"
 
 func _run() -> void:
 	create_timer(90).timeout.connect(func(): push_error("Apple harvest timed out"); quit(1))
@@ -85,7 +85,7 @@ func _run() -> void:
 	worker.position=Vector3(39.5,21,40.5)
 	before=_berries()
 	_expect(await _until_felled(MATURE),"felling remains a separate explicit action")
-	_expect(_berries()==before and _item_count("base:resources:wood:apple_wood")==_log_yield("apple","mature"),"felling grants wood, never an extra apple crop")
+	_expect(_berries()==before and _item_count("base:item:apple_log")==_log_yield("apple","mature"),"felling grants wood, never an extra apple crop")
 	for message: String in failures: push_error(message)
 	print("APPLE_HARVEST_OK" if failures.is_empty() else "APPLE_HARVEST_FAIL: %s" % str(failures))
 	quit(0 if failures.is_empty() else 1)

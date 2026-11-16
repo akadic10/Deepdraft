@@ -1,6 +1,6 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-const HOE := "base:recipe:worker:stone_hoe"
+const HOE := "base:recipe:stone_hammer"
 const RACK := "base:furniture:drying_rack"
 
 class SlowQuote extends RefCounted:
@@ -23,7 +23,7 @@ func _run() -> void:
 	_expect(crafting.get_order(id).worker_id==extra_worker.dwarf_id and worker.current_task_id<0,
 		"Hilka beside the stone wins over Keltin, first in the idle queue and closer to the bench")
 	_expect(await _completed(id),"nearby winner completes both ingredient trips and the real tool batch")
-	_expect(_count("base:resources:tools:stone_hoe")==1 and _count(STONE)==0 and _count(PINE)==0,
+	_expect(_count("base:item:stone_hammer")==1 and _count(STONE)==0 and _count(PINE)==0,
 		"assignment and exact pickup conserve all inputs and output")
 	await _recipes_and_storage()
 	await _eligibility()
@@ -68,24 +68,30 @@ func _supply() -> void:
 
 func _recipes_and_storage() -> void:
 	# Dried fish are made at the drying rack from fish (doc 289), stone stools at the mason's
-	# bench from a Rough Stone (doc 293), tool racks at the carpenter's bench (doc 294); timber
+	# bench from a Rough stone (doc 293), tool racks at the carpenter's bench (doc 294); timber
 	# recipes use pine.
 	furniture._install(RACK,furniture.get_defs()[RACK],Vector3i(46,20,36),0)
 	furniture._install("base:furniture:mason_bench",furniture.get_defs()["base:furniture:mason_bench"],Vector3i(46,20,44),0)
 	furniture._install("base:furniture:carpenter_bench",furniture.get_defs()["base:furniture:carpenter_bench"],Vector3i(46,20,48),0)
-	# Copper bars and fittings at the Blacksmith's basic smelter (doc 297).
+	# Copper bars at the Blacksmith's basic smelter (doc 297).
 	furniture._install("base:furniture:basic_smelter",furniture.get_defs()["base:furniture:basic_smelter"],Vector3i(46,20,40),0)
+	# The tools are hammered on the anvil stone (doc 310).
+	furniture._install("base:furniture:anvil_stone",furniture.get_defs()["base:furniture:anvil_stone"],Vector3i(50,20,44),0)
 	for recipe in crafting.recipes.values():
 		_fresh_workers()
 		# Each recipe goes to its own career: Dried fish to Rangers (doc 292).
 		var career: String = root.get_node("DwarfAssets").section_profession(String(recipe.get("section", "rudimentary")))
 		for dwarf in [worker, extra_worker]: dwarf.profession = career
 		tasks.work_policy_changed()
-		var ingredient: String = PINE if PINE in crafting.ingredient_keys(recipe) else crafting.ingredient_keys(recipe)[0]
+		# The first good a new order allows: pine logs for timber, pine planks for plank furniture (doc 308).
+		var ingredient: String = crafting.allowed_ingredient_keys(recipe)[0]
 		drops.spawn_drop(ingredient,int(recipe.ingredient_count),Vector3i(55,21,40))
 		var additional: Dictionary = {}
 		for key: String in recipe.get("additional_ingredients", []):
 			additional[key] = int(additional.get(key,0)) + 1
+		# A recipe that takes one choice of goods (doc 306) gets its first: a coal, a pine haft.
+		if not crafting.choices(recipe).is_empty():
+			for key: String in crafting.choices(recipe)[0]: additional[key] = int(additional.get(key,0)) + 1
 		for key: String in additional:
 			drops.spawn_drop(key,additional[key],Vector3i(55,21,41))
 		var recipe_order_id: int = crafting.queue_order(String(recipe.id),1)

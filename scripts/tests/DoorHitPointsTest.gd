@@ -5,7 +5,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## 180 hit points" and its rows give the sum; the Place card shows the chosen wood's hit points
 ## or the range across the woods. Nothing damages a door yet.
 
-const DOOR := "base:furniture:door"
+const DOOR := "base:furniture:door_2"
 const GATE := "base:furniture:log_gate"
 
 
@@ -28,7 +28,7 @@ func _sums(materials: Node, defs: Dictionary) -> void:
 	for id: String in ["base:material:pine", "base:material:applewood", "base:material:juniper", "base:material:oak", "base:material:iron"]:
 		points[id.get_slice(":", 2)] = materials.hit_points(defs[DOOR], id)
 	_expect(points == {"pine": 150, "applewood": 150, "juniper": 165, "oak": 180, "iron": 750}, "the design's 150 times the material's toughness: %s" % points)
-	for key: String in ["base:furniture:log_door_3", "base:furniture:log_door_4"]:
+	for key: String in ["base:furniture:door_3", "base:furniture:door_4"]:
 		_expect(materials.hit_points(defs[key], "base:material:pine") == 150, "%s has 150 hit points in pine" % key)
 	_expect(materials.hit_points(defs[GATE], "base:material:pine") == 100, "the log gate has 100 in pine")
 	_expect(materials.hit_points(defs[BENCH], "base:material:oak") == 0, "a piece without hit points has none")

@@ -91,7 +91,7 @@ their own Pack/Move/Place work (doc 109; rules in
 `base_time = 2.0` seconds at skill 1 on hardness 1.
 
 > **Rough Stone (added 2026-06-10, retuned 2026-08-06 twice):** all 11 rock bands drop
-> `base:resources:stone:rough_stone` at 5% chance (tunable — `data/terrain/block_resources.json`;
+> `base:item:rough_stone` at 5% chance (tunable — `data/terrain/block_resources.json`;
 > was 50% at launch, cut to 25% on 2026-06-10, then 12% then 5% both on 2026-08-06 — the last cut
 > was explicitly for testing convenience, less stockpile clutter while iterating, not a final
 > economy number). Its purpose is **void fill**: Build (doc 273) spends it on stone blocks.
@@ -99,7 +99,7 @@ their own Pack/Move/Place work (doc 109; rules in
 > playtest number.
 >
 > **Soil (retuned 2026-08-06 twice; one good since 2026-10-26):** grass, dirt and cave soil all
-> drop the one Soil good, `base:resources:soil:soil`. The drop was a guaranteed 100% until
+> drop the one Soil good, `base:item:soil`. The drop was a guaranteed 100% until
 > 2026-08-06, cut to 30%, then to 5% later the same day (same testing-convenience reasoning as
 > stone, now matching it), and raised to 25% with stone on 2026-10-26, since Build's dirt and
 > grass cost it — tunable in the same file. Light and dark soil, blocks the world
@@ -135,15 +135,17 @@ pause/speed handling and scene cleanup. It adds no saved simulation state.
 
 ## Pickaxe upgrades — planned (2026-10-09)
 
-Agreed with the player after the first Miner promotion. This is future equipment
-work, not current mining behavior; see
+Agreed with the player after the first Miner promotion. The iron and steel rows are future
+equipment work, not current mining behavior; the copper pick is live since 2026-11-13 (doc 306;
+doc 41, "The profession path"). See
 [41 — Equipment progression](41_dwarf_agents.md#agreed-equipment-progression--planned-2026-10-09).
 
-| Tool | Planned benefit |
+| Tool | Benefit |
 |---|---|
-| Default pickaxe | Current single-block mining; immediately available, including on Miner promotion |
-| Iron pickaxe | Modest chance to remove **2 voxels total** when completing a block; first crafted upgrade |
-| Steel or another advanced metal | More frequent double breaks, with an occasional **3-voxel total** break |
+| Stone pick (every Worker's, implicit) | Single-block mining at the plain pace; needs nothing |
+| Copper pick (live) | The Miner's own: a Blacksmith hammers it from a copper bar and a log, a dwarf collects it to become a Miner, and digging takes 20% less time, before the Miner's levels |
+| Iron pickaxe (planned) | Modest chance to remove **2 voxels total** when completing a block; the next crafted upgrade |
+| Steel or another advanced metal (planned) | More frequent double breaks, with an occasional **3-voxel total** break |
 
 Exact probabilities, recipes and advanced-metal choice require later balancing.
 The equipment effect supplements the existing Miner experience speed bonus.

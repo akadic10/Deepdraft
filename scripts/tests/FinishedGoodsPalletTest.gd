@@ -1,22 +1,30 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 ## The finished goods pallet (doc 62, A, log skids; owner, 2026-11-02): split poles on two log
-## runners that hold the colony's finished goods, which today are its packed furniture.
-## - only a Carpenter makes it, from two logs at the carpenter's bench; Place files it under
+## runners that hold the colony's finished goods: its packed furniture, and since 2026-11-12 its
+## metal goods (owner: "the copper bars, a finished good, is not able to be stored on the finished
+## goods pallet").
+## - only a Carpenter makes it, from four planks (two logs until doc 308) at the carpenter's bench; Place files it under
 ##   Storage;
-## - it keeps packed furniture and nothing else, one piece to each of its four quarters, at
-##   priority 4: new pieces go to it ahead of the ground;
+## - it keeps packed furniture, one piece to each of its four quarters, and metal goods (copper
+##   bars), three to a quarter, at priority 4: they go to it ahead of the ground;
+##   it takes nothing else, and a quarter keeps one kind of good;
 ## - each filled quarter shows its piece standing on the deck;
 ## - placing a piece takes it off the pallet;
 ## - a save keeps its pieces;
 ## - a Move cancelled once its piece is packed may leave that piece on the pallet, and saves still
 ##   pass (colony check 2026-11-09: the save check skipped goods in storage furniture).
 const PALLET := "base:furniture:finished_goods_pallet"
-const PALLET_ITEM := "base:resources:furniture:finished_goods_pallet"
-const PALLET_RECIPE := "base:recipe:worker:finished_goods_pallet"
-const STOOL := "base:furniture:log_chair"
-const STOOL_ITEM := "base:resources:furniture:log_chair"
-const HOE := "base:resources:tools:stone_hoe"
+const PALLET_ITEM := "base:item:finished_goods_pallet"
+const PALLET_RECIPE := "base:recipe:finished_goods_pallet"
+const STOOL := "base:furniture:log_stool"
+const STOOL_ITEM := "base:item:log_stool"
+const HOE := "base:item:stone_hammer"
+const BAR := "base:item:copper_bar"
+const OAK_PLANK := "base:item:oak_plank"
+const PINE_PLANK := "base:item:pine_plank"
+const COPPER_ORE := "base:item:copper_ore"
+const SECOND := Vector3i(36, 20, 46)   # a second pallet's back-left floor cell, for the metal
 const ORIGIN := Vector3i(36, 20, 40)   # its back-left floor cell
 const DECK := 7.0 / 16                 # the top of its split poles
 const DROP := Vector3(41.5, 21, 40.5)  # where new goods turn up
@@ -28,14 +36,15 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	var recipe: Dictionary = crafting.recipes[PALLET_RECIPE]
 	_expect(String(recipe.get("section", "")) == "carpenter" and recipe.workshop == "base:furniture:carpenter_bench" and String(recipe.category) == "Storage"
-		and int(recipe.ingredient_count) == 2 and PINE in crafting.ingredient_keys(recipe), "the pallet: two logs at the carpenter's bench, on the Carpenter's page")
+		and int(recipe.ingredient_count) == 4 and PINE_PLANK in crafting.ingredient_keys(recipe) and not PINE in crafting.ingredient_keys(recipe),
+		"the pallet: four planks, never logs, at the carpenter's bench, on the Carpenter's page")
 	var placed: Array = root.get_node("UIRegistry").get_place_catalog().get("items", []).filter(func(entry): return entry.key == PALLET)
 	_expect(placed.size() == 1 and placed[0].category == "storage", "Place files it under Storage")
 	# A Carpenter makes it at their bench.
 	_carpenter_bench_at(Vector3i(44, 20, 41))
-	drops.spawn_drop(PINE, 2, Vector3i(42, 21, 40))
+	drops.spawn_drop(PINE_PLANK, 4, Vector3i(42, 21, 40))
 	var id: int = crafting.queue_order(PALLET_RECIPE, 1)
-	_expect(await _completed(id) and _count(PALLET_ITEM) == 1 and _count(PINE) == 0, "two logs make one packed pallet")
+	_expect(await _completed(id) and _count(PALLET_ITEM) == 1 and _count(PINE_PLANK) == 0, "four planks make one packed pallet")
 	furniture.activate_for(PALLET, true)
 	furniture._hover_cell = ORIGIN
 	furniture._yaw = 0
@@ -47,8 +56,10 @@ func _run() -> void:
 	var pallet = piece.storage
 	_expect(pallet != null and stockpiles.is_registered(pallet) and pallet.priority == 4 and pallet.storage_capacity() == 4 and pallet.per_slot == 1
 		and pallet.slot_word == "quarters" and piece.cells.size() == 4 and piece.material_id == "base:material:pine", "it is a pine store of four quarters, at priority 4")
-	_expect(pallet.accepts_key(STOOL_ITEM) and pallet.accepts_key(PALLET_ITEM) and not pallet.accepts_key(STONE) and not pallet.accepts_key(PINE) and not pallet.accepts_key(HOE),
-		"it keeps packed furniture and nothing else")
+	_expect(pallet.accepts_key(STOOL_ITEM) and pallet.accepts_key(PALLET_ITEM) and pallet.accepts_key(BAR),
+		"it keeps packed furniture and metal goods")
+	_expect(not pallet.accepts_key(STONE) and not pallet.accepts_key(PINE) and not pallet.accepts_key(HOE) and not pallet.accepts_key(COPPER_ORE),
+		"and nothing else: no stone, log, tool or ore")
 	# Four packed stools go to it, one to each quarter, each standing on the deck.
 	for i in range(4): drops.restore_loose_item(STOOL_ITEM, DROP, 0, 1, "", false, "base:material:pine")
 	_expect(await _until_true(func(): return pallet.stored_count() == 4), "four packed stools go to the pallet: %d" % pallet.stored_count())
@@ -79,8 +90,9 @@ func _run() -> void:
 	_expect(restored != null and restored.contents() == held and restored._shown.size() == 3 and restored.stored_entries().keys().all(func(slot): return _on_deck(restored, slot)),
 		"a save keeps its three stools on the deck: %s" % [restored.contents() if restored != null else {}])
 	if restored != null: await _cancelled_move_on_pallet(restored, validator)
+	await _metal_on_a_pallet()
 	for failure in failures: push_error(failure)
-	if failures.is_empty(): print("FINISHED_GOODS_PALLET_OK: Carpenters make it, packed furniture only, one to a quarter at priority 4, shown on the deck, placed from it, saves, and saves with a cancelled Move's piece on it")
+	if failures.is_empty(): print("FINISHED_GOODS_PALLET_OK: Carpenters make it, packed furniture one to a quarter at priority 4, shown on the deck, placed from it, saves, saves with a cancelled Move's piece on it, and metal goods three to a quarter with a save")
 	quit(0 if failures.is_empty() else 1)
 
 
@@ -116,6 +128,50 @@ func _cancelled_move_on_pallet(pallet, validator) -> void:
 	for piece: Dictionary in scene.furniture.installed:
 		if piece.has("storage"): piece.storage.stacks = piece.storage.stacks.filter(func(stack): return String(stack.get("instance_id", "")) != id)
 	_expect(not validator._validate_furniture_moves(scene, validator.saved_goods(scene)).is_empty(), "a save that has lost the packed stool still fails")
+
+
+## Copper bars on a pallet of their own (owner, 2026-11-12): three to a quarter, one of them shown
+## on the deck; ore stays off it; a save keeps them. Fittings went on 2026-11-13 (doc 306).
+func _metal_on_a_pallet() -> void:
+	furniture._install(PALLET, furniture.get_defs()[PALLET], SECOND, 0, "base:material:pine")
+	var piece = furniture._installed[furniture._next_installed_id - 1]
+	var pallet = piece.storage
+	_expect(pallet != null and pallet.capacity_hint() == "One packed piece, three metal goods or four planks to each of its quarters.",
+		"its bar says what a quarter takes: %s" % (pallet.capacity_hint() if pallet != null else ""))
+	if pallet == null: return
+	var beside := Vector3(SECOND) + Vector3(-1.5, 1, .5)
+	for i in range(5): drops.restore_loose_item(BAR, beside, 0, 1)
+	drops.restore_loose_item(COPPER_ORE, beside, 0, 1)
+	_expect(await _until_true(func(): return pallet.stored_count() == 5), "five copper bars go to the pallet: %s" % [pallet.contents()])
+	var bars: Array = []
+	for stack: Dictionary in pallet.stored_entries().values():
+		if String(stack.item) == BAR: bars.append(int(stack.count))
+	bars.sort()
+	_expect(bars == [2, 3] and pallet.stored_entries().size() == 2, "three bars fill a quarter and the next two take the next: %s" % [pallet.contents()])
+	_expect(_count(COPPER_ORE) == 1 and not pallet.contents().has(COPPER_ORE), "the ore stays off it")
+	_expect(pallet.usage_text() == "2 / 4 quarters · 5 goods", "it counts its quarters and its goods: %s" % pallet.usage_text())
+	_expect(pallet.stored_entries().keys().all(func(slot): return _on_deck(pallet, slot)), "each filled quarter shows one of its goods on the deck")
+	# Planks join it, four to a quarter (doc 308, 2026-11-13); logs stay off it.
+	_expect(pallet.accepts_key(OAK_PLANK) and not pallet.accepts_key("base:item:oak_log"), "the pallet takes planks and never logs")
+	for i in range(5): drops.restore_loose_item(OAK_PLANK, beside, 0, 1)
+	_expect(await _until_true(func(): return pallet.stored_count() == 10), "five oak planks go to the pallet: %s" % [pallet.contents()])
+	var planks: Array = []
+	for stack: Dictionary in pallet.stored_entries().values():
+		if String(stack.item) == OAK_PLANK: planks.append(int(stack.count))
+	planks.sort()
+	_expect(planks == [1, 4] and pallet.usage_text() == "4 / 4 quarters · 10 goods", "four planks fill a quarter and the fifth takes the last: %s, %s" % [pallet.contents(), pallet.usage_text()])
+	var held: Dictionary = pallet.contents()
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(furniture.serialize_state()))
+	for installed_id: int in furniture._installed.keys(): furniture._teardown_installed(installed_id, false)
+	for node in drops._loose.keys():
+		drops.take(node)
+		node.free()
+	furniture.restore_state(saved)
+	var restored = null
+	for other in furniture._installed.values():
+		if other.furniture_key == PALLET and other.origin_cell == SECOND: restored = other.storage
+	_expect(restored != null and restored.contents() == held and _count(BAR) == 5 and _count(OAK_PLANK) == 5,
+		"a save keeps the bars three to a quarter and the planks four: %s" % [restored.contents() if restored != null else {}])
 
 
 ## A quarter shows its piece standing on the deck at its anchor.

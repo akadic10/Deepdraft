@@ -13,11 +13,11 @@ extends Node
 ## near-white palettes and tinted at runtime (SKIN_TONES / HAIR_COLORS /
 ## EYE_COLORS below, from doc 41b).
 
-const NAMES_PATH      := "res://data/entities/dwarves/names.json"
-const APPEARANCE_PATH := "res://data/entities/dwarves/appearance.json"
-const TRAITS_PATH     := "res://data/entities/dwarves/traits.json"
-const TASTES_PATH     := "res://data/entities/dwarves/tastes.json"
-const STATS_PATH      := "res://data/entities/dwarves/stats.json"
+const NAMES_PATH      := "res://data/dwarves/names.json"
+const APPEARANCE_PATH := "res://data/dwarves/appearance.json"
+const TRAITS_PATH     := "res://data/dwarves/traits.json"
+const TASTES_PATH     := "res://data/dwarves/tastes.json"
+const STATS_PATH      := "res://data/dwarves/stats.json"
 
 # ── Runtime tint palettes (doc 41b §Color Application Strategy) ───────────────
 
@@ -85,29 +85,31 @@ var mining_pickaxe: PackedScene = preload("res://assets/models/characters/dwarve
 ## Fishing (doc 289): the rod in the hand, and the float and each fish on the line.
 var fishing_rod: PackedScene = preload("res://assets/models/characters/dwarves/tools/fishing_rod.glb")
 var fishing_float: PackedScene = preload("res://assets/models/characters/dwarves/tools/fishing_float.glb")
+## The hollow stick a Blacksmith blows on the basic smelter's fire through (doc 300).
+var blow_stick: PackedScene = preload("res://assets/models/characters/dwarves/tools/blow_stick.glb")
 ## Grilling (doc 290): each fresh fish on its stick, raw and grilled, by item key.
 var grill_sticks: Dictionary = {
-	"base:resources:fish:perch": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_perch.glb"),
+	"base:item:perch": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_perch.glb"),
 		"grilled": preload("res://assets/models/characters/dwarves/tools/grill_stick_perch_grilled.glb")},
-	"base:resources:fish:trout": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_trout.glb"),
+	"base:item:trout": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_trout.glb"),
 		"grilled": preload("res://assets/models/characters/dwarves/tools/grill_stick_trout_grilled.glb")},
-	"base:resources:fish:char": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_char.glb"),
+	"base:item:char": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_char.glb"),
 		"grilled": preload("res://assets/models/characters/dwarves/tools/grill_stick_char_grilled.glb")},
-	"base:resources:fish:cave_fish": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_cave_fish.glb"),
+	"base:item:cave_fish": {"raw": preload("res://assets/models/characters/dwarves/tools/grill_stick_cave_fish.glb"),
 		"grilled": preload("res://assets/models/characters/dwarves/tools/grill_stick_cave_fish_grilled.glb")},
 }
 var caught_fish: Dictionary = {
-	"base:resources:fish:perch": preload("res://assets/models/characters/dwarves/tools/caught_perch.glb"),
-	"base:resources:fish:trout": preload("res://assets/models/characters/dwarves/tools/caught_trout.glb"),
-	"base:resources:fish:char": preload("res://assets/models/characters/dwarves/tools/caught_char.glb"),
-	"base:resources:fish:cave_fish": preload("res://assets/models/characters/dwarves/tools/caught_cave_fish.glb"),
+	"base:item:perch": preload("res://assets/models/characters/dwarves/tools/caught_perch.glb"),
+	"base:item:trout": preload("res://assets/models/characters/dwarves/tools/caught_trout.glb"),
+	"base:item:char": preload("res://assets/models/characters/dwarves/tools/caught_char.glb"),
+	"base:item:cave_fish": preload("res://assets/models/characters/dwarves/tools/caught_cave_fish.glb"),
 }
 ## A Ranger's big catch on the line (doc 292): each fish's own heavier model.
 var big_fish: Dictionary = {
-	"base:resources:fish:perch": preload("res://assets/models/characters/dwarves/tools/big_perch.glb"),
-	"base:resources:fish:trout": preload("res://assets/models/characters/dwarves/tools/big_trout.glb"),
-	"base:resources:fish:char": preload("res://assets/models/characters/dwarves/tools/big_char.glb"),
-	"base:resources:fish:cave_fish": preload("res://assets/models/characters/dwarves/tools/big_cave_fish.glb"),
+	"base:item:perch": preload("res://assets/models/characters/dwarves/tools/big_perch.glb"),
+	"base:item:trout": preload("res://assets/models/characters/dwarves/tools/big_trout.glb"),
+	"base:item:char": preload("res://assets/models/characters/dwarves/tools/big_char.glb"),
+	"base:item:cave_fish": preload("res://assets/models/characters/dwarves/tools/big_cave_fish.glb"),
 }
 
 var hair_male: Dictionary = {
@@ -169,6 +171,7 @@ var _professions: Dictionary = {}
 var _work_categories: Dictionary = {}
 var _task_types: Dictionary = {}   # profession -> Array[int], from profession_task_types()
 var _craft_tools: Dictionary = {}  # craft_tool path -> PackedScene, loaded on first use (doc 293)
+var _hats: Dictionary = {}         # hat and hair-under-a-hat path -> PackedScene, loaded on first use (doc 304)
 var _proportions: Dictionary = {}
 
 
@@ -180,7 +183,11 @@ func _ready() -> void:
 	_stats = _load_json(STATS_PATH)
 	for id: String in stat_ids():
 		for kind: String in stat_definition(id).get("work", []): _work_stats[kind] = id
-	_proportions = _load_json("res://data/entities/dwarves/proportions.json")
+	_proportions = _load_json("res://data/dwarves/proportions.json")
+	# The vegetables' servings (doc 309), beside the three every food had before.
+	for shape: String in ["root", "head", "leaf"]:
+		var serving := "res://assets/models/presentation/serving_%s.glb" % shape
+		if ResourceLoader.exists(serving): meal_servings[shape] = load(serving)
 	_professions = _load_json("res://data/professions/professions.json")
 	for entry: Dictionary in work_permissions():
 		for type: String in entry.tasks: _work_categories[type] = String(entry.id)
@@ -214,6 +221,31 @@ func hair_for(appearance: DwarfAppearanceData) -> PackedScene:
 func brows_for(appearance: DwarfAppearanceData) -> PackedScene:
 	var table: Dictionary = brows_male if appearance.gender == "male" else brows_female
 	return table.get(appearance.eyebrow_style)
+
+
+## A hairstyle as it lies under a hat (doc 304): the same style cut at the hat line, built beside
+## the full one in `hair_hatted/`. Null for a bald dwarf.
+func hair_under_hat(appearance: DwarfAppearanceData) -> PackedScene:
+	var full := hair_for(appearance)
+	if full == null: return null
+	var path := full.resource_path.replace("/hair/", "/hair_hatted/")
+	if not _hats.has(path): _hats[path] = load(path) if ResourceLoader.exists(path) else null
+	return _hats[path]
+
+
+## The hat a dwarf of a career wears (`hat`, doc 304), loaded on first use: costume, not a good.
+## Null for the Worker, who goes bare-headed, and for a career still planned.
+func profession_hat(key: String) -> PackedScene:
+	var path := String(profession_definition(key).get("hat", ""))
+	if path.is_empty(): return null
+	if not _hats.has(path): _hats[path] = load(path) if ResourceLoader.exists(path) else null
+	return _hats[path]
+
+
+## The candle on a career's hat (`hat_light`, the Miner's): its light and when it burns, for
+## DwarfHatLight; {} for a hat without one.
+func profession_hat_light(key: String) -> Dictionary:
+	return profession_definition(key).get("hat_light", {})
 
 
 # ── Derived limb geometry (shared; callers must not mutate) ─────────────────
@@ -336,9 +368,26 @@ func profession_tool(key: String) -> String:
 	return String(profession_definition(key).get("required_tool", ""))
 
 
+## The career that makes a tool (doc 306): the Worker for the Ranger's kit and the stone hammer,
+## the Blacksmith for the copper tools; "" for a good no recipe makes.
+func tool_maker(item_key: String) -> String:
+	var recipe := ContentRegistry.recipe_for(item_key)
+	return section_profession(String(recipe.get("section", "rudimentary"))) if not recipe.is_empty() else ""
+
+
+## How a tool is come by, for a card or a refusal: "A Blacksmith makes it at the basic smelter."
+func tool_source_text(item_key: String) -> String:
+	var recipe := ContentRegistry.recipe_for(item_key)
+	if recipe.is_empty(): return ""
+	var maker := String(profession_definition(tool_maker(item_key)).get("display_name", "Worker"))
+	var bench := String(ContentRegistry.furniture_def(String(recipe.get("workshop", ""))).get("display_name", "")).to_lower()
+	return "A %s makes it%s." % [maker, " at the " + bench if not bench.is_empty() else ""]
+
+
 ## The task types a career takes before permissions: those its `work` names (the Ranger's
 ## fishing, drying and hauling, doc 292), or the common work, with CRAFT for a craft section
-## and COLLECT for taking that section's batches off their workshops (the Blacksmith's, doc 297).
+## and COLLECT for taking that section's batches off their workshops (the Blacksmith's, doc 297),
+## and whatever its `work_first` names beyond those (the Farmer's FARM, doc 309).
 func profession_task_types(key: String) -> Array[int]:
 	if _task_types.has(key): return _task_types[key]
 	var types: Array[int] = []
@@ -347,6 +396,9 @@ func profession_task_types(key: String) -> Array[int]:
 		types.assign(Task.COMMON_WORK)
 		if not craft_section(key).is_empty(): types.append_array([Task.Type.CRAFT, Task.Type.COLLECT])
 	for type_name: String in named: types.append(int(Task.Type[type_name]))
+	# Work a career does first and no other career does: the Farmer's fields (doc 309).
+	for first: int in profession_work_first(key):
+		if first not in types: types.append(first)
 	_task_types[key] = types
 	return types
 
@@ -373,6 +425,15 @@ func craft_tool(key: String) -> PackedScene:
 	var path := String(profession_definition(key).get("craft_tool", ""))
 	if path.is_empty(): return null
 	if not _craft_tools.has(path): _craft_tools[path] = load(path)
+	return _craft_tools[path]
+
+
+## The hand tool a career works a field with (`field_tool`, doc 309: the Farmer's copper hoe);
+## null for a career without one, and until its model is installed.
+func field_tool(key: String) -> PackedScene:
+	var path := String(profession_definition(key).get("field_tool", ""))
+	if path.is_empty(): return null
+	if not _craft_tools.has(path): _craft_tools[path] = load(path) if ResourceLoader.exists(path) else null
 	return _craft_tools[path]
 
 
@@ -415,6 +476,11 @@ func section_profession(section: String) -> String:
 	for key: String in profession_ids():
 		if craft_section(key) == section: return key
 	return ""
+
+
+## The shown name of the career that makes a recipe, by its section: "Worker" for Rudimentary.
+func crafter_name(recipe: Dictionary) -> String:
+	return String(profession_definition(section_profession(String(recipe.get("section", "rudimentary")))).get("display_name", "Worker"))
 
 
 ## Whether a career earns experience (doc 41): the Miner by the block, the Ranger by the catch.
@@ -475,9 +541,13 @@ func level_reward(key: String, experience: Dictionary, field: String, default: V
 	return value
 
 
-func mining_duration_multiplier(key: String, experience: Dictionary) -> float:
+## The share of the digging time a Miner needs (doc 41): `tool`, the item the dwarf has equipped,
+## takes its `dig_time` share when it is the career's own (the copper pick's 0.8, doc 306), and
+## each level above 1 takes 5% off that. 1 for every other career, a Worker's stone pick included.
+func mining_duration_multiplier(key: String, experience: Dictionary, tool := "") -> float:
 	if key != "base:profession:miner": return 1.0
-	return 1.0 - (profession_level(key, experience) - 1) * float(profession_definition(key).get("work_speed_bonus_per_level", .05))
+	var share := float(ContentRegistry.item_def(tool).get("equipment", {}).get("dig_time", 1.0)) if tool == profession_tool(key) else 1.0
+	return share * (1.0 - (profession_level(key, experience) - 1) * float(profession_definition(key).get("work_speed_bonus_per_level", .05)))
 
 
 ## The work time a crafting career's level leaves at its own crafts (doc 293): 5% less a level for

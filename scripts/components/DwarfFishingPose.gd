@@ -9,10 +9,14 @@ extends "res://scripts/components/DwarfWorkToolPose.gd"
 ## The right hand grips the rod at its origin and the left SUPPORT_GRIP up it (the work-tool
 ## contract). The line, the float and the catch stand in the world beside the dwarf. All is
 ## cosmetic: the catch's progress is the spot's, and nothing here is saved.
+## A catch's sounds are played as it crosses these marks (DwarfWorkExecution; doc 13, WorkFeedback).
 const CAST_END := 0.08
+const CAST_SWING := CAST_END * 0.4   # the rod starts forward
 const BITE_START := 0.86
 const BITE_END := 0.93
 const LANDED := BITE_END + 0.02   # the fish is out of the water
+const FLAPS: Array[float] = [LANDED + 0.015, LANDED + 0.035]   # it flaps twice on the line
+const FLAP_SPAN := 0.012          # how long one flap lasts, in the catch's phase
 const LINE := Color("d8cfb4")
 ## The concept's frames (tmp/fishing_concepts_20261031): grip, pitch, yaw, lean, look.
 const POSES := {
@@ -24,7 +28,7 @@ const POSES := {
 
 ## The fish this catch lands (an item key; the spot's water decides it), hung on the line, and
 ## whether it is a Ranger's big fish, which hangs as its own heavier model (doc 292).
-var catch_item := "base:resources:fish:perch"
+var catch_item := "base:item:perch"
 var catch_big := false
 var _props: Node3D
 var _line: MeshInstance3D
@@ -48,11 +52,11 @@ func apply(phase: float, contact: Vector3) -> void:
 	var water: Vector3 = agent.to_global(contact)
 	var pose: Dictionary
 	var pointing := 0.0
-	if phase < CAST_END * 0.4:
+	if phase < CAST_SWING:
 		pose = POSES.cast
 		pointing = 1.0
 	elif phase < CAST_END:
-		var swing := smoothstep(CAST_END * 0.4, CAST_END, phase)
+		var swing := smoothstep(CAST_SWING, CAST_END, phase)
 		pose = _blend(POSES.cast, POSES.wait, swing)
 		pointing = 1.0 - swing
 	elif phase < BITE_START:
@@ -73,10 +77,10 @@ func apply(phase: float, contact: Vector3) -> void:
 	# The float: on the rod while winding up, flying out, bobbing, then pulled under.
 	var resting := Vector3(water.x, water.y - _float_waterline, water.z)
 	var float_at := resting
-	if phase < CAST_END * 0.4:
+	if phase < CAST_SWING:
 		float_at = tip + Vector3(0, -0.6, 0)
 	elif phase < CAST_END:
-		var t := smoothstep(CAST_END * 0.4, CAST_END, phase)
+		var t := smoothstep(CAST_SWING, CAST_END, phase)
 		float_at = (tip + Vector3(0, -0.6, 0)).lerp(resting, t) + Vector3(0, sin(t * PI) * 0.8, 0)
 	elif phase < BITE_START:
 		float_at.y += sin(phase * 220.0) * 0.02
@@ -91,7 +95,11 @@ func apply(phase: float, contact: Vector3) -> void:
 	if landed:
 		var forward := -agent.global_basis.z
 		_catch.global_position = tip + Vector3(0, -0.9, 0) - forward * 0.2
-		_catch.global_rotation = Vector3(0, agent.global_rotation.y + PI / 2, 0)
+		# It flaps on the line, its tail swinging out and back, as each flop is heard.
+		var flap := 0.0
+		for mark: float in FLAPS:
+			if phase >= mark and phase < mark + FLAP_SPAN: flap = sin((phase - mark) / FLAP_SPAN * TAU) * 0.55
+		_catch.global_rotation = Vector3(0, agent.global_rotation.y + PI / 2 + flap, 0)
 		end = _catch.global_position
 	_stretch(tip, end)
 
@@ -155,7 +163,7 @@ func _build_props() -> void:
 func _hang_catch() -> void:
 	for child in _catch.get_children(): child.queue_free()
 	var models: Dictionary = DwarfAssets.big_fish if catch_big else DwarfAssets.caught_fish
-	var scene: PackedScene = models.get(catch_item, models["base:resources:fish:perch"])
+	var scene: PackedScene = models.get(catch_item, models["base:item:perch"])
 	var fish := scene.instantiate() as Node3D
 	_material(fish)
 	_catch.add_child(fish)

@@ -11,7 +11,7 @@ extends SceneTree
 ## Headless: rays against the shadow meshes stand in for rendered shadows.
 ## godot --headless --path . --script res://scripts/tests/SlicedTorchLightTest.gd
 
-const TORCH := "base:furniture:wooden_torch"
+const TORCH := "base:furniture:torch"
 const SLICE := 21                        # shows the floor and the first layer of wall
 const MOUNT := Vector3i(80, 25, 83)      # on the hall's west wall, facing east
 

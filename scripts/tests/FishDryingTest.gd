@@ -6,12 +6,12 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## takes them down as dried fish that keep about thirty days (real drying, owner 2026-11-01). The order's words name fish, never wood; the fish are hung by hand, with no axe;
 ## the rack's window offers Dry fish.
 const RACK := "base:furniture:drying_rack"
-const RACK_ITEM := "base:resources:furniture:drying_rack"
-const RACK_RECIPE := "base:recipe:worker:drying_rack"
-const DRIED_RECIPE := "base:recipe:worker:dried_fish"
-const PERCH := "base:resources:fish:perch"
-const TROUT := "base:resources:fish:trout"
-const DRIED := "base:resources:fish:dried_fish"
+const RACK_ITEM := "base:item:drying_rack"
+const RACK_RECIPE := "base:recipe:drying_rack"
+const DRIED_RECIPE := "base:recipe:dried_fish"
+const PERCH := "base:item:perch"
+const TROUT := "base:item:trout"
+const DRIED := "base:item:dried_fish"
 
 
 func _run() -> void:

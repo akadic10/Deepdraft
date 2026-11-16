@@ -2,6 +2,8 @@
 
 Torch uses a quieter wood-fire passage as foley. Source credits and edit profiles
 are in tools/audio_sources/fire/. Requires numpy; rebuilding works offline.
+Another fire's loop is made the same way from its own folder: the basic smelter's
+(generate_smelter_audio.py) passes tools/audio_sources/smelter/.
 """
 from pathlib import Path
 import json
@@ -13,9 +15,9 @@ SOURCE = ROOT/'tools/audio_sources/fire'
 RATE = 22050
 
 
-def sound(kind):
-    profile = json.loads((SOURCE/'source.json').read_text(encoding='utf-8'))['banks'][kind]
-    with wave.open(str(SOURCE/profile['master']), 'rb') as source:
+def sound(kind, source_directory=SOURCE):
+    profile = json.loads((source_directory/'source.json').read_text(encoding='utf-8'))['banks'][kind]
+    with wave.open(str(source_directory/profile['master']), 'rb') as source:
         assert (source.getnchannels(), source.getsampwidth(), source.getframerate()) == (1, 2, RATE)
         samples = np.frombuffer(source.readframes(source.getnframes()), dtype='<i2').astype(float)/32768
     start, end = profile['region_seconds']
@@ -46,8 +48,8 @@ def sound(kind):
     return loop
 
 
-def write_sound(kind):
-    samples = sound(kind)
+def write_sound(kind, source_directory=SOURCE):
+    samples = sound(kind, source_directory)
     rms = np.sqrt(np.mean(samples**2))
     seam = abs(samples[0]-samples[-1])
     difference = np.sqrt(np.mean(np.diff(samples)**2))

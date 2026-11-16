@@ -22,14 +22,14 @@ func _run() -> void:
 	rooms = root.get_node("RoomManager")
 	rooms.clear_runtime_state()
 	_walls(60, 69, 60, 69)
-	_put("door", Vector3i(63, 20, 60))
+	_put("door_2", Vector3i(63, 20, 60))
 	_put("log_bed", Vector3i(62, 20, 64))
-	_put("wooden_torch", Vector3i(68, 20, 64))
+	_put("torch", Vector3i(68, 20, 64))
 	_put("hearth", Vector3i(67, 20, 67))
 	_put("bench", Vector3i(68, 20, 61), 1)
 	drops.spawn_drop(STONE, 1, Vector3i(61, 21, 62))
 	_walls(80, 89, 60, 69)
-	_put("door", Vector3i(83, 20, 60))
+	_put("door_2", Vector3i(83, 20, 60))
 	rooms._rebuild_all_rooms()
 	var id: int = rooms.get_room_id_at(probe)
 	var bare: int = rooms.get_room_id_at(Vector3i(85, 21, 64))
@@ -74,7 +74,7 @@ func _one_pass(id: int, bare: int) -> void:
 		var single: Dictionary = rooms.room_appeal(rooms.get_rooms()[room_id])
 		_expect(is_equal_approx(float(all[room_id].score), float(single.score)) and all[room_id].parts.size() == single.parts.size(),
 			"one pass scores room %d as the room window does: %s and %s" % [room_id, all[room_id].score, single.score])
-	_expect(is_equal_approx(float(all[id].score), 8.5) and all[id].warm.size() == 5 and all[id].cool.size() == 1,
+	_expect(is_equal_approx(float(all[id].score), 9.5) and all[id].warm.size() == 5 and all[id].cool.size() == 1,
 		"the bedroom's five pieces (its door too) glow warm and its pile cool: %s warm, %s cool" % [all[id].warm.size(), all[id].cool.size()])
 	_expect(all[bare].warm.size() == 1 and all[bare].word.word == "Plain", "a bare room lights only its door")
 
@@ -132,7 +132,7 @@ func _hover_and_click(id: int) -> void:
 	var title: String = view._card._title.text
 	var status: String = view._card._status.text
 	var body: String = view._card._body.text
-	_expect(title == room_tool.room_title(rooms.get_rooms()[id], id) and status == "Plain · 6.5" and body.contains("Log bed  +3")
+	_expect(title == room_tool.room_title(rooms.get_rooms()[id], id) and status == "Plain · 7.5" and body.contains("Log bed  +3")
 		and body.contains("3 × Loose goods  −3") and body.ends_with("Click for the room's appeal."), "the card names the room, its word, number and parts: %s / %s / %s" % [title, status, body])
 	room_tool.activate()
 	_expect(view._hover_blocked(), "no card while a click tool works")

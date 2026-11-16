@@ -1,7 +1,7 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 ## Dwarf stats (doc 41 "Stats"). A new dwarf's six stats share one total, 18, in a shape of its own,
-## each a step from Poor (1) to Excellent (5), the same from the same seed. Iron Constitution
+## each a step from Poor (1) to Excellent (5), the same from the same seed. Iron constitution
 ## keeps Toughness at Good or better and Frail at Fair or worse, with the total kept, and no
 ## dwarf holds both. A profession's fit is its main stat twice and its second once, rounded to
 ## a step. A dwarf saves its stats; one built without them is Average. The character sheet's
@@ -48,7 +48,7 @@ func _rolls(assets: Node, factory) -> void:
 	_expect(good >= 55, "nearly every dwarf is Good or better at something: %d of 60" % good)
 
 
-## Iron Constitution keeps Toughness at Good or better and Frail at Fair or worse, with the
+## Iron constitution keeps Toughness at Good or better and Frail at Fair or worse, with the
 ## total kept; the two share an exclusion group, so no dwarf holds both.
 func _shapes(factory) -> void:
 	for trait_id: String in ["base:trait:iron_constitution", "base:trait:frail"]:
@@ -67,7 +67,7 @@ func _shapes(factory) -> void:
 	for index in range(300):
 		var traits: Array = factory.generate(index, {}).traits
 		if "base:trait:iron_constitution" in traits and "base:trait:frail" in traits: both += 1
-	_expect(both == 0, "no dwarf is both Iron Constitution and Frail (%d were)" % both)
+	_expect(both == 0, "no dwarf is both Iron constitution and Frail (%d were)" % both)
 
 
 ## The main stat twice and the second once, rounded to a step; every profession names two.

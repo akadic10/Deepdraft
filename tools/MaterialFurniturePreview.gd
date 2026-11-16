@@ -37,7 +37,7 @@ func _run() -> void:
 		var id: String = "base:material:" + columns[column]
 		var x := -6.0 + 4.0 * column
 		for row in range(3):
-			var key: String = ["wooden_torch", "bench", "log_chair"][row]
+			var key: String = ["torch", "bench", "log_stool"][row]
 			var definition: Dictionary = registry.get_defs()["base:furniture:"+key]
 			var model: Node3D = load(String(definition.model)).instantiate()
 			materials.apply_palette(model, definition, id)
@@ -50,7 +50,7 @@ func _run() -> void:
 			model.rotation_degrees.y = -18
 			if row == 0: load("res://scripts/components/FurnitureLighting.gd").attach(model,definition)
 		_label(materials.material_name(id), camera.unproject_position(Vector3(x,0,-6))-Vector2(65,25), 24)
-		var score: Dictionary = materials.appeal(registry.get_defs()["base:furniture:log_chair"], id)
+		var score: Dictionary = materials.appeal(registry.get_defs()["base:furniture:log_stool"], id)
 		_label("Stool appeal: %s" % str(score.total), camera.unproject_position(Vector3(x,0,5.7))-Vector2(70,0), 18)
 	_label("DEEPDRAFT  /  WOOD MATERIALS", Vector2(40,30), 30)
 	_label("One design, four shared palettes • wood changes; flame, stone and bindings keep their colors", Vector2(40,76), 19)

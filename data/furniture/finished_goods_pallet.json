@@ -1,15 +1,15 @@
 {
   "__comment": [
-    "The finished goods pallet (doc 62, concept A, log skids; owner's pick 2026-11-02): split poles laid across two log runners, split face up, lashed at the ends, within its 2 x 2 footprint. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
-    "Carpenters make it at the carpenter's bench from two matching logs; it keeps their wood. It stands on the floor, and dwarves reach onto it from any side.",
-    "storage (ContainerStorageComponent): it holds packed furniture (stockpile_furniture), the finished goods the colony makes today (owner, 2026-11-02), one piece to each of its four quarters, starting at priority 4, ahead of ground storage. Copper bars (doc 297) are stored with metal, not here; planks and dressed stone may join it when they exist. The anchors are its quarters' centres on the deck (X and Z 8 cells from its centre, the deck top 7 cells up), in footprint-local blocks from the back-left floor corner; each filled quarter shows its piece standing on the deck."
+    "The finished goods pallet (doc 62, doc 296). A plank piece since doc 308 (the owner's pick A of two, 2026-11-13, the plain pallet): four sawn deck boards across three runners, with gaps between the boards and every board pegged to every runner, within its 2 x 2 footprint. Its Tier 1 form was four split halves across two log runners (the owner's picks of 2026-11-02 and 2026-11-11), whose design is kept in tools/hearthblock/art/tier1.mjs. Tier 2 Hearthblock model from tools/hearthblock/art/tier2.mjs.",
+    "Carpenters make it at the carpenter's bench from four matching planks; it keeps their wood. It stands on the floor, and dwarves reach onto it from any side.",
+    "storage (ContainerStorageComponent): it holds the finished goods the colony makes today, starting at priority 4, ahead of ground storage: packed furniture (stockpile_furniture; owner, 2026-11-02), one piece to each of its four quarters, and metal goods (stockpile_metal: copper bars; owner, 2026-11-12: \"the copper bars, a finished good, is not able to be stored on the finished goods pallet\"), three to a quarter (per_slot_of), and planks (stockpile_plank; doc 308, 2026-11-13), four to a quarter. A quarter keeps one kind of good and shows one of them. A crate of up to 24 log torches is one packed piece (the torch's crate_capacity, 2026-11-15) and shows as its crate. Dressed stone may join it when it exists. The anchors are its quarters' centres on the deck (X and Z 8 cells from its centre, the deck top 7 cells up), in footprint-local blocks from the back-left floor corner; each filled quarter shows its piece standing on the deck."
   ],
   "furniture_key": "base:furniture:finished_goods_pallet",
   "furniture_category": "storage",
-  "display_name": "Finished Goods Pallet",
-  "description": "Split poles laid across two log runners. It keeps four pieces of packed furniture, one to each quarter, until they are placed.",
+  "display_name": "Finished goods pallet",
+  "description": "Four sawn deck boards pegged across three runners, with gaps between them. Each of its four quarters keeps one piece of packed furniture, three metal goods such as copper bars, or four planks.",
   "model": "res://assets/models/furniture/finished_goods_pallet.glb",
-  "item_key": "base:resources:furniture:finished_goods_pallet",
+  "item_key": "base:item:finished_goods_pallet",
   "placement": "floor",
   "yaw_steps": 4,
   "footprint": {
@@ -32,10 +32,17 @@
   ],
   "storage": {
     "accepts": [
-      "stockpile_furniture"
+      "stockpile_furniture",
+      "stockpile_metal",
+      "stockpile_plank"
     ],
     "capacity": 4,
+    "per_slot_of": {
+      "stockpile_metal": 3,
+      "stockpile_plank": 4
+    },
     "slot_word": "quarters",
+    "slot_good": "One packed piece, three metal goods or four planks",
     "priority": 4,
     "anchors": [
       [
@@ -63,7 +70,7 @@
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {
-    "design": 1,
+    "design": 2,
     "material_factor": 0.5
   }
 }

@@ -10,9 +10,9 @@ func _run() -> void:
 	rooms.clear_runtime_state()
 	_build_bedroom()
 	_bury(Vector3i(60,0,60),Vector3i(69,0,69)) # A cellar bedroom: the hearth warms it without overheating.
-	door = _put("door",Vector3i(63,20,60))
+	door = _put("door_2",Vector3i(63,20,60))
 	bed = _put("log_bed",Vector3i(62,20,64))
-	lamp = _put("wooden_torch",Vector3i(68,20,64))
+	lamp = _put("torch",Vector3i(68,20,64))
 	_put("hearth",Vector3i(66,20,66)) # Isolate ownership from cold-sleep penalties.
 	_expect(_room_data().room_type=="bedroom","unassigned single bed is a bedroom")
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()

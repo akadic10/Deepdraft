@@ -5,6 +5,7 @@ extends Button
 var caption: String
 var description: String
 var planned := false
+var locked := false   # a live command the colony cannot use yet: dimmed and locked like a planned one, but it still opens
 var preview := false
 var status_label := ""
 var key_hint := ""   # the key that triggers this command, from its entry's key_action
@@ -26,6 +27,7 @@ func setup(entry: Dictionary, artwork: Texture2D) -> void:
 	caption = String(entry.label)
 	description = String(entry.get("tooltip", entry.label))
 	planned = bool(entry.get("planned", false))
+	locked = bool(entry.get("locked", false))
 	preview = bool(entry.get("preview", false))
 	status_label = String(entry.get("status_label", "Planned" if planned else "DEV preview"))
 	key_hint = key_text(String(entry.get("key_action", "")))
@@ -47,11 +49,11 @@ func setup(entry: Dictionary, artwork: Texture2D) -> void:
 		if tile.a == 0.0 or state == "focus":
 			add_theme_stylebox_override(state, StyleBoxEmpty.new())
 		else:
-			add_theme_stylebox_override(state, UITheme.icon_tile_style(tile, "planned" if planned and state == "normal" else state))
-		add_theme_color_override("icon_" + state + "_color", Color(.48, .48, .48) if planned else Color.WHITE)
+			add_theme_stylebox_override(state, UITheme.icon_tile_style(tile, "planned" if (planned or locked) and state == "normal" else state))
+		add_theme_color_override("icon_" + state + "_color", Color(.48, .48, .48) if planned or locked else Color.WHITE)
 	if tile.a > 0.0:
 		add_theme_stylebox_override("disabled", UITheme.icon_tile_style(tile, "disabled"))
-	add_theme_color_override("icon_hover_color", Color(.65, .65, .65) if planned else Color(1.10, 1.10, 1.10))
+	add_theme_color_override("icon_hover_color", Color(.65, .65, .65) if planned or locked else Color(1.10, 1.10, 1.10))
 
 
 func _ready() -> void:
@@ -88,7 +90,7 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	if planned:
+	if planned or locked:
 		# The lock distinguishes availability without relying on dimming alone.
 		var badge := Vector2(size.x - 13, size.y - 13)
 		draw_circle(badge, 10, UITheme.HEARTH_BG)
@@ -172,7 +174,7 @@ func _show_info() -> void:
 		_info_layer.add_child(_info)
 	# The hover card (doc 259, option C): the family's colour on top, the name, the keys,
 	# the status (or what the count counts, in its tone) and the explanation.
-	var flagged := planned or preview
+	var flagged := planned or preview or locked
 	_info.show_card(caption, description, key_hint, status_label if flagged else count_note,
 		get_viewport_rect().size.x >= 1200.0, family_color, "waiting" if flagged else count_tone)
 	_info.show()

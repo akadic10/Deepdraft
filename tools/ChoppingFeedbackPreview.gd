@@ -61,7 +61,7 @@ func _run() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(directory+"/frame_%03d.png" % i)
 	_expect(burst_events.size() == 1,"preview shows one real completion")
-	_expect(_item_count("base:resources:wood:oak_log") == 4,"preview includes real log drops")
+	_expect(_item_count("base:item:oak_log") == 4,"preview includes real log drops")
 	feedback.clear_transients()
 	feedback.set_muted(false)
 	for i in range(8):

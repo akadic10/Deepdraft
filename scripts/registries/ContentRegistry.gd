@@ -2,13 +2,14 @@ extends Node
 
 ## Sole loader for the static content saves name: furniture pieces (with
 ## SurfaceDetailRegistry's plant place entries and the tree seed plans merged in), items, worker
-## recipes and tree species. It exists before any scene so startup resume can
+## recipes, tree species and field crops. It exists before any scene so startup resume can
 ## reject saves naming content the game no longer defines. Scene systems read
 ## definitions here and keep their own runtime state. Never mutate the returned
 ## dictionaries.
 const FURNITURE_DIR := "res://data/furniture/"
-const ITEMS_PATH := "res://data/entities/items/resources.json"
-const RECIPES_PATH := "res://data/workshops/worker_crafting.json"
+const ITEMS_PATH := "res://data/items/items.json"
+const RECIPES_PATH := "res://data/recipes/recipes.json"
+const CROPS_PATH := "res://data/flora/field_crops.json"
 const JsonData = preload("res://scripts/registries/JsonData.gd")
 
 var furniture: Dictionary = {}       # furniture_key -> placeable definition
@@ -17,6 +18,7 @@ var recipes: Dictionary = {}         # recipe id -> worker recipe
 var recipe_sections: Dictionary = {} # section id -> crafting menu section
 var max_craft_orders := 64
 var trees: Dictionary = {}           # species key -> definition with placement and stages
+var crops: Dictionary = {}           # crop key -> a field vegetable's definition (doc 309), in file order
 
 
 ## Loads at construction, not _ready: the main scene is built (member
@@ -28,6 +30,7 @@ func _init() -> void:
 	_load_recipes()
 	_load_trees()
 	_load_tree_plantings()
+	_load_crops()
 
 
 func furniture_def(key: String) -> Dictionary: return furniture.get(key, {})
@@ -35,9 +38,21 @@ func has_furniture(key: String) -> bool: return furniture.has(key)
 func item_def(key: String) -> Dictionary: return items.get(key, {})
 func has_item(key: String) -> bool: return items.has(key)
 func recipe(id: String) -> Dictionary: return recipes.get(id, {})
+## The recipe that makes a good, or {}: who makes a career's tool, and where (doc 306).
+func recipe_for(item_key: String) -> Dictionary:
+	for entry: Dictionary in recipes.values():
+		if String(entry.get("output", "")) == item_key: return entry
+	return {}
+## The recipes made at a workshop (their `workshop`), in the crafting pages' order. A piece is a
+## workshop when it has any: its window opens crafting at the first, and the careers of them all
+## craft there (FurnitureWindow, doc 44 "Its window's action").
+func recipes_at(workshop_key: String) -> Array:
+	return recipes.values().filter(func(entry: Dictionary) -> bool: return String(entry.get("workshop", "")) == workshop_key)
 func has_recipe(id: String) -> bool: return recipes.has(id)
 func tree_species(key: String) -> Dictionary: return trees.get(key, {})
 func has_tree_species(key: String) -> bool: return trees.has(key)
+func crop(key: String) -> Dictionary: return crops.get(key, {})
+func has_crop(key: String) -> bool: return crops.has(key)
 
 
 ## Key sets for SaveSnapshotValidator. Built fresh so a save worker owns them.
@@ -48,7 +63,7 @@ func save_catalogs() -> Dictionary:
 	for key: String in SurfaceDetailRegistry.definitions: plants[key] = true
 	return {"furniture": furniture.duplicate(), "items": items.duplicate(),
 		"recipes": recipes.duplicate(), "max_craft_orders": max_craft_orders,
-		"trees": tree_stages, "plants": plants}
+		"trees": tree_stages, "plants": plants, "crops": crops.duplicate()}
 
 
 ## A top-level JSON object, or null after JsonData reports why not.
@@ -125,3 +140,21 @@ func _load_tree_plantings() -> void:
 			"item_key": planting.item, "placement": "floor", "model": sapling.models.summer,
 			"footprint": {"width": 1, "depth": 1, "height": int(sapling.clearance_height)},
 			"collision_regions": [], "planting_seconds": float(planting.work_seconds)}
+
+
+## The field vegetables (doc 309): each needs the good it gives, a season to be sown in, its days
+## and its three stages' models. FarmingSystem holds the fields that grow them.
+func _load_crops() -> void:
+	var raw: Variant = _read(CROPS_PATH)
+	if not raw is Dictionary: return
+	for key: String in raw:
+		if key.begins_with("__") or not raw[key] is Dictionary: continue
+		var def: Dictionary = raw[key]
+		var models: Dictionary = def.get("models", {})
+		if not items.has(String(def.get("item", ""))) or (def.get("sow_seasons", []) as Array).is_empty() \
+				or float(def.get("grow_days", 0)) <= 0 or int(def.get("tile_yield", 0)) < 1 or int(def.get("plan_seasons", 0)) < 1 \
+				or not (models.has("sprout") and models.has("growing") and models.has("ripe")) \
+				or (float(def.get("regrow_days", 0)) > 0 and not models.has("picked")):
+			push_error("ContentRegistry: incomplete field crop " + key)
+			continue
+		crops[key] = def

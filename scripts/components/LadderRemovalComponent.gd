@@ -6,7 +6,7 @@ var safe_callback: Callable
 func work_facing() -> Vector3i:
 	return [Vector3i.FORWARD, Vector3i.LEFT, Vector3i.BACK, Vector3i.RIGHT][yaw_steps]
 
-func nearest_stand_target(_from: Vector3i) -> Vector3i:
+func nearest_stand_target(_from: Vector3i, _batch := false) -> Vector3i:
 	return origin_cell if NavGrid.is_navigable(origin_cell) else Vector3i(-1, -1, -1)
 
 func advance_removal(seconds: float, dwarf_id: int) -> float:

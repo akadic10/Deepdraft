@@ -96,14 +96,14 @@ func _build_places() -> void:
 			for y in range(21, 26):
 				if x in [63, 64] and z == 60 and y < 25: continue
 				if x in [60, 69] or z in [60, 69] or y == 25: world.set_block(x, y, z, stone)
-	_put("door", Vector3i(63, 20, 60))
+	_put("door_2", Vector3i(63, 20, 60))
 	var hearth: Array[Vector3i] = [Vector3i(66, 20, 66)]
 	rooms.on_furniture_changed("base:furniture:hearth", hearth, {"heat_source": {"heat_units": 1600}}, true)
 	# A tunnel into the hill's west face, and a room behind a door in its north face.
 	_dig(Vector3i(80, 21, 75), Vector3i(97, 23, 75))
 	_dig(Vector3i(90, 21, 40), Vector3i(91, 24, 45))
 	_dig(Vector3i(87, 21, 46), Vector3i(94, 24, 51))
-	_put("door", Vector3i(90, 20, 40))
+	_put("door_2", Vector3i(90, 20, 40))
 	rooms._rebuild_all_rooms()
 	_expect(rooms.get_room_id_at(HUT_FLOOR) >= 0 and rooms.get_room_id_at(HILL_ROOM) >= 0 and rooms.get_room_id_at(TUNNEL) < 0
 		and int(rooms.get_room_at(HUT_FLOOR).heat_units) > 0, "the hut and the hill room are sealed, the hut heated; the tunnel is open")
@@ -261,7 +261,7 @@ func _hover_and_click() -> void:
 		"in the tunnel it gives the steps from open air and the rock overhead: %s" % view._card._body.text)
 	view.fill_card({"cell": OPEN, "rock": false})
 	var year: Vector2 = rooms.climate.year_range(21.0, 1.0, 1.0)
-	var days: float = root.get_node("StockpileManager").spoilage.keeps_days_at(drops.food_definition("base:resources:flora:blueberry"), OPEN)
+	var days: float = root.get_node("StockpileManager").spoilage.keeps_days_at(drops.food_definition("base:item:blueberry"), OPEN)
 	var keeping := "Blueberries keep %s here." % ("less than a day" if days < 1.0 else ("about a day" if days < 1.5 else "about %d days" % roundi(days)))
 	_expect(view._card._title.text == "Open ground" and view._card._body.text.contains("Over a year: %d to %d°C in clear weather." % [floori(year.x), ceili(year.y)])
 		and view._card._body.text.ends_with(keeping), "on open ground it gives its year and how long blueberries keep there: %s" % view._card._body.text)

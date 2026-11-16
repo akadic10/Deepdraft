@@ -1,8 +1,8 @@
 extends "res://scripts/tests/HaulingAnimationTest.gd"
 
-const ORE := "base:resources:ore:iron"
-const COAL := "base:resources:ore:coal"
-const PACKED := "base:resources:furniture:log_table"
+const ORE := "base:item:iron_ore"
+const COAL := "base:item:coal"
+const PACKED := "base:item:dining_table"
 const OWNER := 901
 
 

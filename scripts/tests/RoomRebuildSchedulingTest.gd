@@ -28,9 +28,9 @@ func _run() -> void:
 	rooms.detection_config = {"rebuild_budget_ms": 0.01, "budget_check_operations": 1}
 	rooms.room_updated.connect(_observe_commit)
 	_build_bedroom()
-	door = _put("door", Vector3i(63,20,60))
+	door = _put("door_2", Vector3i(63,20,60))
 	bed = _put("log_bed", Vector3i(62,20,64))
-	lamp = _put("wooden_torch", Vector3i(68,20,64))
+	lamp = _put("torch", Vector3i(68,20,64))
 	rooms.on_bed_assignment_changed(bed.origin_cell, 141)
 	var heater = _put("hearth", Vector3i(66,20,66))
 	_drain_and_compare("initial personal heated bedroom")
@@ -75,7 +75,7 @@ func _run() -> void:
 	furniture._teardown_installed(heater.installed_id, false)
 	_drain_and_compare("light removed during scan")
 	_expect(rooms.get_room_at(room_probe).room_type == "room", "missing light revokes bedroom")
-	lamp = _put("wooden_torch", Vector3i(68,20,64))
+	lamp = _put("torch", Vector3i(68,20,64))
 	# Add a second enclosed room sharing a two-wide door with the first.
 	_build_second_room()
 	_drain_and_compare("shared door separates two rooms")
@@ -147,8 +147,9 @@ func _drain_and_compare(label: String) -> void:
 	for room: Dictionary in rooms.get_rooms().values():
 		var other: Dictionary = reference.get_room_at(room.cells.keys()[0]).duplicate()
 		var mine: Dictionary = room.duplicate()
-		# Tended fires (2026-10-30) make the heat bonus follow the climate too.
-		for key in ["seasonal_influence", "temp_c", "is_frozen_vault", "own_form", "temp_form", "heat_bonus_c", "heat_cap_c"]:
+		# Tended fires (2026-10-30) make the heat bonus follow the climate too. Room types
+		# (2026-11-12) added what a room holds beyond beds and lights, and its bed's origin.
+		for key in ["seasonal_influence", "temp_c", "is_frozen_vault", "own_form", "temp_form", "heat_bonus_c", "heat_cap_c", "things", "bed_origin"]:
 			other.erase(key)
 			mine.erase(key)
 		_expect(mine == other, label + ": exact geometry, heat and bedroom fields")
@@ -185,7 +186,7 @@ func _build_second_room() -> void:
 				world.set_block(x,y,z,stone if solid else blocks.AIR_ID)
 	for z in [64,65]:
 		for y in range(21,25): world.set_block(69,y,z,blocks.AIR_ID)
-	_put("door", Vector3i(69,20,64), 1)
+	_put("door_2", Vector3i(69,20,64), 1)
 
 func _build_limit_hall() -> void:
 	var stone: int = blocks.get_id("base:terrain:rock:rock01")
@@ -196,4 +197,4 @@ func _build_limit_hall() -> void:
 				world.set_block(x,y,z,stone if solid else blocks.AIR_ID)
 	for x in [107,108]:
 		for y in range(21,25): world.set_block(x,y,100,blocks.AIR_ID)
-	_put("door", Vector3i(107,20,100))
+	_put("door_2", Vector3i(107,20,100))

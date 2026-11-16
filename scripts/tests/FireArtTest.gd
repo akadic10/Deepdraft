@@ -15,7 +15,7 @@ func _run() -> void:
 	var scene := Node3D.new(); root.add_child(scene); current_scene=scene
 	var controller = load("res://scripts/systems/FurniturePlacementController.gd").new()
 	var libraries := {}; var frames := 0; var sources := 0
-	for id: String in ["campfire","hearth","wooden_torch"]:
+	for id: String in ["campfire","hearth","torch"]:
 		var key := "base:furniture:"+id
 		var definition: Dictionary=controller.get_defs()[key]
 		var config: Dictionary=definition.light_source.flame_animation

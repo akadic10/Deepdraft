@@ -4,7 +4,7 @@ extends Node
 ## after InteriorTracker (needs TaskManager for work-source registration and
 ## config). Owns the zone registry and the aggregate view; the designation
 ## controller owns designation/overlay/window, ItemDropManager owns the item
-## nodes and resources.json.
+## nodes and items.json.
 ##
 ## LEASE WAKE SOURCES (event-driven, doc 16 §2.5 discipline — never a frame
 ## scan): drop spawned (new loose item), zone registered, HAUL task left the

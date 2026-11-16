@@ -110,6 +110,87 @@
         "presentation": "serving_fish",
         "shadow_exception": "Tiny actor overlay; explicitly non-casting"
       }
+    },
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 33,
+          "visual_triangles": 66,
+          "shadow": null,
+          "min": [
+            -0.25,
+            0.125,
+            -0.0625
+          ],
+          "max": [
+            0.25,
+            0.375,
+            0.0625
+          ]
+        }
+      ],
+      "bytes": 7252,
+      "sha256": "14810f64f6c0f7213a8a22746246ff633da466efa3a928f4903f2ea67e5e5672",
+      "path": "assets/models/presentation/serving_root.glb",
+      "authoring": {
+        "presentation": "serving_root",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 42,
+          "visual_triangles": 58,
+          "shadow": null,
+          "min": [
+            -0.125,
+            0.125,
+            -0.125
+          ],
+          "max": [
+            0.125,
+            0.4375,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 6516,
+      "sha256": "9ab45ac3b5d4a9dcfd4df57e4adb0298a47841feabf964a643e14421eeb283b3",
+      "path": "assets/models/presentation/serving_head.glb",
+      "authoring": {
+        "presentation": "serving_head",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
+    },
+    {
+      "parts": [
+        {
+          "name": "Overlay",
+          "cells": 63,
+          "visual_triangles": 130,
+          "shadow": null,
+          "min": [
+            -0.1875,
+            -0.125,
+            -0.125
+          ],
+          "max": [
+            0.1875,
+            0.4375,
+            0.125
+          ]
+        }
+      ],
+      "bytes": 13148,
+      "sha256": "5f1e5ab1065e547e4fd50127e8c2aebd0c9783d3c15bb1c2e2f3b2474547b76c",
+      "path": "assets/models/presentation/serving_leaf.glb",
+      "authoring": {
+        "presentation": "serving_leaf",
+        "shadow_exception": "Tiny actor overlay; explicitly non-casting"
+      }
     }
   ]
 }

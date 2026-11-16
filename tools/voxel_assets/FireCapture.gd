@@ -1,7 +1,7 @@
 extends "res://tools/voxel_assets/FurnitureCapture.gd"
 
 ## Native installed flames, including every animated frame and both light levels.
-const FIRE_NAMES := ["campfire","wooden_torch","hearth"]
+const FIRE_NAMES := ["campfire","torch","hearth"]
 
 func _capture_all() -> void:
 	DirAccess.make_dir_recursive_absolute(output)

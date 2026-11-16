@@ -248,8 +248,8 @@ func _begin_swinging() -> void:
 		_skip_zone_block(source)
 		return
 	_swings_left = int(work["swings"])
-	# Practice (the Miner's level) and Strength (doc 41 "Stats") shorten each swing.
-	_swing_time = float(work["swing_time"]) * DwarfAssets.mining_duration_multiplier(agent.profession, agent.profession_experience) / agent.work_rate("mining")
+	# The Miner's copper pick (doc 306), practice (its level) and Strength (doc 41 "Stats") shorten each swing.
+	_swing_time = float(work["swing_time"]) * DwarfAssets.mining_duration_multiplier(agent.profession, agent.profession_experience, agent.get_equipment().tool_key()) / agent.work_rate("mining")
 	_swing_timer = _swing_time
 	task_phase = DwarfAgent.TaskPhase.ZONE_SWINGING
 	_face_cell(_zone_block)
@@ -445,8 +445,9 @@ func _fell_try_stand() -> void:
 	elif agent.walk_to(stand):
 		task_phase = DwarfAgent.TaskPhase.FELL_MOVING
 		var task := TaskManager.get_task(agent.current_task_id)
-		# Hand work and fishing have no swing to stand back for.
-		if task != null and task.type not in Task.GATHER_WORK and task.type != Task.Type.FISH:
+		# Hand work and fishing have no swing to stand back for, and a hoe works the tile beside
+		# the dwarf's own (doc 309).
+		if task != null and task.type not in Task.GATHER_WORK and task.type not in [Task.Type.FISH, Task.Type.FARM]:
 			agent.stop_short_of(_fell_source().call("chop_contact",Vector3(stand)+Vector3(.5,1,.5)),FellingPose.STANCE_REACH)
 
 
@@ -463,7 +464,7 @@ func _begin_felling_work() -> void:
 	var direction := contact-agent.global_position
 	agent.rotation.y = atan2(direction.x,direction.z)
 	_fell_contact = agent.to_local(contact)
-	_swing_time = FellingPose.CYCLE_SECONDS
+	_swing_time = BodyRig.HoePose.CYCLE_SECONDS if _hoeing() else FellingPose.CYCLE_SECONDS
 	_swing_timer = _swing_time
 	if task != null and task.type == Task.Type.FISH:
 		# One catch is one pose cycle (cast, wait, bite, land), resumed where it was left (doc 289).
@@ -479,9 +480,19 @@ func _clearing_uses_pick() -> bool:
 	return task != null and task.type == Task.Type.CLEAR_BOULDER
 
 
+## A field's job done with the hoe (doc 309): hoeing ground, or hoeing a plant under. Sowing and
+## pulling are hand work. A Farmer whose hoe has no model yet works by hand.
+func _hoeing() -> bool:
+	var task := TaskManager.get_task(agent.current_task_id)
+	var source := _fell_source()
+	return task != null and task.type == Task.Type.FARM and source != null and String(source.call("work_motion")) == "hoe" \
+		and DwarfAssets.field_tool(agent.profession) != null
+
+
 ## The kind of timed work under way, for the stat that speeds it (doc 41 "Stats"): felling a tree,
-## clearing stones (as mining), fishing, building a block or a ladder, crafting at a bench (a
-## Stonemason's crafting is stonework, doc 293). Gathering, planting and handling goods are none.
+## clearing stones (as mining), fishing, a field's work, building a block or a ladder, crafting at
+## a bench (a Stonemason's crafting is stonework, doc 293). Gathering, planting and handling goods
+## are none.
 ## Mining blocks is counted in its swing time instead.
 func _timed_kind() -> String:
 	if task_phase == DwarfAgent.TaskPhase.FELL_WORKING:
@@ -489,6 +500,7 @@ func _timed_kind() -> String:
 		if task != null and task.type == Task.Type.FELL_TREE: return "felling"
 		if task != null and task.type == Task.Type.CLEAR_BOULDER: return "mining"
 		if task != null and task.type == Task.Type.FISH: return "fishing"
+		if task != null and task.type == Task.Type.FARM: return "farming"
 	elif task_phase == DwarfAgent.TaskPhase.FETCH_WORKING:
 		var source := fetch_source()
 		if source != null and source.has_method("advance_install"): return "building"
@@ -502,7 +514,9 @@ func _apply_clearing_pose(phase: float) -> void:
 		if phase < _last_catch_phase: rig.blend_pose()   # the next catch: land back to the cast
 		_last_catch_phase = phase
 		rig.fishing_pose.apply(phase, _fell_contact)
-	elif task != null and task.type in Task.GATHER_WORK:
+	elif _hoeing():
+		rig.hoe_pose.apply(phase, _fell_contact, DwarfAssets.field_tool(agent.profession))
+	elif task != null and (task.type in Task.GATHER_WORK or task.type == Task.Type.FARM):
 		rig.carry_pose.gather_loop(phase*_swing_time, _fell_contact)
 	elif _clearing_uses_pick():
 		rig.mining_pose.apply(phase, _fell_contact)
@@ -523,26 +537,56 @@ func _process_felling(delta: float) -> void:
 	var elapsed := minf(delta,remaining)
 	var before := 1.0-_swing_timer/_swing_time
 	var after := before+elapsed/_swing_time
-	var impact_phase := MiningPose.CONTACT_PHASE if _clearing_uses_pick() else FellingPose.CONTACT_PHASE
+	var hoeing := _hoeing()
+	var impact_phase := MiningPose.CONTACT_PHASE if _clearing_uses_pick() else (BodyRig.HoePose.CONTACT_PHASE if hoeing else FellingPose.CONTACT_PHASE)
 	if source.get("task_type") == Task.Type.FISH:
-		# A catch is one pose cycle: the float lands, a fish bites, it is landed (doc 289).
+		# A catch is one pose cycle, heard as it is seen (doc 42): the rod swings, the float lands, a
+		# fish bites, it is landed (a Ranger's big fish with a heavier splash) and flaps on the line.
 		if agent.is_visible_in_tree() and bool(source.call("feedback_visible")):
-			for cue: Array in [[FishingPose.CAST_END, "fish_plop"], [FishingPose.BITE_START, "fish_bite"], [FishingPose.LANDED, "fish_land"]]:
+			var cues: Array = [[FishingPose.CAST_SWING, "fish_cast"], [FishingPose.CAST_END, "fish_plop"], [FishingPose.BITE_START, "fish_bite"],
+				[FishingPose.LANDED, "fish_land_big" if rig.fishing_pose.catch_big else "fish_land"]]
+			for mark: float in FishingPose.FLAPS: cues.append([mark, "fish_flop"])
+			for cue: Array in cues:
 				if before < float(cue[0]) and after >= float(cue[0]):
 					WorkFeedback.play_fishing(String(cue[1]), agent.to_global(_fell_contact), int(source.get("origin").y))
 	elif floori(after-impact_phase) > floori(before-impact_phase) \
 			and agent.is_visible_in_tree() and bool(source.call("feedback_visible")):
-		if _clearing_uses_pick():
+		if hoeing:
+			# The hoe's own bite, with the dust a pick raises from the same ground (doc 309).
+			WorkFeedback.hoe_impact(agent.to_global(_fell_contact), source.get("origin"),
+				BlockRegistry.get_id(String(source.get("state").get("feedback_block", "base:terrain:surface:dirt"))), -agent.global_basis.z)
+		elif _clearing_uses_pick():
 			WorkFeedback.mining_impact(agent.to_global(_fell_contact), source.get("origin"),
 				BlockRegistry.get_id(String(source.get("state").get("feedback_block", "base:terrain:rock:rock01"))), -agent.global_basis.z)
 		elif source.get("task_type") == Task.Type.FELL_TREE:
 			WorkFeedback.play_chop(agent.to_global(_fell_contact),int(source.get("origin").y))
 	_swing_timer = fposmod(_swing_timer - elapsed, _swing_time)
 	_apply_clearing_pose(1.0-_swing_timer/_swing_time)
+	# A field's handwork is heard as it ends (doc 309): a tile sown, a ripe one pulled.
+	var hand_cue: String = {"sow": "farm_sow", "harvest": "farm_pull"}.get(String(source.get("job")), "") if source.get("task_type") == Task.Type.FARM else ""
 	if bool(source.call("advance_work", agent.dwarf_id, delta)):
+		if not hand_cue.is_empty() and agent.is_visible_in_tree():
+			WorkFeedback.play_farming(hand_cue, agent.to_global(_fell_contact), int(source.get("origin").y))
+		# A batch taken off its workshop is heard as its recipe says: the cast bar off the casting stone (doc 44).
+		var taken := String(source.call("collect_sound")) if source.has_method("collect_sound") else ""
+		if not taken.is_empty() and agent.is_visible_in_tree():
+			WorkFeedback.play_collect(taken, agent.to_global(_fell_contact), int(source.get("origin").y))
 		_finish_felling_state()
 		agent.current_task_id = -1
 		complete(agent.dwarf_id)
+
+
+## The basic smelter's charge as it is heard (doc 44): each of the pose's cues that the work passed
+## this frame, once: a lump landing in the pot, a log going into the fire hole, a breath blown on the
+## coals. Work taken up again never replays a cue it has passed, and a dwarf out of sight plays none.
+func _smelt_cues(craft: RefCounted, before: float, after: float, pot: Vector3) -> void:
+	if after <= before or not agent.is_visible_in_tree(): return
+	var goods: Array = craft.call("charge_goods")
+	var fire: Array = craft.call("fire_goods")
+	var fed: Array = range(goods.size()).filter(func(index: int) -> bool: return goods[index] in fire)
+	for cue: Array in BodyRig.SmeltPose.cues(goods.size(), fed):
+		if before < float(cue[0]) and after >= float(cue[0]):
+			WorkFeedback.play_smelting(String(cue[1]), pot if String(cue[1]) == "smelt_toss" else craft.call("fire_hole"), int(craft.get("work_cell").y))
 
 
 func _fell_release() -> void:
@@ -669,7 +713,9 @@ func tick(delta: float) -> bool:
 			if not bool(craft.call("can_complete_build")):
 				_fetch_fail_release()
 				return true
+			var motion := String(craft.call("work_motion"))
 			var before := float(craft.get("progress"))/FellingPose.CYCLE_SECONDS
+			var share_before := float(craft.call("work_share"))
 			# Wits crafts, Strength works stone (doc 41 "Stats"); a crafting career's level saves time (doc 293).
 			var rate := agent.work_rate(_timed_kind())/DwarfAssets.craft_duration_multiplier(agent.profession,agent.profession_experience)
 			exec_timer = float(craft.call("advance_craft", work_delta*rate))
@@ -677,12 +723,17 @@ func tick(delta: float) -> bool:
 			var contact := _craft_pose(craft)
 			# Follow actual axe contact and clamped work progress. A stalled frame
 			# emits at most one hit; resumed work never replays earlier strikes.
-			if floori(after-FellingPose.CONTACT_PHASE) > floori(before-FellingPose.CONTACT_PHASE) \
-					and agent.is_visible_in_tree() and String(craft.call("work_motion")) != "hands":
+			if motion == "charge":
+				_smelt_cues(craft, share_before, float(craft.call("work_share")), contact)
+			elif floori(after-FellingPose.CONTACT_PHASE) > floori(before-FellingPose.CONTACT_PHASE) \
+					and agent.is_visible_in_tree() and motion != "hands":
 				# The Stonemason's maul knocks on stone as a builder's hammer does (doc 293).
 				if DwarfAssets.craft_sound(agent.profession) == "hammer": WorkFeedback.play_hammer(contact,int(craft.get("work_cell").y))
 				else: WorkFeedback.play_chop(contact,int(craft.get("work_cell").y))
-			if exec_timer <= 0.0: _begin_fetch_deposit()
+			if exec_timer <= 0.0:
+				# The basic smelter's charge is in its pot by now: nothing is left in hand to set down (doc 300).
+				if motion == "charge": _fetch_complete()
+				else: _begin_fetch_deposit()
 			return true
 		if craft != null and craft.has_method("advance_plant"):
 			if not craft.can_complete_build():

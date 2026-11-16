@@ -1,6 +1,6 @@
 extends "res://scripts/tests/TreeFellingTest.gd"
 
-const BERRY := "base:resources:flora:juniper_berry"
+const BERRY := "base:item:juniper_berry"
 const MATURE := Vector2i(40, 40)
 const ANCIENT := Vector2i(52, 40)
 var details: Node3D
@@ -117,7 +117,7 @@ func _run() -> void:
 	worker.position = Vector3(39.5,21,40.5)
 	var fruit_before := _berries()
 	_expect(await _until_felled(MATURE), "harvested tree can later be felled normally")
-	_expect(_item_count("base:resources:wood:juniper_log") == _log_yield("juniper", "mature") and _berries() == fruit_before, "felling grants wood, with no extra berry crop")
+	_expect(_item_count("base:item:juniper_log") == _log_yield("juniper", "mature") and _berries() == fruit_before, "felling grants wood, with no extra berry crop")
 	for message: String in failures: push_error(message)
 	print("JUNIPER_HARVEST_OK" if failures.is_empty() else "JUNIPER_HARVEST_FAIL: %s" % str(failures))
 	quit(0 if failures.is_empty() else 1)

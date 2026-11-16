@@ -53,10 +53,10 @@ func _prepare_workload() -> void:
 	var drops=scene.get_node("ItemDropManager")
 	for i in 160:
 		var cell: Vector3i=floor_cells[i%floor_cells.size()]
-		drops.restore_loose_item("base:resources:stone:rough_stone",Vector3(cell)+Vector3(.5,1,.5))
+		drops.restore_loose_item("base:item:rough_stone",Vector3(cell)+Vector3(.5,1,.5))
 	for i in 80:
 		var cell: Vector3i=floor_cells[(i+17)%floor_cells.size()]
-		drops.restore_loose_item("base:resources:wood:oak_log",Vector3(cell)+Vector3(.5,1,.5))
+		drops.restore_loose_item("base:item:oak_log",Vector3(cell)+Vector3(.5,1,.5))
 	workload={"population":population,"mining_blocks":dig.size(),"construction_blocks":build.size(),
 		"loose_stone":160,"loose_logs":80,"anchor":str(anchor),
 		"note":"Copied developed five-dwarf settlement, expanded roster as requested. Nearby real terrain jobs and fixed supplies; no fabricated floor. Calendar and arrival triggers are artificial, normal work/needs/simulation remain active."}

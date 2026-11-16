@@ -293,7 +293,7 @@ func _carve(from: Vector3i, to: Vector3i) -> void:
 
 func _door(floor_cell: Vector3i, installed := true) -> void:
 	var cells: Array[Vector3i] = [floor_cell]
-	rooms.on_furniture_changed("base:furniture:door", cells, {"furniture_category": "door"}, installed)
+	rooms.on_furniture_changed("base:furniture:door_2", cells, {"furniture_category": "door"}, installed)
 
 
 func _heat(floor_cell: Vector3i, installed: bool) -> void:

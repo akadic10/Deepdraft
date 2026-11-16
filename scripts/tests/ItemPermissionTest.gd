@@ -54,7 +54,7 @@ func _review_storage_contents() -> void:
 	for x in range(12): cells.append(Vector3i(56+x,20,44))
 	storage._create_zone(cells,501)
 	var subject = storage._zones[501]
-	var chair := "base:resources:furniture:log_chair"
+	var chair := "base:item:log_stool"
 	var pine := "base:material:pine"
 	var oak := "base:material:oak"
 	for entry in [[PINE,1,""],[ACORN,7,""],[chair,1,pine],[PINE,1,""],
@@ -70,7 +70,7 @@ func _review_storage_contents() -> void:
 	panel._show_tab(1)
 	await _settle()
 	# Contents is the filter's picture grid: by group, then name; each good and material apart.
-	var expected := [["Pine Log",3,true],["Oak Acorn",15,false],["Oak log stool (packed)",1,false],["Pine log stool (packed)",2,false]]
+	var expected := [["Pine log",3,true],["Oak acorn",15,false],["Oak log stool (packed)",1,false],["Pine log stool (packed)",2,false]]
 	_expect(_content_rows(panel)==expected, "Contents groups counts by item and material, sorted by name: " + str(_content_rows(panel)))
 	_expect("Used 8 / 12 cells · 21 goods" in panel.info_label.text, "grouping preserves physical capacity and logical goods totals")
 	_expect(_button_named(panel._contents,"Disallow")==null and _button_named(panel._contents,"Allow")==null, "Contents has no permission buttons")

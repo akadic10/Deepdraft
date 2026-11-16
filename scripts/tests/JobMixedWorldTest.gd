@@ -1,7 +1,7 @@
 extends "res://scripts/tests/LadderTest.gd"
 
 const CAMP := "base:furniture:campfire"
-const CAMP_ITEM := "base:resources:furniture:campfire"
+const CAMP_ITEM := "base:item:campfire"
 var crew: Array[Node3D] = []
 var frozen := {}
 var injected := {}

@@ -8,7 +8,7 @@ extends "res://scripts/tests/FishingTest.gd"
 ## Ranger's work is FishDryingTest's.
 const RANGER := "base:profession:ranger"
 const WORKER := "base:profession:worker"
-const KIT := "base:resources:tools:ranger_kit"
+const KIT := "base:item:ranger_kit"
 
 
 func _run() -> void:
@@ -33,7 +33,7 @@ func _run() -> void:
 		and not assets.profession_allows("base:profession:miner", "fish") and not assets.profession_allows("base:profession:miner", "craft"),
 		"Workers craft and no longer fish; Miners do neither")
 	_expect(assets.craft_section(RANGER) == "ranger" and assets.craft_section(WORKER) == "rudimentary" and assets.craft_section("base:profession:farmer").is_empty(),
-		"Rangers make the Ranger's page and Workers Rudimentary; the Farmer's is still planned")
+		"Rangers make the Ranger's page and Workers Rudimentary; the Farmer has no page of its own")
 	# A Worker beside a zone never fishes, and the window says the colony has no Ranger.
 	var cells: Array[Vector3i] = []
 	for z in range(31, 35): cells.append(Vector3i(SHORE_X, 20, z))
@@ -68,7 +68,7 @@ func _run() -> void:
 	_expect(promoted and worker.get_equipment().tool_key() == KIT, "the Worker collects the kit and is a Ranger")
 	# The kit binds the spear to the rod they fish with (owner, 2026-11-01): the Equipment view says so.
 	var details: Dictionary = load("res://scripts/components/DwarfInspection.gd").equipment_details(worker)
-	_expect(String(details.name).contains("Ranger's Kit") and String(details.benefit).contains("fish with its rod")
+	_expect(String(details.name).contains("Ranger's kit") and String(details.benefit).contains("fish with its rod")
 		and ResourceLoader.exists(String(details.icon)), "the Equipment view shows the Ranger's kit, its picture and its rod: %s" % [details])
 	_expect(not bool(fishing.zone_data(zone_id).no_fisher), "the zone has its Ranger")
 	var types: Array = tasks._scheduler.types_for(worker)
@@ -93,7 +93,14 @@ func _run() -> void:
 	var perch := _perch_units()
 	_expect(await _until_fishing(), "the Ranger casts again")
 	_expect(worker._rig.fishing_pose.catch_big, "the cast knows its fish is big")
+	var heard: Array = []
+	var listen := func(kind: String, _at: Vector3, _voice: int) -> void: heard.append(kind)
+	camera.set_meta("work_focus", Vector3(worker.current_cell()) + Vector3(.5, 1, .5))
+	camera.set_meta("work_zoom", 12.0)
+	root.get_node("WorkFeedback").sound_started.connect(listen)
 	_expect(await _until_units(perch + 2) and _perch_units() == perch + 2, "a big catch lands two perch")
+	root.get_node("WorkFeedback").sound_started.disconnect(listen)
+	_expect("fish_cast" in heard and "fish_land_big" in heard and not "fish_land" in heard, "a cast is heard, and a big fish lands with its own heavier splash: %s" % [heard])
 	_expect(absf(fishing.stock("lake") - (before - 1.0)) < 0.01, "and the lake loses one fish")
 	_expect(int(worker.catch_log.big) == 1 and int(worker.catch_log.caught[PERCH]) == 2 and int(worker.profession_experience[RANGER]) == 401,
 		"the log counts one big fish among two catches")
@@ -133,7 +140,7 @@ func _run() -> void:
 	_expect(lake_hours > cave_hours, "in winter a cave catch comes sooner than a lake's: %.2f, %.2f" % [cave_hours, lake_hours])
 	clock_node.season = "summer"
 	worker.profession_experience[RANGER] = 400
-	_expect(float(drops.food_definition("base:resources:fish:char").keeps_days) == 3.0 and float(drops.food_definition(PERCH).keeps_days) == 2.0, "char keep three days, the others two")
+	_expect(float(drops.food_definition("base:item:char").keeps_days) == 3.0 and float(drops.food_definition(PERCH).keeps_days) == 2.0, "char keep three days, the others two")
 	# A catch lifts the Ranger: "A quiet hour by the water", once in the journal however often renewed.
 	var quiet: Array = worker._mood.thoughts().filter(func(row: Dictionary) -> bool: return row.id == "quiet_hour")
 	_expect(quiet.size() == 1 and int(quiet[0].points) == 3 and bool(quiet[0].steady), "each catch leaves a Ranger a quiet hour, +3")

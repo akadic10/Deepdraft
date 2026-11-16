@@ -50,7 +50,7 @@ func _run() -> void:
 			_expect(order.work_cell==STUMP_CENTER+direction*2,"crafting uses approached side independently of stump rotation")
 			worker._process(.63)
 			var surface: Vector3 = order.work_surface()
-			_expect(is_equal_approx(Vector2(surface.x-bench.node.global_position.x,surface.z-bench.node.global_position.z).length(),.625),"crafting contact moves toward the approaching Worker")
+			_expect(is_equal_approx(Vector2(surface.x-bench.node.global_position.x,surface.z-bench.node.global_position.z).length(),float(definition.crafting_surface_radius)),"crafting contact moves toward the approaching Worker")
 			var toward: Vector3 = surface-worker.global_position
 			toward.y = 0
 			_expect(worker.global_basis.z.dot(toward.normalized())>.999,"Worker faces the stump")

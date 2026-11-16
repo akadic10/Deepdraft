@@ -51,6 +51,9 @@ const SCENE := {
 	"mining": {"zones": [{"id": TYPE_INT, "blocks": ["cell"]}]},
 	"fishing": {"next_id": "positive_int", "zones": [{"id": "positive_int", "cells": ["cell"], "keep": TYPE_INT}],
 		"stocks": {"*": {"fish": TYPE_FLOAT, "day": TYPE_FLOAT}}},
+	"farming": {"next_id": "positive_int", "zones": [{"id": "positive_int", "cells": ["cell"], "plan": {"*": TYPE_STRING},
+		"tiles": [{"cell": "cell", "crop": TYPE_STRING, "credit": TYPE_FLOAT, "ripe": TYPE_BOOL,
+			"?picked": TYPE_BOOL, "?regrow": TYPE_FLOAT, "?work": TYPE_FLOAT, "?job": TYPE_STRING}]}]},
 	"terrain": {"edits": [{"cell": "cell", "block": "key"}]},
 	"exploration": {"cells": ["cell"], "caves": [TYPE_INT]},
 	"flora": {"trees": [{
@@ -127,6 +130,8 @@ const SCENE := {
 		"speaker": TYPE_INT, "name": TYPE_STRING, "words": TYPE_STRING}]},
 }
 const EVENT_KINDS := ["arrival", "discovery", "colony", "warning"]
+## The seasons a field's plan may name (doc 309).
+const FIELD_SEASONS := ["spring", "summer", "autumn", "winter"]
 ## Validation rule -> ContentRegistry.save_catalogs() key set.
 const CONTENT_CATALOGS := {"furniture": "furniture", "item": "items", "recipe": "recipes", "tree": "trees", "plant": "plants",
 	"profession": "professions", "trait": "traits"}
@@ -228,6 +233,28 @@ static func validate_captured(snapshot: Dictionary, schema_version: int, catalog
 			fishing_cells[cell] = true
 	for water: String in fishing.stocks:
 		if fishing.stocks[water].fish < 0 or fishing.stocks[water].day < 0: return "save.scene.fishing has an invalid stock."
+	# Farming (doc 309): fields with their own ids and tiles, a plan that names seasons and crops
+	# the game has, and plants only on a field's own tiles.
+	var farming: Dictionary = snapshot.scene.farming
+	var field_ids := {}
+	var field_cells := {}
+	var crops: Dictionary = catalogs.get("crops", {})
+	for field: Dictionary in farming.zones:
+		if field.id >= farming.next_id or field_ids.has(field.id) or field.cells.is_empty(): return "save.scene.farming has an invalid field."
+		field_ids[field.id] = true
+		var own := {}
+		for packed: Array in field.cells:
+			var cell := Vector3i(packed[0], packed[1], packed[2])
+			if not _construction_cell(cell) or field_cells.has(cell): return "save.scene.farming has an invalid or shared tile."
+			field_cells[cell] = true
+			own[cell] = true
+		for season: String in field.plan:
+			if season not in FIELD_SEASONS or (not String(field.plan[season]).is_empty() and not crops.has(field.plan[season])):
+				return "save.scene.farming names a season or a crop the game lacks; start a new world."
+		for tile: Dictionary in field.tiles:
+			var cell := Vector3i(tile.cell[0], tile.cell[1], tile.cell[2])
+			if not own.has(cell) or tile.credit < 0 or (not String(tile.crop).is_empty() and not crops.has(tile.crop)):
+				return "save.scene.farming has a plant the game cannot restore; start a new world."
 	var jobs: Dictionary = snapshot.scene.jobs
 	if jobs.time < 0 or jobs.history.size() > 200: return "save.scene.jobs has invalid diagnostic bounds."
 	var order_keys := {}
@@ -358,9 +385,9 @@ static func _validate_stones(scene: Dictionary, catalogs: Dictionary) -> String:
 		if not catalogs.materials.has(String(dwarf.equipment.get("material_id", ""))): return "save.scene has an unknown equipped material."
 	for item: Dictionary in goods:
 		var key := String(item.get("item_key", item.get("item", "")))
-		if key not in ["base:resources:water:wet_stone", "base:resources:water:dry_stone"]: continue
+		if key not in ["base:item:wet_stone", "base:item:dry_stone"]: continue
 		var id := String(item.get("instance_id", ""))
-		if not owners.has(id) or item.count!=1 or key!="base:resources:water:"+scene.water.stones[id].kind+"_stone":
+		if not owners.has(id) or item.count!=1 or key!="base:item:"+scene.water.stones[id].kind+"_stone":
 			return "save.scene has a water stone without a matching identity."
 		owners[id] += 1
 	for count: int in owners.values():
@@ -369,7 +396,7 @@ static func _validate_stones(scene: Dictionary, catalogs: Dictionary) -> String:
 	for ghost: Dictionary in scene.furniture.ghosts:
 		var id := String(ghost.get("stone_id", ""))
 		if id.is_empty(): continue
-		if not owners.has(id) or moves.has(id) or ghost.key!="base:water:"+scene.water.stones[id].kind+"_stone": return "save.scene has an invalid water stone move."
+		if not owners.has(id) or moves.has(id) or ghost.key!="base:furniture:"+scene.water.stones[id].kind+"_stone": return "save.scene has an invalid water stone move."
 		moves[id] = true
 	return _validate_furniture_moves(scene, goods)
 

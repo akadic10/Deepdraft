@@ -9,7 +9,7 @@ const Navigation = preload("res://scripts/components/AnimalNavigation.gd")
 const Picking = preload("res://scripts/components/ObjectPicking.gd")
 const ArrivalPlanner = preload("res://scripts/components/EdgeArrivalPlanner.gd")
 ## One "<species>.json" per animal; each species also has its own agent script.
-const ANIMAL_DIR := "res://data/entities/animals/"
+const ANIMAL_DIR := "res://data/animals/"
 
 @export var slice_controller_path: NodePath
 @export var camera_path: NodePath

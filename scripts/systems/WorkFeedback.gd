@@ -127,8 +127,36 @@ func play_hammer(position: Vector3, floor_y: int) -> bool:
 	return _play("hammer",position,floor_y)
 
 
-## Fishing (doc 289): fish_plop as the float lands, fish_bite at the bite, fish_land at the landing.
+## Fishing (doc 42): fish_cast as the rod swings, fish_plop as the float lands, fish_bite at the bite,
+## fish_land at the landing (fish_land_big for a big fish) and fish_flop as the catch flaps on the line.
 func play_fishing(kind: String, position: Vector3, floor_y: int) -> bool:
+	return _play(kind,position,floor_y)
+
+
+## The basic smelter's charge (doc 44): smelt_toss as a lump lands in the pot, smelt_log as a log goes
+## into the fire hole and smelt_blow with each breath blown on the coals (DwarfSmeltPose.cues).
+func play_smelting(kind: String, position: Vector3, floor_y: int) -> bool:
+	return _play(kind,position,floor_y)
+
+
+## A field's handwork (doc 42, "Fields"): farm_sow as a tile is sown and farm_pull as a ripe one is pulled.
+func play_farming(kind: String, position: Vector3, floor_y: int) -> bool:
+	return _play(kind,position,floor_y)
+
+
+## The hoe's bite in a field's ground (doc 42, "Fields"): farm_hoe, with the dust a pick raises from the
+## same soil.
+func hoe_impact(position: Vector3, block: Vector3i, visible_id: int, normal: Vector3) -> void:
+	if not _can_emit(position,block.y):
+		return
+	_play("farm_hoe",position,block.y)
+	var settings := _mining_colors(config.mining.impact,visible_id)
+	_spawn_burst(position,block.y,settings,float(settings.scale),"mining_impact",normal)
+
+
+## A batch taken off its workshop (doc 292), heard as its recipe's `collect_sound` names: smelt_bar
+## as the cast bar comes off the basic smelter's casting stone.
+func play_collect(kind: String, position: Vector3, floor_y: int) -> bool:
 	return _play(kind,position,floor_y)
 
 

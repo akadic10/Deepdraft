@@ -99,14 +99,14 @@ func _patterns_and_routes() -> void:
 	world.set_block(origin.x,origin.y,origin.z,0)
 	furniture._fences.revalidate_support()
 	_expect(not furniture._installed.has(a.installed_id) and furniture._fences.links.is_empty(),"lost floor removes the unsupported post and its rails")
-	_expect(_count("base:resources:furniture:log_fence")==1,"unsupported post returns exactly one real packed item")
+	_expect(_count("base:item:log_fence")==1,"unsupported post returns exactly one real packed item")
 	world.set_block(origin.x,origin.y,origin.z,blocks.get_id("base:terrain:rock:rock01"))
 	_clear()
 
 func _actual_build() -> void:
 	_carpenter_bench_at(Vector3i(44,20,39))
 	drops.spawn_drop(PINE,2,Vector3i(42,21,40))
-	var id: int = crafting.queue_order("base:recipe:worker:log_fence",2)
+	var id: int = crafting.queue_order("base:recipe:log_fence",2)
 	_expect(await _completed(id),"a Carpenter crafts two real fence posts at the carpenter's bench")
 	furniture.activate_for(POST,true)
 	for tile in [Vector3i(47,20,44),Vector3i(48,20,44)]:
@@ -122,7 +122,7 @@ func _actual_build() -> void:
 	_expect(furniture._ghosts.is_empty() and furniture._fences.links.size()==1,"Worker delivers and installs both posts")
 	_expect(not nav.is_walkable(Vector3i(47,20,44)) and not nav.is_walkable(Vector3i(48,20,44)),"finished posts block their tiles")
 	_expect(not furniture._fences.post_handles.has(worker.current_cell()),"the installer stays beside the post tiles")
-	_expect(_count(PINE)==0 and _count("base:resources:furniture:log_fence")==0,"two timber become exactly two placed posts")
+	_expect(_count(PINE)==0 and _count("base:item:log_fence")==0,"two timber become exactly two placed posts")
 	var installed = furniture._installed.values().filter(func(p): return p.furniture_key==POST)
 	_expect(installed.all(func(p): return p.material_id=="base:material:pine"),"crafted timber identity survives installation")
 	var relocated = installed.filter(func(p): return p.origin_cell==Vector3i(48,20,44))[0]
@@ -137,13 +137,13 @@ func _actual_build() -> void:
 	_expect(furniture._ghosts.is_empty() and not furniture._installed.has(relocated.installed_id),"Worker moves the actual selected post")
 	_expect(furniture._fences.links.size()==1 and furniture._fences.post_handles.has(Vector3i(46,20,44)),"moving a post reconnects rails at its new tile")
 	_expect(nav.is_walkable(Vector3i(48,20,44)),"the vacated tile opens again")
-	_expect(_count("base:resources:furniture:log_fence")==0,"Move creates no spare posts")
+	_expect(_count("base:item:log_fence")==0,"Move creates no spare posts")
 	kept.set_uninstall(true)
 	for i in range(600):
 		await _tick()
 		if not furniture._installed.has(kept.installed_id): break
 	_expect(not furniture._installed.has(kept.installed_id) and furniture._fences.links.is_empty(),"Worker reaches and uninstalls a post")
-	_expect(_count("base:resources:furniture:log_fence")==1,"real removal returns one post kit")
+	_expect(_count("base:item:log_fence")==1,"real removal returns one post kit")
 	_clear()
 
 func _input_and_save() -> void:

@@ -118,7 +118,7 @@ func _run() -> void:
 	feedback.clear_transients()
 	_expect(await _until_felled(Vector2i(40,40)),"actual felling commits")
 	_expect(burst_events.size() == 1 and feedback._bursts.size() == 1,"completion emits exactly one independent poof")
-	_expect(_item_count("base:resources:wood:oak_log") == _log_yield("oak","mature"),"loot remains immediately available")
+	_expect(_item_count("base:item:oak_log") == _log_yield("oak","mature"),"loot remains immediately available")
 	var snapshot: Dictionary = flora.serialize_state()
 	flora.restore_state(snapshot)
 	_expect(burst_events.size() == 1,"loading completed tree never replays effect")

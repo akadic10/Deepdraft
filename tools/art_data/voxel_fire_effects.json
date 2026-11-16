@@ -56,7 +56,7 @@
         ]
       ]
     },
-    "wooden_torch": {
+    "torch": {
       "anchor": [
         -0.03,
         1.0,

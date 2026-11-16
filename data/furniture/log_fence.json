@@ -1,10 +1,10 @@
 {
   "furniture_key": "base:furniture:log_fence",
   "furniture_category": "access",
-  "display_name": "Log Fence Post",
+  "display_name": "Log fence post",
   "description": "Stands in the middle of a tile. Two level rails join posts on neighboring tiles, forming straight runs, corners and junctions.",
   "model": "res://assets/models/furniture/log_fence.glb",
-  "item_key": "base:resources:furniture:log_fence",
+  "item_key": "base:item:log_fence",
   "placement": "grid_fence",
   "placement_label": "One tile per post",
   "placement_note": "Place one post on each tile along your fence. Rails appear when neighboring posts are installed; one timber per post.",

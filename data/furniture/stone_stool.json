@@ -1,15 +1,15 @@
 {
   "__comment": [
-    "The Stonemason's stone stool (doc 293, B, the rough block): a Rough Stone knocked square all the way down with the maul, the log stool's size, its top a little uneven and lumps left on its sides. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs, in the Rough Stone's own greys.",
-    "Stonemasons make it at the mason's bench from one Rough Stone. It is the first stone piece dwarves use (the owner's exception to doc 62's material rule), so it keeps no wood identity: appeal is its design alone.",
+    "The Stonemason's stone stool (doc 293, B, the rough block): a rough stone knocked square all the way down with the maul, the log stool's size. Built as worked stone since 2026-11-10 (doc 301, A): a fresh seat inside a ledge of weathered skin, one top corner knocked off and a crack down the back. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
+    "Stonemasons make it at the mason's bench from one rough stone. It is the first stone piece dwarves use (the owner's exception to doc 62's material rule), so it keeps no wood identity: appeal is its design alone.",
     "It seats a dwarf exactly as the log stool does, with the same seat height (0.875), seating_chair, clearance and access, so it takes a table's guides and a board's game seats (the tables' seating.chair_keys)."
   ],
   "furniture_key": "base:furniture:stone_stool",
   "furniture_category": "seating",
-  "display_name": "Stone Stool",
-  "description": "A Rough Stone knocked square all the way down, its top a little uneven. A seat like the log stool: by a fire, at a table's guides or at the board.",
+  "display_name": "Stone stool",
+  "description": "A rough stone knocked square all the way down, one corner knocked off. A seat like the log stool: by a fire, at a table's guides or at the board.",
   "model": "res://assets/models/furniture/stone_stool.glb",
-  "item_key": "base:resources:furniture:stone_stool",
+  "item_key": "base:item:stone_stool",
   "placement": "floor",
   "yaw_steps": 4,
   "footprint": {

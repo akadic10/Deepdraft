@@ -1,0 +1,148 @@
+{
+  "__comment": [
+    "Field crops (doc 309): the vegetables a Farmer grows on a farming zone's tilled soil. Read by",
+    "ContentRegistry (a save names its crops); FarmingSystem holds the fields and their plants.",
+    "",
+    "display_name / plural_name: the crop in the field's window and in Events.",
+    "item: the good one tile gives at a harvest, tile_yield of them.",
+    "farmer_level: the Farmer level that may sow it. Any Farmer pulls it.",
+    "sow_seasons: the seasons it may be sown in. A starter crop is sown and pulled in its one season.",
+    "plan_seasons: how many seasons of a field's plan it takes, from the one it is sown in:",
+    "  2 for a crop that is sown in one season and comes ripe in the next.",
+    "grow_days: game days from sowing to ripe, at full speed. Damp soil grows a crop faster",
+    "  (task_config.json, farming.damp_growth), and nothing grows in winter.",
+    "needs_damp: it grows only in damp soil (within reach of water, or on a day of rain).",
+    "regrow_days: above 0, the plant stays after a picking and is ripe again after these days,",
+    "  in winter too, until its seasons in the plan end (kale).",
+    "idea: one line for the field's window on what sets the crop apart.",
+    "models: the plant on its tile as a sprout, growing (from growing_from of its days,",
+    "  task_config.json) and ripe; picked is a regrowing crop between pickings."
+  ],
+  "base:flora:radish": {
+    "display_name": "Radish",
+    "plural_name": "radishes",
+    "item": "base:item:radish",
+    "farmer_level": 1,
+    "sow_seasons": ["spring"],
+    "plan_seasons": 1,
+    "grow_days": 4,
+    "tile_yield": 2,
+    "needs_damp": false,
+    "regrow_days": 0,
+    "idea": "A spring crop. Quick: up to four rounds a season, the first fresh food after winter.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/radish/radish_sprout.glb",
+      "growing": "res://assets/models/flora/crops/radish/radish_growing.glb",
+      "ripe": "res://assets/models/flora/crops/radish/radish_ripe.glb"
+    }
+  },
+  "base:flora:carrot": {
+    "display_name": "Carrot",
+    "plural_name": "carrots",
+    "item": "base:item:carrot",
+    "farmer_level": 1,
+    "sow_seasons": ["summer"],
+    "plan_seasons": 1,
+    "grow_days": 6,
+    "tile_yield": 3,
+    "needs_damp": false,
+    "regrow_days": 0,
+    "idea": "A summer crop. Up to three rounds a season.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/carrot/carrot_sprout.glb",
+      "growing": "res://assets/models/flora/crops/carrot/carrot_growing.glb",
+      "ripe": "res://assets/models/flora/crops/carrot/carrot_ripe.glb"
+    }
+  },
+  "base:flora:turnip": {
+    "display_name": "Turnip",
+    "plural_name": "turnips",
+    "item": "base:item:turnip",
+    "farmer_level": 1,
+    "sow_seasons": ["autumn"],
+    "plan_seasons": 1,
+    "grow_days": 8,
+    "tile_yield": 4,
+    "needs_damp": false,
+    "regrow_days": 0,
+    "idea": "An autumn crop. Two rounds a season, and it keeps like apples: the winter root.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/turnip/turnip_sprout.glb",
+      "growing": "res://assets/models/flora/crops/turnip/turnip_growing.glb",
+      "ripe": "res://assets/models/flora/crops/turnip/turnip_ripe.glb"
+    }
+  },
+  "base:flora:cabbage": {
+    "display_name": "Cabbage",
+    "plural_name": "cabbages",
+    "item": "base:item:cabbage",
+    "farmer_level": 2,
+    "sow_seasons": ["spring", "summer", "autumn"],
+    "plan_seasons": 1,
+    "grow_days": 9,
+    "tile_yield": 6,
+    "needs_damp": false,
+    "regrow_days": 0,
+    "idea": "Grows from spring to autumn. Slow and big: the most fresh food a tile, but it does not keep.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/cabbage/cabbage_sprout.glb",
+      "growing": "res://assets/models/flora/crops/cabbage/cabbage_growing.glb",
+      "ripe": "res://assets/models/flora/crops/cabbage/cabbage_ripe.glb"
+    }
+  },
+  "base:flora:onion": {
+    "display_name": "Onion",
+    "plural_name": "onions",
+    "item": "base:item:onion",
+    "farmer_level": 3,
+    "sow_seasons": ["spring"],
+    "plan_seasons": 2,
+    "grow_days": 28,
+    "tile_yield": 14,
+    "needs_damp": false,
+    "regrow_days": 0,
+    "idea": "Sown in spring and pulled in summer. It keeps the longest, so a summer field can feed the winter.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/onion/onion_sprout.glb",
+      "growing": "res://assets/models/flora/crops/onion/onion_growing.glb",
+      "ripe": "res://assets/models/flora/crops/onion/onion_ripe.glb"
+    }
+  },
+  "base:flora:pumpkin": {
+    "display_name": "Pumpkin",
+    "plural_name": "pumpkins",
+    "item": "base:item:pumpkin",
+    "farmer_level": 4,
+    "sow_seasons": ["summer"],
+    "plan_seasons": 2,
+    "grow_days": 30,
+    "tile_yield": 24,
+    "needs_damp": true,
+    "regrow_days": 0,
+    "idea": "Sown in summer and cut in autumn. Thirsty: it grows only in damp soil. The biggest harvest of the year.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/pumpkin/pumpkin_sprout.glb",
+      "growing": "res://assets/models/flora/crops/pumpkin/pumpkin_growing.glb",
+      "ripe": "res://assets/models/flora/crops/pumpkin/pumpkin_ripe.glb"
+    }
+  },
+  "base:flora:kale": {
+    "display_name": "Kale",
+    "plural_name": "kale",
+    "item": "base:item:kale",
+    "farmer_level": 5,
+    "sow_seasons": ["autumn"],
+    "plan_seasons": 2,
+    "grow_days": 10,
+    "tile_yield": 1,
+    "needs_damp": false,
+    "regrow_days": 3,
+    "idea": "Sown in autumn and picked again and again until spring: the only field food in winter.",
+    "models": {
+      "sprout": "res://assets/models/flora/crops/kale/kale_sprout.glb",
+      "growing": "res://assets/models/flora/crops/kale/kale_growing.glb",
+      "ripe": "res://assets/models/flora/crops/kale/kale_ripe.glb",
+      "picked": "res://assets/models/flora/crops/kale/kale_picked.glb"
+    }
+  }
+}

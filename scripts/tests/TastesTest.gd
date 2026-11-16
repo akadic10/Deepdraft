@@ -11,7 +11,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 var rooms
 var probe := Vector3i(62, 21, 62)
-const LOVES := {"base:furniture:log_bed": "love", "base:material:oak": "like", "base:furniture:bench": "like", "base:material:pine": "dislike"}
+const LOVES := {"base:furniture:log_bed": "love", "base:material:oak": "like", "base:furniture:log_stool": "like", "base:material:pine": "dislike"}
 
 
 func _run() -> void:
@@ -21,10 +21,10 @@ func _run() -> void:
 	rooms.clear_runtime_state()
 	_given()
 	_walls(60, 69, 60, 69)
-	_put("door", Vector3i(63, 20, 60))
+	_put("door_2", Vector3i(63, 20, 60))
 	var bed = _put("log_bed", Vector3i(62, 20, 64), 0, "base:material:pine")
-	_put("wooden_torch", Vector3i(68, 20, 64))
-	_put("bench", Vector3i(68, 20, 61), 1)
+	_put("torch", Vector3i(68, 20, 64))
+	_put("log_stool", Vector3i(68, 20, 61), 1)   # a stool, not a bench: a plank bench's 3 would make the bare room Pleasant (doc 308)
 	furniture.assign_bed(bed.installed_id, worker.dwarf_id)
 	rooms._rebuild_all_rooms()
 	var tastes: RefCounted = worker.get_tastes()
@@ -69,7 +69,7 @@ func _felt(tastes: RefCounted) -> void:
 		"a loved bed of a disliked wood: +4 and −4, the love named: %s" % felt)
 	tastes.meet([furniture.get_installed_at(Vector3i(68, 20, 61))])
 	felt = tastes.felt(appeal)
-	_expect(is_equal_approx(float(felt.score), float(appeal.score) + 2.0), "a liked bench adds 2 once found: %s" % felt.score)
+	_expect(is_equal_approx(float(felt.score), float(appeal.score) + 2.0), "a liked stool adds 2 once found: %s" % felt.score)
 	_expect(tastes.describe("base:furniture:log_bed") == "loves the log bed" and tastes.describe("base:material:pine") == "dislikes pine",
 		"a taste reads as a sentence")
 	tastes.setup(LOVES, [])
@@ -95,7 +95,7 @@ func _night(bed) -> void:
 	for i in 3: worker._process(.5)
 	worker._wake_up()
 	var tastes: RefCounted = worker.get_tastes()
-	_expect(resting and tastes.found.has("base:furniture:log_bed") and tastes.found.has("base:material:pine") and not tastes.found.has("base:furniture:bench"),
+	_expect(resting and tastes.found.has("base:furniture:log_bed") and tastes.found.has("base:material:pine") and not tastes.found.has("base:furniture:log_stool"),
 		"a night in the pine log bed finds those two tastes")
 	var lines: Array = journal.lines()
 	var love: Array = lines.filter(func(line: Dictionary) -> bool: return line.topic == "found_love:base:furniture:log_bed")
@@ -107,7 +107,7 @@ func _night(bed) -> void:
 	var appeal: Dictionary = rooms.room_appeal(rooms.get_room_at(probe))
 	_expect(float(appeal.score) < 8.0, "the room alone is Plain: %s" % appeal.score)
 	_expect(slept.is_empty(), "a love and a dislike cancel out, so a plain room still leaves no thought: %s" % [slept])
-	# With the bench found too, the room feels Pleasant, and the thought names the love.
+	# With the stool found too, the room feels Pleasant, and the thought names the love.
 	tastes.meet([furniture.get_installed_at(Vector3i(68, 20, 61))])
 	mood.record_room("slept", appeal)
 	slept = mood.thoughts().filter(func(thought: Dictionary) -> bool: return String(thought.id).begins_with("slept_"))

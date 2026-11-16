@@ -27,7 +27,7 @@ var _dirty := false
 var _elapsed := 0.0
 var _leaving := false
 var selection_revision := 0
-var _batches := {}   # bench installed id -> true while its batch shows on it
+var _batches := {}   # bench installed id -> whether the batch showing on it is finished
 var hanging: Dictionary = {}   # bench installed id -> WorkshopBatch left on it (doc 292)
 var _hanging_sources: RefCounted   # WorkSourceTable: the hanging batches' take-down leases
 
@@ -98,23 +98,25 @@ func _refresh() -> void:
 	changed.emit()
 
 ## A workshop with a `batch_model` shows it only while a Worker works a batch there: the fish
-## hang on the drying rack while they dry (doc 289), and an idle rack is bare.
+## hang on the drying rack while they dry (doc 289), and an idle rack is bare. A batch shows from
+## when its order says so (the basic smelter's once its charge is in the pot), and a finished one
+## shows the workshop's `batch_done_model` instead if it has one: the bar cast on the casting stone.
 func _show_batches() -> void:
 	if furniture == null: return
-	var worked := {}
+	var worked := {}   # workshop -> whether its batch is finished
 	for order in orders:
 		if order.worker_id < 0 or order.bench_id < 0: continue
 		var agent := TaskManager.get_agent(order.worker_id)
-		if is_instance_valid(agent) and agent.get_task_phase() == DwarfAgent.TaskPhase.FETCH_WORKING: worked[order.bench_id] = true
-	for id: int in hanging: worked[id] = true   # and while a batch dries on it (doc 292)
+		if is_instance_valid(agent) and agent.get_task_phase() == DwarfAgent.TaskPhase.FETCH_WORKING and order.batch_showing(): worked[order.bench_id] = false
+	for id: int in hanging: worked[id] = hanging[id].dry()   # and while a batch dries on it (doc 292)
 	for id: int in _batches.keys():
 		if worked.has(id): continue
 		furniture.show_batch(id, false)
 		_batches.erase(id)
 	for id: int in worked:
-		if _batches.has(id): continue
-		furniture.show_batch(id, true)
-		_batches[id] = true
+		if _batches.get(id) == worked[id]: continue
+		furniture.show_batch(id, true, worked[id])
+		_batches[id] = worked[id]
 
 ## A recipe with `batch_hours` leaves its batch on the workshop (doc 292): the order that hung the
 ## fish is done with them, and the rack takes no other batch until a Ranger takes this one down.
@@ -183,12 +185,13 @@ func _drop_hanging(batch, cancel_lease: bool) -> void:
 	else: _hanging_sources.retire.call_deferred(batch, false)
 	wake()
 
-## The floor cells beside a workshop, where a dwarf stands to work it.
+## The floor cells beside a workshop, where a dwarf stands to work it: beside its `crafting_cell`
+## if it names one (the bar is taken off the basic smelter's casting stone).
 func _bench_stands(id: int) -> Array:
 	var cells: Array = []
 	var bench = furniture.get_installed(id)
 	if bench == null: return cells
-	for cell: Vector3i in bench.cells:
+	for cell: Vector3i in bench.work_cells():
 		for offset: Vector3i in [Vector3i.LEFT, Vector3i.RIGHT, Vector3i.FORWARD, Vector3i.BACK]:
 			var stand := cell + offset
 			if NavGrid.is_walkable(stand) and not stand in bench.cells and not stand in cells: cells.append(stand)
@@ -205,10 +208,16 @@ func _bench_contact(from: Vector3, id: int) -> Vector3:
 ## carpenter's and the mason's benches, doc 293) takes the point of its top nearest them, that far
 ## inside its edges, so the goods lie in front of the worker and never overhang it. Others reach
 ## `crafting_surface_radius` from the centre: the stump has no front, so the material faces the
-## approaching worker whatever the furniture's decorative rotation.
-static func bench_surface(bench, from: Vector3) -> Vector3:
+## approaching worker whatever the furniture's decorative rotation. A workshop that names its
+## work spots (doc 44) reaches from that cell's centre instead: a `batch` into the basic smelter's
+## boulder at its `batch_surface_height`, anything else on its casting stone.
+static func bench_surface(bench, from: Vector3, batch := false) -> Vector3:
 	var center: Vector3 = bench.node.global_position
 	var height := float(bench.def.get("crafting_surface_height", 1.0))
+	if batch: height = float(bench.def.get("batch_surface_height", height))
+	if bench.def.has("batch_cell" if batch else "crafting_cell"):
+		var spot: Vector3i = bench.work_cells(batch)[0]
+		center = Vector3(spot.x + .5, center.y, spot.z + .5)
 	if bench.def.has("crafting_surface_inset") and not bench.cells.is_empty():
 		var inset := float(bench.def.crafting_surface_inset)
 		var low := Vector2(INF, INF)
@@ -219,6 +228,7 @@ static func bench_surface(bench, from: Vector3) -> Vector3:
 		return Vector3(clampf(from.x, low.x + inset, high.x - inset), center.y + height, clampf(from.z, low.y + inset, high.y - inset))
 	var toward := Vector3(from.x - center.x, 0, from.z - center.z).normalized()
 	var reach := float(bench.def.get("crafting_surface_radius", .125))
+	if batch: reach = float(bench.def.get("batch_surface_radius", reach))
 	return center + Vector3(toward.x * reach, height, toward.z * reach)
 
 ## Units a recipe's batches will give once off their workshops: the fish drying on racks.
@@ -404,8 +414,10 @@ const TIMBER_WORDS := {"noun": "wood", "units": "logs", "same": "All logs must b
 static func ingredient_words(recipe: Dictionary) -> Dictionary:
 	return recipe.get("ingredient_words", TIMBER_WORDS)
 
+## An ingredient's name on a recipe: a log or a plank is named by its wood ("Oak log" as "Oak",
+## "Applewood plank" as "Applewood"), from its shown name (doc 23, "Names are sentence case").
 func ingredient_label(key: String) -> String:
-	return String(items.get_item_def(key).get("display_name",key)).trim_suffix(" Log").trim_suffix(" Wood")
+	return String(items.get_item_def(key).get("display_name",key)).trim_suffix(" log").trim_suffix(" plank")
 
 func ingredient_summary(keys: Array) -> String:
 	var labels: Array[String] = []
@@ -456,6 +468,42 @@ func additional_ingredient_keys(recipe: Dictionary) -> Array[String]:
 	for key in recipe.get("additional_ingredients", []): keys.append(String(key))
 	return keys
 
+## The goods a recipe takes one choice of (`one_of`, doc 306), best first, each a list of exact
+## keys: a coal or two logs of one wood under the copper, a log of any wood for a tool's haft.
+func choices(recipe: Dictionary) -> Array:
+	var found: Array = []
+	for choice: Array in recipe.get("one_of", {}).get("choices", []):
+		var units: Array[String] = []
+		for key in choice: units.append(String(key))
+		if not units.is_empty(): found.append(units)
+	return found
+
+## The choice a batch would take now: the first the colony can supply whole; [] with none, or for
+## a recipe that takes no choice.
+func choice_keys(recipe: Dictionary, totals: Dictionary) -> Array[String]:
+	for units: Array[String] in choices(recipe):
+		var needed := {}
+		for key in units: needed[key] = int(needed.get(key, 0)) + 1
+		var supplied := true
+		for key: String in needed:
+			if int(totals.get(key, {}).get("available", 0)) < int(needed[key]): supplied = false
+		if supplied: return units
+	return []
+
+## The choice a saved batch had made, read from the goods staged beside its bench in the order
+## they were set down: the one whose goods follow the fixed ingredients, else the choice in stock.
+func choice_matching(recipe: Dictionary, staged: Array[String], totals: Dictionary) -> Array[String]:
+	var fixed := additional_ingredient_keys(recipe).size()
+	if staged.size() > fixed:
+		for units: Array[String] in choices(recipe):
+			if units[0] == staged[fixed]: return units
+	return choice_keys(recipe, totals)
+
+## How a recipe's choice is worded: `label` heads it on the card and `words` name it in a wait.
+static func choice_words(recipe: Dictionary) -> Dictionary:
+	var one_of: Dictionary = recipe.get("one_of", {})
+	return {"label": String(one_of.get("label", "One of")), "words": String(one_of.get("words", "materials"))}
+
 ## No reservations while comparing workers. Keep scans bounded by the same
 ## deadline as navigation; storage and loose materials compete by distance.
 ## An order holding goods beside its bench stays there, and its next trip is for
@@ -481,10 +529,8 @@ func advance_worker_quote(order, from: Vector3i, query: Dictionary, deadline: in
 		query.index += 1
 		var bench = furniture.get_installed(id)
 		if bench == null or bench.furniture_key != String(order.recipe.workshop) or not bench_valid(id, order.id): continue
-		for cell: Vector3i in bench.cells:
-			for offset: Vector3i in [Vector3i.LEFT,Vector3i.RIGHT,Vector3i.FORWARD,Vector3i.BACK]:
-				var stand := cell+offset
-				if NavGrid.is_walkable(stand) and not query.goals.has(stand): query.goals[stand] = id
+		for stand: Vector3i in bench.work_stands(order.recipe.has("batch_hours")):
+			if not query.goals.has(stand): query.goals[stand] = id
 	return true
 
 ## The nearest unit of these keys within `radius` blocks of `from`, loose or stored,
@@ -534,13 +580,17 @@ func bench_name(key: String) -> String:
 	if furniture == null: return "workbench"
 	return String(furniture.get_defs().get(key, {}).get("display_name", "workbench")).to_lower()
 
-func bench_target(key: String, from: Vector3i) -> Dictionary:
+## A bench's name with its article: "a mason's bench", "an anvil stone".
+static func with_article(noun: String) -> String:
+	return ("an " if noun.left(1).to_lower() in ["a", "e", "i", "o", "u"] else "a ") + noun
+
+func bench_target(key: String, from: Vector3i, batch := false) -> Dictionary:
 	var best := {}
 	var distance := INF
 	for id: int in furniture.get_installed_ids():
 		var bench = furniture.get_installed(id)
 		if bench.furniture_key != key or not bench_valid(id): continue
-		var stand: Vector3i = bench.nearest_stand_target(from)
+		var stand: Vector3i = bench.nearest_stand_target(from, batch)
 		if stand.x < 0: continue
 		var delta := Vector3(stand-from).length_squared()
 		if delta < distance:
@@ -565,7 +615,7 @@ func waiting_reason(order, totals: Dictionary) -> String:
 	var workshop := String(order.recipe.workshop)
 	# Goods beside a bench keep the order at that bench; it waits its turn there.
 	if not workshop.is_empty() and order.holds_goods(): return "" if bench_valid(order.bench_id, order.id) else QUEUED
-	return QUEUED if not workshop.is_empty() and bench_target(workshop, Vector3i.ZERO).is_empty() else ""
+	return QUEUED if not workshop.is_empty() and bench_target(workshop, Vector3i.ZERO, order.recipe.has("batch_hours")).is_empty() else ""
 
 ## What an order lacks before it could start: a stock target already met, wood,
 ## materials or a workbench. A busy workbench is not missing. Goods the order
@@ -588,27 +638,52 @@ func _missing_reason(order, totals: Dictionary) -> String:
 		return "Waiting for %d %s" % [count, plural]
 	var own: Dictionary = order.held_counts().extras if order is Object else {}
 	var extra_counts := {}
-	for key in additional_ingredient_keys(order.recipe):
+	var extras := additional_ingredient_keys(order.recipe)
+	if order.recipe.has("one_of"):
+		# A waiting order takes the first choice in stock; one under way keeps the choice it made.
+		var chosen: Array[String] = order.settle_choice(totals) if order is Object else choice_keys(order.recipe, totals)
+		if chosen.is_empty(): return "Waiting for " + String(choice_words(order.recipe).words)
+		extras.append_array(chosen)
+	for key in extras:
 		extra_counts[key] = int(extra_counts.get(key,0)) + 1
 		if int(totals.get(key,{}).get("available",0)) + int(own.get(key,0)) < extra_counts[key]:
 			return "Waiting for " + ingredient_label(key)
 	var workshop := String(order.recipe.workshop)
-	if not workshop.is_empty() and not has_bench(workshop): return "Needs a " + bench_name(workshop)
+	if not workshop.is_empty() and not has_bench(workshop): return "Needs " + with_article(bench_name(workshop))
 	# Each section's orders wait for its own career (doc 292): Dried fish for a Ranger.
 	if crafters(order.recipe).is_empty(): return "Needs a " + crafter_name(order.recipe)
 	return ""
 
 ## The dwarves whose career makes a recipe's section, busy or not.
 func crafters(recipe: Dictionary) -> Array[DwarfAgent]:
-	var career := DwarfAssets.section_profession(String(recipe.get("section", "rudimentary")))
+	return section_crafters(String(recipe.get("section", "rudimentary")))
+
+## The dwarves whose career makes a page's recipes, busy or not.
+func section_crafters(section_id: String) -> Array[DwarfAgent]:
+	var career := DwarfAssets.section_profession(section_id)
 	var found: Array[DwarfAgent] = []
 	for agent: DwarfAgent in TaskManager.get_agents():
 		if is_instance_valid(agent) and agent.profession == career: found.append(agent)
 	return found
 
+## What a page with no dwarf of its career says (owner, 2026-11-13: "carpenter for example is lit
+## up even though I cannot build it"): `tag` for its tile and heading ("No Carpenter yet"), `how`
+## for the way to one, read from the career's tool and that tool's recipe. Empty for a page the
+## colony can craft today, and for a planned one.
+func section_need(section_id: String) -> Dictionary:
+	if bool(sections.get(section_id, {}).get("planned", false)) or not section_crafters(section_id).is_empty(): return {}
+	var career := DwarfAssets.section_profession(section_id)
+	var title := String(DwarfAssets.profession_definition(career).get("display_name", "Worker"))
+	var tool := DwarfAssets.profession_tool(career)
+	if tool.is_empty():
+		if TaskManager.get_agents().is_empty(): return {"tag": "No dwarves yet", "how": "Nobody is here to craft."}
+		return {"tag": "No %s left" % title, "how": "Every dwarf has a trade. Return one to %s in Profession." % title}
+	var tool_name := String(items.get_item_def(tool).get("display_name", "tool")).to_lower() if items != null else "tool"
+	return {"tag": "No %s yet" % title, "how": ("A dwarf becomes one by collecting a %s. %s" % [tool_name, DwarfAssets.tool_source_text(tool)]).strip_edges()}
+
 ## The career that makes a recipe, by name: "Worker", "Ranger".
 func crafter_name(recipe: Dictionary) -> String:
-	return String(DwarfAssets.profession_definition(DwarfAssets.section_profession(String(recipe.get("section", "rudimentary")))).get("display_name", "Worker"))
+	return DwarfAssets.crafter_name(recipe)
 
 ## Why a recipe could not be made with these woods, or "" when it could: the crafting
 ## window's ready and missing recipes (doc 261). A busy bench only means the order queues.
@@ -632,7 +707,7 @@ func status(order, totals: Dictionary) -> String:
 		var agent = TaskManager.get_agent(order.worker_id)
 		if is_instance_valid(agent) and agent.get_task_phase() == agent.TaskPhase.FETCH_WORKING:
 			return "Crafting · %d%%" % roundi(100.0*order.progress/float(order.recipe.work_seconds))
-		return String(ingredient_words(order.recipe).carrying) if additional_ingredient_keys(order.recipe).is_empty() else "Gathering / carrying materials"
+		return String(ingredient_words(order.recipe).carrying) if order.fixed_keys().is_empty() else "Gathering / carrying materials"
 	var task := TaskManager.get_task(order.lease_id)
 	return "Waiting for a reachable route" if task != null and task.blocked_count > 0 else "Waiting for a " + crafter_name(order.recipe)
 

@@ -1,7 +1,7 @@
 extends "res://scripts/tests/DwarfIdleBehaviorTest.gd"
 
-const STOOL := "base:furniture:log_chair"
-const STOOL_ITEM := "base:resources:furniture:log_chair"
+const STOOL := "base:furniture:log_stool"
+const STOOL_ITEM := "base:item:log_stool"
 var picking
 var seating
 var capture_output := "res://tmp/log_stool_review"

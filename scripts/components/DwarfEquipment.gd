@@ -1,6 +1,6 @@
 extends RefCounted
 
-## A personal appointment, not a colony job another dwarf can claim. The kit
+## A personal appointment, not a colony job another dwarf can claim. The tool
 ## stays a real item: loose/reserved -> carried at contact -> equipped child.
 const Inventory = preload("res://scripts/components/ColonyInventory.gd")
 const CarryPose = preload("res://scripts/components/DwarfCarryPose.gd")
@@ -52,7 +52,8 @@ func blocked_reason(role: String) -> String:
 		"ladder": return "Let this dwarf reach solid ground first."
 		"tool":
 			if items() == null: return "No tools are available."
-			return "Craft a spare %s at the crude workbench." % _items.get_item_def(DwarfAssets.profession_tool(role)).get("display_name", "tool")
+			var tool := DwarfAssets.profession_tool(role)
+			return ("No spare %s. %s" % [String(_items.get_item_def(tool).get("display_name", "tool")).to_lower(), DwarfAssets.tool_source_text(tool)]).strip_edges()
 	return ""
 
 func request(role: String) -> bool:
@@ -66,7 +67,7 @@ func request(role: String) -> bool:
 	_excluded.clear()
 	pending_role = role
 	stage = "finding"
-	message = "Finding a starter tool."
+	message = "Finding the tool."
 	TaskManager.notify_dwarf_unavailable(agent.dwarf_id)
 	return true
 
@@ -101,7 +102,7 @@ func _find_tool() -> void:
 		if _quote.is_empty() or (not _stored.best.is_empty() and int(_stored.distance) < int(_loose.distance)):
 			_quote = _stored.best
 		if _quote.is_empty():
-			cancel("Promotion cancelled: no unreserved, reachable starter tool. Craft one or clear a path.")
+			cancel("Promotion cancelled: no unreserved, reachable tool. Make one or clear a path.")
 			return
 	var goals := {}
 	for cell in StorageComponent.ground_access_cells(_quote.cell):
@@ -125,7 +126,7 @@ func _find_tool() -> void:
 		_clear_search() # Another appointment/hauler claimed this quote first.
 		return
 	stage = "walking"
-	message = "Collecting %s before promotion." % _items.get_item_def(keys[0]).get("display_name", "starter tool")
+	message = "Collecting %s before promotion." % _items.get_item_def(keys[0]).get("display_name", "tool")
 	# Reuse the checked route, rather than performing a second unbounded search.
 	agent.start_route(_route.path)
 	_clear_search()
@@ -220,7 +221,7 @@ func restore(state: Dictionary) -> void:
 	pending_role = String(state.get("pending_role", ""))
 	if active():
 		stage = "finding"
-		message = "Finding a starter tool."
+		message = "Finding the tool."
 
 func release_reservation() -> void:
 	# Scene teardown destroys owned children; never spawn/drop save copies here.

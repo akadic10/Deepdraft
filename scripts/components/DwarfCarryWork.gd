@@ -524,7 +524,7 @@ func _fetch_take_item() -> bool:
 	rig.carried_entries.append([_fetch_item, key])
 	agent.add_child(_fetch_item)
 	_fetch_item.transform = _handling_start
-	_handling_item = _fetch_item # A single cutting may be split from a larger crate.
+	_handling_item = _fetch_item # A craft's unit may be split from a larger loose crate.
 	return true
 
 
@@ -577,12 +577,15 @@ func _fetch_travel_to_ghost() -> void:
 
 
 ## The walk ends where the work's swing will stand (doc 298): the builder's hammer, or a crafter's tool
-## at its bench. A bench's hand work has no swing to stand back for.
+## at its bench. A bench's hand work has no swing to stand back for. The basic smelter's charge is
+## worked from a long step back: its boulder stands higher than a load is carried (doc 300).
 func _stop_short_for_work(source: RefCounted, feet: Vector3) -> void:
 	if source.has_method("commit_staged_build"):
 		agent.stop_short_of(MiningPose.contact_point(source.target,feet,agent.global_basis.z),ConstructionPose.stand_reach())
-	elif source.has_method("advance_craft") and String(source.call("work_motion")) != "hands":
-		agent.stop_short_of(source.call("work_surface_from",feet),FellingPose.STANCE_REACH)
+	elif source.has_method("advance_craft"):
+		var motion := String(source.call("work_motion"))
+		if motion == "charge": agent.stop_short_of(source.call("work_surface_from",feet),BodyRig.SmeltPose.STAND_REACH)
+		elif motion != "hands": agent.stop_short_of(source.call("work_surface_from",feet),FellingPose.STANCE_REACH)
 
 
 ## FETCH step 4: the placement/work animation finished — the carried item BECOMES the
@@ -744,6 +747,11 @@ func _craft_pose(source: RefCounted) -> Vector3:
 			_fetch_item.rotation = Vector3.ZERO
 		rig.carry_pose.gather(fposmod(float(source.get("progress")),1.0),agent.to_local(contact))
 		return contact
+	if source.has_method("work_motion") and String(source.call("work_motion")) == "charge":
+		# The basic smelter's charge (doc 300): each lump is tipped into the pot, then the fire is blown on.
+		rig.smelt_pose.apply(float(source.call("work_share")),source.call("charge_goods"),agent.to_local(contact),
+			agent.to_local(source.call("fire_hole")),DwarfAssets.blow_stick,rig.carry_pose.work_spot,agent,source.call("fire_goods"))
+		return contact
 	if is_instance_valid(_fetch_item):
 		var bounds: AABB = rig.carry_pose.item_bounds(_fetch_item)
 		_fetch_item.global_position = contact-Vector3.UP*bounds.position.y
@@ -769,6 +777,7 @@ func _fetch_fail_release(reason: int = Task.ReleaseReason.PATH_INVALID) -> void:
 ## the loose index); a merely-reserved item is unreserved via the source.
 func _finish_fetch_state() -> void:
 	_fetch_plan.clear()
+	rig.smelt_pose.release()   # a charge given up shows its lumps where they lie again
 	if _fetch_source_id < 0 and _fetch_item == null:
 		return
 	var source := fetch_source()

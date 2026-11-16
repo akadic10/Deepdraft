@@ -31,10 +31,17 @@ extends RefCounted
 ## the fetching dwarf; cancel_fetch re-claims on release; the controller
 ## releases the claim on ghost teardown. Confirmed placement may interrupt a
 ## storage haul; already-carried single objects continue with their carrier.
+##
+## ONE UNIT (2026-11-15, log torches kept 24 to a crate): a plan claims one unit,
+## never a crate. Out of a loose crate of several, the claim and the fetch set one
+## unit aside (ItemDropManager.reserve_unit), so the rest stays free: every plan
+## waiting on the same crate gets its own unit and its own worker at once, and
+## haulers may store the remainder. A claim given up puts its unit back
+## (release_unit). Storage withdrawals already hand over one unit.
 
 var ghost_id: int = -1
 var furniture_key: String = ""      # base:furniture:* (namespaced — Hard Rule 3)
-var item_key: String = ""           # the resources.json item form to fetch
+var item_key: String = ""           # the items.json item form to fetch
 var def: Dictionary = {}            # parsed data/furniture/*.json definition
 var origin_cell: Vector3i = Vector3i(-1, -1, -1)   # floor footprint or fixed wall placement reference
 var yaw_steps: int = 0              # 0..3 — 90° each (R key)
@@ -177,8 +184,8 @@ func update_lease() -> void:
 			Task.Type.FETCH_BUILD, origin_cell, { "ghost_id": ghost_id }, source_id))
 
 
-## Claim the nearest matching loose item if we hold none and no fetching
-## dwarf already owns one for this ghost. Claimed = reserved under
+## Claim one unit of the nearest matching loose item if we hold none and no
+## fetching dwarf already owns one for this ghost. Claimed = reserved under
 ## claim_owner_id(), invisible to every unreserved-only scan (haul pouches,
 ## other ghosts' claims and fetches).
 func ensure_claim() -> void:
@@ -192,8 +199,8 @@ func ensure_claim() -> void:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return
 	var item: Node3D = drop_manager.nearest_loose_of_key(item_key, origin_cell, {}, required_instance_id, claim_owner_id(), required_material_id)
-	if item != null and (drop_manager.reserved_by(item, claim_owner_id()) or drop_manager.reserve(item, claim_owner_id())):
-		_claim = item
+	if item == null: return
+	_claim = item if drop_manager.reserved_by(item, claim_owner_id()) else drop_manager.reserve_unit(item, claim_owner_id())
 
 
 ## The loose item this plan holds a soft claim on, or null.
@@ -211,7 +218,7 @@ func release_claim() -> void:
 		drop_manager.release_instance_promise(required_instance_id, claim_owner_id())
 	if _claim != null and is_instance_valid(_claim) \
 			and drop_manager != null and is_instance_valid(drop_manager):
-		drop_manager.unreserve(_claim, claim_owner_id())
+		drop_manager.release_unit(_claim, claim_owner_id())
 	_claim = null
 
 
@@ -304,9 +311,9 @@ func placement_contact(from: Vector3) -> Vector3:
 
 ## Step 1 of the fetch (doc 19 §3.3): hand over the ghost's claim if it
 ## holds one (claimed items are reserved, so the unreserved-only scan below
-## would never find them) — else the nearest matching loose item, else a
-## storage withdraw. {} = nothing available (the lease completes early and
-## re-posts on the next wake).
+## would never find them) — else one unit of the nearest matching loose item,
+## else a storage withdraw. {} = nothing available (the lease completes early
+## and re-posts on the next wake).
 func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 	if drop_manager == null or not is_instance_valid(drop_manager):
 		return {}
@@ -329,12 +336,12 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 			if quoted == _claim:
 				drop_manager.unreserve(quoted,claim_owner_id())
 				_claim = null
-			if drop_manager.reserve(quoted,dwarf_id): item = quoted
+			item = drop_manager.reserve_unit(quoted,dwarf_id)
 		if item == null: return {}
 		# A disconnected earlier soft claim must not stay reserved after a
 		# reachable replacement has actually been acquired.
 		if is_instance_valid(_claim):
-			drop_manager.unreserve(_claim,claim_owner_id())
+			drop_manager.release_unit(_claim,claim_owner_id())
 			_claim = null
 		_fetches[dwarf_id] = item
 		_delivery_stands[dwarf_id] = plan.delivery_stand
@@ -350,9 +357,7 @@ func reserve_fetch(dwarf_id: int, dwarf_cell: Vector3i) -> Dictionary:
 			item = null
 	if item == null:
 		item = drop_manager.nearest_loose_of_key(item_key, dwarf_cell, {}, required_instance_id, -1, required_material_id)
-		if item != null:
-			if not drop_manager.reserve(item, dwarf_id):
-				item = null
+		if item != null: item = drop_manager.reserve_unit(item, dwarf_id)
 	if item == null:
 		item = StockpileManager.withdraw_item(item_key, dwarf_cell, dwarf_id, required_instance_id, required_material_id)
 	if item == null:

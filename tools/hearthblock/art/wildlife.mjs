@@ -1,6 +1,6 @@
 // Hearthblock wildlife (doc 256): square chibi blocks. Every animal faces -Z. Rigs
 // follow the art (owner rule, 2026-10-21): each species' joints live in its
-// data/entities/animals/*.json visual_pose. Parts are authored in standing world
+// data/animals/*.json visual_pose. Parts are authored in standing world
 // cells; legs, wings and feet in their own frames.
 import * as P from './proposal.mjs';
 

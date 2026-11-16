@@ -19,7 +19,7 @@ def assets(only=None):
             for shape in shapes: solid(vox,shape,palette)
         parts={'main':Part(vox,occlusion=occlusion)}
         if name in ('deer/leg','wolf/leg'):
-            knee=round(read_json(f'data/entities/animals/{name.split("/")[0]}.json')['visual_pose']['knee_y']*16)
+            knee=round(read_json(f'data/animals/{name.split("/")[0]}.json')['visual_pose']['knee_y']*16)
             upper=Voxels(); lower=Voxels()
             upper.cells={p:c for p,c in vox.cells.items() if p[1]>=knee}
             lower.cells={p:c for p,c in vox.cells.items() if p[1]<knee}

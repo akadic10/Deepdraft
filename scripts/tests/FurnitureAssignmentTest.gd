@@ -1,7 +1,7 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const CAMP := "base:furniture:campfire"
-const CAMP_ITEM := "base:resources:furniture:campfire"
+const CAMP_ITEM := "base:item:campfire"
 
 func _run() -> void:
 	create_timer(60).timeout.connect(func(): push_error("Furniture assignment timed out"); quit(1))

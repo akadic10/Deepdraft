@@ -4,9 +4,9 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## Tekak brought a Log bed's logs to the bench one at a time). After the planned pickup the
 ## Worker takes the next ingredients the batch needs that lie near, up to the carrying
 ## limit, sets them down together and keeps the batch's last log in hand to work.
-const BED_RECIPE := "base:recipe:worker:log_bed"
-const BED_ITEM := "base:resources:furniture:log_bed"
-const HEARTH_RECIPE := "base:recipe:worker:hearth"
+const BED_RECIPE := "base:recipe:log_bed"
+const BED_ITEM := "base:item:log_bed"
+const HEARTH_RECIPE := "base:recipe:hearth"
 var deliveries := 0
 var most_carried := 0
 var _last_phase := -1
@@ -14,9 +14,9 @@ var _last_phase := -1
 func _run() -> void:
 	create_timer(170).timeout.connect(func(): push_error("Craft trip timed out"); quit(1))
 	await _setup_crafting_fixture()
-	# The log bed is the Carpenter's and the hearth the Stonemason's (doc 44): one dwarf takes each
+	# The log bed is a Worker's (doc 306) and the hearth the Stonemason's (doc 44): one dwarf takes each
 	# career in turn, at its own bench.
-	_carpenter_bench_at(Vector3i(46,20,40))
+	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(46,20,40),0)
 	var mason_bench := "base:furniture:mason_bench"
 	furniture._install(mason_bench,furniture.get_defs()[mason_bench],Vector3i(46,20,37),0)
 	# Two loose piles four blocks apart: all four logs in one trip.
@@ -39,7 +39,7 @@ func _run() -> void:
 	drops.spawn_drop(PINE,2,Vector3i(38,21,41))
 	_career("base:profession:stonemason")
 	await _craft(HEARTH_RECIPE)
-	_career("base:profession:carpenter")
+	_career("base:profession:worker")
 	_expect(deliveries==2 and most_carried==4 and _count(STONE)==0 and _count(PINE)==0,
 		"a hearth's six goods come in two trips: %d trips, %d carried at most" % [deliveries,most_carried])
 	# An extra that is gone when the Worker reaches it is skipped; the trip goes on.

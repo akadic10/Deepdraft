@@ -15,7 +15,7 @@ extends MarginContainer
 ##   Profession. Tastes (doc 41 "Tastes"): what they love, like and
 ##   dislike as tiles, "?" until found, and how their own bedroom feels to them.
 ## - Locate, and Follow as the main action.
-## Its own window, opened from the compact panel or Colony Dwarves' Details card.
+## Its own window, opened from the compact panel or Colony dwarves' Details card.
 ## Read-only: the portrait clones the dwarf's visual parts into its own viewport, never
 ## another live agent or a world camera.
 const Portrait = preload("res://scripts/ui/DwarfPortrait.gd")

@@ -1,7 +1,7 @@
 extends "res://scripts/tests/ObjectExplorerTest.gd"
 
-const TABLE := "base:furniture:log_table"
-const CHAIR := "base:furniture:log_chair"
+const TABLE := "base:furniture:dining_table"
+const CHAIR := "base:furniture:log_stool"
 var items
 var dock
 var catalog
@@ -276,7 +276,7 @@ func _place_at(cell: Vector3i) -> void:
 func _test_stable_browsing() -> void:
 	# The user's default view must not compact/re-sort while a hauler owns the
 	# last unit. Use the real reserve -> pickup -> ground-stockpile deposit flow.
-	var extras := ["bench", "crude_workbench", "wooden_torch", "campfire", "door", "log_bed"]
+	var extras := ["bench", "crude_workbench", "torch", "campfire", "door_2", "log_bed"]
 	for suffix in extras:
 		items.spawn_drop(furniture.get_defs()["base:furniture:" + suffix].item_key, 1, Vector3i(32,21,32))
 	catalog._all_toggle.button_pressed = false

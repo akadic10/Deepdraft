@@ -36,6 +36,18 @@ def separate_overlay(vox,head_faces):
     raise ValueError('overlay clearance did not converge')
 
 
+# Trade hats (doc 304). A hat is solid from the hat line up, so under it a hairstyle keeps only
+# what lies below that line, and what lies behind every hat's back (a bun) up to the crown.
+HAT_LINE=45
+HAT_BACK=-13
+HAT_CROWN=49
+
+
+def under_hat(cells):
+    """A hairstyle's cells as they are under a hat."""
+    return {p:c for p,c in cells.items() if p[1]<HAT_LINE or (p[2]<HAT_BACK and p[1]<HAT_CROWN)}
+
+
 def assets(only=None):
     profile=read_json('tools/art_data/voxel_dwarves.json')
     palette={key:linear(value) for key,value in profile['palette'].items()}
@@ -55,7 +67,7 @@ def assets(only=None):
     body,hair_m,hair_f,beards=set(built['body/body_base'].cells),union('hair/hair_m_'),union('hair/hair_f_'),union('beards/')
     for name,vox in built.items():
         path='assets/models/characters/dwarves/'+name+'.glb'
-        if only and only not in path: continue
+        if only and only not in path and only not in path.replace('/hair/','/hair_hatted/'): continue
         new=name in art
         if new and name.startswith(('hair/','beards/','eyebrows/')):
             # Any pairing must stay free of shared cells: wearables give way to the
@@ -66,9 +78,13 @@ def assets(only=None):
             if name.startswith('eyebrows/brows_f_'): clip|=hair_f
             vox.cells={p:c for p,c in vox.cells.items() if p not in clip}
         if name.startswith(('hair/','beards/','eyebrows/','scars/')): separate_overlay(vox,head_faces)
-        rigid=new and name.startswith(('hair/','beards/','eyebrows/','scars/','body/eyes'))
+        rigid=new and name.startswith(('hair/','beards/','eyebrows/','scars/','body/eyes','hats/'))
         part=Part(vox,occluders=head_common if rigid else None,occlusion=hearthblock.occlusion(name) if new else None)
         parts={'main':part}
+        if name=='hats/hat_miner':
+            # The candle's flame is a mesh of its own, lit and put out by DwarfHatLight; like every
+            # flame it casts no shadow.
+            parts={'hat':part,'flame':Part(hearthblock.model('hats/hat_miner_flame'),shadow=False)}
         if new and name=='body/hand':
             # The proposal's tunic cuff is its own mesh: DwarfAgent tints the mitten
             # with the dwarf's skin and leaves the cuff's baked cloth colour alone.
@@ -77,3 +93,10 @@ def assets(only=None):
         # the portrait owner suppresses all casting, including this proxy.
         yield path,parts,dict(part=name,baked_proportions=True,portrait_only=name.startswith('scars/'),
                               **({'source':hearthblock.DATA} if new else {}))
+        if name.startswith('hair/'):
+            # The same style as it lies under a hat, beside the full one (DwarfAssets.hair_under_hat).
+            cut=Voxels(); cut.cells=under_hat(vox.cells)
+            hatted=path.replace('/hair/','/hair_hatted/')
+            if cut.cells and not (only and only not in hatted):
+                yield hatted,{'main':Part(cut,occluders=head_common,occlusion=hearthblock.occlusion(name))},dict(
+                    part=name.replace('hair/','hair_hatted/'),baked_proportions=True,portrait_only=False,source=hearthblock.DATA)

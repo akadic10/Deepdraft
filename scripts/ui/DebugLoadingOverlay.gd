@@ -73,7 +73,7 @@ func _build_ui() -> void:
 	title_margin.add_child(header)
 
 	var title := Label.new()
-	title.text = "World Build"
+	title.text = "World build"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	UITheme.apply_heading(title)

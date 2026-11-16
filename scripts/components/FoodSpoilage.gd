@@ -7,7 +7,7 @@ extends RefCounted
 ## - speed = rate_per_10c ^ ((T - reference_c) / 10) at the stack's temperature T now (doc 34);
 ## - frozen_speed instead under a roof at temperature.json's frozen_at_c or colder;
 ## - open_sky_speed more under the open sky, wet_speed in rain, storm or snow;
-## - spoil += hours x speed / (24 x keeps_days), keeps_days being the food's (resources.json).
+## - spoil += hours x speed / (24 x keeps_days), keeps_days being the food's (items.json).
 ## A stored stack spoils at its cell (on storage furniture, the floor cell under its place), a loose
 ## one where it lies, a carried one where its carrier stands; fruit on the bush never spoils. At 1
 ## the units nobody has claimed rot and go. Units claimed for a meal or a haul, and those in hand,

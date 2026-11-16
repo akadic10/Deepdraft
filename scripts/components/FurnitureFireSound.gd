@@ -2,7 +2,9 @@ extends Node3D
 
 ## One bounded pool per world, fed only by visible installed fires. Uses Work
 ## volume/mute and camera-focus attenuation; no per-furniture audio allocation.
-## A cold nightly fire (doc 279) is silent.
+## A cold nightly fire (doc 279) is silent, and so is a basic smelter with no coals showing (doc 300).
+## A fire's kind is its piece's `fire_sound`, one of the kinds `fire_ambience` in work_feedback.json
+## gives a `stream` and levels for (campfire, torch, smelter); a kind it does not hold is silent.
 const Fires = preload("res://scripts/components/FurnitureFires.gd")
 var furniture: Node
 var voices: Array[Dictionary] = []
@@ -13,8 +15,11 @@ var _until_scan := 0.0
 func _ready() -> void:
 	process_priority = 55
 	_settings = WorkFeedback.config.fire_ambience
-	for kind: String in ["campfire", "torch"]:
-		var stream := (load(String(_settings[kind].stream)) as AudioStreamWAV).duplicate() as AudioStreamWAV
+	for kind: String in _settings:
+		if not _settings[kind] is Dictionary or not (_settings[kind] as Dictionary).has("stream"): continue   # the pool's own settings
+		var recording := load(String(_settings[kind].stream)) as AudioStreamWAV
+		if recording == null: continue   # reported by the loader
+		var stream := recording.duplicate() as AudioStreamWAV
 		stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		stream.loop_begin = 0
 		stream.loop_end = roundi(stream.get_length()*stream.mix_rate)
@@ -62,7 +67,7 @@ func _scan(context: Dictionary) -> void:
 	var candidates: Array[Dictionary] = []
 	for piece in furniture.get_installed_pieces():
 		var kind := String(piece.def.get("fire_sound", ""))
-		if kind.is_empty() or not Fires.burning(piece) or not _audible_source(piece.node): continue
+		if not _streams.has(kind) or not Fires.burning(piece) or not _audible_source(piece.node): continue
 		var point: Vector3 = piece.node.global_position
 		var profile: Dictionary = _settings[kind]
 		var gain := WorkFeedback.spatial_gain(point, context.focus, context.zoom, profile)

@@ -7,6 +7,8 @@ extends RefCounted
 ## leaves them there, the bench goes to the next order in turn, and when this order's
 ## turn comes again a Worker fetches only what is missing at that bench (doc 44,
 ## "Interruption").
+const SmeltPose = preload("res://scripts/components/DwarfSmeltPose.gd")
+
 var manager: Node
 var recipe: Dictionary
 var id := 0
@@ -31,6 +33,7 @@ var carried: Array[Node3D] = [] # Picked up on this trip, in the order the batch
 var _preferred_fetch: Dictionary = {}
 var _delivery_stand := Vector3i(-1,-1,-1)
 var _skipped: Dictionary = {} # Cells of extra ingredients this Worker could not reach.
+var _choice: Array[String] = [] # The recipe's `one_of` goods this batch takes: its fuel, its haft.
 
 func scheduling_signature() -> Array:
 	return [manager.selection_revision, StockpileManager.hauling_revision,
@@ -62,14 +65,14 @@ func nearest_stand_target(from: Vector3i) -> Vector3i:
 		if bench_id >= 0:
 			var bench = manager.furniture.get_installed(bench_id)
 			if bench == null or not manager.bench_valid(bench_id,id): return Vector3i(-1,-1,-1)
-			work_cell = bench.nearest_stand_target(from)
+			work_cell = bench.nearest_stand_target(from, is_batch())
 		elif picked_up and String(recipe.workshop).is_empty():
 			# A bootstrap recipe has no fixed workshop. Work where the timber
 			# was collected, not where the worker happened to accept the job.
 			work_cell = from if NavGrid.is_walkable(from) else Vector3i(-1,-1,-1)
 		return work_cell
 	if String(recipe.workshop).is_empty(): return from
-	return manager.bench_target(String(recipe.workshop), from).get("stand", Vector3i(-1,-1,-1))
+	return manager.bench_target(String(recipe.workshop), from, is_batch()).get("stand", Vector3i(-1,-1,-1))
 
 func display_name() -> String:
 	if bench_id >= 0:
@@ -96,7 +99,7 @@ func reserve_fetch(dwarf_id: int, from: Vector3i) -> Dictionary:
 			if plan.material.get("node") == staged_items.back(): item = _lift_last_staged(dwarf_id)
 		elif String(plan.material.key) in next_ingredient_keys(): item = manager.reserve_material_quote(plan.material,dwarf_id)
 		if item == null: return {}
-		if timber_key.is_empty() and staged_items.size() >= manager.additional_ingredient_keys(recipe).size():
+		if timber_key.is_empty() and staged_items.size() >= fixed_keys().size():
 			timber_key = manager.items.item_key_of(item)
 		worker_id = dwarf_id
 		bench_id = int(plan.bench_id)
@@ -109,12 +112,12 @@ func reserve_fetch(dwarf_id: int, from: Vector3i) -> Dictionary:
 			"heavy":String(manager.items.get_item_def(plan.material.key).get("weight_class","light"))=="heavy"}
 	if holds_goods():
 		if not manager.bench_valid(bench_id,id): return {}
-		work_cell = manager.furniture.get_installed(bench_id).nearest_stand_target(from)
+		work_cell = manager.furniture.get_installed(bench_id).nearest_stand_target(from, is_batch())
 		manager.bench_claims[bench_id] = id
 	else:
 		work_cell = from
 		if not String(recipe.workshop).is_empty():
-			var bench: Dictionary = manager.bench_target(String(recipe.workshop), from)
+			var bench: Dictionary = manager.bench_target(String(recipe.workshop), from, is_batch())
 			if bench.is_empty(): return {}
 			bench_id = int(bench.id)
 			work_cell = bench.stand
@@ -138,12 +141,12 @@ func _reserve_next(from: Vector3i) -> Dictionary:
 		if bench_id>=0 and not manager.bench_valid(bench_id,id): return {}
 		item = manager.reserve_material_quote(plan.material,worker_id)
 		if item==null: return {}
-		if staged_items.size()>=manager.additional_ingredient_keys(recipe).size() and timber_key.is_empty(): timber_key = manager.items.item_key_of(item)
+		if staged_items.size()>=fixed_keys().size() and timber_key.is_empty(): timber_key = manager.items.item_key_of(item)
 		_delivery_stand = plan.delivery_stand
 		work_cell = _delivery_stand
 		picked_up = false
 		return {"item":item,"pickup_stand":plan.pickup_stand,"heavy":String(manager.items.get_item_def(plan.material.key).get("weight_class","light"))=="heavy"}
-	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
+	var extras: Array[String] = fixed_keys()
 	if staged_items.size() < extras.size():
 		var keys: Array[String] = [extras[staged_items.size()]]
 		item = manager.reserve_material(keys, from, worker_id)
@@ -161,9 +164,23 @@ func _reserve_next(from: Vector3i) -> Dictionary:
 	manager.wake()
 	return {"item":item, "heavy":String(manager.items.get_item_def(manager.items.item_key_of(item)).get("weight_class","light")) == "heavy"}
 
+## The batch's fixed goods in the order it takes them: the recipe's own, then the choice it made
+## of its `one_of` goods (doc 306: a coal or two logs under the copper, a tool's haft).
+func fixed_keys() -> Array[String]:
+	var keys: Array[String] = manager.additional_ingredient_keys(recipe)
+	keys.append_array(_choice)
+	return keys
+
+## Chooses the batch's `one_of` goods by what the colony has, while the order waits. From the moment
+## a Worker takes the order or goods lie beside its bench the choice is kept, so a batch never
+## changes its fuel half way. [] when no choice can be supplied.
+func settle_choice(totals: Dictionary) -> Array[String]:
+	if worker_id < 0 and not holds_goods(): _choice = manager.choice_keys(recipe, totals)
+	return _choice
+
 ## Every unit the batch takes: its fixed ingredients, then its logs.
 func _total() -> int:
-	return manager.additional_ingredient_keys(recipe).size() + int(recipe.ingredient_count)
+	return fixed_keys().size() + int(recipe.ingredient_count)
 
 ## Every ingredient lies beside the bench, an interrupted Worker's last log
 ## included: the next Worker lifts that log to work instead of fetching another.
@@ -194,7 +211,7 @@ func needs_trip_plan() -> bool:
 	return worker_id>=0 and not is_instance_valid(item) and _preferred_fetch.is_empty() and not _all_staged()
 
 func next_ingredient_keys() -> Array[String]:
-	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
+	var extras: Array[String] = fixed_keys()
 	if staged_items.size()<extras.size(): return [extras[staged_items.size()]]
 	if not timber_key.is_empty(): return [timber_key]
 	return manager.batch_ingredient_keys(recipe,manager.stock_snapshot(),allowed_ingredients,id)
@@ -205,7 +222,7 @@ func needs_ingredient_delivery() -> bool:
 	return staged_items.size() < _total() - 1 or carried.size() > 1
 
 func pending_timber_count() -> int:
-	var logs := maxi(0,_gathered().size()-manager.additional_ingredient_keys(recipe).size())
+	var logs := maxi(0,_gathered().size()-fixed_keys().size())
 	return maxi(0,int(recipe.ingredient_count)-logs)
 
 ## Staged, carried and reserved ingredients, in the order the batch needs them.
@@ -218,7 +235,7 @@ func _gathered() -> Array[Node3D]:
 
 ## The keys that can fill the batch's unit at this index.
 func _keys_at(index: int) -> Array[String]:
-	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
+	var extras: Array[String] = fixed_keys()
 	if index < extras.size(): return [extras[index]]
 	if not timber_key.is_empty(): return [timber_key]
 	return manager.batch_ingredient_keys(recipe,manager.stock_snapshot(),allowed_ingredients,id)
@@ -278,7 +295,7 @@ func _load_with(key: String) -> int:
 ## order's own goods count toward what it still needs.
 func held_counts() -> Dictionary:
 	var counts := {"extras":{}, "timber":{}}
-	var extras: int = manager.additional_ingredient_keys(recipe).size()
+	var extras: int = fixed_keys().size()
 	for index in range(staged_items.size()):
 		if not is_instance_valid(staged_items[index]): continue
 		var group: Dictionary = counts.extras if index < extras else counts.timber
@@ -293,7 +310,7 @@ func stage_ingredient(dwarf_id: int) -> bool:
 	if not staged_valid() or not NavGrid.is_walkable(work_cell): return false
 	if not String(recipe.workshop).is_empty() and not manager.bench_valid(bench_id,id): return false
 	if not needs_ingredient_delivery(): return false
-	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
+	var extras: Array[String] = fixed_keys()
 	var keep: Node3D = carried.back() if staged_items.size() + carried.size() >= _total() else null
 	var put_down: Array[Node3D] = carried.filter(func(node: Node3D) -> bool: return node != keep)
 	for index in range(put_down.size()):
@@ -321,8 +338,8 @@ func staged_valid() -> bool:
 		if manager.items.item_floor_cell(staged) != staged_cells[index]: return false
 	return true
 
-## A crate of fish may hold several. Only one unit leaves it at pickup, as a cutting
-## leaves its crate (ShrubPlantingComponent); a single log is taken whole.
+## A crate of fish may hold several. Only one unit leaves it at pickup; a single log is
+## taken whole.
 func take_planting_item(node: Node3D, dwarf_id: int) -> Node3D:
 	if manager.items.quantity_of(node) <= 1:
 		return node if not manager.items.take(node).is_empty() else null
@@ -385,6 +402,11 @@ func restore_goods(goods: Array, saved_bench: int) -> void:
 	var bench = manager.furniture.get_installed(saved_bench)
 	if bench == null or bench.furniture_key != String(recipe.workshop) or not manager.bench_usable(saved_bench): return
 	bench_id = saved_bench
+	# The fuel or the haft already beside the bench says which choice the batch had made.
+	var staged: Array[String] = []
+	for entry in goods:
+		if entry is Dictionary: staged.append(String(entry.get("item","")))
+	_choice = manager.choice_matching(recipe, staged, manager.stock_snapshot())
 	for entry in goods:
 		if not entry is Dictionary: break
 		var cell: Vector3i = SaveManager.unpack_v3i(entry.get("cell",[]))
@@ -397,7 +419,7 @@ func restore_goods(goods: Array, saved_bench: int) -> void:
 
 ## Claims a loose good as the next staged ingredient if it is the one the batch needs.
 func _claim(node: Node3D) -> bool:
-	var extras: Array[String] = manager.additional_ingredient_keys(recipe)
+	var extras: Array[String] = fixed_keys()
 	if _all_staged() or manager.items.quantity_of(node) != 1: return false
 	var key: String = manager.items.item_key_of(node)
 	if staged_items.size() < extras.size():
@@ -421,7 +443,7 @@ func _beside_bench(cell: Vector3i) -> bool:
 
 ## The batch's first log gathered keeps its species; with none the next log chooses it.
 func _settle_timber() -> void:
-	var extras: int = manager.additional_ingredient_keys(recipe).size()
+	var extras: int = fixed_keys().size()
 	var goods := _gathered()
 	timber_key = manager.items.item_key_of(goods[extras]) if goods.size() > extras and is_instance_valid(goods[extras]) else ""
 
@@ -450,15 +472,60 @@ func advance_craft(delta: float) -> float:
 	return remaining_work()
 
 ## How a Worker works at its bench (the bench's `crafting_motion`): "hew" with the axe at the
-## workbench, "hands" hanging fish at the drying rack (doc 289).
+## workbench, "hands" hanging fish at the drying rack (doc 289). A batch takes the bench's
+## `batch_crafting_motion` if it has one: the basic smelter's is "charge", each lump tipped into the
+## pot by hand and the fire blown on, never hammered (owner, 2026-11-09; doc 300), while its
+## tools keep the Blacksmith's maul.
 func work_motion() -> String:
 	var bench = manager.furniture.get_installed(bench_id) if bench_id >= 0 else null
-	return String(bench.def.get("crafting_motion", "hew")) if bench != null else "hew"
+	if bench == null: return "hew"
+	if is_batch() and bench.def.has("batch_crafting_motion"): return String(bench.def.batch_crafting_motion)
+	return String(bench.def.get("crafting_motion", "hew"))
+
+## A recipe whose batch stays on its workshop (`batch_hours`: fish drying, copper melting).
+func is_batch() -> bool:
+	return recipe.has("batch_hours")
+
+## Where a trip's goods are set down: before the Worker, on or at its bench; at the Worker's cell
+## when it stands back to charge its workshop, as the basic smelter's boulder is nothing to set a
+## load on (doc 300).
+func placement_contact(from: Vector3) -> Vector3:
+	var agent: Node3D = TaskManager.get_agent(worker_id)
+	if agent == null or work_motion() == "charge": return from
+	return agent.to_global(Vector3(0,0,1.25))
+
+## How much of the work is done, 0 to 1.
+func work_share() -> float:
+	return progress/maxf(float(recipe.work_seconds),.001)
+
+## Whether the batch shows on its workshop yet. Fish hang from the first moment; the basic smelter's
+## coals glow and its copper melts once the whole charge is in the pot (doc 300).
+func batch_showing() -> bool:
+	return work_motion() != "charge" or work_share() >= SmeltPose.charging_share(_total())
+
+## The goods a charge is made of, the one in hand first, then those set down beside the workshop.
+func charge_goods() -> Array:
+	var goods: Array = []
+	if is_instance_valid(item): goods.append(item)
+	for staged: Node3D in staged_items:
+		if is_instance_valid(staged): goods.append(staged)
+	return goods
+
+## The charge's goods that feed the fire under the pot instead of going into it: its logs (doc 306).
+## A coal goes into the pot with the ore.
+func fire_goods() -> Array:
+	return charge_goods().filter(func(node: Node3D) -> bool:
+		return not CraftMaterials.from_ingredient(manager.items.item_key_of(node)).is_empty())
+
+## Where the batch's fire is blown on: the workshop's fire hole, or its work surface if it has none.
+func fire_hole() -> Vector3:
+	var bench = manager.furniture.get_installed(bench_id) if bench_id >= 0 else null
+	return bench.fire_hole() if bench != null and bench.def.has("batch_fire_hole") else work_surface()
 
 ## Where a worker standing at `feet` will work, before it gets there.
 func work_surface_from(feet: Vector3) -> Vector3:
 	var bench = manager.furniture.get_installed(bench_id) if bench_id >= 0 else null
-	return manager.bench_surface(bench,feet) if bench != null else feet
+	return manager.bench_surface(bench,feet,is_batch()) if bench != null else feet
 
 func work_surface() -> Vector3:
 	var agent: Node3D = TaskManager.get_agent(worker_id)
@@ -466,7 +533,7 @@ func work_surface() -> Vector3:
 		var bench = manager.furniture.get_installed(bench_id)
 		if bench != null:
 			var from: Vector3 = agent.global_position if agent != null else bench.node.global_position+Vector3.FORWARD
-			return manager.bench_surface(bench,from)
+			return manager.bench_surface(bench,from,is_batch())
 	return agent.to_global(Vector3(0,0,1.35)) if agent != null else Vector3(work_cell)+Vector3(.5,1,.5)
 
 func capture_item_properties(cargo: Node3D) -> void:
@@ -474,6 +541,11 @@ func capture_item_properties(cargo: Node3D) -> void:
 	if not recipe.has("material_group"): return
 	output_material_id = CraftMaterials.of_item(cargo)
 	if output_material_id.is_empty(): output_material_id = CraftMaterials.from_ingredient(manager.items.item_key_of(cargo))
+	# A copper tool's own good is its bar: its wood is its haft's, the log set down beside the bench (doc 306).
+	for staged: Node3D in staged_items:
+		if not output_material_id.is_empty() or not is_instance_valid(staged): continue
+		output_material_id = CraftMaterials.of_item(staged)
+		if output_material_id.is_empty(): output_material_id = CraftMaterials.from_ingredient(manager.items.item_key_of(staged))
 
 func complete_build(dwarf_id: int) -> void:
 	# Called synchronously after the executor validates the whole batch and
@@ -485,7 +557,7 @@ func complete_build(dwarf_id: int) -> void:
 	staged_cells.clear()
 	# Fish hung on the rack dry there (doc 292), copper ore melts in the smelter (doc 297): the
 	# batch stays on its workshop, which gives the output when its career takes it down.
-	if recipe.has("batch_hours"): manager.hang_batch(self)
+	if is_batch(): manager.hang_batch(self)
 	else: manager.items.spawn_drop(String(recipe.output), int(recipe.output_count), work_cell+Vector3i.UP, output_material_id)
 	# A crafting career earns one experience a batch (doc 293: the Carpenter and the Stonemason).
 	var agent = TaskManager.get_agent(dwarf_id)

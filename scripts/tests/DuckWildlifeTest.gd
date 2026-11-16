@@ -41,7 +41,7 @@ func _run() -> void:
 	var bounds: AABB = wildlife.get_explorer_bounds(duck)
 	_expect(bounds.size.y<1.3 and bounds.size.x<1.5,"compact voxel duck fits amphibious clearance")
 	_expect(wildlife.pick_explorer_object(bounds.get_center()+Vector3.UP*10,bounds.get_center()-Vector3.UP*2).get("id")==duck,"duck is selectable through actual model geometry")
-	_expect(wildlife.get_explorer_data(duck).title=="Wild Duck","duck has shared wildlife inspector")
+	_expect(wildlife.get_explorer_data(duck).title=="Wild duck","duck has shared wildlife inspector")
 	var start: Dictionary = duck.serialize_state()
 	var validator = load("res://scripts/components/SaveSnapshotValidator.gd")
 	var catalogs: Dictionary=root.get_node("SaveManager")._capture_catalogs()

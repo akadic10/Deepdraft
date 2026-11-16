@@ -95,7 +95,7 @@
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "log_bench"
+          "model": "plank_bench"
         }
       ]
     },
@@ -139,6 +139,14 @@
         }
       ]
     },
+    "anvil_stone": {
+      "main": [
+        {
+          "op": "hearthblock_vox",
+          "model": "anvil_stone"
+        }
+      ]
+    },
     "stone_stool": {
       "main": [
         {
@@ -151,7 +159,7 @@
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "tool_rack"
+          "model": "plank_tool_rack"
         }
       ]
     },
@@ -159,7 +167,7 @@
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "raw_materials_crate"
+          "model": "plank_crate"
         }
       ]
     },
@@ -167,7 +175,7 @@
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "finished_goods_pallet"
+          "model": "plank_pallet"
         }
       ]
     },
@@ -175,7 +183,7 @@
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "food_shelf"
+          "model": "plank_food_shelf"
         }
       ]
     },
@@ -183,7 +191,7 @@
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "game_table"
+          "model": "plank_game_table"
         }
       ]
     },
@@ -243,23 +251,23 @@
         }
       ]
     },
-    "log_chair": {
+    "log_stool": {
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "stool"
+          "model": "log_stool"
         }
       ]
     },
-    "log_table": {
+    "dining_table": {
       "main": [
         {
           "op": "hearthblock_vox",
-          "model": "split_slab_table"
+          "model": "plank_table"
         }
       ]
     },
-    "door": {
+    "door_2": {
       "leaf_left": [
         {
           "op": "hearthblock_vox",
@@ -267,7 +275,7 @@
         }
       ]
     },
-    "log_door_3": {
+    "door_3": {
       "leaf_left": [
         {
           "op": "hearthblock_vox",
@@ -275,7 +283,7 @@
         }
       ]
     },
-    "log_door_4": {
+    "door_4": {
       "leaf_left": [
         {
           "op": "hearthblock_vox",
@@ -305,7 +313,7 @@
         }
       ]
     },
-    "wooden_torch": {
+    "torch": {
       "torch_body": [
         {
           "op": "hearthblock_vox",
@@ -438,6 +446,14 @@
         {
           "op": "hearthblock_vox",
           "model": "basic_smelter_charge"
+        }
+      ]
+    },
+    "parts/basic_smelter_bar": {
+      "bar": [
+        {
+          "op": "hearthblock_vox",
+          "model": "basic_smelter_bar"
         }
       ]
     }

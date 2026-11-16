@@ -103,7 +103,7 @@ func _run() -> void:
 	rig.reset_part_offsets()
 
 	# Grill carry: the fist and the stick stand clear of the body and head.
-	var perch: Dictionary = root.get_node("DwarfAssets").grill_sticks["base:resources:fish:perch"]
+	var perch: Dictionary = root.get_node("DwarfAssets").grill_sticks["base:item:perch"]
 	rig.grill_pose.apply("carry",perch.raw,Vector3.ZERO)
 	var grip: Vector3 = rig.hand_r.transform*rig.grill_pose.PALM
 	_expect(absf(grip.x) > 1.0,"the carried stick stands beside the head, not inside it")

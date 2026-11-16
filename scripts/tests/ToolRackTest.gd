@@ -15,16 +15,17 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - a save keeps its tools, its goods and its priority, and so does a move;
 ## - with its wall mined it falls, its tools dropped in front of it.
 const RACK := "base:furniture:tool_rack"
-const RACK_ITEM := "base:resources:furniture:tool_rack"
-const RACK_RECIPE := "base:recipe:worker:tool_rack"
+const RACK_ITEM := "base:item:tool_rack"
+const RACK_RECIPE := "base:recipe:tool_rack"
+const PINE_PLANK := "base:item:pine_plank"   # the rack is a plank piece since doc 308
 const CARPENTER := "base:profession:carpenter"
 const STONEMASON := "base:profession:stonemason"
 const CARPENTER_BENCH := "base:furniture:carpenter_bench"
-const HOE := "base:resources:tools:stone_hoe"
-const HAMMER := "base:resources:tools:stone_hammer"
-const KIT := "base:resources:tools:carpentry_kit"
-const MASONRY := "base:resources:tools:masonry_kit"
-const RANGER := "base:resources:tools:ranger_kit"
+const HOE := "base:item:copper_hoe"
+const HAMMER := "base:item:stone_hammer"
+const KIT := "base:item:copper_saw"
+const MASONRY := "base:item:copper_chisel"
+const RANGER := "base:item:ranger_kit"
 const ORIGIN := Vector3i(46, 20, 46)   # its wall at z 45
 const MOVED := Vector3i(50, 20, 46)    # further along the wall
 var storage_ui
@@ -35,20 +36,21 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	var recipe: Dictionary = crafting.recipes[RACK_RECIPE]
 	_expect(String(recipe.get("section", "")) == "carpenter" and recipe.workshop == CARPENTER_BENCH and String(recipe.category) == "Storage"
-		and int(recipe.ingredient_count) == 1 and PINE in crafting.ingredient_keys(recipe), "the tool rack: one log at the carpenter's bench, on the Carpenter's page")
+		and int(recipe.ingredient_count) == 2 and PINE_PLANK in crafting.ingredient_keys(recipe) and not PINE in crafting.ingredient_keys(recipe),
+		"the tool rack: two planks (doc 308), never logs, at the carpenter's bench, on the Carpenter's page")
 	var placed: Array = root.get_node("UIRegistry").get_place_catalog().get("items", []).filter(func(entry): return entry.key == RACK)
 	_expect(placed.size() == 1 and placed[0].category == "storage", "Place files it under Storage")
 	# A Carpenter makes it at their bench.
 	worker.profession = CARPENTER
 	tasks.work_policy_changed()
-	drops.spawn_drop(PINE, 1, Vector3i(42, 21, 40))
+	drops.spawn_drop(PINE_PLANK, 2, Vector3i(42, 21, 40))
 	var id: int = crafting.queue_order(RACK_RECIPE, 1)
 	for i in range(20): await _tick()
 	var status: String = crafting.status(crafting.get_order(id), inventory_script.snapshot(drops, furniture))
 	_expect(status == "Needs a carpenter's bench", "without a carpenter's bench the rack waits for one: %s" % status)
 	furniture._install(CARPENTER_BENCH, furniture.get_defs()[CARPENTER_BENCH], Vector3i(44, 20, 41), 0, "base:material:pine")
-	_expect(await _completed(id) and _count(RACK_ITEM) == 1 and _count(PINE) == 0 and int(worker.profession_experience.get(CARPENTER, 0)) == 1,
-		"one log makes one packed tool rack, and one experience")
+	_expect(await _completed(id) and _count(RACK_ITEM) == 1 and _count(PINE_PLANK) == 0 and int(worker.profession_experience.get(CARPENTER, 0)) == 1,
+		"two planks make one packed tool rack, and one experience")
 	# With no rack yet, a hammer goes to ground storage.
 	drops.restore_loose_item(HAMMER, Vector3(41.5, 21, 40.5), 0, 1)
 	_expect(await _until_true(func(): return int(zone.contents().get(HAMMER, 0)) == 1), "with no rack, the hammer goes to ground storage")
@@ -81,18 +83,18 @@ func _run() -> void:
 	_expect(await _until_true(func(): return int(rack.contents().get(HAMMER, 0)) == 1 and not zone.contents().has(HAMMER)),
 		"the hammer moves up from ground storage to the rack")
 	for key: String in [HOE, MASONRY]: drops.restore_loose_item(key, Vector3(41.5, 21, 40.5), 0, 1)
-	_expect(await _until_true(func(): return rack.stored_count() == 3), "a hoe and a masonry kit go to the rack ahead of ground storage")
+	_expect(await _until_true(func(): return rack.stored_count() == 3), "a hoe and a copper chisel go to the rack ahead of ground storage")
 	drops.restore_loose_item(KIT, Vector3(41.5, 21, 40.5), 0, 1)
 	drops.restore_loose_item(STONE, Vector3(42.5, 21, 40.5), 0, 1)
-	_expect(await _until_true(func(): return zone.contents().has(KIT) and zone.contents().has(STONE)), "with the rack full, the carpentry kit and the stone go to the ground")
+	_expect(await _until_true(func(): return zone.contents().has(KIT) and zone.contents().has(STONE)), "with the rack full, the copper saw and the stone go to the ground")
 	var allowed: Array = rack.allowed_keys()
-	_expect(rack.stored_count() == 3 and allowed.size() == 5 and HOE in allowed and KIT in allowed and not STONE in allowed and not rack.accepts_key(STONE),
+	_expect(rack.stored_count() == 3 and allowed.size() == 6 and HOE in allowed and KIT in allowed and not STONE in allowed and not rack.accepts_key(STONE),
 		"it keeps only tools: %s" % [allowed])
 	var hung: bool = rack.stored_entries().keys().all(func(slot): return _hangs(rack, slot))
 	_expect(hung, "each tool hangs upright from its hook, its back to the rack")
 	await _windows(piece, rack)
 	# A promotion takes its kit off the rack.
-	_expect(worker.change_profession(STONEMASON), "a Stonemason's promotion finds the masonry kit on the rack")
+	_expect(worker.change_profession(STONEMASON), "a Stonemason's promotion finds the copper chisel on the rack")
 	_expect(await _until_true(func(): return worker.profession == STONEMASON), "and the dwarf collects it")
 	_expect(not rack.contents().has(MASONRY) and worker._equipment.tool_key() == MASONRY, "the kit leaves the rack with them")
 	# Marked for uninstall, it takes nothing more.

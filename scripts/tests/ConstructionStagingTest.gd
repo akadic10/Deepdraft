@@ -110,7 +110,7 @@ func _staged_resume() -> void:
 	clock_node.set_paused(false)
 	worker._food.value = .2
 	var meal_found := false
-	drops.spawn_drop("base:resources:flora:apple",1,worker.current_cell()+Vector3i.UP)
+	drops.spawn_drop("base:item:apple",1,worker.current_cell()+Vector3i.UP)
 	var apple: Node3D = drops._loose.keys().back()
 	for i in 100:
 		meal_found = worker._food.begin_if_needed()

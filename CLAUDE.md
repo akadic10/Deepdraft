@@ -53,7 +53,7 @@ changelog: record finished work as described under "Recording Changes".
 | File | Read before you… |
 |---|---|
 | [`41_dwarf_agents.md`](docs/40_economy_colony/41_dwarf_agents.md) | Work on dwarf stats, needs, state machine, or skill system. |
-| [`41b_dwarf_appearance_glb.md`](docs/40_economy_colony/41b_dwarf_appearance_glb.md) | Change how dwarves look: their appearance parts and GLBs, colours, portraits, the appearance registry, or the felling axe and mining pick models. |
+| [`41b_dwarf_appearance_glb.md`](docs/40_economy_colony/41b_dwarf_appearance_glb.md) | Change how dwarves look: their appearance parts and GLBs, colours, portraits, the appearance registry, the trade hats and the Miner's candle, or the felling axe and mining pick models. |
 | [`42_farming_brewing.md`](docs/40_economy_colony/42_farming_brewing.md) | Add crops, recipes, farm logic or plant visual meshes, or work on fishing or food spoilage. |
 | [`43_mining_materials.md`](docs/40_economy_colony/43_mining_materials.md) | Add block types, change noise generation, or touch collapse logic. |
 | [`44_crafting_workshops.md`](docs/40_economy_colony/44_crafting_workshops.md) | Work on the Smelter or Forge workshops, the Blacksmith profession, metalworking recipes, or ingot stockpile logic. |
@@ -149,6 +149,22 @@ These come from the owner and override older guidance in milestone docs.
 - **Saves: no backward compatibility during development.** Do not add legacy definitions,
   migrations or compatibility branches just to keep old development saves loading, unless
   the owner asks. Keep current-version save and load working.
+- **Names.** Follow these when adding or renaming content:
+  - An id names a thing by its use, not its make or today's look: `base:furniture:dining_table`,
+    `torch`. Two pieces of one use differ by make (`log_stool`, `stone_stool`), sizes by a
+    number (`door_2`).
+  - An id carries no category: `base:item:<name>`, `base:furniture:<name>`,
+    `base:recipe:<name>`. What a thing belongs to goes in its fields and tags. Blocks alone keep
+    a kind (`base:terrain:rock:rock01`).
+  - A file is named for what it holds, and a piece's file, model and pictures carry the last
+    part of its id.
+  - Data files sit one folder deep, `data/<folder>/<file>.json`. The folder says what its
+    files are about (`data/items/`, `data/recipes/`, `data/tasks/`); no folder groups other
+    folders.
+  - Shown names are sentence case ("Tool rack", "Storage zone 3"), in data and in code, and
+    one thing has one name wherever it is shown.
+  - The rules are in [13](docs/10_core_foundation/13_architecture.md), "Naming ids and files",
+    and [23](docs/20_player_interface/23_user_interface.md), "Names are sentence case".
 - **Gems: no Jeweller.** There is no Jeweller profession or workshop and no
   cutting/polishing stage. Gem ids keep their `_raw` suffix; display names leave out "Raw".
 - **Metalwork: Blacksmith only.** There is no Weaponsmith or Armorsmith. The Blacksmith
@@ -164,10 +180,15 @@ These come from the owner and override older guidance in milestone docs.
     It isolates the player profile (per-test `XDG_*` folders), runs tests in parallel and
     cleans `tmp/`. Use `--area` or `--tests` while working, and the gate (no arguments) before
     handing over. After adding a WAV, PNG or GLB, run `python3 tools/import_assets.py` first.
+  - Run a script that has to draw (menu pictures, galleries, rendered captures) through
+    `python3 tools/run_offscreen.py`, not by launching Godot yourself. `--headless` draws
+    nothing; the tool draws on a hidden screen in an isolated profile, so no window opens on
+    the owner's desktop.
   - The gate and `--all` runs also run `tools/lint_project.py`, which fails on new
     violations of the mechanical code rules (private access, JSON outside its owner, DEV
     tools without the switch, garbled text, unused data, legacy code, world-size literals,
-    growing an over-long file, text sizes typed as numbers). Fix the code rather than the baseline. After fixing known
+    growing an over-long file, text sizes typed as numbers, names that break the naming rules).
+    Fix the code rather than the baseline. After fixing known
     violations, record that with `python3 tools/lint_project.py --update-baseline`, which only
     lowers counts. `--reset-baseline` is for the owner to approve.
   - Add a focused regression test with each real bug fix.
@@ -183,7 +204,7 @@ These come from the owner and override older guidance in milestone docs.
   - **Asking.** At the start of a session, if the date below is 7 or more days old and the
     changelog has entries since the log's last check, ask the owner once whether to run one.
     Then set the date to today, whatever the answer.
-  - **Last asked:** 2026-11-09
+  - **Last asked:** 2026-11-16
 
 ---
 
@@ -266,10 +287,10 @@ Deepdraft/
 ├── docs/                 ← design docs (10–60) and milestone docs; Godot ignores this folder
 │   └── 00_dev_roadmap/   ← 00_changelog.md, 00_open_issues.md, 00_todo.md (deferred work),
 │                            00_colony_checks.md (weekly checks), one NNN_*.md per milestone
-├── data/                 ← JSON definitions (audio, calendar, camera, construction,
-│                            entities, events, furniture, materials, professions, rooms, sky,
-│                            tasks, terrain, ui, video, weather, workshops, world_events,
-│                            world_gen)
+├── data/                 ← JSON definitions, one folder deep (animals, audio, calendar,
+│                            camera, colony, construction, dwarves, events, flora, furniture,
+│                            items, materials, professions, recipes, rooms, sky, tasks, terrain,
+│                            ui, video, weather, world_events, world_gen)
 ├── scripts/
 │   ├── registries/       ← registry autoloads (BlockRegistry, ContentRegistry, CraftMaterials,
 │   │                        DwarfAssets, PlacedEntityRegistry, SurfaceDetailRegistry, UIRegistry)
@@ -297,7 +318,7 @@ When creating any new file, follow the convention for its type:
 | File type | Convention | Examples |
 |---|---|---|
 | `.gd` scripts | `PascalCase` | `MiningSystem.gd`, `BlockRegistry.gd` |
-| `.json` data | `snake_case` | `terrain_blocks.json`, `worker_crafting.json` |
+| `.json` data | `snake_case` | `terrain_blocks.json`, `recipes.json` |
 | `.md` docs | `NN_snake_case` (numbered prefix) | `43_mining_materials.md` |
 | `.glb` assets | `snake_case` | `apple_mature_autumn.glb` |
 

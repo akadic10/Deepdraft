@@ -128,17 +128,17 @@ func _run() -> void:
 	_expect(not flora._felling_markers.has(oak_id), "felling removes the axe marker")
 	_expect(not root.get_node("PlacedEntityRegistry").occupies(Vector3i(40,21,40)), "felling removes trunk occupancy")
 	var oak_logs := _log_yield("oak", "mature")
-	_expect(oak_logs > 0 and _item_count("base:resources:wood:oak_log") == oak_logs, "mature oak drops its authored raw logs")
+	_expect(oak_logs > 0 and _item_count("base:item:oak_log") == oak_logs, "mature oak drops its authored raw logs")
 	# The logs lie one to a tile over the cleared 3x3 footprint, not in one heap.
 	var log_tiles := {}
 	for item: Node3D in drops._loose:
-		if drops._loose[item] == "base:resources:wood:oak_log":
+		if drops._loose[item] == "base:item:oak_log":
 			var tile: Vector3i = drops.item_floor_cell(item)
 			log_tiles[tile] = int(log_tiles.get(tile, 0)) + 1
 	_expect(log_tiles.size() == mini(oak_logs, 9) and log_tiles.has(Vector3i(41,20,41)), "felled logs spread one to a tile from the stump's centre")
 	_expect(log_tiles.keys().all(func(t: Vector3i) -> bool: return t.y == 20 and t.x >= 40 and t.x < 43 and t.z >= 40 and t.z < 43), "felled logs stay on the cleared footprint")
 	_expect(not drops._missing_models.has("res://assets/models/items/wood/oak_log.glb"), "oak drops use the real timber model")
-	_expect(_item_count("base:resources:wood:oak_stave") == 0, "felling never creates crafted staves")
+	_expect(_item_count("base:item:oak_stave") == 0, "felling never creates crafted staves")
 	var drop_count: int = drops.get_stats().loose
 	_expect(not source.advance_work(worker.dwarf_id, 100), "completion cannot run twice")
 	_expect(drops.get_stats().loose == drop_count, "duplicate completion produces no drops")
@@ -176,18 +176,18 @@ func _run() -> void:
 	zone.setup(501, cells)
 	zone.filter_tags.assign(["stockpile_wood"])
 	storage.register_zone(zone)
-	for item in ["oak_log", "pine_log", "apple_wood", "juniper_log"]:
-		var definition: Dictionary = drops.get_item_def("base:resources:wood:%s" % item)
+	for item in ["oak_log", "pine_log", "apple_log", "juniper_log"]:
+		var definition: Dictionary = drops.get_item_def("base:item:%s" % item)
 		_expect(zone.accepts(definition.get("material_tags", [])), "%s matches the Wood stockpile filter" % item)
 	for i in range(2400):
 		storage._process(.3)
 		tasks._run_scheduler()
 		worker._process(.1)
-		if storage.get_total("base:resources:wood:oak_log") == oak_logs:
+		if storage.get_total("base:item:oak_log") == oak_logs:
 			break
 		if i % 30 == 0:
 			await process_frame
-	_expect(storage.get_total("base:resources:wood:oak_log") == oak_logs and _item_count("base:resources:wood:oak_log") == 0, "felled oak logs are hauled into the wood stockpile")
+	_expect(storage.get_total("base:item:oak_log") == oak_logs and _item_count("base:item:oak_log") == 0, "felled oak logs are hauled into the wood stockpile")
 	worker.force_interrupt()
 	storage.deregister_zone(zone)
 	# Fully blocked work backs off and remains designated.
@@ -206,10 +206,10 @@ func _run() -> void:
 	# A built block on a stump tile is passed over; extra logs wrap round the open tiles.
 	world.set_block(90, 21, 90, stone)
 	var stump: Array[Vector3i] = [Vector3i(90,21,90), Vector3i(91,21,90)]
-	drops.spawn_spread("base:resources:wood:juniper_log", 3, stump)
+	drops.spawn_spread("base:item:juniper_log", 3, stump)
 	var spread := {}
 	for item: Node3D in drops._loose:
-		if drops._loose[item] == "base:resources:wood:juniper_log" and drops.item_floor_cell(item).x >= 90:
+		if drops._loose[item] == "base:item:juniper_log" and drops.item_floor_cell(item).x >= 90:
 			var tile: Vector3i = drops.item_floor_cell(item)
 			spread[tile] = int(spread.get(tile, 0)) + 1
 	_expect(spread == {Vector3i(91,20,90): 3}, "a blocked stump tile is passed over and the logs wrap round the open one")

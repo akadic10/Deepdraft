@@ -1,8 +1,9 @@
 extends "res://scripts/tests/DwarfDiningTest.gd"
 
-const LOG_TABLE := "base:furniture:log_table"
-const LOG_TABLE_ITEM := "base:resources:furniture:log_table"
-const LOG_TABLE_RECIPE := "base:recipe:worker:log_table"
+const LOG_TABLE := "base:furniture:dining_table"
+const LOG_TABLE_ITEM := "base:item:dining_table"
+const LOG_TABLE_RECIPE := "base:recipe:dining_table"
+const PINE_PLANK := "base:item:pine_plank"   # the table is a plank piece since doc 308; its key is unchanged
 
 func _run() -> void:
 	create_timer(150).timeout.connect(func(): push_error("Log dining table test timed out"); quit(1))
@@ -17,13 +18,13 @@ func _run() -> void:
 
 func _craft_place_move() -> void:
 	_carpenter_bench_at(Vector3i(44,20,42))
-	drops.spawn_drop(PINE,2,Vector3i(42,21,40))
+	drops.spawn_drop(PINE_PLANK,4,Vector3i(42,21,40))
 	var order: int=crafting.queue_order(LOG_TABLE_RECIPE,1)
-	_expect(order>=0 and await _completed(order),"a Carpenter crafts a log table from two actual logs at the carpenter's bench")
-	_expect(_count(PINE)==0 and _count(LOG_TABLE_ITEM)==1,"two logs become one packed table")
+	_expect(order>=0 and await _completed(order),"a Carpenter makes a plank table from four actual planks at the carpenter's bench")
+	_expect(_count(PINE_PLANK)==0 and _count(LOG_TABLE_ITEM)==1,"four planks become one packed table")
 	furniture.activate_for(LOG_TABLE,true)
 	furniture._hover_cell=Vector3i(46,20,38)
-	_expect(furniture._placement_valid(furniture._hover_cell),"crafted log table has a valid 3x3 site")
+	_expect(furniture._placement_valid(furniture._hover_cell),"the crafted table has a valid 3x3 site")
 	furniture._confirm_ghost();furniture.deactivate()
 	_expect(await _installed(LOG_TABLE),"Worker carries and installs the new table")
 	_expect(_count(LOG_TABLE_ITEM)==0,"installation consumes the real packed table")
@@ -57,7 +58,7 @@ func _layouts_and_meals() -> void:
 		_expect(table.cells.size()==9,"table reserves its requested 3x3 space")
 		for cell in table.cells:_expect(not root.get_node("NavGrid").is_walkable(cell),"dwarves do not walk through the table area")
 		var bounds: AABB=furniture.visual_bounds(definition,origin,yaw)
-		_expect(bounds.size.is_equal_approx(Vector3(2.875,1.5,2.875)),"eight-cell slab and sixteen-cell pedestal retain native dimensions")
+		_expect(bounds.size.is_equal_approx(Vector3(2.875,1.5,2.875)),"the table keeps its native size: 46 cells square, its top 24 cells up")
 		_expect(bounds.get_center().is_equal_approx(Vector3(origin)+Vector3(1.5,1.75,1.5)),"top and base are centered on the 3x3 footprint")
 		var slots: Array=furniture._seating.slots_for(table)
 		_expect(slots.size()==4,"four separate stool guides")
@@ -84,7 +85,7 @@ func _layouts_and_meals() -> void:
 		_expect(await _meal_start(),"dwarf reaches food and the log dining table")
 		_expect(worker._food._dining.outcome()=="proper" and worker._food._dining.choice.get("seat")==seat,"dwarf dines properly at the free guide in every rotation")
 		worker._process(.75)
-		if yaw==0 and "--capture" in OS.get_cmdline_user_args():await _capture_log_table(table)
+		if yaw==0 and "--capture" in OS.get_cmdline_user_args():await _capture_dining_table(table)
 		await _finish_food()
 		_expect(worker._food.last_dining=="proper" and _food_total(BLUEBERRY)==3,"completed meal consumes exactly one serving with proper dining")
 		_expect(table.dining_claims.is_empty(),"meal releases its table claim")
@@ -136,7 +137,7 @@ func _four_diners() -> void:
 		for seconds in [1.0/.65,1.5/.65]:
 			diner._food._meal_pose(seconds)
 			_check_table_clearance(diner,table,picking)
-	if "--capture" in OS.get_cmdline_user_args(): await _capture_log_table(table)
+	if "--capture" in OS.get_cmdline_user_args(): await _capture_dining_table(table)
 	for diner in diners:
 		for tick in 400:
 			diner._process(.05);await process_frame
@@ -164,7 +165,7 @@ func _check_table_clearance(diner,table,_picking) -> void:
 	# of the table edge, below the top (doc 256).
 	for part in [diner._body,diner._head,diner._hand_l,diner._hand_r,diner._foot_l,diner._foot_r]:
 		for obstacle in furniture._seating._obstacles(table.def,table.origin_cell,table.yaw_steps):
-			_expect(not preload("res://scripts/tests/VoxelFaceClearance.gd").meets(part,obstacle.bounds.grow(-.001)),"seated %s clears the actual pedestal/tabletop"%part.name)
+			_expect(not preload("res://scripts/tests/VoxelFaceClearance.gd").meets(part,obstacle.bounds.grow(-.001)),"seated %s clears the table's legs, side boards and top"%part.name)
 
 
 func _profile_lifecycle() -> void:
@@ -187,8 +188,8 @@ func _profile_lifecycle() -> void:
 	_clear_layout()
 
 
-func _capture_log_table(table) -> void:
-	var out:="res://tmp/log_table_compact_20261018/"
+func _capture_dining_table(table) -> void:
+	var out:="res://tmp/dining_table_compact_20261018/"
 	dock.hide();manager.hide()
 	camera.position=table.node.global_position+Vector3(9,8,10)
 	camera.look_at(table.node.global_position+Vector3(0,1,0));camera.size=11

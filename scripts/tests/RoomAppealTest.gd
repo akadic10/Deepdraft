@@ -23,19 +23,19 @@ func _run() -> void:
 	rooms.clear_runtime_state()
 	_words()
 	_walls(60, 69, 60, 69)
-	_put("door", Vector3i(63, 20, 60))
+	_put("door_2", Vector3i(63, 20, 60))
 	var appeal := _appeal(probe)
-	_expect(appeal.parts.size() == 1 and appeal.parts[0].key == "base:furniture:door" and is_equal_approx(appeal.total, 2.0)
+	_expect(appeal.parts.size() == 1 and appeal.parts[0].key == "base:furniture:door_2" and is_equal_approx(appeal.total, 2.0)
 		and appeal.tiles == 64 and is_equal_approx(appeal.share, 1.0) and is_equal_approx(appeal.score, 2.0) and appeal.word.word == "Plain",
 		"a bare 8 by 8 room holds only its door's 2: Plain")
 	var bed = _put("log_bed", Vector3i(62, 20, 64))
-	_put("wooden_torch", Vector3i(68, 20, 64))
+	_put("torch", Vector3i(68, 20, 64))
 	_put("hearth", Vector3i(67, 20, 67))
 	_put("bench", Vector3i(68, 20, 61), 1)
 	appeal = _appeal(probe)
 	var hearth: Array = appeal.parts.filter(func(part: Dictionary) -> bool: return part.key == "base:furniture:hearth")
-	_expect(is_equal_approx(appeal.total, 9.5) and appeal.word.word == "Pleasant" and hearth.size() == 1 and is_equal_approx(hearth[0].value, 2.0),
-		"a bed 3, a torch 0.5, the hearth 2 and a bench 2 with the door make 9.5: Pleasant (%s)" % appeal.total)
+	_expect(is_equal_approx(appeal.total, 10.5) and appeal.word.word == "Pleasant" and hearth.size() == 1 and is_equal_approx(hearth[0].value, 2.0),
+		"a bed 3, a torch 0.5, the hearth 2 and a plank bench 3 with the door make 10.5: Pleasant (%s)" % appeal.total)
 	_expect(float(appeal.parts[0].value) >= float(appeal.parts[appeal.parts.size() - 1].value), "the parts are listed largest first")
 	drops.spawn_drop(STONE, 1, Vector3i(61, 21, 62))
 	drops.spawn_drop(LOG, 1, Vector3i(61, 21, 63))
@@ -50,22 +50,22 @@ func _run() -> void:
 	var loose: Array = appeal.parts.filter(func(part: Dictionary) -> bool: return part.key == "loose")
 	var stocked: Array = appeal.parts.filter(func(part: Dictionary) -> bool: return part.key == "stocked")
 	_expect(loose.size() == 1 and loose[0].count == 2 and is_equal_approx(loose[0].value, -1.0) and stocked.size() == 1 and stocked[0].count == 2
-		and is_equal_approx(stocked[0].value, -0.5) and is_equal_approx(appeal.score, 6.5) and appeal.word.word == "Plain",
-		"two piles of loose goods take 2 and two stocked cells take 1: Plain 6.5 (%s)" % appeal.score)
+		and is_equal_approx(stocked[0].value, -0.5) and is_equal_approx(appeal.score, 7.5) and appeal.word.word == "Plain",
+		"two piles of loose goods take 2 and two stocked cells take 1: Plain 7.5 (%s)" % appeal.score)
 	# Taking the store away turns its goods loose; then every loose pile goes.
 	stockpiles.deregister_zone(store)
 	for node in drops._loose.keys():
 		drops.take(node)
 		node.free()
 	appeal = _appeal(probe)
-	_expect(is_equal_approx(appeal.score, 9.5) and appeal.word.word == "Pleasant", "with the goods gone it is Pleasant 9.5 again (%s)" % appeal.score)
-	var table = _put("log_table", Vector3i(65, 20, 61))
+	_expect(is_equal_approx(appeal.score, 10.5) and appeal.word.word == "Pleasant", "with the goods gone it is Pleasant 10.5 again (%s)" % appeal.score)
+	var table = _put("dining_table", Vector3i(65, 20, 61))
 	appeal = _appeal(probe)
-	_expect(is_equal_approx(appeal.score, 10.5) and appeal.word.word == "Pleasant", "a table is worked in at once: 10.5")
-	var stool = _put("log_chair", Vector3i(66, 20, 64), 2)
+	_expect(is_equal_approx(appeal.score, 12.5) and appeal.word.word == "Pleasant", "a plank table's 2 are worked in at once: 12.5 (%s)" % appeal.score)
+	var stool = _put("log_stool", Vector3i(66, 20, 64), 2)
 	appeal = _appeal(probe)
-	_expect(is_equal_approx(appeal.score, 11.5) and appeal.word.word == "Pleasant" and rooms.appeal_at(probe + Vector3i(3, 0, 3)) == appeal
-		and rooms.appeal_at(Vector3i(50, 21, 50)).is_empty(), "a stool makes it Pleasant 11.5; outside the room there is none")
+	_expect(is_equal_approx(appeal.score, 13.5) and appeal.word.word == "Pleasant" and rooms.appeal_at(probe + Vector3i(3, 0, 3)) == appeal
+		and rooms.appeal_at(Vector3i(50, 21, 50)).is_empty(), "a stool makes it Pleasant 13.5; outside the room there is none")
 	_expect(not rooms.is_in_group("save_state_owner") and not rooms.has_method("serialize_state"), "appeal is worked out, never saved")
 	_wide_room()
 	await _check_window()
@@ -74,8 +74,8 @@ func _run() -> void:
 	furniture._teardown_installed(stool.installed_id, false)
 	furniture._teardown_installed(table.installed_id, false)
 	appeal = _appeal(probe)
-	_expect(is_equal_approx(appeal.score, held - 4.0) and appeal.word.word == "Plain",
-		"taking the stool and table out takes their 2, and the two packed pieces left lying take 2 more: Plain %s from %s" % [appeal.score, held])
+	_expect(is_equal_approx(appeal.score, held - 5.0) and appeal.word.word == "Pleasant",
+		"taking the stool and table out takes their 3, and the two packed pieces left lying take 2 more: %s %s from %s" % [appeal.word.word, appeal.score, held])
 	for failure: String in failures: push_error(failure)
 	print("ROOM_APPEAL_OK: words, parts, hearth, loose and stocked goods, size share, changes, thoughts, sleep and window" if failures.is_empty() else "ROOM_APPEAL_FAIL")
 	quit(0 if failures.is_empty() else 1)
@@ -93,7 +93,7 @@ func _words() -> void:
 ## A 16 by 8 room counts half of what it holds.
 func _wide_room() -> void:
 	_walls(80, 97, 60, 69)
-	_put("door", Vector3i(83, 20, 60))
+	_put("door_2", Vector3i(83, 20, 60))
 	var appeal := _appeal(wide_probe)
 	_expect(appeal.tiles == 128 and is_equal_approx(appeal.share, 0.5) and is_equal_approx(appeal.score, 1.0),
 		"a 128-tile room counts half its door's 2: 1 (%s over %s tiles)" % [appeal.score, appeal.tiles])
@@ -110,8 +110,8 @@ func _check_window() -> void:
 	await _frames(4)
 	var panel = room_window_tool._window_content
 	var appeal := _appeal(probe)
-	_expect(panel._banner_word.text == "Pleasant" and panel._banner_value.text == "11.5", "the banner shows Pleasant 11.5")
-	_expect(panel._tabs.map(func(tab: Button) -> String: return tab.text) == ["Overview", "Appeal", "Details"], "the room window has an Appeal tab")
+	_expect(panel._banner_word.text == "Pleasant" and panel._banner_value.text == "13.5", "the banner shows Pleasant 13.5")
+	_expect(panel._tabs.map(func(tab: Button) -> String: return tab.text) == ["Overview", "Appeal", "Details", "Types"], "the room window has an Appeal tab")
 	panel._show_tab(1)
 	await _frames(3)
 	_expect(panel._appeal.visible and not panel._overview.visible and not panel._details.visible, "the Appeal tab shows its page alone")
@@ -120,9 +120,9 @@ func _check_window() -> void:
 		"each part has its row: %s" % [titles])
 	var hearth_row: Dictionary = panel._appeal_rows[titles.find("Rudimentary hearth")]
 	_expect(hearth_row.value.text == "+2" and hearth_row.frame.get_child(0).texture != null, "a part shows its picture and what it adds")
-	_expect(panel._appeal_total.value.text == "11.5" and panel._appeal_size.note.text == "64 floor tiles · counts in full",
-		"the sums: 11.5 held, counted in full (%s · %s)" % [panel._appeal_total.value.text, panel._appeal_size.note.text])
-	_expect(panel._appeal_score.text == "Appeal 11.5 · Pleasant" and panel._appeal_note.text.contains("+4 happiness"),
+	_expect(panel._appeal_total.value.text == "13.5" and panel._appeal_size.note.text == "64 floor tiles · counts in full",
+		"the sums: 13.5 held, counted in full (%s · %s)" % [panel._appeal_total.value.text, panel._appeal_size.note.text])
+	_expect(panel._appeal_score.text == "Appeal 13.5 · Pleasant" and panel._appeal_note.text.contains("+4 happiness"),
 		"the score and what a stay leaves: %s / %s" % [panel._appeal_score.text, panel._appeal_note.text])
 	var scale = panel._appeal_scale
 	var segment: float = scale.size.x / 4.0
@@ -175,7 +175,11 @@ func _thoughts(bed) -> void:
 		await process_frame
 	worker._sleep_hours_left = 0.01
 	for i in 3: worker._process(.5)
-	_expect(resting and not _row(mood, "slept_pleasant").is_empty(), "a night in the bed leaves the room's thought: %s" % [mood.thoughts().map(func(thought: Dictionary) -> String: return thought.id)])
+	# The thought is the room's as this dwarf feels it: Pleasant, or Beautiful if its tastes lift it past 16.
+	var felt: Dictionary = worker.get_tastes().felt(_appeal(probe))
+	var thought := "slept_" + String(rooms.appeal_step(float(felt.score)).word).to_lower()
+	_expect(resting and thought in ["slept_pleasant", "slept_beautiful"] and not _row(mood, thought).is_empty(),
+		"a night in the bed leaves the room's thought, %s: %s" % [thought, mood.thoughts().map(func(row: Dictionary) -> String: return row.id)])
 	worker._wake_up()
 
 

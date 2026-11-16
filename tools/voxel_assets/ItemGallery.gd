@@ -85,7 +85,7 @@ func _review() -> void:
 			labels[i].text=wood.capitalize(); labels[i].show()
 		_view(Vector3(0,.1,0),6.8)
 		for i in 4: labels[i].position=camera.unproject_position(Vector3((i-1.5)*1.9,0,1.4))-Vector2(170,0)
-		await _capture("wood_"+key.get_slice(":",3))
+		await _capture("wood_"+key.get_slice(":",key.get_slice_count(":")-1))
 	FileAccess.open(OUT+"native.json",FileAccess.WRITE).store_string(JSON.stringify({"captures":captures,"forms":92,"fallbacks":items._missing_models.keys()},"  "))
 	print("ITEM_ART_CAPTURE_OK: ",captures," native views; all 92 forms, wood variants, tool motion and cargo")
 	quit()
@@ -138,7 +138,7 @@ func _tools() -> void:
 	await _capture("work_tools")
 
 func _carry() -> void:
-	var cases := [["rough_stone",4],["oak_log",4],["apple",4],["carpentry_kit",1],["ale_barrel",1],["water_bucket",1]]
+	var cases := [["rough_stone",4],["oak_log",4],["apple",4],["copper_saw",1],["ale_barrel",1],["water_bucket",1]]
 	for spec in cases:
 		_clear(); var dwarf=_actor(); var entries := []
 		var key := ""

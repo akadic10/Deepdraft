@@ -1,10 +1,10 @@
 {
   "furniture_key": "base:furniture:log_gate",
   "furniture_category": "access",
-  "display_name": "Log Gate",
+  "display_name": "Log gate",
   "description": "Hangs across one tile between posts on the tiles either side, sharing posts with connected fences. Opens as dwarves approach and does not seal a room.",
   "model": "res://assets/models/furniture/log_gate.glb",
-  "item_key": "base:resources:furniture:log_gate",
+  "item_key": "base:item:log_gate",
   "placement": "grid_fence",
   "placement_label": "3 tiles · R rotates",
   "placement_note": "Point at the opening tile. Its end posts stand on the tiles either side and join neighboring fence posts automatically.",

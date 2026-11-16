@@ -1,6 +1,6 @@
 extends RefCounted
 
-## Mining UI for MiningDesignationController (doc 258 step 8): the Mining Zone
+## Mining UI for MiningDesignationController (doc 258 step 8): the Mining zone
 ## window (zone statistics, Remove, the DEV instant mine) and the mining-mode
 ## hint callout. The controller owns zone selection; the buttons and the
 ## window's close report back through signals.
@@ -67,7 +67,7 @@ func _build_zone_window() -> void:
 	dev_mine.visible = UIRegistry.dev_tools_enabled
 	column.add_child(dev_mine)
 
-	zone_window = window_manager.register_window(ZONE_WINDOW_ID, "Mining Zone", "", column,
+	zone_window = window_manager.register_window(ZONE_WINDOW_ID, "Mining zone", "", column,
 		{"default_pos": Vector2(18, 118), "min_size": Vector2(280, 118), "family": "work"})
 	window_manager.window_state_changed.connect(_on_zone_window_state_changed)
 
@@ -116,7 +116,7 @@ func _build_hint_window(parent: Node) -> void:
 	margin.add_child(column)
 
 	var title := Label.new()
-	title.text = "Mining Tool"
+	title.text = "Mining tool"
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UITheme.apply_title(title, MEDIUM.lead)

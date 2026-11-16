@@ -137,7 +137,7 @@ func _protected_claim() -> void:
 
 func _crate_case() -> void:
 	await _clean_case()
-	var key := "base:resources:flora:blueberry_cutting"
+	var key := "base:item:blueberry_cutting"
 	# Derive the item key from the actual placement definitions.
 	var definition := {}
 	for def: Dictionary in furniture.get_defs().values():
@@ -153,10 +153,14 @@ func _crate_case() -> void:
 	tasks.register_work_source(ghost.source_id,ghost)
 	ghost.update_lease()
 	_expect(worker._carried_entries.is_empty() and _count(key) == 3, "multi-unit crate safely returns loose for splitting")
+	# The plan sets one cutting aside the moment the crate lies loose; the other two stay free.
+	var claim: Node3D = ghost.claimed_item()
+	_expect(claim != null and drops.quantity_of(claim) == 1 and int(drops.get_unreserved_counts().get(key, 0)) == 2, "the plan claims one cutting, not the crate")
 	var pull: Dictionary = ghost.reserve_fetch(worker.dwarf_id,worker.current_cell())
-	var unit: Node3D = ghost.take_planting_item(pull.item,worker.dwarf_id)
-	_expect(unit != null and drops.quantity_of(unit) == 1 and _loose_units() == 2, "placement takes one cutting and preserves remaining crate")
-	if unit != null: drops.drop_loose(unit,worker.current_cell())
+	var unit: Node3D = pull.get("item")
+	_expect(unit == claim and drops.reserved_by(unit, worker.dwarf_id) and _loose_units() == 3, "the fetch takes over the claimed cutting and preserves the remaining crate")
+	_expect(not drops.take(unit).is_empty() and drops.quantity_of(unit) == 1 and _loose_units() == 2, "pickup takes the one cutting")
+	drops.drop_loose(unit,worker.current_cell())
 	ghost.cancel_fetch(worker.dwarf_id)
 	tasks.cancel_task(ghost._lease_id)
 	ghost.release_claim()

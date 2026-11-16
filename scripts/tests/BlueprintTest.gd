@@ -193,8 +193,8 @@ func _place_test() -> void:
 ## One placement is one project (doc 276). A wall of logs with grass on top, the grass five
 ## blocks up as on the owner's Blueprint 7, whose roof, planned on its own, never found a crate.
 func _project_test() -> void:
-	const OAK := "base:resources:wood:oak_log"
-	const SOIL := "base:resources:soil:soil"
+	const OAK := "base:item:oak_log"
+	const SOIL := "base:item:soil"
 	var logs: Array[Vector3i] = []
 	for y in range(5):
 		for x in range(3): logs.append(Vector3i(x, y, 0))

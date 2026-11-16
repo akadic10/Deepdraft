@@ -98,7 +98,7 @@ func _run() -> void:
 	_expect(sound_events.size()==1,"cancellation before contact remains silent")
 	if "--record" in OS.get_cmdline_user_args():
 		await _record_recipe(BENCH_RECIPE,"crude_workbench")
-		await _record_recipe(TORCH_RECIPE,"wooden_torch")
+		await _record_recipe(TORCH_RECIPE,"torch")
 	feedback.clear_transients()
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("CRAFTING_AUDIO_OK: both recipes, actual contacts, hold/wrap/stall, pause/speed, cancellation/resume, slice/distance, completion clamp and sound position")

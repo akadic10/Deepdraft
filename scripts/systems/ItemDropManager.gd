@@ -18,7 +18,7 @@ const Permission = preload("res://scripts/components/ItemPermission.gd")
 ## cell, meta "stored", absent from _loose — zones own the counts).
 ##
 ## REGISTRY PATTERN (CLAUDE.md): this node is the ONE owner of
-## data/entities/items/resources.json — no other script may open it. Item defs
+## data/items/items.json — no other script may open it. Item defs
 ## load lazily on first spawn (the file's own contract: "loaded on demand, NOT
 ## held in memory at boot").
 ##
@@ -297,7 +297,7 @@ func restore_loose_item(item_key: String, restored_position: Vector3,
 
 # ── Loose-item index API (doc 18 §2.1) ────────────────────────────────────────
 
-## Item-definition accessor over ContentRegistry (the resources.json owner).
+## Item-definition accessor over ContentRegistry (the items.json owner).
 ## {} if unknown.
 func get_item_def(item_key: String) -> Dictionary:
 	return _defs.get(item_key, {})
@@ -693,6 +693,53 @@ func reserve(node: Node3D, dwarf_id: int) -> bool:
 	return true
 
 
+## Claims one unit of a loose good for `claimant`: a placement plan, or the dwarf fetching for one.
+## Out of a crate of several, one unit is set aside as a crate of its own lying where its crate
+## lies, so the rest stays free for other plans and for haulers. A node holding one unit is
+## claimed as it is. Null when the node is claimed already, disallowed or not loose.
+func reserve_unit(node: Node3D, claimant: int) -> Node3D:
+	if not Permission.allowed(node) or not _loose.has(node) or _reserved.has(node): return null
+	if quantity_of(node) <= 1:
+		_reserved[node] = claimant
+		loose_items_changed.emit()
+		return node
+	var key := String(_loose[node])
+	var unit := create_item_visual(key, 1, "", CraftMaterials.of_item(node))
+	set_spoil(unit, spoil_of(node))
+	unit.transform = node.transform
+	unit.set_meta("base_y", node.get_meta("base_y", node.position.y))
+	unit.visible = node.visible
+	add_child(unit)
+	_loose[unit] = key
+	_reserved[unit] = claimant
+	set_quantity(node, quantity_of(node) - 1)   # tells the listeners; the unit is claimed by then
+	return unit
+
+
+## Gives up a claim made with reserve_unit. The unit goes back into a free crate of its kind on
+## the same cell while one has room; otherwise it stays where it lies, free for anyone.
+func release_unit(node: Node3D, claimant: int) -> void:
+	if not is_instance_valid(node) or not _loose.has(node) or int(_reserved.get(node, -1)) != claimant: return
+	_reserved.erase(node)
+	var key := String(_loose[node])
+	var home: Node3D = null
+	if quantity_of(node) == 1 and item_capacity(key) > 1 and not node.has_meta("instance_id") and Permission.allowed(node):
+		var cell := item_floor_cell(node)
+		for crate: Node3D in _loose:
+			if crate == node or _reserved.has(crate) or String(_loose[crate]) != key or not Permission.allowed(crate): continue
+			if crate.has_meta("instance_id") or quantity_of(crate) >= item_capacity(key): continue
+			if CraftMaterials.of_item(crate) != CraftMaterials.of_item(node) or item_floor_cell(crate) != cell: continue
+			home = crate
+			break
+	if home != null:
+		set_spoil(home, blend_spoil(spoil_of(home), quantity_of(home), spoil_of(node), 1))
+		_loose.erase(node)
+		if node.get_parent() != null: node.get_parent().remove_child(node)
+		node.queue_free()
+		set_quantity(home, quantity_of(home) + 1)
+	drop_spawned.emit(key)
+
+
 func reserved_by(node: Node3D, dwarf_id: int) -> bool:
 	return Permission.allowed(node) and _loose.has(node) and int(_reserved.get(node, -1)) == dwarf_id
 
@@ -927,10 +974,12 @@ func get_explorer_data(id: Variant) -> Dictionary:
 	data.picture = "res://assets/ui/items/%s.png" % key.replace(":", "_")
 	if not ResourceLoader.exists(data.picture):
 		data.picture = "res://assets/ui/furniture/%s.png" % key.get_slice(":", key.get_slice_count(":") - 1)
-	if appeal_def.has("appeal"):
-		data.badge = CraftMaterials.appeal_badge(appeal_def, CraftMaterials.of_item(id), true)
-	elif crated or quantity_of(id) > 1:
+	# A crate's key number is what it holds, also for the one piece of furniture kept in crates
+	# (log torches): its appeal stays in the rows.
+	if crated or quantity_of(id) > 1:
 		data.badge = {"kind": "quantity", "value": rows[1][1], "tooltip": "Quantity"}
+	elif appeal_def.has("appeal"):
+		data.badge = CraftMaterials.appeal_badge(appeal_def, CraftMaterials.of_item(id), true)
 	if in_storage: data.status = {"text": "In storage", "tone": "fine"}
 	elif not Permission.allowed(id): data.status = {"text": "Disallowed: dwarves leave it here", "tone": "blocked"}
 	else: data.status = {"text": "Awaiting collection", "tone": "waiting"}

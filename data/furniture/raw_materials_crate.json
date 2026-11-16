@@ -1,15 +1,15 @@
 {
   "__comment": [
-    "The raw materials crate (doc 294, concept A, the log crib): two courses of notched logs crossing at the corners, open on top, within its 2 x 2 footprint. Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs.",
-    "Carpenters make it at the carpenter's bench from two matching logs; it keeps their wood. It stands on the floor, and dwarves reach into it from any side.",
-    "storage (ContainerStorageComponent): it holds Rough Stone, the ores and coal, and soil (stockpile_stone, stockpile_ore, stockpile_soil), three goods to each of its four quarters (per_slot), starting at priority 4, ahead of ground storage. The anchors are its quarters' places on the ground inside it (X and Z 6 cells from its centre), in footprint-local blocks from the back-left floor corner; each filled quarter shows one of its goods over the rim."
+    "The raw materials crate (doc 294). A plank piece since doc 308 (the owner's pick of 2026-11-13, the open bin, after asking for nothing through its middle): a sawn post at each corner, two boards a side with a gap between them, pegged through the posts, open on top and with no floor, within its 2 x 2 footprint, its sides 12 cells high and its posts 13. Its Tier 1 form was the log crib of notched logs (doc 294, concept A; doc 301), whose design is kept in tools/hearthblock/art/tier1.mjs. Tier 2 Hearthblock model from tools/hearthblock/art/tier2.mjs.",
+    "Carpenters make it at the carpenter's bench from four matching planks; it keeps their wood. It stands on the floor, and dwarves reach into it from any side.",
+    "storage (ContainerStorageComponent): it holds rough stone, the ores and coal, and soil (stockpile_stone, stockpile_ore, stockpile_soil), three goods to each of its four quarters (per_slot), starting at priority 4, ahead of ground storage. The anchors are its quarters' places on the ground inside it (X and Z 6 cells from its centre), in footprint-local blocks from the back-left floor corner; each filled quarter shows one of its goods inside the crib."
   ],
   "furniture_key": "base:furniture:raw_materials_crate",
   "furniture_category": "storage",
-  "display_name": "Raw Materials Crate",
-  "description": "Two courses of notched logs crossing at the corners, open on top. It keeps twelve raw goods, Rough Stone, ore, coal or soil, three to each quarter.",
+  "display_name": "Raw materials crate",
+  "description": "A plank bin, open on top: a sawn post at each corner and two boards a side, pegged. It keeps twelve raw goods, rough stone, ore, coal or soil, three to each quarter.",
   "model": "res://assets/models/furniture/raw_materials_crate.glb",
-  "item_key": "base:resources:furniture:raw_materials_crate",
+  "item_key": "base:item:raw_materials_crate",
   "placement": "floor",
   "yaw_steps": 4,
   "footprint": {
@@ -25,7 +25,7 @@
       ],
       "max": [
         2,
-        0.5625,
+        0.8125,
         2
       ]
     }
@@ -66,7 +66,7 @@
   "material_group": "wood",
   "material_palette": "hand_hewn_timber",
   "appeal": {
-    "design": 1,
+    "design": 2,
     "material_factor": 0.5
   }
 }

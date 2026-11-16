@@ -17,22 +17,22 @@ extends RefCounted
 ## FETCH_BUILD / UNINSTALL: the furniture pipeline (doc 19 §3.3/§3.4 — a ghost
 ## posts ONE fetch-and-build lease; a 📤-flagged piece posts ONE uninstall
 ## lease). First-class types per SH parity (dedicated placement_task_group).
-enum Type { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT }   # SMELT/FORGE later (doc 44)
+enum Type { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT, FARM }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 ## Task-type categories: the one place each grouping is listed (read-only).
 ## Work on a surface source (tree, boulder, scree, shrub, plant, a fishing spot, a finished
-## batch on a workshop): one executor, the specialized surface-work matcher.
+## batch on a workshop, a field's tile): one executor, the specialized surface-work matcher.
 const SURFACE_WORK := [Type.FELL_TREE, Type.CLEAR_BOULDER, Type.GATHER_SCREE, Type.HARVEST_SHRUB,
-	Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE, Type.FISH, Type.COLLECT]
+	Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE, Type.FISH, Type.COLLECT, Type.FARM]
 ## Surface work done by hand: gather pose and gather contact (no axe or pick). COLLECT takes
 ## a finished batch down from its workshop: the dried fish off the drying rack (doc 292).
 const GATHER_WORK := [Type.GATHER_SCREE, Type.HARVEST_SHRUB, Type.CLEAR_SHRUB,
 	Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE, Type.COLLECT]
 const SHRUB_WORK := [Type.HARVEST_SHRUB, Type.CLEAR_SHRUB]
 ## Work every career takes unless it names its own (professions.json `work`), before
-## permissions: all but fishing, which is the Ranger's (doc 292). Careers with a craft
-## section add CRAFT.
+## permissions: all but fishing, which is the Ranger's (doc 292), and a field's work, which is
+## the Farmer's (doc 309: its `work_first` adds FARM). Careers with a craft section add CRAFT.
 const COMMON_WORK := [Type.MINE, Type.HAUL, Type.FETCH_BUILD, Type.UNINSTALL, Type.FELL_TREE, Type.CLEAR_BOULDER,
 	Type.GATHER_SCREE, Type.HARVEST_SHRUB, Type.CLEAR_SHRUB, Type.CLEAR_PLANT, Type.UPROOT_SHRUB, Type.HARVEST_TREE]
 
@@ -92,4 +92,5 @@ static func type_name(t: int) -> String:
 		Type.UPROOT_SHRUB: return "UPROOT_SHRUB"
 		Type.FISH: return "FISH"
 		Type.COLLECT: return "COLLECT"
+		Type.FARM: return "FARM"
 	return "UNKNOWN"

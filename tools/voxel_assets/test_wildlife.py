@@ -25,7 +25,7 @@ class WildlifeTests(unittest.TestCase):
             actual={p:c for part in self.parts['assets/models/animals/deer/'+name+'.glb'].values() for p,c in part.voxels.cells.items()}
             self.assertEqual(actual,hearthblock.model('deer/'+name).cells,name)
         for species in ('deer','wolf'):
-            knee=round(read_json(f'data/entities/animals/{species}.json')['visual_pose']['knee_y']*16)
+            knee=round(read_json(f'data/animals/{species}.json')['visual_pose']['knee_y']*16)
             parts=self.parts['assets/models/animals/'+species+'/leg.glb']
             upper=parts['Upper'].voxels.cells; lower=parts['Lower'].voxels.cells
             self.assertFalse(set(upper)&set(lower))
@@ -40,7 +40,7 @@ class WildlifeTests(unittest.TestCase):
         for name in ('rabbit/body','duck/foot'):
             cells=self.parts['assets/models/animals/'+name+'.glb']['main'].voxels.cells
             self.assertEqual(min(p[1] for p in cells),0)
-        self.assertEqual(read_json('data/entities/animals/wolf.json')['visual_scale'],[1,1,1])
+        self.assertEqual(read_json('data/animals/wolf.json')['visual_scale'],[1,1,1])
 
 
 if __name__=='__main__': unittest.main()

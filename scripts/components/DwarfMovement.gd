@@ -35,7 +35,7 @@ var ladder_path_revision := -1
 var move_validation_revision := -1
 var move_validation_index := -1
 var ladder_fall_target := Vector3i(-1, -1, -1)
-## Heavy carried items slow the walk (doc 18 §2.3 / resources.json contract).
+## Heavy carried items slow the walk (doc 18 §2.3 / items.json contract).
 var carry_speed_mult: float = 1.0
 ## The walk's last stretch heads for where the work will draw the body (stop_short_of).
 var arriving := false
@@ -214,7 +214,7 @@ func follow_path(delta: float) -> void:
 	var target := Vector3(arrive_spot.x,center.y,arrive_spot.z) if arriving and last else center
 	var to_target := target - agent.global_position
 	var distance := to_target.length()
-	# Heavy carried items slow the walk (doc 18 §2.3 / resources.json contract).
+	# Heavy carried items slow the walk (doc 18 §2.3 / items.json contract).
 	var step := agent.walk_speed * carry_speed_mult * delta
 	var here := agent.current_cell()
 	var route := NavGrid.ladder_at(here)

@@ -18,6 +18,9 @@ var complete_callback: Callable
 var contact_distance_callback: Callable
 var feedback_visible_callback: Callable
 var work_contact_callback: Callable
+## Who may take this work: (agent) -> bool. Unset, anyone may. A field's bushes and fruit trees
+## are its Farmers' (doc 309; FarmingSystem sets it).
+var worker_filter: Callable
 var _probe_cursor := 0
 var _probed_stand := Vector3i(-1, -1, -1)
 
@@ -73,6 +76,11 @@ func reserve_work(dwarf_id: int, from: Vector3i) -> Array[Vector3i]:
 		cells.erase(_probed_stand)
 		cells.push_front(_probed_stand)
 	return cells
+
+
+## The scheduler asks before it offers the lease to a dwarf (TaskScheduler._source_allows).
+func allows_worker(agent: DwarfAgent) -> bool:
+	return not worker_filter.is_valid() or bool(worker_filter.call(agent))
 
 
 func is_work_position(cell: Vector3i) -> bool:

@@ -18,7 +18,7 @@ class FurnitureTests(unittest.TestCase):
                 self.assertEqual(part.shadow,'flame' not in name,path+name)
 
     def test_kept_designs_build(self):
-        for name in ['settlement_flag','wet_stone','dry_stone','log_table','log_chair','board_game_table']:
+        for name in ['settlement_flag','wet_stone','dry_stone','dining_table','log_stool','board_game_table']:
             self.assertIn('assets/models/furniture/'+name+'.glb',self.parts)
 
     def test_access_contacts(self):
@@ -26,7 +26,7 @@ class FurnitureTests(unittest.TestCase):
             cells=self.parts['assets/models/furniture/crude_ladder_'+str(h)+'.glb']['main'].voxels.cells
             self.assertEqual(min(p[1] for p in cells),0)
             self.assertEqual(max(p[1]+1 for p in cells),h*16)
-        for name,count in [('door',1),('log_door_3',1),('log_door_4',2),('log_gate',1)]:
+        for name,count in [('door_2',1),('door_3',1),('door_4',2),('log_gate',1)]:
             parts=self.parts['assets/models/furniture/'+name+'.glb']
             self.assertEqual(len([key for key in parts if key.startswith('leaf_')]),count)
 
@@ -52,7 +52,7 @@ class FurnitureTests(unittest.TestCase):
 
     def test_shared_flame_states_and_fixed_roots(self):
         total=0
-        for name in ['campfire','hearth','wooden_torch']:
+        for name in ['campfire','hearth','torch']:
             light=read_json('data/furniture/'+name+'.json')['light_source']
             frames=self.parts[light['flame_animation']['model'].removeprefix('res://')]
             self.assertEqual(list(frames),light['flame_animation']['frames'])

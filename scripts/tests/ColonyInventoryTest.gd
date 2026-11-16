@@ -1,10 +1,10 @@
 extends "res://scripts/tests/FurniturePlaceTest.gd"
 
 var Inventory
-const STONE := "base:resources:stone:rough_stone"
-const IRON := "base:resources:ore:iron"
-const ACORN := "base:resources:seed:oak_acorn"
-const ACTIVE_TABLE := "base:furniture:log_table"
+const STONE := "base:item:rough_stone"
+const IRON := "base:item:iron_ore"
+const ACORN := "base:item:oak_acorn"
+const ACTIVE_TABLE := "base:furniture:dining_table"
 var inventory
 var rig
 var stock_controller
@@ -200,9 +200,9 @@ func _run() -> void:
 	_expect(inventory.tile(IRON) != null and inventory.tile(IRON).visible and not inventory.tile(IRON).has_node("Count"), "depletion keeps the tile, dimmed and without a count, until reopening")
 	_expect(inventory._browse_keys == old_keys and inventory._scroll.scroll_vertical == scroll, "depletion preserves order and scroll")
 	_expect(inventory.tile(IRON).has_focus(), "count wake preserves keyboard focus")
-	items.restore_loose_item("base:resources:wood:oak_log", Vector3(39.5,21,33.5), 0)
+	items.restore_loose_item("base:item:oak_log", Vector3(39.5,21,33.5), 0)
 	await _settle()
-	_expect(inventory._browse_keys.slice(0, old_keys.size()) == old_keys and inventory.shown_goods().back() == "base:resources:wood:oak_log"
+	_expect(inventory._browse_keys.slice(0, old_keys.size()) == old_keys and inventory.shown_goods().back() == "base:item:oak_log"
 		and _inventory_heading("New"), "new goods wait in the New group at the end, without reshuffling")
 	_expect(inventory.category_of(STONE) == "materials" and inventory.category_of(item_key) == "furniture" and _inventory_heading("Materials")
 		and _inventory_heading("Furniture") and not _inventory_heading("All"), "every category is open at once: Materials gathers goods by their JSON tags")

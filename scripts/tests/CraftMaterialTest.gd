@@ -1,8 +1,8 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-const STOOL := "base:furniture:log_chair"
-const STOOL_ITEM := "base:resources:furniture:log_chair"
-const STOOL_RECIPE := "base:recipe:worker:log_chair"
+const STOOL := "base:furniture:log_stool"
+const STOOL_ITEM := "base:item:log_stool"
+const STOOL_RECIPE := "base:recipe:log_stool"
 var materials
 
 func _run() -> void:
@@ -97,7 +97,7 @@ func _run() -> void:
 
 func _test_palettes() -> void:
 	# The campfire holds no wood since doc 279: the night's log shows its own.
-	for key in [STOOL, "base:furniture:bench", "base:furniture:door", "base:furniture:wooden_torch"]:
+	for key in [STOOL, "base:furniture:bench", "base:furniture:door_2", "base:furniture:torch"]:
 		var definition: Dictionary = furniture.get_defs()[key]
 		var original: Node3D = load(String(definition.model)).instantiate()
 		var pine: Node3D = load(String(definition.model)).instantiate()

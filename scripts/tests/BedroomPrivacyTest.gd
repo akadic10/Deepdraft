@@ -13,9 +13,9 @@ func _run() -> void:
 	rooms = root.get_node("RoomManager")
 	rooms.clear_runtime_state()
 	_build_bedroom()
-	door = _put("door",Vector3i(63,20,60))
+	door = _put("door_2",Vector3i(63,20,60))
 	bed = _put("log_bed",Vector3i(62,20,64))
-	lamp = _put("wooden_torch",Vector3i(68,20,64))
+	lamp = _put("torch",Vector3i(68,20,64))
 	_room_data()
 	var inside := Vector3i(66,20,62)
 	_expect(not Privacy.allowed(inside,worker.dwarf_id) and Privacy.allowed(inside,worker.dwarf_id,true),"unassigned bedroom allows sleep, not lounging")
@@ -68,7 +68,7 @@ func _sleep_unassigned() -> bool:
 func _private_replan(Privacy) -> void:
 	for x in [63, 64]:
 		for y in range(21, 25): world.set_block(x, y, 69, blocks.AIR_ID)
-	_put("door", Vector3i(63, 20, 69))
+	_put("door_2", Vector3i(63, 20, 69))
 	_room_data()
 	var nav := root.get_node("NavGrid")
 	var start := Vector3i(63, 20, 57)

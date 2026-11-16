@@ -1,5 +1,11 @@
 # 23 — User Interface
 
+**The room window and room types (2026-11-12):** the window measures a plain room only
+against a type it has begun (a bed, a dining table, a food shelf), shows a room holding none of
+them what it could be, reads a food room's warmth as keeping instead of comfort, and has a
+Types tab listing every room type. Rooms can be dining rooms, pantries and freezers (doc 34
+"Room types"). See "The Rooms Tool".
+
 **DEV Remove objects (2026-10-30):** Development has a ninth tool, Remove objects. A click on
 a tree, stone, bush or flower, or a drag over an area, removes them at once, without drops,
 and a save keeps them gone. See "Remove objects".
@@ -96,7 +102,7 @@ copper line icons and the painted Crafters art are gone.
 
 **Hearthblock Zones and Construction (2026-10-23, 259):** Storage, Farming and Animal
 pasture, and Build, Shapes, Copy and Blueprints, use Hearthblock
-icons on the work tile. Farming and Animal pasture stay locked. Build (Stone block until
+icons on the work tile. Animal pasture stays locked; Farming is live since 2026-11-14 (doc 309). Build (Stone block until
 2026-10-26) shows a wall going up in stone, wood and grass-topped earth, its next block the
 cyan plan the game draws; Shapes shows a ring of walls beside a flight of stairs, its top
 step a plan; Copy a small hut inside the blue copy box; Blueprints a blue sheet with a
@@ -232,9 +238,9 @@ Construction entries use the same art style and hover/focus names as the dock.
 See "Floating Dock" and "Construction".
 
 **Illustrated Zones (2026-10-12, 137; icons now Hearthblock, 259):** Storage,
-Farming and Animal pasture use the same icon-only rail and parent anchoring as Orders. Storage is usable;
-Farming and Animal pasture are dimmed with lock badges and explain their planned
-status on hover, focus or activation. They cannot dispatch work or switch tools.
+Farming and Animal pasture use the same icon-only rail and parent anchoring as Orders. Storage,
+Fishing and Farming are usable; Animal pasture is dimmed with a lock badge and explains its planned
+status on hover, focus or activation. It cannot dispatch work or switch tools.
 See "Floating Dock" and "Tool shelves".
 
 **Illustrated Orders (2026-10-12, 136; icons now Hearthblock, 259):** six caption-free
@@ -648,7 +654,8 @@ storage or mining zone opens that zone's window, never the panel. The rules:
   - the badge on a pale stone chip, for the key number:
     - appeal, or the quantity of goods without appeal (a crate as "17 / 24", a stack as
       a count; a single good has no badge). The appeal's hover splits it into design and
-      material, and packed goods read "Appeal when installed" (doc 118);
+      material, and packed goods read "Appeal when installed" (doc 118). A crate of log
+      torches shows its count, as every crate does (2026-11-15, doc 62);
     - a ripe crop (fruit or berries) or a stone's clearing yield;
     - a floor plan's room appeal;
     - an animal's hit points beside a red heart, "Healthy · 40 hit points" on hover
@@ -972,8 +979,9 @@ whole chair rectangle, so every slot stays on whole grid cells
   into the shared stool definition or saved, and cached per piece until furniture
   changes (doc 232).
 - A table's `seating_obstacles` give its solid parts for testing seat clearance,
-  rather than its whole footprint: for the Log Dining Table the central base and the
-  slab, the same boxes as its collision (doc 231). Any piece may list them; without them
+  rather than its whole footprint: for the Plank Dining Table its four corner legs, the
+  boards under its long sides and its top, the same boxes as its collision (doc 231; they are
+  the boxes its log form's stumps and bearers had, and its plank look was drawn to fit them). Any piece may list them; without them
   a seat tests the piece's whole model bounds. The campfire lists its low stone ring and
   its narrower flames, so stools fit on the four tiles just outside its 3 × 3 area
   (doc 100).
@@ -1023,7 +1031,7 @@ and removing a selected zone also closes its window. With a dock, mining's instr
 are the tool bar's.
 
 **Tool shelves (updated 2026-10-12):** Orders opens its six tools, and Zones opens
-Storage beside the planned Farming and Animal pasture (see "Navigation Groups"). Both
+Storage, Fishing and Farming beside the planned Animal pasture (see "Navigation Groups"). Both
 are `OrdersShelf`, placed as the dock's menus are (see "Floating Dock"), with an extra
 gap before Cancel orders.
 Selecting a tool starts it directly and keeps its shelf open; clicking the active tool's
@@ -1286,7 +1294,7 @@ and submenus have a Back button. Active tools retain their existing Escape handl
   - live: full colour, and the entry does its work;
   - planned: dimmed, with a lock badge. It keeps keyboard focus, and hover, focus, a
     click or Enter shows its hover card with the status on its tag. It never starts a
-    tool or changes the active one (Farming, Animal pasture). An entry whose destination
+    tool or changes the active one (Animal pasture). An entry whose destination
     is an informational preview still opens it: Craft's planned catalogs ("Catalog
     preview"), and Trade on Colony's page, marked by a Planned tag;
   - DEV preview: full colour with a flask badge, and the entry works (no entry uses it
@@ -1355,6 +1363,15 @@ Stonemason, Blacksmith or another entry opens that profession's titled crafting
 menu. Planned entries remain browsable previews without craft/place actions; how they
 look and why they still open is under Availability in "Sizes, states and menus"
 (owner-approved plan, 2026-10-12).
+- **A trade the colony has no dwarf of is dimmed and locked** (owner, 2026-11-13, in a new
+  game: "carpenter for example is lit up even though I cannot build it, same with others").
+  A live page is lit only while a dwarf of its career is in the colony
+  (`CraftingManager.section_need`): at the start that is Rudimentary alone. A dimmed
+  button's hover card carries a tag, "No Carpenter yet", and the way to one, read from the
+  career's tool and that tool's recipe: "A dwarf becomes one by collecting a copper saw. A
+  Blacksmith makes it at the anvil stone." Its page still opens, to show what the trade
+  will make, and an order queued there waits "Needs a Carpenter". Rudimentary dims too when
+  every dwarf has a trade ("No Worker left").
 The submenu uses one desktop row and balanced compact rows; its open state
 keeps Craft highlighted. Orders shown belong to the selected section, while
 switching menus preserves the actual production queue and chosen Worker recipe.
@@ -1362,13 +1379,14 @@ switching menus preserves the actual production queue and chosen Worker recipe.
 **The crafting window** is built around the item and its ingredients:
 - **Header.** The profession on the people tile ("Rudimentary · Worker", or "Ranger" with
   its line on the Ranger's page) and the Crafters row: a tile per profession, lit when it
-  can craft today (Rudimentary, the Carpenter, the Stonemason and the Ranger), the shown one
-  ringed in hay. It switches
+  can craft today, which takes a live page and a dwarf of its career in the colony (see the
+  Craft menu above), the shown one ringed in hay. A page nobody can craft from adds that to
+  its name ("Carpenter · No Carpenter yet"), and its tile's hover says the way to one. It switches
   professions without leaving the window. A live page with more to come names it in a box
   under its recipes, from its section's `later` (the Ranger's: WITH HUNTING, concept A of
   doc 292).
 - **Recipes.** One grouped picture grid with a search field. The groups are the
-  recipes' `category` values, so a recipe added anywhere in `worker_crafting.json` joins
+  recipes' `category` values, so a recipe added anywhere in `recipes.json` joins
   its group. Search matches names and categories, ignoring case; empty groups hide, the
   first match is chosen, and with no match nothing can be queued. A recipe link clears a
   search that would hide it (doc 114). A recipe that could not
@@ -1385,7 +1403,7 @@ switching menus preserves the actual production queue and chosen Worker recipe.
     "A batch is two fish of one kind" (doc 44);
   - its description and purpose (`purpose_short` on small screens, where a recipe has
     one), and its flavour line (`flavour` in
-    `worker_crafting.json`). A recipe's `purpose` never repeats its description;
+    `recipes.json`). A recipe's `purpose` never repeats its description;
     `CraftingBrowserTest` checks every board gives it once;
   - tags for what it needs: the workshop ("✓ A crude workbench" once one is installed,
     busy or not, else "Needs a crude workbench"), and who makes it: Any Worker on
@@ -2050,6 +2068,27 @@ HUD's titles in the same face, and today's sizes made even).
   - that the clock holds one width as its minutes change;
   - that every character in the scripts' strings and the data's words is in a shipped face.
 
+### Names are sentence case
+
+The owner's rule (2026-11-15): every name the game shows takes one capital, on its first
+word. "Tool rack", "Plank dining table", "Copper pick", "Wild deer", "Born miner", "Colony
+inventory", "Storage zone 3".
+- **It holds everywhere:** goods, pieces, recipes, Place entries, animals, traits, looks, and
+  the titles of windows and zones, in the data files and in the code's own strings.
+- **One thing has one name.** A piece's own name (`data/furniture/*.json`), its Place entry
+  (`data/ui/place_catalog.json`), its recipe (`data/recipes/recipes.json`) and its packed
+  good (`data/items/items.json`, which adds " (packed)") are spelled alike. Until
+  this rule fourteen pieces read "Tool Rack" in their own window and "Tool rack" in Place and
+  crafting, and the ladder was "Rough wooden ladder" or "Ladder section".
+- **A part after " · " starts again as its writer chose:** "Wildflowers · cream",
+  "DEV · Cave explorer".
+- **A wood leads a product's name** and the product's own first letter drops: "Oak log stool"
+  (`CraftMaterials.product_name`).
+- **Not names:** whole sentences and all-capital headings ("CARRYING · 2 / 4") keep their own
+  spelling.
+- `tools/lint_project.py` (rule `naming`) checks the data's names and the four spellings of a
+  piece with every gate; ids and files follow doc 13, "Naming ids and files".
+
 ### The tool bar
 
 One bar for every tool (2026-10-25, with the owner's picks): the six Orders tools, Storage,
@@ -2144,7 +2183,10 @@ its window, "Stamp an item", in the DEV family's colour.
   - no mixes of the old spawners.
 - **The window is laid out as Place:**
   - every item as a picture, in the groups of `data/ui/item_stamper.json` (Materials,
-    Furniture, Tools, Food & seeds, Drink, Plants, Other);
+    Furniture, Tools, Food & seeds, Drink, Plants, Other). A group gathers items by their
+    tags, as the Inventory window does: an item goes to the first group that names one of
+    its tags, and one that no group names falls in Other (since 2026-11-15; an item's id no
+    longer holds a kind to group by);
   - Recent first: the last eight items stamped, kept between sessions in
     `user://item_stamper.cfg`;
   - a search box that keeps the items whose name or id holds what is typed, and says when
@@ -2292,22 +2334,42 @@ Left-click marches the mouse ray through the grid and selects the first room who
 interior air it crosses — clicks are as x-ray as the overlays, so a room visible through
 rock is clickable through rock. Selection opens the **room window**
 (`RoomInspectorPanel`, settlement family), after Stonehearth's Town Overview:
-- **Band:** the room's name, the owner's bedroom ("Birna's bedroom") or the kind and
-  number ("Bedroom 6"). The number is the room's id, which stays while the room does
-  (doc 34 "Room scheduling").
+- **Band:** the room's name, the owner's bedroom ("Birna's bedroom") or the type and
+  number ("Bedroom 6", "Pantry 1"). The number is the room's id, which stays while the room
+  does (doc 34 "Room scheduling").
 - **Staying open:** the window holds the floor that was clicked, wherever it was opened
   (the Rooms tool, the Appeal view, the Temperature view), and finds that floor's room
   again each refresh, so rooms being found again as dwarves mine never close it. It closes
   only when no sealed room holds that floor any more.
-- **Header:** the kind with tags (Sealed, Frozen vault, Owner's bonus +10); who sleeps
+- **Header:** the type with tags (Sealed, Frozen vault, Owner's bonus +10); who sleeps
   there, with the owner's live portrait or the bed's picture ("No one owns the bed",
-  "2 beds, shared"); and the appeal banner with its word and number ("Plain", "4.5").
+  "2 beds, shared"); and the appeal banner with its word and number ("Plain", "4.5"). A
+  freezer's cold is among its needs, so it carries no Frozen vault tag.
 - **Overview:**
-  - what makes it its kind, from `room_kinds.json`: Bed, Light, Door and Walls, each with
-    its count, need and ✓ or "!";
-  - a plain room is measured against the nearest kind and names the missing step ("One
-    step from a bedroom: add a light.");
-  - Comfort: heating (the warmth added and its sources) and temperature with its goal;
+  - what makes it its type, from `room_kinds.json` (doc 34 "Room types"): each need (Bed,
+    Light, Door, Dining table, Seat, Fire, Food storage, Temperature) and Walls, with its
+    count, goal and ✓ or "!". A temperature need shows the room's temperature and word against
+    its range ("11.4 °C · Chilly", "0 to 16 °C");
+  - a plain room holding a type's key piece (a bed, a dining table, a food shelf) is measured
+    against that type and names what is missing: "One step from a bedroom: add a light.",
+    "One step from a pantry: get it below 16 °C.", "Add a seat and a fire to make it a dining
+    room.";
+  - a plain room holding none of them is shown **What it could be** (2026-11-12): a row for
+    each type with its picture and the steps from this room ("Bedroom · Add a bed", "Freezer
+    · Add a food shelf and get it to 0 °C or below"), and a line pointing at the Types tab.
+    Hovering a row tells what the type needs and is for. Until then such a room was measured
+    against the bedroom whatever it held: the owner's cool room with two food shelves read
+    "One step from a bedroom: add a bed.";
+  - its warmth, read for what the room is for (the type's `climate`):
+    - **Comfort**, where dwarves stay: heating (the warmth added and its sources) and
+      temperature, each with the goal dwarves sleep well by;
+    - **Keeping**, where food is stored: how long blueberries keep there beside their days at
+      20 °C ("About 9 days", "Blueberries · 4 days at 20 °C"), and any heat source ("1 heat
+      source warming it"), marked "!" from a degree of warmth. Its temperature is among its
+      needs;
+    - **Temperature**, for a plain room on its way to no type: its temperature, its heating
+      and how long food keeps, as facts with no goal to miss;
+  - a goal too long for its row wraps onto a second line (it was cut short with "…");
   - In this room: the furniture as pictures with counts, doors included.
 - **Appeal** (see "Room appeal"):
   - first, "Appeal 4.5 · Plain" over the word scale, a segment per word in its tint with
@@ -2318,6 +2380,13 @@ rock is clickable through rock. Selection opens the **room window**
   - Its appeal: what it holds together, and the room size ("121 floor tiles · counts 53%")
     with what that leaves.
 - **Details:** volume, doors, floor level, heat units and °C, and seasonal influence.
+- **Types** (2026-11-12; `RoomTypesPage`): every room type in the order rooms are tested
+  against them, each with its picture, its name, what it needs as a sentence ("A food shelf
+  and a door, between 0 and 16 °C.") and what it is for (`gives` in `room_kinds.json`). The
+  room's own type is tagged "This room" (a personal bedroom under Bedroom); a plain room is
+  told the steps to each ("For this room: add a bed."). A last line says a room that fits
+  several types takes the first. The owner asked for a way to see the room types
+  (2026-11-12); the tab is there for every room.
 
 Its sizes follow the screen height (large from 1300 px, small below 650 px). The page
 keeps one height between tabs above the dock and scrolls when longer. Readouts refresh
@@ -2495,7 +2564,7 @@ The concepts (`sheet_*.png`) and the built view (`*_built_*.png`) are in
 | Group | Commands |
 |---|---|
 | Orders | Mine blocks, Chop trees, Clear stones, Harvest plants, Clear plants, Cancel orders |
-| Zones | Storage and Fishing (doc 289); planned Farming and Animal pasture |
+| Zones | Storage, Fishing (doc 289) and Farming (doc 309); planned Animal pasture |
 | Rooms | Direct room inspection toggle; active highlight, second click or Escape to exit |
 | Construction | Build (stone, dirt, grass or logs: one rough stone, soil or log a block), Shapes (rectangles, circles and stairs in those materials), Copy and Blueprints (blueprint files to place and share) |
 | Place | Finished furniture catalog: thumbnails, categories, live availability, repeated placement and Undo |
@@ -2505,7 +2574,7 @@ The concepts (`sheet_*.png`) and the built view (`*_built_*.png`) are in
 | Menu | The game menu (also Esc): Resume, Save game, Load game…, New game…, Settings… and Exit game… |
 | Development | Block inspector, World Build, Cave explorer, Dwarf tools, Water tools, Arrival status, Item stamper, Time & weather |
 
-Farming and Animal pasture explain their planned state without dispatching tools.
+Animal pasture explains its planned state without dispatching tools.
 Labor opens the roster's real Work view; Trade retains a clearly marked preview.
 Inventory uses live
 supplies. Development is the rightmost dock entry; cycling object locators have
@@ -2610,7 +2679,7 @@ matched by the key's place on the keyboard, so they sit in the same place on eve
 
 | Panel | Contents |
 |---|---|
-| Place | **39 entries** from `data/ui/place_catalog.json`. Storage: Tool rack, Raw materials crate, Finished goods pallet, Food shelf. Dining: Log Dining Table, Log stool, Stone stool, Log bench. Food: Drying rack. Recreation: Board-game Table. Lighting: Log torch, Campfire. Room furnishings: Settlement flag, Log door (2 wide), Log door (3 wide), Double log door (4 wide), Rudimentary hearth, Log bed. Workshops: Crude workbench, Carpenter's bench, Mason's bench. Access: Rough wooden ladder, Log Fence Post, Log Gate. Water: Wet stone, Dry stone. Plants: blueberry, elderberry and wild-strawberry bushes, their three cuttings, four tree seeds and three wildflower shapes. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
+| Place | **39 entries** from `data/ui/place_catalog.json`. Storage: Tool rack, Raw materials crate, Finished goods pallet, Food shelf. Dining: Plank dining table, Log stool, Stone stool, Plank bench. Food: Drying rack. Recreation: Board-game table. Lighting: Log torch, Campfire. Room furnishings: Settlement flag, Log door (2 wide), Log door (3 wide), Double log door (4 wide), Rudimentary hearth, Log bed. Workshops: Crude workbench, Carpenter's bench, Mason's bench. Access: Ladder section, Log fence post, Log gate. Water: Wet stone, Dry stone. Plants: blueberry, elderberry and wild-strawberry bushes, their three cuttings, four tree seeds and three wildflower shapes. Click an available tile to begin placing immediately; a dwarf fetches the packed item and installs it. Installed pieces retain **📤 Uninstall**. Crafting shows an unavailable dash until production exists. |
 
 Action menus open 8 px above their dock button and keep clear of the compact panel and
 the time and view controls (see "Sizes, states and menus" under "Floating Dock"). Place
@@ -2749,7 +2818,10 @@ Stonehearth's stockpile filter. Its band names the zone ("Storage Zone 2").
   2 / 3 hooks" on the rack, one tool to a hook, and "Used 9 / 12 goods" on the crate, whose bar says
   on hover "3 goods to each of its quarters." The food shelf counts places and goods, "Used 4 / 6
   places · 96 goods", since a crate holds up to 24, and its bar says "One crate of food to each of
-  its places." It has no Remove zone: the piece's own window uninstalls it, and the storage window
+  its places." The finished goods pallet counts the same way, "Used 3 / 4 quarters · 5 goods",
+  since a quarter holds three metal goods or four planks, or one crate of up to 24 log torches
+  (doc 62), and its bar says "One packed piece,
+  three metal goods or four planks to each of its quarters." It has no Remove zone: the piece's own window uninstalls it, and the storage window
   closes once the piece is gone (2026-11-09: it stayed open, and its edits were lost).
   - **The owner's rule for every container** (2026-10-23, after Stonehearth's supply shelf,
     `tmp/ui_review_20261023/stonehearth/15_supply_shelf*`): each type accepts only certain
@@ -2823,6 +2895,43 @@ painted on the shore, beside Storage, over a placed jetty piece or an Orders too
   - AT WORK: each Ranger there, casting or walking to the shore; else "No Ranger yet: promote
     one to fish here." or that Rangers need Fish allowed in Labor;
   - Remove zone: a fisher at work stops, and nothing is lost.
+
+## Fields
+
+Live 2026-11-14 (doc 309). **Zones → Farming** lays out a field for Farmers to work
+(`FarmingSystem`; the rules are in doc 42, "Fields").
+- **The tool** works as Storage's and Fishing's: Esc exits, and a drag paints a flat rectangle
+  on the anchor's plane, at most 16 × 16 (`max_zone_extent`), in leaf green, apart from
+  storage's blue, mining's yellow and fishing's teal. It keeps only the cells a field can
+  take. While dragging, the tool bar's tag counts them ("24 tiles · A Farmer hoes and sows
+  them"); over a cell it refuses it says "Can't farm here" and why: "Fields need grass or
+  dirt", "Fields need the open sky", "This ground is under water", "Nobody has found this
+  place", "A storage zone is here", "A fishing spot is here" and the like. View and Undo work
+  as for Storage, and Storage and Fishing refuse a field's tiles in turn.
+- **On the ground** a field is its tilled soil and its plants; the zone itself is only a thin
+  green edge with a faint fill, so the crop's own colours show.
+- **The window** (`FarmFieldPanel`; the zone's own window, in the format the owner picked for
+  Fishing) opens on a click on a field, with the tool on or off. Its band names the field
+  ("Field 2"). It shows:
+  - a line on what a field is;
+  - THE YEAR'S PLAN: a tile for each season with its crop's picture and name and one line
+    ("Sown until Summer 14", "4 days, 2 a tile", "Ripe in summer", "Sown in spring", "Picked
+    until spring", "Rest"); the season it is now is lit and marked NOW, on a line every tile
+    keeps so the pictures stay level. A crop no Farmer in the colony may sow yet says "Needs a
+    level 3 Farmer" in its place;
+  - a click on a season lists the crops sown in it, each with its picture, its days, what a
+    tile gives and how long it keeps ("9 days · 6 a tile · keeps 8 days"), and Rest. The one
+    in the plan is marked; one above the colony's best Farmer is dimmed and says the level
+    it needs. The list is rebuilt only when it changes, so the window's own refresh never
+    loses a click;
+  - IN THE FIELD: "36 tiles · 30 hoed · 24 sown · 6 ripe" (and "· 4 left alone" for tiles
+    under a bush, a stone or furniture), what ripens next ("Carrots: ripe in about 3 days")
+    and the water ("12 of 36 tiles damp. Damp soil grows a crop faster.", or that it rains);
+  - the bushes and fruit trees standing in it, whose fruit is picked as it ripens;
+  - AT WORK: each Farmer there and what it is doing ("pulling carrots", "hoeing the
+    ground"); else "No Farmer yet: a dwarf becomes one by collecting a copper hoe, which a
+    Blacksmith makes." or that Farmers need Farm allowed in Labor;
+  - Remove field: its plants go with it, and the tilled soil stays.
 
 ## Toasts and the event log
 
@@ -2925,15 +3034,32 @@ Rangers fish, and a Ranger's Gather, Mine and Build stay off (doc 292). The note
 them gives a specialist's focus ("Mining focus", "Fishing focus") or that its work is off.
 Transport inside an allowed job and automatic rest are independent of those
 checkboxes. Overview retains its activity/cargo/rest display. **Change profession**
-on the character sheet's Profession tab opens a career map with immediate Worker/Miner changes,
-Carpenter promotion through physical kit collection, retained experience and
+on the character sheet's Profession tab opens a career map: an immediate return to Worker, every
+trade's promotion through the physical collection of its tool, retained experience and
 clearly marked future roles. Each career shows its profession's Hearthblock icon,
 dimmed while the career is planned. The career map is the Professions window
 (`DwarfProfessionPanel`, people family), titled with its dwarf (docs 96, 101):
 - **The map.** Tiles from `promotion_screen` in professions.json, each marked Current,
-  Available, Planned or Collecting tool. A line shows `promotes_from` ancestry, not who
-  makes a tool. The map is as tall as its lowest row of tiles. The map and the
-  descriptions scroll on their own.
+  Available, Needs tool, Planned or Collecting tool (doc 306; doc 41, "The profession path").
+  - **A line is what a dwarf is promoted from** (`promotes_from`, `_map_parent`). Every trade is
+    promoted from the Worker, so the trades stand in one row under it and none hangs under
+    another.
+  - **Who makes a trade's tool is said under the tiles, never by a line.** The trades whose
+    tools one career makes stand side by side over a bracket with its name (`_build_groups`,
+    read from each tool's recipe): the Ranger and the Blacksmith over "A Worker makes their
+    tools", the Miner, the Carpenter, the Stonemason and the Farmer over "A Blacksmith makes
+    their tools".
+  - **Why (owner, 2026-11-13).** As first built (doc 306, step 1) the copper trades hung under
+    the Blacksmith, joined to it by lines, and the owner read a route for the dwarf: "it would
+    seem as if the Dwarf has to be a blacksmith first before becoming a farmer". On a page
+    about one dwarf a line reads as that dwarf's way, so what the colony must have is said in
+    words.
+  - **The chosen trade** has its line, its group's bracket and the bracket's name in copper.
+  - **"Needs tool",** in copper, marks a trade the colony has no free tool for; its card gives
+    the tool, how many are free and who makes it, read from the tool's recipe ("A Blacksmith
+    makes it at the anvil stone.").
+  - A Worker's map opens on the Blacksmith. The map is as tall as its row of tiles and the names
+    under it. The map and the descriptions scroll on their own.
 - **Fit (2026-10-31, doc 41 "Stats").** Each tile wears a tag at its top right corner with the
   dwarf's fit for that profession: moss from Good, hay at Average, rust below. The tile's
   hover names it ("Good fit for Runbrin"), and the appointment card shows the fit with the

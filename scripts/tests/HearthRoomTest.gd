@@ -19,7 +19,7 @@ func _run() -> void:
 	# A cellar bedroom: under 12 solid blocks, behind an entry room, one hearth keeps it
 	# comfortable all year (doc 34).
 	_bury(Vector3i(80,0,60), Vector3i(87,0,67))
-	_put("door", Vector3i(83,20,60))
+	_put("door_2", Vector3i(83,20,60))
 	_put("log_bed", Vector3i(81,20,62))
 	var definition: Dictionary = furniture.get_defs()[HEARTH]
 	for yaw in 4:
@@ -52,7 +52,8 @@ func _run() -> void:
 		var art = heater.node.find_child("hearth_body", true, false)
 		var fire = heater.node.find_child("hearth_flame", true, false)
 		var body_mesh: MeshInstance3D = preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(art)[0]
-		_expect(body_mesh.mesh.get_aabb().end.y > fire.mesh.get_aabb().end.y + .4, "low fire sits below the stone back")
+		# The split boulder's crown stands 5 cells over the flame's top (the stacked slabs stood 7).
+		_expect(body_mesh.mesh.get_aabb().end.y > fire.mesh.get_aabb().end.y + .3, "low fire sits below the stone back")
 		if yaw == 3: break
 		furniture._teardown_installed(heater.installed_id, false)
 		_expect(int(_small_room().heat_units) == 0, "removal clears heat once")
@@ -110,7 +111,7 @@ func _run() -> void:
 	# this barracks in winter; its fires are tended, so a second only shares the heat.
 	_build_bedroom()
 	_bury(Vector3i(60,0,60), Vector3i(69,0,69))
-	_put("door", Vector3i(63,20,60))
+	_put("door_2", Vector3i(63,20,60))
 	_put("log_bed", Vector3i(61,20,62))
 	_put("log_bed", Vector3i(65,20,62))
 	var large_heater = _put("hearth", Vector3i(66,20,66),2)
@@ -141,10 +142,10 @@ func _run() -> void:
 	_expect(JSON.parse_string(JSON.stringify(furniture.serialize_state())) == saved, "placed IDs, origins and rotations survive unchanged")
 	heater = furniture._installed.values().filter(func(piece): return piece.furniture_key == HEARTH and piece.origin_cell == HEATER_ORIGIN)[0]
 	# Packing and reinstalling outside switches feedback back to no enclosed room.
-	var packed_before := _count("base:resources:furniture:hearth")
+	var packed_before := _count("base:item:hearth")
 	furniture.dev_remove_installed(heater.installed_id)
 	_expect(int(_small_room().heat_units) == 0, "packed heater contributes no heat")
-	_expect(_count("base:resources:furniture:hearth") == packed_before + 1, "packing returns one hearth")
+	_expect(_count("base:item:hearth") == packed_before + 1, "packing returns one hearth")
 	heater = _put("hearth", Vector3i(49,20,44))
 	_expect(_rows(furniture.get_explorer_data("installed:%d" % heater.installed_id)).get("Heating") == "No enclosed room", "outdoor heater reports no room")
 	if "--capture" in OS.get_cmdline_user_args(): await _capture_heaters(heater)
@@ -179,7 +180,7 @@ func _build_entry_room() -> void:
 				if x in [83,84] and z == 53 and y < 25: continue
 				if x in [80,87] or z == 53 or y == 25: world.set_block(x,y,z,stone)
 	_bury(Vector3i(80,0,53), Vector3i(87,0,59))
-	_put("door", Vector3i(83,20,53))
+	_put("door_2", Vector3i(83,20,53))
 
 func _build_small_room() -> void:
 	var stone: int = blocks.get_id("base:terrain:rock:rock01")
@@ -198,7 +199,7 @@ func _capture_heaters(outside_heater) -> void:
 	worker.position = Vector3(52.5,21,42.5)
 	worker.rotation.y = PI * .15
 	var camp = _put("campfire", Vector3i(43,20,44))
-	for origin in [Vector3i(44,20,42),Vector3i(44,20,48)]: _put("log_chair",origin)
+	for origin in [Vector3i(44,20,42),Vector3i(44,20,48)]: _put("log_stool",origin)
 	for node in [dock,manager]: node.hide()
 	camera.size = 14
 	camera.position = Vector3(57,32,59)

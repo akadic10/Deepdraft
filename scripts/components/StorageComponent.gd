@@ -183,7 +183,7 @@ func nearest_stand_target(_dwarf_cell: Vector3i) -> Vector3i:
 # ── Shared queries ────────────────────────────────────────────────────────────
 
 ## Tag acceptance (capacity is the reserve step's problem). `item_tags` is
-## the item's material_tags from resources.json, queried through
+## the item's material_tags from items.json, queried through
 ## ItemDropManager — the registry pattern.
 func accepts(item_tags: Array) -> bool:
 	for tag: String in filter_tags:

@@ -41,6 +41,10 @@ static func create_model(viewport: SubViewport, agent: DwarfAgent) -> Node3D:
 		copy.transform = Transform3D.IDENTITY
 		copy.scale.x = agent.proportions.body_width if part==agent.get_body() else agent.proportions.head_width
 		for silhouette: Node in copy.find_children("OccludedSilhouette","MeshInstance3D",true,false): silhouette.free()
+		# A hat's candle lights the world, not the picture: no light, and the candle unlit (doc 304).
+		for light: Node in copy.find_children("*","Light3D",true,false): light.free()
+		for mesh: MeshInstance3D in copy.find_children("*","MeshInstance3D",true,false):
+			if mesh.has_meta(&"hat_flame"): mesh.visible = false
 		# Portraits use their own studio lighting, even when the selected dwarf
 		# stands underground. Keep the original tint without the world light field.
 		for mesh: MeshInstance3D in preload("res://scripts/components/VoxelShadowSetup.gd").visual_meshes(copy):

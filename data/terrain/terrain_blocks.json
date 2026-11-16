@@ -35,6 +35,7 @@
 
     "__comment_soil": "Cave soil patches, the ground cave farms are meant for",
     "base:terrain:soil:cave": { "kind": "dirt",       "hex_color": "#6B4C2A",   "hardness":  1, "inspection": {"name": "Cave soil", "category": "Soil", "description": "Soft soil found inside the mountain."} },
+    "base:terrain:soil:tilled": { "kind": "dirt",       "hex_color": "#5E452F",   "hardness":  1, "inspection": {"name": "Tilled soil", "category": "Soil", "description": "Ground a Farmer has hoed for a field (doc 309)."} },
 
     "__comment_surface": "Surface blocks - grass over dirt. hex_color = summer baseline; see surface_palettes.json for all seasons.",
     "base:terrain:surface:grass": { "kind": "grass",      "hex_color": "#657F4E",   "hardness":  1, "inspection": {"name": "Grass", "category": "Soil", "description": "Earth covered with grass."} },

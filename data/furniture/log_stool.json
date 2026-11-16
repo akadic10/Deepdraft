@@ -1,0 +1,135 @@
+{
+  "furniture_key": "base:furniture:log_stool",
+  "furniture_category": "seating",
+  "display_name": "Log stool",
+  "description": "A short bark-covered stump with a flat cut top. A basic seat for resting between jobs.",
+  "model": "res://assets/models/furniture/log_stool.glb",
+  "item_key": "base:item:log_stool",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "footprint": {
+    "depth": 1,
+    "width": 1
+  },
+  "collision_regions": [
+    {
+      "min": [
+        0,
+        0,
+        0
+      ],
+      "max": [
+        1,
+        0.875,
+        1
+      ]
+    }
+  ],
+  "seating_chair": {
+    "face_nearby_fire": true,
+    "rest_pose": {
+      "right_hand": [
+        0.5625,
+        0.0,
+        0.4375
+      ],
+      "left_foot": [
+        0.3125,
+        0,
+        0.25
+      ],
+      "left_hand": [
+        -0.5625,
+        0.0,
+        0.4375
+      ],
+      "body": [
+        0,
+        0.25,
+        0
+      ],
+      "right_foot": [
+        -0.3125,
+        0,
+        0.25
+      ]
+    },
+    "clearance_regions": [
+      {
+        "shape": "cylinder",
+        "min": [
+          -0.875,
+          1.475,
+          -0.875
+        ],
+        "max": [
+          1.875,
+          3.75,
+          1.875
+        ]
+      },
+      {
+        "min": [
+          -0.1875,
+          0.875,
+          -0.0625
+        ],
+        "max": [
+          1.1875,
+          2.125,
+          1.0625
+        ]
+      },
+      {
+        "min": [
+          -0.25,
+          1.0,
+          1.125
+        ],
+        "max": [
+          1.25,
+          1.5,
+          1.75
+        ]
+      },
+      {
+        "shape": "cylinder",
+        "min": [
+          -0.6875,
+          1.225,
+          -0.6875
+        ],
+        "max": [
+          1.6875,
+          2.675,
+          1.6875
+        ]
+      }
+    ],
+    "access_cells": [
+      [
+        -1,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        -1
+      ],
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  "__comment": "One-tile stool: hands rest together in front, boots beside the stump, torso supported by its cut top. Occupants can face a nearby fire independently of stool yaw. Rounded head/hair and beard clearance permits gentle head turns; low body/hand regions clear the fire. Clearance coordinates are relative to the footprint corner, like collision regions.",
+  "material_group": "wood",
+  "material_palette": "hand_hewn_timber",
+  "appeal": {
+    "design": 1,
+    "material_factor": 1
+  }
+}

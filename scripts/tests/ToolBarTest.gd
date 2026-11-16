@@ -11,7 +11,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - Place names the piece; the DEV stamper names its item and has no Undo;
 ## - the bar sits above the open shelf, clears the slice tower, and fits at 960 x 540.
 const STAMPER := "res://scripts/systems/ItemStamperController.gd"
-const BED := "base:resources:furniture:log_bed"
+const BED := "base:item:log_bed"
 var builder
 var mining
 var bar
@@ -94,7 +94,7 @@ func _check_build() -> void:
 	_move(b)
 	builder._update_preview(b)
 	bar.refresh()
-	var stock: int = stockpiles.get_available_total("base:resources:stone:rough_stone")
+	var stock: int = stockpiles.get_available_total("base:item:rough_stone")
 	_expect(bar._tag.visible and bar._tag_big.text == "3 × 1 · 2 tall" and bar._tag_small.text == "6 blocks · 6 rough stone · %d in stock" % stock,
 		"a held drag shows its size, blocks and stone on the tag: \"%s\", \"%s\"" % [bar._tag_big.text, bar._tag_small.text])
 	_expect(stock < 6 and bar._tag_small.get_theme_color("font_color") == UITheme.TAG_TONES.blocked[1], "the stone runs short, in rust")

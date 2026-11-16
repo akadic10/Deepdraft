@@ -8,6 +8,7 @@
         "stockpile_stone",
         "stockpile_ore",
         "stockpile_wood",
+        "stockpile_plank",
         "stockpile_soil",
         "stockpile_metal",
         "stockpile_gem"

@@ -1,8 +1,8 @@
 extends "res://scripts/tests/DwarfFoodTest.gd"
 
-const CHAIR := "base:furniture:log_chair"
-const TABLE := "base:furniture:log_table"
-const STOOL := "base:furniture:log_chair"
+const CHAIR := "base:furniture:log_stool"
+const TABLE := "base:furniture:dining_table"
+const STOOL := "base:furniture:log_stool"
 const LOG_BENCH := "base:furniture:bench"
 const CAMPFIRE := "base:furniture:campfire"
 var details
@@ -15,12 +15,14 @@ func _run() -> void:
 	await _facing()
 	await _famished_seating_range()
 	await _busy_room_at_speed()
+	await _reach_as_the_player_sees_it()
+	await _place_taken_while_looking()
 	await _interruptions()
 	await _foraging()
 	_effects_and_save()
 	await _presentation()
 	for failure in failures: push_error(failure)
-	print("DWARF_DINING_OK: four dining outcomes, fire and table facing, room-wide reach, busy room at x3, seat contention, interruption, emergency crops, claims, conservation, season, saved work, mood, work speed and UI" if failures.is_empty() else "DWARF_DINING_FAIL")
+	print("DWARF_DINING_OK: four dining outcomes, fire and table facing, room-wide reach, busy room at x3, reach as seen, a taken place, seat contention, interruption, emergency crops, claims, conservation, season, saved work, mood, work speed and UI" if failures.is_empty() else "DWARF_DINING_FAIL")
 	quit(0 if failures.is_empty() else 1)
 
 func _clear_layout() -> void:
@@ -180,6 +182,114 @@ func _busy_room_at_speed() -> void:
 		"the nearest seat at a table is used before every lone stool is checked")
 	await _finish_food()
 	_clear_layout()
+
+## The owner's report (2026-11-10): the dining table stood 23 blocks from the food shelves as the
+## crow flies, but the walk to it was 34 to 42 blocks, and the reach was counted along the walk,
+## so every dwarf ate where it stood. The reach is how far away a place is (`dining_distance`);
+## the walk to it has its own, wider bound (`dining_walk_distance`).
+func _reach_as_the_player_sees_it() -> void:
+	_clear_layout()
+	var rock: int = blocks.get_id("base:terrain:rock:rock01")
+	# Two walls across the corridor _famished_seating_range laid, and well past its sides, each
+	# with one gap, so the walk to the table winds through both.
+	var walls := [[50, 48], [60, 38]]   # the wall's x, its gap's z
+	for wall: Array in walls:
+		for z in range(26, 61):
+			if z == int(wall[1]): continue
+			for y in range(21, 25): world.set_block(int(wall[0]), y, z, rock)
+	await _frames(4)
+	var seat = _piece(CHAIR, Vector3i(67, 20, 45))
+	var table = _piece(TABLE, Vector3i(66, 20, 46))
+	_store(BLUEBERRY, 4)
+	_hungry(worker)
+	_expect(await _food_phase("dining"), "winding walk: the diner collects its portion")
+	var pickup: Vector3i = worker.current_cell()
+	var nav := root.get_node("NavGrid")
+	var goals := {}
+	for cell: Vector3i in load("res://scripts/components/FurnitureSeating.gd").access_cells(seat.def, seat.origin_cell, 0):
+		if nav.is_walkable(cell): goals[cell] = true
+	var probe := {}
+	var result := 0
+	for i in 4000:
+		result = load("res://scripts/components/WorkRouteProbe.gd").advance(probe, pickup, goals.keys()[0], 64, Time.get_ticks_usec() + 250, false, goals)
+		if result != nav.ProbeResult.SEARCHING: break
+	var walked: float = load("res://scripts/components/DwarfForaging.gd").path_length(pickup, probe.get("path", []))
+	var config: Dictionary = worker._food.config
+	var reach := float(config.dining_distance)
+	_expect(result == nav.ProbeResult.REACHABLE and Vector3(seat.origin_cell - pickup).length() <= reach and walked > reach and walked <= float(config.dining_walk_distance),
+		"the table is within reach as the crow flies and a longer walk away (walked %.1f, straight %.1f)" % [walked, Vector3(seat.origin_cell - pickup).length()])
+	# A winding route takes some sixty frames to search, a second of the search's two at the
+	# game's sixty frames a second; this fixture's usual twentieths would spend three on it.
+	_expect(await _food_phase_at_game_rate("eating"), "winding walk: the diner reaches eating")
+	var dining = worker._food._dining
+	_expect(dining.outcome() == "proper" and dining.choice.get("seat") == seat and dining.choice.get("table") == table,
+		"a table within reach is used though the walk to it is longer than the reach")
+	await _finish_food()
+	_expect(worker._food.last_dining == "proper", "the meal at the far side of the walls is a proper one")
+	# The walk keeps a bound of its own: within reach but too long a walk away is left alone.
+	# The search is given all the time it wants, so that only the walk's bound can refuse the table.
+	var bound: float = float(config.dining_walk_distance)
+	var patience: float = float(config.dining_search_seconds)
+	config["dining_walk_distance"] = reach
+	config["dining_search_seconds"] = 60.0
+	_hungry(worker)
+	_expect(await _food_phase_at_game_rate("eating"), "bounded walk: the diner still eats")
+	_expect(worker._food._dining.outcome() == "neither" and worker._food._dining.elapsed < 60.0, "a walk past its own bound is not taken")
+	await _finish_food()
+	config["dining_walk_distance"] = bound
+	config["dining_search_seconds"] = patience
+	for wall: Array in walls:
+		for z in range(26, 61):
+			for y in range(21, 25): world.set_block(int(wall[0]), y, z, 0)
+	await _frames(4)
+	_clear_layout()
+
+func _food_phase_at_game_rate(target: String, limit := 6000) -> bool:
+	for i in limit:
+		if worker._food.state == target: return true
+		worker._process(1.0 / 60.0)
+		await process_frame
+	return false
+
+## The owner's colony at x3 (2026-11-10): with both stools taken, two diners routed to the same
+## place at the table; the one that lost it gave the table up and ate where it stood. And the
+## search's budget, counted in game seconds, was a third as many frames at x3.
+func _place_taken_while_looking() -> void:
+	_clear_layout()
+	var table = _piece(TABLE, Vector3i(44, 20, 41))
+	clock_node.set_speed(3)
+	_store(BLUEBERRY, 4)
+	_hungry(worker)
+	_expect(await _food_phase("dining"), "taken place: the diner collects its portion")
+	var dining = worker._food._dining
+	for i in 200:
+		if not dining.candidates.is_empty() or not dining.choice.is_empty(): break
+		worker._process(.05)
+		await process_frame
+	_expect(dining.choice.is_empty() and dining.candidates.size() == 1 and dining.candidates[0].get("table") == table and dining.candidates[0].get("seat") == null,
+		"with no stool the diner's one candidate is a place at the table")
+	# Where its route will end: the same search, run to its end now, before the diner starts its own.
+	var nav := root.get_node("NavGrid")
+	var goals: Dictionary = (dining.candidates[0].goals as Dictionary).duplicate()
+	var probe := {}
+	var result := 0
+	for i in 4000:
+		result = load("res://scripts/components/WorkRouteProbe.gd").advance(probe, worker.current_cell(), goals.keys()[0], int(worker._food.config.search_nodes),
+			Time.get_ticks_usec() + 250, false, goals)
+		if result != nav.ProbeResult.SEARCHING: break
+	var first: Vector3i = probe.path.back() if not (probe.get("path", []) as Array).is_empty() else worker.current_cell()
+	table.dining_claims[first] = 9999   # another diner takes that place while this one still looks
+	_expect(await _food_phase("eating"), "taken place: the diner still reaches eating")
+	_expect(dining.outcome() == "table_only" and dining.goal != first and int(table.dining_claims.get(dining.goal, -1)) == worker.dwarf_id,
+		"a diner whose place was taken while it looked takes another place at the same table (first %s, took %s)" % [first, dining.goal])
+	await _finish_food()
+	table.dining_claims.erase(first)
+	_clear_layout()
+	var search = load("res://scripts/components/DwarfDining.gd").new(worker)
+	search.tick(.15)
+	_expect(is_equal_approx(search.elapsed, .05), "the search's budget is real time: x3 does not spend it three times as fast")
+	search.release()
+	clock_node.set_speed(1)
 
 func _interruptions() -> void:
 	_clear_layout()

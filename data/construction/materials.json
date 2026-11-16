@@ -7,13 +7,13 @@
     "wood": {"label": "Wood", "menu": "Log", "woods": "Wood", "kinds": ["log_upright", "log_horizontal"]}
   },
   "woods": {
-    "oak": {"label": "Oak", "material": "base:material:oak", "item_key": "base:resources:wood:oak_log", "one": "oak log", "many": "oak logs",
+    "oak": {"label": "Oak", "material": "base:material:oak", "item_key": "base:item:oak_log", "one": "oak log", "many": "oak logs",
       "blocks": {"up": "base:construction:log:oak:up", "x": "base:construction:log:oak:x", "z": "base:construction:log:oak:z"}},
-    "pine": {"label": "Pine", "material": "base:material:pine", "item_key": "base:resources:wood:pine_log", "one": "pine log", "many": "pine logs",
+    "pine": {"label": "Pine", "material": "base:material:pine", "item_key": "base:item:pine_log", "one": "pine log", "many": "pine logs",
       "blocks": {"up": "base:construction:log:pine:up", "x": "base:construction:log:pine:x", "z": "base:construction:log:pine:z"}},
-    "juniper": {"label": "Juniper", "material": "base:material:juniper", "item_key": "base:resources:wood:juniper_log", "one": "juniper log", "many": "juniper logs",
+    "juniper": {"label": "Juniper", "material": "base:material:juniper", "item_key": "base:item:juniper_log", "one": "juniper log", "many": "juniper logs",
       "blocks": {"up": "base:construction:log:juniper:up", "x": "base:construction:log:juniper:x", "z": "base:construction:log:juniper:z"}},
-    "apple": {"label": "Apple", "material": "base:material:applewood", "item_key": "base:resources:wood:apple_wood", "one": "apple wood", "many": "apple wood",
+    "apple": {"label": "Apple", "material": "base:material:applewood", "item_key": "base:item:apple_log", "one": "apple log", "many": "apple logs",
       "blocks": {"up": "base:construction:log:apple:up", "x": "base:construction:log:apple:x", "z": "base:construction:log:apple:z"}}
   }
 }

@@ -1,5 +1,24 @@
 # 31 — Task System
 
+**A plan claims one unit (2026-11-15):** log torches are kept 24 to a crate as fruit is (doc 62),
+so a placement plan no longer claims a whole loose crate.
+- `FurnitureGhostComponent.ensure_claim` and `reserve_fetch` take one unit out of a loose crate
+  (`ItemDropManager.reserve_unit`): the unit becomes a crate of one lying where its crate lies,
+  reserved for the plan or its worker, and the rest stays loose and unreserved.
+  - Every plan waiting on one crate holds a unit of its own, so each gets a worker at once.
+  - Haulers may store the remainder while plans wait.
+  - A plan no dwarf can reach holds one torch, not the crate.
+- A claim given up (the plan cancelled, or a reachable supply taken in its place) puts its unit
+  back into a free crate of its kind and material on the same cell (`release_unit`). With no such
+  crate it stays a loose unit, free for anyone.
+- Claims are never saved. A unit set aside is saved as the loose goods it is, and after a load its
+  plan claims a unit again.
+- Cuttings and tree seeds follow the same rule (doc 42). Until this change their plan reserved the
+  whole crate until pickup split one unit, and the planting plan added the crate's spare units back
+  to Place's count, so plans on one loose crate were served one after another.
+- Stored crates were never claimed: a withdrawal hands over one unit (`withdraw_stack`).
+- `TorchCrateTest` (furniture, storage) and `PlacementHaulPriorityTest` (gate) cover it.
+
 **Storage priority and storage furniture (2026-11-02, 294):** every store (`StorageComponent`)
 has a `priority` from 1 (filled first) to 5 (last). Ground zones start at 5, storage furniture at
 its JSON `storage.priority` (the tool rack 4), and a project's materials crate is 0.
@@ -231,7 +250,9 @@ out of a plan drop the goods it no longer needs beside the crate
 - **Reach:** a builder works a block from a floor at most 5 below it or 1 above it (`reach_up`,
   `reach_down` in `data/construction/blocks.json`; `ConstructionController.stands_for`).
   Nothing lifts it higher, and ladders give no work floors, so a tall plan's upper layers need
-  Shapes stairs to stand on, or DEV: Finish construction.
+  Shapes stairs to stand on, or DEV: Finish construction. The reach stays at 5 (the owner,
+  2026-11-09: "dwarves reaching 5 blocks is good"); taller plans wait for scaffolding
+  (`00_todo.md`, "Builders reach only 5 blocks up").
 - **Replace plans** (2026-10-29, doc 285): Build's Replace plans solid blocks, staged and leased
   as above. The same FETCH_BUILD work first digs the old block with the pick for its mining
   time (`MiningZoneWork.get_block_work`, at base speed), then hammers the new block in; the
@@ -323,7 +344,8 @@ stays active until the physical item is packed. The stones' rules are in doc 33.
 >   hauler already carrying a single packed object keeps it
 >   (`DwarfAgent.detach_placement_cargo`) and starts the fetch at its
 >   travel-to-install phase: no storage detour, no second pickup. Other cargo, such
->   as a multi-unit cutting crate, drops loose so the fetch can split one unit.
+>   as a multi-unit cutting crate, drops loose so the plan can take one unit out of it
+>   ("A plan claims one unit", 2026-11-15).
 > - Cancelling, sleep or a lost site follow the release protocol and keep the item.
 >   No extra inventory store or save field is involved. `PlacementHaulPriorityTest`
 >   (gate) covers the handoff.
@@ -413,6 +435,16 @@ never got a turn (roadmap 88; `LadderSchedulingTest`).
 > (`CraftTripTest`).
 
 ## Overview
+
+**FARM live (2026-11-14, doc 309):** a field's work is surface work. Each field keeps
+`max_farmers_per_field` places (`FarmFieldWork`), and a place posts one priority-48 lease
+while the field has work for it, so a field of 256 tiles posts two tasks, never one a tile.
+The Farmer who takes a lease is given the nearest job it may do (pull, hoe under, sow, hoe),
+stands beside that tile and works it; the lease ends with the job and the field posts the
+next (`WorkSourceTable.on_gone`). The work done on a tile is kept on the tile, so a release
+loses none (Hard Rule 12), and a job's last stroke checks the tile again as it is then. A
+tile nobody can stand beside is left alone for half a minute. Rules:
+[42 §Fields](../40_economy_colony/42_farming_brewing.md#fields).
 
 **Idle leisure live (2026-10-09):** available dwarves can stroll locally or sit
 on an installed stool or bench without creating an IDLE lease or leaving
@@ -506,11 +538,10 @@ other fetch sources retain their existing selection contract.
   nodes (doc 134), so leisure strolling cannot keep restarting a long route.
 
 **Cutting planting live (doc 80):** the same planting source uses `FETCH_BUILD`
-with one cutting as its input. The whole crate is reserved only until pickup,
-which splits one unit (`take_planting_item`) and retargets the animation to the
-new cargo (a craft order takes fish from a loose crate the same way, doc 289);
-the remainder stays in place, and its spare units can back other standing Place
-requests (`spare_claimed_units`). Cancelling before pickup keeps
+with one cutting as its input. The plan claims one cutting out of its crate ("A plan
+claims one unit", 2026-11-15); the remainder stays in place, free for other standing
+Place requests. (A craft order still reserves a loose crate whole until pickup takes
+one unit, `WorkerCraftOrder.take_planting_item`, doc 289.) Cancelling before pickup keeps
 the stock, cancelling while carrying drops the intact cutting at the worker's
 feet, interruption retains plan work, and removing the plan abandons its work
 without spending a cutting. Completion creates one young player plant after the
@@ -578,14 +609,14 @@ enum number, so reordering `Task.Type` does not orphan saved journal entries.
 # scripts/systems/Task.gd — as shipped
 class_name Task extends RefCounted
 
-enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT }   # SMELT/FORGE later (doc 44)
+enum Type   { MINE, HAUL, FETCH_BUILD, UNINSTALL, FELL_TREE, CRAFT, CLEAR_BOULDER, GATHER_SCREE, HARVEST_SHRUB, CLEAR_SHRUB, CLEAR_PLANT, UPROOT_SHRUB, HARVEST_TREE, FISH, COLLECT, FARM }   # SMELT/FORGE later (doc 44)
 enum Status { PENDING, ASSIGNED, IN_PROGRESS, BLOCKED, COMPLETED, FAILED, CANCELLED }
 
 # Task-type categories, listed only here (doc 258 step 6):
-const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work, fishing spots and finished batches on a workshop: one executor, the surface matcher
+const SURFACE_WORK := [...]  # tree, boulder, scree, shrub and plant work, fishing spots, finished batches on a workshop and a field's tiles: one executor, the surface matcher
 const GATHER_WORK  := [...]  # surface work done by hand (gather pose and contact)
 const SHRUB_WORK   := [...]  # HARVEST_SHRUB, CLEAR_SHRUB
-const COMMON_WORK  := [...]  # what every career takes before permissions unless it names its own `work` (the Ranger); careers with a `craft_section` add CRAFT
+const COMMON_WORK  := [...]  # what every career takes before permissions unless it names its own `work` (the Ranger); careers with a `craft_section` add CRAFT, and a career's `work_first` adds what it names (the Farmer's FARM)
 
 var id:            int           # unique auto-incremented ID
 var type:          Task.Type
@@ -753,11 +784,12 @@ through a Labor window remain planned.
 | `COLLECT` | 47 | Take a finished batch down from its workshop: the drying rack's dried fish (doc 292), the basic smelter's copper bar (doc 297). Only the career whose page made the batch takes it (`WorkshopBatch.allows_worker`): Rangers the fish, Blacksmiths the copper. Every crafting career takes COLLECT; before new crafts, so the workshop comes free |
 | `CRAFT` | 46 | Craft orders, each made by its page's career; after mining/felling, before placement/hauling. A Carpenter or Stonemason takes an order of their own page before any other work (doc 293) |
 | `FETCH_BUILD` | 45 | Install finished furniture; bring the night's log to a cold fire |
+| `FARM` | 48 | A job on a field's tile (doc 42, "Fields"): pulling a ripe tile, hoeing a plant under, sowing or hoeing ground. Farmers only, before any other work |
 | `FISH` | 42 | A catch at a Fishing zone's spot (doc 42, "Fishing"). Rangers only, after drying and before hauling |
 | `UNINSTALL` | 40 | Pack marked furniture for storage |
 | `HAUL` | 40 | Keeps workshops fed; slightly less urgent than mining |
 
-Farming, brewing and patrol have no task types yet; each gets its type and
+Brewing and patrol have no task types yet; each gets its type and
 priority when its feature arrives (doc 52 plans `PATROL` at 60). Dwarves idle
 without a queued task.
 
@@ -874,7 +906,9 @@ idle Ranger from fishing or hauling while an available drying order waits for th
 time, to the bucket after it: the fishing spot at their feet. A failed search backs its
 order off, which frees the Ranger for later work meanwhile. A career that takes the common
 work may name what comes before it (`work_first`): the Carpenter and the Stonemason craft
-their own page's orders first (doc 293), and only orders they could make hold them. An
+their own page's orders first (doc 293), and only orders they could make hold them. The
+Farmer's fields come first the same way (doc 309), and a field whose only work is sowing a
+crop above a Farmer's level does not hold that Farmer (`FarmFieldWork.allows_worker`). An
 unreachable Miner
 never holds a lease back from a reachable Worker. Profession rules:
 `41_dwarf_agents.md`, Profession System (doc 96).

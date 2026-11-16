@@ -31,9 +31,9 @@ var military_class: MilitaryClass = MilitaryClass.NONE
 
 # Equipment slots — item URI strings; empty string = slot unoccupied
 var equipment: Dictionary = {
-    "slot_helmet":      "",   # base:item:armor:helmet_*
-    "slot_chest":       "",   # base:item:armor:chest_*
-    "slot_boots":       "",   # base:item:armor:boots_*
+    "slot_helmet":      "",   # base:item:helmet_*
+    "slot_chest":       "",   # base:item:chest_*
+    "slot_boots":       "",   # base:item:boots_*
     "slot_weapon_main": "",   # primary weapon or crossbow
     "slot_weapon_off":  "",   # shield, second weapon, bolt quiver, or "" (Stoneclad)
 }
@@ -76,7 +76,7 @@ All professions share the same three armour slots. The material tier of each pie
 | Stoneclad | `weapon_maul_iron` or `weapon_greataxe_iron` | *(locked empty)* | Two-handed; off-hand slot is permanently unavailable |
 | Marksman | `weapon_crossbow_iron` | `quiver_bolts` | Quiver is non-consumable equipment — equip once, fires indefinitely |
 
-All item keys are namespaced under `base:item:weapon:*` and `base:item:armor:*`. Exact base damage values are TBD in the balance pass.
+Weapons and armor are items like any other, `base:item:<name>` (doc 13, "Naming ids and files"), told apart by a `weapon` or `armor` tag and not by their ids. Exact base damage values are TBD in the balance pass.
 
 ### Gear Drop on Death
 

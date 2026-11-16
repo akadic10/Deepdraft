@@ -8,10 +8,10 @@ const STEP := 1.0/60.0
 func _run() -> void:
 	create_timer(60).timeout.connect(func(): push_error("Bench arrival test timed out"); quit(1))
 	await _setup_crafting_fixture()
-	_carpenter_bench_at(Vector3i(46,20,40))
+	furniture._install(BENCH,furniture.get_defs()[BENCH],Vector3i(46,20,40),0)   # the log bed is a Worker's again (doc 306)
 	drops.spawn_drop(PINE,2,Vector3i(38,21,39))
 	drops.spawn_drop(PINE,2,Vector3i(38,21,43))
-	var id: int = crafting.queue_order("base:recipe:worker:log_bed",1)
+	var id: int = crafting.queue_order("base:recipe:log_bed",1)
 	var order = crafting.get_order(id)
 	var closest := INF
 	var retreat := 0.0

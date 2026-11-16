@@ -1,5 +1,10 @@
 # 34 — Temperature and room comfort
 
+**Room types (owner, 2026-11-12):** a sealed room is now also a dining room (a dining table, a
+seat, a fire and a light), a pantry (a food shelf, above 0°C and below 16°C) or a freezer (a
+food shelf, at 0°C or below), beside the bedrooms and barracks. A type can need a temperature,
+so rooms are typed again whenever temperatures are worked out. See "Room types".
+
 **Stronger, tended hearths (owner, 2026-10-30):** a lit hearth left Furin's 605-cell bedroom
 Chilly (10.8°C to 13.4°C), and the owner chose stronger hearths. A hearth now has 9600 heat
 units (was 1600), enough for a bedroom of about 600 cells through the winter, and a sealed
@@ -73,23 +78,77 @@ anchor. Wall lights sample their
 actual mounted air cell, so changing placement height or excavating below does
 not associate them with another level's room (doc 129).
 
-**Room kinds** are data: RoomManager owns `data/rooms/room_kinds.json`. A sealed
-room takes the first kind whose needs it meets, in the file's order; with none it
-is a plain room. The kinds are:
-- personal bedroom: one whole bed, with an owner, a light and a door;
-- bedroom: the same with no owner;
-- barracks: two or more beds, a light and a door.
+### Room types
 
-Bed ownership and bedroom privacy are in doc 41. An owner change reclassifies rooms
-at once, without a flood fill (`on_bed_assignment_changed`), and restarts a rebuild in
-progress. Losing a required component revokes the classification. Light count is not
-inferred from heat. Only installed pieces count: a bed only when its whole footprint
-lies inside the room, and a light by the same anchor cell as heat, so a light outside
-never counts (doc 120).
-`missing_needs()` and `nearest_kind()` give the room window what a room lacks,
-and `room_furniture(room)` lists its furniture by the same anchors as lights and
-heat; a door belongs to each room it seals. The room window is described in
-`23_user_interface.md` (The Rooms Tool).
+Room types are data: RoomManager owns `data/rooms/room_kinds.json`, and its `RoomKinds`
+component (`scripts/components/RoomKinds.gd`) works a room's type out. A sealed room takes
+the first type whose needs it meets, in the file's order; with none it is a plain room.
+
+| Type | Needs | Since |
+|---|---|---|
+| Personal bedroom | one whole bed with an owner, a light and a door | |
+| Bedroom | the same with no owner | |
+| Barracks | two or more beds, a light and a door | |
+| Dining room | a dining table, a seat, a fire, a light and a door | 2026-11-12 |
+| Pantry | a food shelf and a door, above 0°C and below 16°C | 2026-11-12 |
+| Freezer | a food shelf and a door, at 0°C or below | 2026-11-12 |
+
+- **The owner's rules (2026-11-12).** The owner reported a cool room holding two food shelves
+  that the room window measured against a bedroom, and asked for a dining room (a heat source,
+  lighting, tables and chairs), a pantry (food storage, by its temperature) and a freezer (food
+  storage only, freezing or below).
+- **What counts.** Beds, lights and doors as before. `RoomKinds.piece_things` reads the rest
+  off each piece's definition, so a new piece counts without being listed anywhere:
+  - a dining table has a `dining_surface_height` (the plank dining table; not the board-game
+    table);
+  - a seat has `seating_chair` (the log stool, the stone stool, the plank bench);
+  - a fire has a `nightly_fire` (the hearth and the campfire), lit or cold, as a cold fire is
+    still its room's light. A torch is a light only, and the smelter is no fire;
+  - a food store is storage furniture whose `storage.accepts` takes `stockpile_food` (the food
+    shelf).
+  RoomManager keeps each at its floor anchor, as it keeps lights, and a scan counts those whose
+  air is in the room (`room.things`). Placing or removing one starts a scan, as a light does.
+- **Ground storage is no food store.** A storage zone takes every good until the player
+  narrows it, so it says nothing of what its room is for, and room appeal already prefers
+  goods on furniture. A zone set to food only could count later (`00_todo.md`, "Room types
+  left for later").
+- **Order.** The bed types come first, then the dining room, the pantry and the freezer. A
+  bedroom holding a food shelf stays a bedroom, and a dining room holding one a dining room.
+  Nothing else keeps a pantry "food only": a cool room with a food shelf that fits no earlier
+  type is a pantry whatever else stands in it.
+- **Temperature needs.** A need named `temperature` is a range: `above`, `below`, `at_most` or
+  `at_least`, each a number or the name of a value in `temperature.json`. The pantry is above
+  `frozen_at_c` and below `comfortable_min_c`, so Cold or Chilly; the freezer is at most
+  `frozen_at_c`, so Frozen. Types are worked out again whenever temperatures are
+  (`_recompute_temps`: each game hour, on a change of weather, when a fire is lit or goes out,
+  and after a scan), and `room_updated` tells listeners when an hour changes a type. So a
+  pantry in a hut is a plain room while summer holds it at 16°C or more, and a cellar just
+  under the summit is a freezer for the two weeks it freezes. A scan no longer types rooms
+  itself; RoomManager does when it publishes the scan, once the temperatures are known.
+- **No new effects.** The three new types name what the game already does: food spoils by the
+  temperature where it is (doc 42 "Spoilage"), and a meal at a table and seat in a sealed room
+  leaves the room's appeal as a thought (doc 41). The bedroom types keep their effects
+  (privacy and the owner's bonus, doc 41).
+- **A plain room** is on its way to a type whose `key` piece it holds (a bed, a dining table,
+  a food store): the one it is fewest needs away from, the first such in the file's order
+  (`nearest_kind`). One holding no type's key is on its way to none (`{}`), and the room window
+  shows what it could be. Until 2026-11-12 every plain room was measured against the type it
+  was fewest needs away from, which was the bedroom whatever the room held.
+- **Words.** `RoomKinds` says needs in the data's words (`things` in `room_kinds.json`):
+  `goal_words` ("Needs 1", "0 to 16 °C"), `steps_words` ("add a bed and a light", "get it
+  below 16 °C") and `needs_sentence` ("One bed, a light and a door."). Each type's `gives`
+  says what it is for, `climate` how the window reads its warmth (comfort or keeping), and
+  `variant_of` lists the personal bedroom under the bedroom.
+
+Bed ownership and bedroom privacy are in doc 41. An owner change types rooms again at once,
+without a flood fill (`on_bed_assignment_changed`), and restarts a scan in progress. Losing a
+required component revokes the type. Light count is not inferred from heat. Only installed
+pieces count: a bed only when its whole footprint lies inside the room, and a light or a
+counted piece by the same anchor cell as heat, so one outside never counts (doc 120).
+`missing_needs()` and `nearest_kind()` give the room window what a room lacks, and
+`room_furniture(room)` lists its furniture by the same anchors as lights and heat; a door
+belongs to each room it seals. The room window is described in `23_user_interface.md` (The
+Rooms Tool). `RoomTypesTest` covers the types, the clock and the window.
 
 ## The climate
 

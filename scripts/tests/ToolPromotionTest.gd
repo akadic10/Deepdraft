@@ -1,6 +1,7 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-const KIT := "base:resources:tools:carpentry_kit"
+const KIT := "base:item:copper_saw"   # the Carpenter's tool; a Blacksmith makes it (doc 306, BasicSmelterTest)
+const PICK := "base:item:copper_pick"
 const CARPENTER := "base:profession:carpenter"
 const WORKER := "base:profession:worker"
 const MINER := "base:profession:miner"
@@ -12,10 +13,11 @@ func _run() -> void:
 	await _setup_crafting_fixture()
 	_expect(not worker.change_profession(CARPENTER) and worker.profession == WORKER, "API rejects Carpenter without a real available kit")
 	furniture._install(BENCH, furniture.get_defs()[BENCH], Vector3i(45,20,42), 0)
-	drops.spawn_drop(PINE, 1, Vector3i(42,21,42))
-	drops.spawn_drop(STONE, 1, Vector3i(44,21,44))
-	var order: int = crafting.queue_order("base:recipe:worker:carpentry_kit", 1)
-	_expect(await _completed(order), "Worker crafts the promotion kit from real timber and stone")
+	_expect(crafting.recipes["base:recipe:copper_saw"].section == "blacksmith" and not crafting.recipes.has("base:recipe:carpentry_kit"),
+		"no Worker makes a Carpenter's tool: the copper saw is on the Blacksmith's page")
+	_expect(worker._equipment.blocked_reason(CARPENTER) == "No spare copper saw. A Blacksmith makes it at the anvil stone.",
+		"the refusal says who makes the tool: %s" % worker._equipment.blocked_reason(CARPENTER))
+	drops.spawn_drop(KIT, 1, Vector3i(45,21,45))   # where a tool made at the workbench landed
 	worker.position = Vector3(40.5,21,39.5)
 	worker.sleep = 1.0
 	var factory = load("res://scripts/entities/DwarfFactory.gd").new()
@@ -50,7 +52,7 @@ func _run() -> void:
 	_expect(stock.total == 1 and stock.equipped == 1 and stock.available == 0 and stock.carried == 0, "equipped kit counts once, unavailable to new orders")
 	_expect(worker._carried_entries.is_empty(), "equipped tool does not masquerade as carried cargo")
 	_expect(worker.serialize_state().equipment.tool == KIT and drops.serialize_state().loose.is_empty(), "equipment has exactly one save owner")
-	_expect(not worker.change_profession("base:profession:farmer"), "other specialist roles remain planned")
+	_expect(not worker.change_profession("base:profession:brewer"), "a role the game does not have yet cannot be assigned")
 	_expect(worker.change_profession(WORKER) and drops._loose.has(kit), "changing back physically returns the same kit")
 	_expect(_count(KIT) == 1 and crafting.stock_snapshot()[KIT].available == 1, "role change does not create or lose a kit")
 	# Both sides of pickup contact must release safely.
@@ -135,8 +137,14 @@ func _run() -> void:
 		_expect(not worker.promotion_pending() and worker.profession==WORKER and _count(KIT)==1, "forbid interrupts pickup without promotion or lost kit")
 		_expect(drops._loose.has(kit) and not drops.Permission.allowed(kit), "interrupted kit stays disallowed")
 		drops.set_disallowed(kit,false)
-	worker.change_profession(MINER)
-	_expect(worker.profession == MINER and worker._equipment.tool_key().is_empty(), "Miner still promotes freely using default pickaxe")
+	# The Miner needs a copper pick the same way (doc 306), and digs faster for holding it.
+	var assets := root.get_node("DwarfAssets")
+	_expect(not worker.change_profession(MINER) and worker.profession == WORKER, "without a copper pick there is no Miner")
+	drops.restore_loose_item(PICK, Vector3(39.5,21,40.5), 0, 1)
+	_expect(worker.change_profession(MINER) and await _until_role(MINER) and worker._equipment.tool_key() == PICK, "with a pick in the colony, the Miner collects it")
+	_expect(is_equal_approx(assets.mining_duration_multiplier(MINER, {MINER: 0}, PICK), .8) and is_equal_approx(assets.mining_duration_multiplier(MINER, {MINER: 0}), 1.0)
+		and is_equal_approx(assets.mining_duration_multiplier(WORKER, {MINER: 2500}, PICK), 1.0),
+		"the copper pick takes a fifth off a Miner's digging time, and nothing off a Worker's")
 	await _review_equipment()
 	for failure in failures: push_error(failure)
 	if failures.is_empty(): print("TOOL_PROMOTION_OK: crafted kit, competing claims, pickup, cancellation, sleep, routes, storage, equipped and pending saves, Miner and UI")
@@ -150,8 +158,12 @@ func _equipment_stage(value: String) -> bool:
 	return false
 
 func _appointed() -> bool:
+	return await _until_role(CARPENTER)
+
+## The pending promotion is over: whether the worker now has `role`.
+func _until_role(role: String) -> bool:
 	for i in range(900):
-		if not worker.promotion_pending(): return worker.profession == CARPENTER
+		if not worker.promotion_pending(): return worker.profession == role
 		await _tick()
 	return false
 
@@ -219,7 +231,7 @@ func _review_equipment() -> void:
 	explorer.open_character_sheet()   # the tabbed window is the dwarf's character sheet (doc 260)
 	await _frames(6)
 	var inspector = explorer._dwarf_panel
-	_expect(inspector._equipment_page._tool_name.text.contains("Carpentry"), "the character sheet names the real equipped tool")
+	_expect(inspector._equipment_page._tool_name.text.contains("Copper saw"), "the character sheet names the real equipped tool")
 	await _capture_equipment("inspector_960")
 	dock._open_inventory()
 	await _frames(5)

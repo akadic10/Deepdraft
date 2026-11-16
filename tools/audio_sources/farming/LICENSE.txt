@@ -1,0 +1,56 @@
+Deepdraft - recorded farming sounds
+
+All four recordings were released under CC0 1.0 Universal, as stated on each source page.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-11-14
+
+Each local master is a decoded copy of Freesound's public HQ MP3 preview, not the original
+lossless upload (the originals need a Freesound login). source.json records each download
+URL, the hashes, the conversion and the edit regions; tools/generate_farming_audio.py rebuilds
+the game's cues from these masters without a download.
+
+dig.wav
+Author: maxthrower
+Source: https://freesound.org/people/maxthrower/sounds/168810/
+Preview: https://cdn.freesound.org/previews/168/168810_3063236-hq.mp3
+Local master: mattock_garden.wav
+Used for: the copper hoe biting the ground (foley: a mattock digging a garden, not a hoe)
+The uploader's description: "the sound of the garden being dug with a mattock. nice and chunky. can serve as an sfx in many digging scenarios.". The page states no processing. Found by matching the file against itself: its stretch from 3.6 s to 22.0 s is heard a second time from 22.2 s to 40.6 s, an edit the page does not mention. Every cue is cut from the first copy or from the part after 40.6 s that is not repeated, so each is its own recorded stroke.
+Original upload: Wave (.wav), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: left (both channels are the same)
+
+Pull Plant
+Author: Jofae
+Source: https://freesound.org/people/Jofae/sounds/387083/
+Preview: https://cdn.freesound.org/previews/387/387083_6512973-hq.mp3
+Local master: plant_pulled_up.wav
+Used for: a ripe plant pulled from the ground
+The uploader's description: "This is a sound effect of a plant being grabbed and pulled up out of the ground. It's really quiet (and you may need to be amplified, depending on what you're using it for). It also has some snapping sound from the roots being pulled from the ground. Have fun! ;) P.S. I request that all my sound effects only be used for clean, appropriate media and projects. Thanks!". The page states no processing.
+Original upload: Wave (.wav), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: left (both channels are the same)
+
+4 weed.wav
+Author: 14FPanskaBenesova_Barbora
+Source: https://freesound.org/people/14FPanskaBenesova_Barbora/sounds/420046/
+Preview: https://cdn.freesound.org/previews/420/420046_8374679-hq.mp3
+Local master: weed_torn.wav
+Used for: a ripe plant pulled from the ground (foley: a weed being torn, not a crop pulled)
+The uploader's description: "tearing of weed". Tagged CZ, Czech, Panska. The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 24 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Soil Brush
+Author: NeoSpica
+Source: https://freesound.org/people/NeoSpica/sounds/426175/
+Preview: https://cdn.freesound.org/previews/426/426175_7704891-hq.mp3
+Local master: soil_brushed_by_hand.wav
+Used for: a tile sown by hand (foley: a hand brushing the ground; no seed is heard)
+The uploader's description: "Brushing the ground with my hand, recorded with a Zoom H1.". Tagged dirt, earth, forest, ground, soil. A quiet recording: above 150 Hz its strokes stand 16 to 18 dB over its own hiss. The page states no processing.
+Original upload: Wave (.wav), 96 kHz, 24 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Substitutes, named as such: the hoe is a mattock digging a garden, not a hoe. Three of the four
+pulls are a weed being torn, not a crop pulled; the fourth is a plant pulled up out of the ground,
+as in the game. The sowing is a hand brushing the ground, with no seed in it. No synthetic layers,
+time stretching or pitch changes are baked into any cue.

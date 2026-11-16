@@ -7,7 +7,7 @@ extends "res://scripts/tests/ConstructionTest.gd"
 ##   builder standing on the last finished log, and dwarves then walk across;
 ## - building the deck leaves the river's water alone;
 ## - a deck a block above its banks is reached by a log step at each end.
-const PINE := "base:resources:wood:pine_log"
+const PINE := "base:item:pine_log"
 var water
 var bank := Vector3i(45,20,40)
 var far_bank := Vector3i(51,20,40)

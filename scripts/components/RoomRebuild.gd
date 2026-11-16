@@ -3,7 +3,7 @@ extends RefCounted
 ## Resumable, main-thread room detection. Only RoomManager publishes results.
 ## All world reads are tracked so a changed, already-read chunk cancels this job.
 ## The traversal and 4096-cell leak approximation match the original detector.
-enum Stage { BOUNDARY, SEEDS, FILL, LEAK, CELLS, COLUMNS, HEAT, LIGHTS, BEDS, DONE }
+enum Stage { BOUNDARY, SEEDS, FILL, LEAK, CELLS, COLUMNS, HEAT, LIGHTS, THINGS, BEDS, DONE }
 var stage := Stage.BOUNDARY
 var rooms := {}
 var cell_to_room := {}
@@ -33,7 +33,6 @@ var floor_y_total := 0
 var exposure := 0.0
 var room := {}
 var furniture_keys: Array = []
-var first_bed := Vector3i.ZERO
 
 func _init(manager: Node) -> void:
 	owner = manager
@@ -148,6 +147,16 @@ func _step() -> void:
 				cursor += 1
 				if visited.has(cell + Vector3i.UP): room.light_count += int(owner._light_cells[cell])
 			else:
+				furniture_keys = owner.thing_anchors()
+				cursor = 0
+				stage = Stage.THINGS
+		Stage.THINGS:
+			# What else room types count: [thing, floor anchor, pieces] each.
+			if cursor < furniture_keys.size():
+				var entry: Array = furniture_keys[cursor]
+				cursor += 1
+				if visited.has(entry[1] + Vector3i.UP): room.things[entry[0]] = int(room.things.get(entry[0], 0)) + int(entry[2])
+			else:
 				furniture_keys = owner._bed_cells.keys()
 				cursor = 0
 				stage = Stage.BEDS
@@ -157,10 +166,10 @@ func _step() -> void:
 				cursor += 1
 				for cell: Vector3i in owner._bed_cells[origin]:
 					if not visited.has(cell + Vector3i.UP): return
-				if room.bed_count == 0: first_bed = origin
+				if room.bed_count == 0: room.bed_origin = origin
 				room.bed_count += 1
 			else:
-				owner.classify(room, int(owner._bed_assignments.get(first_bed, -1)) if room.bed_count == 1 else -1)
+				# RoomManager works its type out once it has its temperature, at publication.
 				rooms[room_id] = room
 				stage = Stage.SEEDS
 
@@ -183,5 +192,5 @@ func _begin_room() -> void:
 	exposure = 0.0
 	room = {"cells": visited, "door_cells": door_tiles, "volume": visited.size(),
 		"heat_units": 0, "temp_c": 0.0, "is_frozen_vault": false,
-		"bed_count": 0, "light_count": 0, "room_type": "room", "owner_id": -1}
+		"bed_count": 0, "light_count": 0, "things": {}, "room_type": "room", "owner_id": -1}
 	stage = Stage.CELLS

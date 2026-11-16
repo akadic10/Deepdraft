@@ -187,7 +187,7 @@ func _roll_tastes(rng: RandomNumberGenerator) -> Dictionary:
 
 ## A new dwarf's stats: every one at stats.json's `average`, then `shifts` moves of one
 ## point from one stat to another, never below the first step or above the last, so every
-## dwarf has the same total in a different shape. A trait's `stat_shape` (Iron Constitution,
+## dwarf has the same total in a different shape. A trait's `stat_shape` (Iron constitution,
 ## Frail) then sets a stat's lowest or highest step, moving points to or from the others.
 func _roll_stats(rng: RandomNumberGenerator, traits: Array[String]) -> Dictionary:
 	var data: Dictionary = DwarfAssets.get_stat_data()

@@ -1,7 +1,7 @@
 extends "res://scripts/tests/FurnitureMoveTest.gd"
 
 const FLAG := "base:furniture:settlement_flag"
-const FLAG_ITEM := "base:items:special:settlement_flag"
+const FLAG_ITEM := "base:item:settlement_flag"
 const THIRD := Vector3i(48,20,49)
 const OUT := "res://tmp/settlement_flag_move_20261012/"
 var flag_controller

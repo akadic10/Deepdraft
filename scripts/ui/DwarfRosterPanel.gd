@@ -1,6 +1,6 @@
 extends VBoxContainer
 
-## Colony Dwarves (doc 261), after Stonehearth's Citizens: a stable table of every dwarf
+## Colony dwarves (doc 261), after Stonehearth's Citizens: a stable table of every dwarf
 ## and, at the left, the Details card for the selected one. Everything live is on the rows
 ## (what each dwarf is doing and carrying, their mood and rest); the card holds who the
 ## dwarf is and the ways into more, the character sheet first. ObjectExplorer retains

@@ -48,7 +48,7 @@ func _run() -> void:
 			var models: Array=definition.crate_models
 			_expect((bounds_by_stage[models[2]] as AABB).size.y>(bounds_by_stage[models[0]] as AABB).size.y,"full crate visibly higher "+key)
 		if definition.get("material_palette","")=="starter_tool": _wood_variants(key,definition)
-	_expect(keys.size()==64 and inspected.size()==104,"all 64 definitions / 104 presentations imported: %d / %d" % [keys.size(), inspected.size()])
+	_expect(keys.size()==76 and inspected.size()==132,"all 76 definitions / 132 presentations imported: %d / %d" % [keys.size(), inspected.size()])
 	_expect(items._missing_models.is_empty(),"zero fallback models")
 	_work_tools()
 	_carry()
@@ -83,6 +83,9 @@ func _inspect(prop: Node3D,path: String) -> AABB:
 		_expect(valid,"finite vertices / unit normals "+path)
 		if "/crates/" in path or path.ends_with("/oak_stave.glb"):
 			_expect(radial<=.501,"one-tile yaw footprint "+path)
+		elif path.ends_with("_plank.glb"):
+			# A plank lies flat inside its log's stockpile slot: as long as the log, no broader, a third as high at most (doc 308).
+			_expect(is_equal_approx(bounds.size.z,.875) and bounds.size.x<=.8751 and bounds.size.y<=.3,"a plank lies flat in a log's slot "+path)
 		elif "/wood/" in path:
 			# Full-size player logs use aligned stockpile slots; loose drops may yaw.
 			_expect(bounds.size.is_equal_approx(Vector3.ONE*.875),"exact player log size "+path)
@@ -173,7 +176,7 @@ func _carry() -> void:
 		_expect(absf((prop.transform*box).position.y-.95)<.001,"carry bottom "+key)
 		_expect((prop.transform*box).position.z>=1.149,"cargo clears torso "+key)
 		prop.free(); dwarf._carry_pose.clear_items()
-	for key in ["base:resources:stone:rough_stone","base:resources:wood:oak_log","base:resources:flora:apple"]:
+	for key in ["base:item:rough_stone","base:item:oak_log","base:item:apple"]:
 		var entries := []
 		for i in 4:
 			var prop: Node3D=items.create_item_visual(key,24 if key.ends_with(":apple") else 1)
@@ -188,8 +191,8 @@ func _carry() -> void:
 	dwarf.free()
 
 func _timber_storage() -> void:
-	for name in ["pine_log","oak_log","juniper_log","apple_wood"]:
-		var key: String="base:resources:wood:"+name
+	for name in ["pine_log","oak_log","juniper_log","apple_log"]:
+		var key: String="base:item:"+name
 		var prop: Node3D=items.create_item_visual(key)
 		scene.add_child(prop);prop.rotation.y=.7;prop.scale=Vector3.ONE*.3
 		items.place_stored(prop,Vector3i(40,20,40))

@@ -44,14 +44,14 @@ static func run(tree: SceneTree, saves: Node) -> String:
 		match field:
 			"profession": dwarf.profession = "base:profession:gone"
 			"traits": dwarf.traits = ["base:trait:gone"]
-			"tool": dwarf.equipment.tool = "base:resources:tools:gone"
+			"tool": dwarf.equipment.tool = "base:item:gone"
 		if Store.Validator.validate_captured(unknown,saves.SAVE_SCHEMA_VERSION,catalogs).is_empty(): return "a dwarf's unknown %s was accepted" % field
 	var recipe: String = catalogs.recipes.keys()[0]
 	var item: String = catalogs.items.keys()[0]
 	var order := {"id":1,"recipe":recipe,"quantity":1,"maintain":false,"paused":false,"progress":0.0,"allowed_ingredients":[item]}
 	var crafting: Dictionary = Store.Validator.SCENE.worker_crafting
 	if not Store.Validator._validate(order,crafting.orders[0],"order",catalogs).is_empty(): return "a crafting order with a known ingredient was refused"
-	order.allowed_ingredients = ["base:resources:gone"]
+	order.allowed_ingredients = ["base:item:gone"]
 	if Store.Validator._validate(order,crafting.orders[0],"order",catalogs).is_empty(): return "a crafting order's unknown ingredient was accepted"
 	var batch := {"bench":1,"origin":[1,2,3],"recipe":recipe,"input":item,"inputs":1,"started":0.0,"material":"base:material:gone"}
 	if Store.Validator._validate(batch,crafting["?batches"][0],"batch",catalogs).is_empty(): return "a batch's unknown material was accepted"

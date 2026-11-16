@@ -1,0 +1,161 @@
+{
+  "__comment": [
+    "Pine tree — fast-growing evergreen, the primary source of basic construction lumber.",
+    "No fruit. Used for structural beams, flooring, and simple furniture.",
+    "Evergreen: only two season keys (summer baseline, winter snow-laden).",
+    "Missing season keys fall back to 'summer' at runtime.",
+    "Fastest-growing tree in the roster; early-game wood supply.",
+    "Three growth stages: sapling → mature → ancient.",
+    "",
+    "MODEL VARIANTS — Hearthblock square trees (doc 256):",
+    "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
+    "World-position hashing preserves each tree variant across seasonal changes."
+  ],
+  "base:flora:pine_tree": {
+    "harvest_resource": "base:item:pine_log",
+    "material_tags": [
+      "wood",
+      "tree",
+      "flora",
+      "evergreen",
+      "stockpile_wood"
+    ],
+    "appeal": 1,
+    "__placement_comment": [
+      "World-gen scatter rules read by SurfaceFloraSpawner (data, not logic).",
+      "Pine is the elevation tree: foothill + mountain domains only, never lowland.",
+      "Density by terrain surface Y (in blocks), per WorldGenerator's bands:",
+      "  - min_surface_y .. full_density_max_y : full density (foothill shelf + lower mountain)",
+      "  - full_density_max_y .. falloff_max_y : density ramps linearly to zero (the treeline band)",
+      "  - >= falloff_max_y                    : no pines (bare rock / future snow cap)",
+      "Reference bands (WorldGenerator.gd): foothill shelf Y20-43, mountain Y44-115.",
+      "Determinism (Hard Rule 8): every decision derives from world_seed + column XZ.",
+      "footprint = XZ block extents per stage; spacing and collision use these.",
+      "scatter_cell_size = grid cell (blocks) holding at most one tree, jittered within the cell.",
+      "base_density = probability a full-density cell contains a pine (before falloff scaling).",
+      "max_surface_slope = reject a footprint whose columns differ in surface Y by more than this.",
+      "edge_margin = ring (blocks) around the footprint checked for drops; 0 disables.",
+      "edge_dropoff_max = reject if a ring column is off-world or drops more than this below the trunk (keeps canopies off cliff lips / the world edge)."
+    ],
+    "placement": {
+      "pick_order": 0,
+      "domains": [
+        "foothill",
+        "mountain"
+      ],
+      "exclude_water": true,
+      "min_surface_y": 20,
+      "full_density_max_y": 75,
+      "falloff_max_y": 90,
+      "scatter_cell_size": 16,
+      "base_density": 0.33,
+      "max_surface_slope": 1,
+      "edge_margin": 2,
+      "edge_dropoff_max": 3,
+      "footprint": {
+        "sapling": 1,
+        "mature": 2,
+        "ancient": 3
+      },
+      "stage_weights": {
+        "sapling": 0.15,
+        "mature": 0.6,
+        "ancient": 0.25
+      }
+    },
+    "__planting_comment": "Player planting (doc 284): Place → Plants turns one seed into a sapling that grows to mature and ancient by stages.*.growth_duration_days, weighted by seasonal_growth (winter pauses). area = the square centred on the seed that no other tree may stand in: the mature crown (owner's pick, 2026-10-29), so grown ancients may overlap a few blocks. The ancient trunk footprint must be level open-sky ground with no other plants. Read by ContentRegistry and SurfaceFloraSpawner.",
+    "planting": {
+      "catalog_key": "base:flora:pine_cone",
+      "item": "base:item:pine_cone",
+      "work_seconds": 3.0,
+      "area": 7,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "seasonal_growth": {
+        "spring": 1.2,
+        "summer": 1.0,
+        "autumn": 0.8,
+        "winter": 0.0
+      }
+    },
+    "stages": {
+      "sapling": {
+        "felling": { "work_seconds": 2.0 },
+        "clearance_height": 6,
+        "growth_duration_days": 2.25,
+        "models": {
+          "summer": "res://assets/models/flora/trees/pine/pine_sapling.glb",
+          "winter": "res://assets/models/flora/trees/pine/pine_sapling_winter.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+      "mature": {
+        "felling": { "work_seconds": 6.0 },
+        "clearance_height": 16,
+        "growth_duration_days": 4.5,
+        "models": {
+          "summer": [
+            "res://assets/models/flora/trees/pine/pine_mature.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_2.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/pine/pine_mature_winter.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_winter_2.glb",
+            "res://assets/models/flora/trees/pine/pine_mature_winter_3.glb"
+          ]
+        },
+        "harvest": {
+          "yields": [
+            {
+              "item": "base:item:pine_log",
+              "count": 4,
+              "chance": 1.0
+            },
+            {
+              "item": "base:item:pine_cone",
+              "count": 1,
+              "chance": 0.25
+            }
+          ]
+        }
+      },
+      "ancient": {
+        "felling": { "work_seconds": 12.0 },
+        "clearance_height": 22,
+        "growth_duration_days": null,
+        "models": {
+          "summer": [
+            "res://assets/models/flora/trees/pine/pine_ancient.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_2.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/pine/pine_ancient_winter.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_winter_2.glb",
+            "res://assets/models/flora/trees/pine/pine_ancient_winter_3.glb"
+          ]
+        },
+        "harvest": {
+          "yields": [
+            {
+              "item": "base:item:pine_log",
+              "count": 10,
+              "chance": 1.0
+            },
+            {
+              "item": "base:item:pine_cone",
+              "count": 2,
+              "chance": 0.4
+            }
+          ]
+        }
+      }
+    }
+  }
+}

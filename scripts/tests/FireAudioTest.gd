@@ -58,12 +58,16 @@ func _run() -> void:
 			previous = sample
 		check(peak<.75 and sqrt(energy/count)>.04, "audible, unclipped PCM: "+kind)
 		check(seam<sqrt(difference/count)*5, "no discontinuous loop seam: "+kind)
-	for label in ["campfire","torch","cold","hidden","sliced","far","overview","paused","zero_speed","loading","no_camera","removed"]:
+	# A basic smelter's fire (doc 300) is heard only while its coals show: not idle, and not once the bar has set.
+	for label in ["campfire","torch","smelter","cold","smelter_idle","smelter_set","hidden","sliced","far","overview","paused","zero_speed","loading","no_camera","removed"]:
 		_fixture(label)
 		for i in 50: sound._process(.2)
 		var audible := false
 		for voice in sound.voices: audible = audible or voice.gain>.001
-		check(audible==(label in ["campfire","torch"]), "source gating: "+label)
+		check(audible==(label in ["campfire","torch","smelter"]), "source gating: "+label)
+	furniture._installed = {1:_piece(1,"unknown")}
+	for i in 5: sound._process(.2)
+	check(sound.voices.all(func(v): return is_zero_approx(v.gain)), "a fire of a kind the settings do not hold is silent")
 	_fixture("campfire")
 	for id in range(2,42):
 		furniture._installed[id] = _piece(id,"campfire")
@@ -138,16 +142,35 @@ func _fixture(label: String) -> void:
 	camera.current = label!="no_camera"
 	source.visible = label!="hidden"
 	source.position.y = 130 if label=="sliced" else 0
+	# A smelter's coals are its unfinished batch on show; once set, the bar shows in their place.
+	var piece_script = load("res://scripts/components/InstalledFurnitureComponent.gd")
+	_batch_part(piece_script.BATCH_PART, label=="smelter")
+	_batch_part(piece_script.BATCH_DONE_PART, label=="smelter_set")
 	furniture._installed = {} if label=="removed" else {1:_piece(1,label)}
 	if is_instance_valid(sound):
 		sound._silence()
+
+# A part of the fixture's piece as a workshop's batch is drawn: there and shown, or not shown.
+func _batch_part(part: String, shown: bool) -> void:
+	if not is_instance_valid(source): return
+	var node := source.get_node_or_null(part) as Node3D
+	if node == null:
+		if not shown: return
+		node = Node3D.new()
+		node.name = part
+		source.add_child(node)
+	node.visible = shown
 
 # Real installed pieces, as the game hands them: the campfire is a nightly fire burning
 # a log, "cold" is one still waiting for its log, and the torch is no nightly fire.
 # Loaded at run time: the class names autoloads that do not exist yet when this script compiles.
 func _piece(id: int, label: String) -> RefCounted:
 	var piece = load("res://scripts/components/InstalledFurnitureComponent.gd").new()
-	piece.setup(id,"",{"fire_sound":"torch"} if label=="torch" else {"fire_sound":"campfire","nightly_fire":{}},Vector3i.ZERO,0)
-	if label not in ["torch","cold"]: piece.fire_log = "base:resources:wood:pine_log"
+	var definition := {"fire_sound":"campfire","nightly_fire":{}}
+	if label=="torch": definition = {"fire_sound":"torch"}
+	elif label=="unknown": definition = {"fire_sound":"bonfire"}
+	elif label.begins_with("smelter"): definition = {"fire_sound":"smelter","batch_model":"-"}
+	piece.setup(id,"",definition,Vector3i.ZERO,0)
+	if definition.has("nightly_fire") and label!="cold": piece.fire_log = "base:item:pine_log"
 	piece.node = source
 	return piece

@@ -64,7 +64,7 @@ func _sync() -> void:
 			_settle(id)
 			var job := Packing.new()
 			job.record = record
-			job.setup(0,"base:water:"+record.kind+"_stone",definition,record.cell-Vector3i.UP,0)
+			job.setup(0,"base:furniture:"+record.kind+"_stone",definition,record.cell-Vector3i.UP,0)
 			job.source_id = TaskManager.allocate_source_id()
 			job.uninstall_callback = func(_component, _worker_id): _pack_complete(id)
 			TaskManager.register_work_source(job.source_id,job)

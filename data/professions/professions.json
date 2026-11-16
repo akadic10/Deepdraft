@@ -1,17 +1,20 @@
 {
   "__comment": [
     "Profession data read by DwarfAssets.",
-    "promotion_screen: career-map entries (role, position, summary, availability, optional starter_tool).",
+    "promotion_screen: career-map entries (role, position, summary, availability, optional starter_tool). Every trade stands in one row under",
+    "  the Worker it is promoted from, never under another trade. The trades whose starter_tool one career makes stand side by side, a Worker's",
+    "  first and then a Blacksmith's (doc 306); the map names each such group under its tiles.",
     "work_permissions: per-dwarf work categories and the task types each covers.",
     "experience_thresholds: cumulative counts for levels 2-5, for a career that earns experience without its own.",
     "professions: icon (one Hearthblock picture shared by the career map, the equipment view and Crafters, doc 259),",
-    "  display_name, promotes_from, promotion_enabled, required_tool, equipment_preview;",
-    "  stats: the main and the second stat (data/entities/dwarves/stats.json), for the career map's fit (doc 41);",
+    "  display_name, promotes_from, promotion_enabled, required_tool (a Worker makes the Ranger's and the Blacksmith's; a Blacksmith makes the",
+    "  Miner's, the Carpenter's and the Stonemason's from copper, doc 306), equipment_preview;",
+    "  stats: the main and the second stat (data/dwarves/stats.json), for the career map's fit (doc 41);",
     "  work: the task types a career does instead of the common work (Task.COMMON_WORK), in the order it does them:",
     "  work it could start earlier in the list keeps an idle dwarf from later work (doc 292); none names the common work;",
     "  work_first: the task types a career that takes the common work does before it (doc 293: the Carpenter's and the",
     "  Stonemason's crafting): an idle dwarf whose first work is waiting takes no common work meanwhile;",
-    "  craft_section: the crafting section (worker_crafting.json) whose orders the career makes; craft_tool: the hand tool its",
+    "  craft_section: the crafting section (recipes.json) whose orders the career makes; craft_tool: the hand tool its",
     "  crafting swing holds in place of the axe; craft_work: the kind of work its crafting counts as for the stats (the",
     "  Stonemason's 'stonework' is Strength's); craft_sound: the strike its crafting makes ('hammer', else the axe's chop);",
     "  experience: a career that earns it (doc 41): earned_by (the task type that earns one), noun (what is counted),",
@@ -21,17 +24,23 @@
     "  and rewards: {level, text} with what the level gives (big_chance, season_speed); level 1's text is the focus.",
     "  work_speed_bonus_per_level: less work time for each level above 1, at the career's own work: the Miner's digging, the",
     "  Carpenter's and the Stonemason's crafting; its rewards read experience.speed_text (default: less digging time).",
+    "  field_tool: the hand tool a career works a field with (doc 309: the Farmer's copper hoe, in its tilling swing).",
+    "  hat: the model a dwarf of the career wears on its head (doc 304): costume, not a good; none for the Worker and for a",
+    "  career still planned. hat_light: the hat's candle (the Miner's): color, energy, range and attenuation of its light and its",
+    "  position before the brow (blocks, in the head's frame); glow_energy and glow_range of the flame's own small glow on the",
+    "  cap; and when it burns: the daylight that reaches the dwarf (0 to 1) makes the spot dark below dark_below and lit again",
+    "  above bright_above, and a lit torch or fire in sight within fire_reach of its own range lights the spot too.",
     "Planned profession design (tasks, rooms, level perks) is in docs/40_economy_colony/41_dwarf_agents.md."
   ],
 
   "promotion_screen": [
-    {"role": "worker", "position": [278, 12], "summary": "A versatile colony member. Mines, gathers, hauls, builds and crafts basic goods.", "availability": "No requirements. Return to Worker at any time."},
-    {"role": "miner", "position": [8, 116], "summary": "Keeps the tunnels moving. Prioritizes mining within work priorities, then helps with permitted general work.", "availability": "No tool or level requirement."},
-    {"role": "farmer", "position": [116, 116], "summary": "Plants, tends and harvests cultivated crops. Planned support for fields, underground crops and beehives.", "starter_tool": "base:resources:tools:stone_hoe", "availability": "Planned: farming and tool equipping are not available yet."},
-    {"role": "ranger", "position": [224, 116], "summary": "Fishes the colony's waters and dries the catch on the rack. Hunting comes later.", "starter_tool": "base:resources:tools:ranger_kit", "availability": "Requires one available Ranger's kit. Promotion completes after the dwarf collects it."},
-    {"role": "carpenter", "position": [332, 116], "summary": "Works timber with basic tools at the carpenter's bench, which they make first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:carpentry_kit", "availability": "Requires one available carpentry kit. Promotion completes after the dwarf collects it."},
-    {"role": "stonemason", "position": [440, 116], "summary": "Shapes rough stone at the mason's bench, which they make first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:masonry_kit", "availability": "Requires one available crude masonry kit. Promotion completes after the dwarf collects it."},
-    {"role": "blacksmith", "position": [548, 116], "summary": "Melts copper at the basic smelter, which they make first, and practises on it before iron. Helps with general colony work when there is nothing to make.", "starter_tool": "base:resources:tools:stone_hammer", "availability": "Requires one available stone hammer. Promotion completes after the dwarf collects it."}
+    {"role": "worker", "position": [274, 12], "summary": "A versatile colony member. Mines, gathers, hauls, builds and crafts the first camp's goods.", "availability": "No requirements. Return to Worker at any time."},
+    {"role": "ranger", "position": [0, 116], "summary": "Fishes the colony's waters and dries the catch on the rack. Hunting comes later.", "starter_tool": "base:item:ranger_kit", "availability": "Requires one available Ranger's kit. Promotion completes after the dwarf collects it."},
+    {"role": "blacksmith", "position": [108, 116], "summary": "Melts copper at the basic smelter and hammers it on the anvil stone into the tools that open the other trades. They make both first. Helps with general colony work when there is nothing to make.", "starter_tool": "base:item:stone_hammer", "availability": "Requires one available stone hammer. Promotion completes after the dwarf collects it."},
+    {"role": "miner", "position": [224, 116], "summary": "Keeps the tunnels moving, a copper pick in hand. Prioritizes mining within work priorities, then helps with permitted general work.", "starter_tool": "base:item:copper_pick", "availability": "Requires one available copper pick. Promotion completes after the dwarf collects it."},
+    {"role": "carpenter", "position": [332, 116], "summary": "Works timber at the carpenter's bench, which they make first: storage, tables, fences and games. Helps with general colony work when there is nothing to make.", "starter_tool": "base:item:copper_saw", "availability": "Requires one available copper saw. Promotion completes after the dwarf collects it."},
+    {"role": "stonemason", "position": [440, 116], "summary": "Shapes stone at the mason's bench, which they make first: the hearth and stone seats. Helps with general colony work when there is nothing to make.", "starter_tool": "base:item:copper_chisel", "availability": "Requires one available copper chisel. Promotion completes after the dwarf collects it."},
+    {"role": "farmer", "position": [548, 116], "summary": "Works the colony's fields: hoes the ground, sows each season's crop and pulls it when ripe, and picks the bushes and fruit trees that stand in a field. Helps with general colony work when the fields need nothing.", "starter_tool": "base:item:copper_hoe", "availability": "Requires one available copper hoe. Promotion completes after the dwarf collects it."}
   ],
   "work_permissions": [
     {"id": "haul", "label": "Haul", "description": "Unrelated hauling to storage. Carrying supplies for another permitted job stays allowed.", "tasks": ["HAUL"]},
@@ -39,7 +48,8 @@
     {"id": "mine", "label": "Mine", "description": "Mine designated terrain. Miners gain experience for completed blocks.", "tasks": ["MINE"]},
     {"id": "build", "label": "Build", "description": "Place and remove furniture, ladders and plants, including carrying their supplies.", "tasks": ["FETCH_BUILD", "UNINSTALL"]},
     {"id": "craft", "label": "Craft", "description": "Craft the career's own recipes: Workers at the workbench; Carpenters, Stonemasons and Blacksmiths their own, before other work; Rangers hang fish on the drying rack and take them down dried; Blacksmiths take cast copper off the smelter.", "tasks": ["CRAFT", "COLLECT"]},
-    {"id": "fish", "label": "Fish", "description": "Fish from Fishing zones until the colony keeps enough fish. Rangers only.", "tasks": ["FISH"]}
+    {"id": "fish", "label": "Fish", "description": "Fish from Fishing zones until the colony keeps enough fish. Rangers only.", "tasks": ["FISH"]},
+    {"id": "farm", "label": "Farm", "description": "Hoe, sow and harvest the colony's fields. Farmers only.", "tasks": ["FARM"]}
   ],
   "experience_thresholds": {
     "__comment": "Cumulative counts; the level is derived at runtime and only the raw count is saved. A career's own experience.thresholds replace these.",
@@ -58,8 +68,8 @@
         "default_name": "Basic work tools",
         "default_description": "Standard tools for general colony work. No crafted upgrade equipped.",
         "upgrade_name": "Profession tools",
-        "upgrade_description": "Carpenters, Stonemasons and Rangers collect their kits when promoted. Other specialist tool careers are planned.",
-        "upgrade_method": "Craft a kit under Rudimentary › Starter tools, then choose the career in Profession."
+        "upgrade_description": "Rangers and Blacksmiths collect a tool a Worker makes. Miners, Carpenters and Stonemasons collect one a Blacksmith hammers from copper.",
+        "upgrade_method": "Make a Ranger's kit or a stone hammer under Rudimentary › Starter tools, or have a Blacksmith make a copper tool, then choose the career in Profession."
       },
       "display_name": "Worker",
       "description": "The foundation of every dwarven colony. Workers haul goods, clear rubble, and fill in wherever a specialist is unavailable. Every dwarf begins as a Worker and retains this as a fallback when reassigned.",
@@ -71,20 +81,24 @@
     "base:profession:miner": {
       "icon": "res://assets/ui/icons/miner.png",
       "equipment_preview": {
-        "default_name": "Default pickaxe",
-        "default_description": "Standard mining tool. No equipment bonus; Miner experience improves digging speed separately.",
+        "default_name": "No copper pick equipped",
+        "default_description": "A copper pick is required for this profession.",
         "upgrade_name": "Iron pickaxe", "upgrade_status": "Planned · Not craftable yet",
-        "upgrade_description": "Future Blacksmith-made upgrade. Planned chance to mine 2–3 marked voxels per strike; balance is not finalized.",
+        "upgrade_description": "Future Blacksmith-made upgrade beyond the copper pick. Planned chance to mine 2–3 marked voxels per strike; balance is not finalized.",
         "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
       },
       "promotion_enabled": true,
+      "required_tool": "base:item:copper_pick",
+      "hat": "res://assets/models/characters/dwarves/hats/hat_miner.glb",
+      "hat_light": {"color": "#FFB266", "energy": 2.2, "range": 8.0, "attenuation": 1.0, "position": [0, 2.6, 0.9], "glow_energy": 1.0, "glow_range": 1.6,
+        "dark_below": 0.3, "bright_above": 0.45, "fire_reach": 0.6},
       "display_name": "Miner",
-      "description": "Breaks stone, carves tunnels, and expands the colony's underground domain. The colony's primary engine of growth.",
+      "description": "Breaks stone, carves tunnels, and expands the colony's underground domain with a copper pick a Blacksmith makes. The colony's primary engine of growth.",
       "promotes_from": "base:profession:worker",
       "work_speed_bonus_per_level": 0.05,
       "stats": ["base:stat:strength", "base:stat:toughness"],
       "experience": {
-        "earned_by": "MINE", "noun": "blocks mined", "noun_one": "block mined", "per": "One experience per completed block. Walking speed stays unchanged.", "master": "Master Miner", "to_go": "more blocks", "to_go_one": "more block", "disabled": "Mining disabled",
+        "earned_by": "MINE", "noun": "blocks mined", "noun_one": "block mined", "per": "One experience per completed block. The copper pick takes a fifth off the digging time, and each level takes off more. Walking speed stays unchanged.", "master": "Master Miner", "to_go": "more blocks", "to_go_one": "more block", "disabled": "Mining disabled",
         "rewards": [{"level": 1, "text": "Mining focus"}]
       }
     },
@@ -92,11 +106,12 @@
     "base:profession:ranger": {
       "icon": "res://assets/ui/icons/ranger.png",
       "promotion_enabled": true,
-      "required_tool": "base:resources:tools:ranger_kit",
+      "required_tool": "base:item:ranger_kit",
       "equipment_preview": {
         "default_name": "No Ranger's kit equipped",
         "default_description": "A Ranger's kit is required for this profession."
       },
+      "hat": "res://assets/models/characters/dwarves/hats/hat_ranger.glb",
       "display_name": "Ranger",
       "description": "Lives off the wild for the colony: fishes its waters and dries the catch, and will hunt once hunting comes.",
       "promotes_from": "base:profession:worker",
@@ -119,16 +134,17 @@
     "base:profession:stonemason": {
       "icon": "res://assets/ui/icons/stonemason.png",
       "promotion_enabled": true,
-      "required_tool": "base:resources:tools:masonry_kit",
+      "required_tool": "base:item:copper_chisel",
       "equipment_preview": {
-        "default_name": "No masonry kit equipped",
-        "default_description": "A crude masonry kit is required for this profession.",
+        "default_name": "No copper chisel equipped",
+        "default_description": "A copper chisel is required for this profession.",
         "upgrade_name": "Iron chisels", "upgrade_status": "Planned · Not craftable yet",
-        "upgrade_description": "Future Blacksmith-made upgrade beyond the maul and stone point, for dressed stone and a better bench.",
+        "upgrade_description": "Future Blacksmith-made upgrade beyond the copper chisel, for dressed stone and a better bench.",
         "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
       },
+      "hat": "res://assets/models/characters/dwarves/hats/hat_stonemason.glb",
       "display_name": "Stonemason",
-      "description": "Shapes rough stone with a maul and a stone point at the mason's bench, which they make first. Dressed stone waits for better tools.",
+      "description": "Shapes stone with a maul and a copper chisel at the mason's bench, which they make first. Dressed stone comes later.",
       "promotes_from": "base:profession:worker",
       "stats": ["base:stat:strength", "base:stat:wits"],
       "work_first": ["CRAFT"],
@@ -147,25 +163,53 @@
     },
     "base:profession:farmer": {
       "icon": "res://assets/ui/icons/farmer.png",
+      "promotion_enabled": true,
+      "required_tool": "base:item:copper_hoe",
+      "equipment_preview": {
+        "default_name": "No copper hoe equipped",
+        "default_description": "A copper hoe is required for this profession."
+      },
+      "hat": "res://assets/models/characters/dwarves/hats/hat_farmer.glb",
       "display_name": "Farmer",
-      "description": "Plants, tends, and harvests all crops — both underground cave soil plots and surface dirt fields. Also responsible for tending beehives.",
+      "description": "Works the colony's fields with a copper hoe a Blacksmith makes: hoes the ground into tilled soil, sows each season's crop and pulls it when ripe. Picks the bushes and fruit trees that stand in a field without an order.",
       "promotes_from": "base:profession:worker",
-      "stats": ["base:stat:wisdom", "base:stat:toughness"]
+      "stats": ["base:stat:wisdom", "base:stat:toughness"],
+      "work_first": ["FARM"],
+      "field_tool": "res://assets/models/characters/dwarves/tools/copper_hoe.glb",
+      "experience": {
+        "earned_by": "FARM",
+        "noun": "tiles harvested",
+        "noun_one": "tile harvested",
+        "per": "One experience for each tile harvested, and for each bush or tree picked in a field. Each level teaches one more crop.",
+        "master": "Master Farmer",
+        "to_go": "more tiles",
+        "to_go_one": "more tile",
+        "disabled": "Farming disabled",
+        "thresholds": {"level_2": 25, "level_3": 100, "level_4": 250, "level_5": 800},
+        "rewards": [
+          {"level": 1, "text": "Farming focus"},
+          {"level": 2, "text": "Learns cabbage"},
+          {"level": 3, "text": "Learns onion"},
+          {"level": 4, "text": "Learns pumpkin"},
+          {"level": 5, "text": "Learns kale"}
+        ]
+      }
     },
 
     "base:profession:carpenter": {
       "icon": "res://assets/ui/icons/carpenter.png",
       "promotion_enabled": true,
-      "required_tool": "base:resources:tools:carpentry_kit",
+      "required_tool": "base:item:copper_saw",
       "equipment_preview": {
-        "default_name": "No carpentry tool equipped",
-        "default_description": "A crude carpentry kit is required for this profession.",
+        "default_name": "No copper saw equipped",
+        "default_description": "A copper saw is required for this profession.",
         "upgrade_name": "Iron saw", "upgrade_status": "Planned · Not craftable yet",
-        "upgrade_description": "Future Blacksmith-made upgrade beyond the mallet and stone adze, for sawn planks and a better bench.",
+        "upgrade_description": "Future Blacksmith-made upgrade beyond the copper saw, for sawn planks and a better bench.",
         "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
       },
+      "hat": "res://assets/models/characters/dwarves/hats/hat_carpenter.glb",
       "display_name": "Carpenter",
-      "description": "Works timber with a mallet and a stone adze at the carpenter's bench, which they make first. Planks wait for a saw.",
+      "description": "Works timber at the carpenter's bench, which they make first, with a copper saw a Blacksmith makes. Planks come later.",
       "promotes_from": "base:profession:worker",
       "stats": ["base:stat:wits", "base:stat:strength"],
       "work_first": ["CRAFT"],
@@ -184,7 +228,7 @@
     "base:profession:blacksmith": {
       "icon": "res://assets/ui/icons/blacksmith.png",
       "promotion_enabled": true,
-      "required_tool": "base:resources:tools:stone_hammer",
+      "required_tool": "base:item:stone_hammer",
       "equipment_preview": {
         "default_name": "No stone hammer equipped",
         "default_description": "A stone hammer is required for this profession.",
@@ -192,8 +236,9 @@
         "upgrade_description": "Future upgrade beyond the stone hammer, for the Smelter, the Forge and iron.",
         "upgrade_method": "Planned: craft the upgrade with a Blacksmith, then assign the finished tool here. Your dwarf collects it and returns the old tool."
       },
+      "hat": "res://assets/models/characters/dwarves/hats/hat_blacksmith.glb",
       "display_name": "Blacksmith",
-      "description": "Melts copper ore with coal at the basic smelter, which they make first, casts copper bars and hammers them into fittings. Iron, tools, weapons and armor wait for the Smelter and the Forge. The colony's only metalworking profession.",
+      "description": "Melts copper ore at the basic smelter, casts copper bars and hammers them on the anvil stone into the tools that open the other trades: the Miner's pick, the Carpenter's saw, the Stonemason's chisel and the Farmer's hoe. Iron, weapons and armor wait for the Smelter and the Forge. The colony's only metalworking profession.",
       "promotes_from": "base:profession:worker",
       "stats": ["base:stat:strength", "base:stat:wits"],
       "work_first": ["COLLECT", "CRAFT"],
@@ -204,7 +249,7 @@
       "craft_sound": "hammer",
       "work_speed_bonus_per_level": 0.05,
       "experience": {
-        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Blacksmith's own page: copper bars and fittings are the practice.", "master": "Master Blacksmith", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
+        "earned_by": "CRAFT", "noun": "batches made", "noun_one": "batch made", "per": "One experience per batch made on the Blacksmith's own page: copper bars and the trades' tools are the practice.", "master": "Master Blacksmith", "to_go": "more batches", "to_go_one": "more batch", "disabled": "Crafting disabled",
         "thresholds": {"level_2": 10, "level_3": 50, "level_4": 150, "level_5": 400},
         "speed_text": "%d%% less work time crafting",
         "rewards": [{"level": 1, "text": "Smithing focus"}, {"level": 2, "text": "Ready for iron when the Smelter comes"}]

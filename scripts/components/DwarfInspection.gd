@@ -36,6 +36,7 @@ static func roster_state(agent: DwarfAgent) -> Dictionary:
 	if live_task != null and live_task.type == Task.Type.HARVEST_TREE: data.summary = "Harvesting " + _tree_fruit_label(live_task)
 	if live_task != null and live_task.type == Task.Type.UPROOT_SHRUB: data.summary = "Uprooting shrub"
 	if live_task != null and live_task.type == Task.Type.FISH: data.summary = "Fishing"
+	if live_task != null and live_task.type == Task.Type.FARM: data.summary = "Farming"
 	if live_task != null and live_task.type == Task.Type.COLLECT: data.summary = String(_batch_words(live_task).collecting)
 	var fetch := agent.fetch_source()
 	if fetch != null and fetch.has_method("advance_plant"):
@@ -145,6 +146,12 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		if task.type == Task.Type.FISH:
 			activity = "Fishing" if phase == Phase.FELL_WORKING else ("Going to fish" if phase == Phase.FELL_MOVING else "Finding a fishing spot")
 			explanation = "Casting from the shore; a catch lands at the dwarf's feet." if phase == Phase.FELL_WORKING else "Walking to a spot of the Fishing zone."
+		if task.type == Task.Type.FARM:
+			# A field's job in the Farmer's words (doc 309): "Pulling carrots", "Hoeing the ground".
+			var place: Object = TaskManager.get_work_source(task.source_id)
+			var doing: String = preload("res://scripts/components/FarmFieldWork.gd").job_words(String(place.get("job")), String(place.get("crop"))) if is_instance_valid(place) else "farming"
+			activity = doing.left(1).to_upper() + doing.substr(1) if phase == Phase.FELL_WORKING else "Going to the field"
+			explanation = "Working a tile of the field. Work begun stays on the tile." if phase == Phase.FELL_WORKING else "Walking to a tile of the field."
 		if task.type == Task.Type.COLLECT:
 			var words := _batch_words(task)
 			activity = String(words.collecting if phase == Phase.FELL_WORKING else words.going)
@@ -193,6 +200,11 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 			elif phase in [Phase.FETCH_WORKING,Phase.FETCH_DEPOSIT]:
 				activity = "Crafting " + String(craft_source.recipe.name).to_lower()
 				explanation = "Working with the gathered materials to finish the recipe."
+				if phase == Phase.FETCH_WORKING and craft_source.work_motion() == "charge":
+					# The basic smelter's charge (doc 300): the lumps go into the pot, then the fire is blown on.
+					var lit: bool = craft_source.batch_showing()
+					activity = "Blowing on the smelter's fire" if lit else "Charging the smelter"
+					explanation = "Blowing through a hollow stick to bring the fire up under the pot." if lit else ("Throwing the ore and the coal into the smelter's pot." if craft_source.fire_goods().is_empty() else "Throwing the ore into the smelter's pot and pushing the logs into its fire hole.")
 	var ladder_build := agent.fetch_source()
 	if task == null and not agent.is_sleeping() and not availability.begins_with("Trapped") and agent.get_idle_behavior() != null and agent.get_idle_behavior().active():
 		var leisure: Dictionary = agent.get_idle_behavior().describe()
@@ -220,8 +232,8 @@ static func describe(agent: DwarfAgent) -> Dictionary:
 		explanation = "Leaving the ladder before taking another job or resting."
 	if agent.promotion_pending():
 		activity = "Equipping profession tool" if agent.get_equipment().stage == "pickup" else "Collecting profession tool"
-		explanation = "Promotion completes after collecting the reserved starter tool."
-		destination = "Finding a reachable starter tool"
+		explanation = "Promotion completes after collecting the reserved tool."
+		destination = "Finding a reachable tool"
 		if is_instance_valid(agent.get_equipment().item):
 			destination = _item_name(agent, agent.get_equipment().item.get_meta("item_key", "")) + "\n" + location(agent.item_floor_cell(agent.get_equipment().item))
 	var load_used := 0
@@ -369,8 +381,13 @@ static func experience(agent: DwarfAgent) -> Dictionary:
 
 static func equipment_description(agent: DwarfAgent) -> String:
 	var key: String = agent.get_equipment().tool_key() if agent.get_equipment() != null else ""
-	if not key.is_empty(): return CraftMaterials.product_name(_item_name(agent, key), CraftMaterials.of_item(agent.get_equipment().equipped)) + "\nStarter tool · No work-speed bonus"
-	return "Default pickaxe · No crafted upgrade" if agent.profession == "base:profession:miner" else "Default work tools"
+	if not key.is_empty():
+		# The tool's tier and what it gives: the copper pick takes its share off the digging time (doc 306).
+		var manager := ItemDropManager.find(agent.get_tree())
+		var details: Dictionary = manager.get_item_def(key).get("equipment", {}) if manager != null else {}
+		var gives := "%d%% less digging time" % roundi((1.0 - float(details.dig_time)) * 100.0) if details.has("dig_time") else "No work-speed bonus"
+		return CraftMaterials.product_name(_item_name(agent, key), CraftMaterials.of_item(agent.get_equipment().equipped)) + "\n%s tool · %s" % [String(details.get("tier", "Crude")), gives]
+	return "Stone pick · No copper pick in hand" if agent.profession == "base:profession:miner" else "Default work tools"
 
 
 static func equipment_details(agent: DwarfAgent) -> Dictionary:

@@ -1,0 +1,38 @@
+{
+  "__comment": [
+    "The Blacksmith's anvil (doc 310, the owner's pick B of three ideas, 2026-11-14: \"I think the smelter should not be that workstation\"): one great stone, two cells broad, with its top split off level and nothing else done to it. No wood, so like the mason's bench and the basic smelter it keeps no wood identity. Tier 1 Hearthblock model in worked stone, from tools/hearthblock/art/tier1.mjs.",
+    "Blacksmiths make it at the crude workbench from three rough stones. The trades' copper tools (doc 306) are hammered on it, a bar and a log each, so a tool can be made while the basic smelter melts the next bar. It serves for copper, bronze and whatever else comes before iron (the owner, 2026-11-14); a forged iron anvil replaces it then.",
+    "Work spot (doc 44): the hammering face lies over the left cell and half the right, at the casting stone's height (crafting_surface_height 0.9375). The bar is worked at crafting_cell, the left cell, at its middle (crafting_surface_radius 0), where the face is pitted; the right end is a flank lump no higher than 0.6875 and is not worked. The Blacksmith stands in a free cell beside the left cell.",
+    "Its window's Hammer tools (crafting_action) opens the Blacksmith's page at the copper pick, the first recipe made here (recipes.json names the anvil as their workshop)."
+  ],
+  "furniture_key": "base:furniture:anvil_stone",
+  "furniture_category": "workshops",
+  "display_name": "Anvil stone",
+  "description": "One great stone with its top split off level: the Blacksmith's anvil. Copper bars are hammered into the other trades' tools on its flat face, also while a smelter melts. Occupies a 2 by 1 space; the Blacksmith stands beside its flat end.",
+  "model": "res://assets/models/furniture/anvil_stone.glb",
+  "item_key": "base:item:anvil_stone",
+  "placement": "floor",
+  "yaw_steps": 4,
+  "crafting_surface_height": 0.9375,
+  "crafting_surface_radius": 0.0,
+  "crafting_cell": [0, 0],
+  "crafting_action": "Hammer tools",
+  "footprint": {
+    "width": 2,
+    "depth": 1
+  },
+  "collision_regions": [
+    {
+      "min": [0, 0, 0],
+      "max": [1.5, 0.9375, 1]
+    },
+    {
+      "min": [1.5, 0, 0],
+      "max": [2, 0.6875, 1]
+    }
+  ],
+  "appeal": {
+    "design": 0,
+    "material_factor": 0
+  }
+}

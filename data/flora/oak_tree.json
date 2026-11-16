@@ -1,0 +1,168 @@
+{
+  "__comment": [
+    "Oak tree — slow-growing deciduous hardwood, the cornerstone of the brewing economy.",
+    "Felling yields oak logs and possible acorns. A carpenter will turn logs into oak staves for aging casks.",
+    "Also the premium furniture material for high-end colony builds.",
+    "Deciduous: four seasonal models (spring fresh green, summer deep, autumn gold, winter bare).",
+    "Slowest-growing tree; planting oaks is a long-term investment.",
+    "Three growth stages: sapling → mature → ancient.",
+    "",
+    "MODEL VARIANTS — Hearthblock square trees (doc 256):",
+    "All stages are built on the 1:16 grid in world units by tools/voxel_assets/trees.py. Seasonal variant counts/order match.",
+    "World-position hashing preserves each tree variant across seasonal changes."
+  ],
+  "base:flora:oak_tree": {
+    "harvest_resource": "base:item:oak_log",
+    "material_tags": [
+      "wood",
+      "tree",
+      "flora",
+      "hardwood",
+      "stockpile_wood"
+    ],
+    "appeal": 3,
+    "__placement_comment": "Mixed-forest niche (42_farming_brewing.md, World placement): low/wet broadleaf (lowland + foothill, mid-wet moisture). Read by SurfaceFloraSpawner's unified selector.",
+    "placement": {
+      "pick_order": 1,
+      "domains": [
+        "lowland",
+        "foothill"
+      ],
+      "exclude_water": true,
+      "min_surface_y": 12,
+      "max_surface_y": 43,
+      "moisture_min": 0.45,
+      "moisture_max": 1.0,
+      "base_density": 0.45,
+      "max_surface_slope": 1,
+      "edge_margin": 2,
+      "edge_dropoff_max": 3,
+      "footprint": {
+        "sapling": 1,
+        "mature": 3,
+        "ancient": 5
+      },
+      "stage_weights": {
+        "sapling": 0.15,
+        "mature": 0.55,
+        "ancient": 0.3
+      }
+    },
+    "__planting_comment": "Player planting (doc 284): Place → Plants turns one seed into a sapling that grows to mature and ancient by stages.*.growth_duration_days, weighted by seasonal_growth (winter pauses). area = the square centred on the seed that no other tree may stand in: the mature crown (owner's pick, 2026-10-29), so grown ancients may overlap a few blocks. The ancient trunk footprint must be level open-sky ground with no other plants. Read by ContentRegistry and SurfaceFloraSpawner.",
+    "planting": {
+      "catalog_key": "base:flora:oak_acorn",
+      "item": "base:item:oak_acorn",
+      "work_seconds": 3.0,
+      "area": 13,
+      "ground_kinds": [
+        "grass",
+        "dirt",
+        "soil"
+      ],
+      "seasonal_growth": {
+        "spring": 1.2,
+        "summer": 1.0,
+        "autumn": 0.8,
+        "winter": 0.0
+      }
+    },
+    "stages": {
+      "sapling": {
+        "felling": { "work_seconds": 2.0 },
+        "clearance_height": 2,
+        "growth_duration_days": 6,
+        "models": {
+          "spring": "res://assets/models/flora/trees/oak/oak_sapling_spring.glb",
+          "summer": "res://assets/models/flora/trees/oak/oak_sapling.glb",
+          "autumn": "res://assets/models/flora/trees/oak/oak_sapling_autumn.glb",
+          "winter": "res://assets/models/flora/trees/oak/oak_sapling_winter.glb"
+        },
+        "harvest": {
+          "yields": []
+        }
+      },
+      "mature": {
+        "felling": { "work_seconds": 10.0 },
+        "clearance_height": 7,
+        "growth_duration_days": 12,
+        "models": {
+          "spring": [
+            "res://assets/models/flora/trees/oak/oak_mature_spring.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_spring_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_spring_3.glb"
+          ],
+          "summer": [
+            "res://assets/models/flora/trees/oak/oak_mature.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_3.glb"
+          ],
+          "autumn": [
+            "res://assets/models/flora/trees/oak/oak_mature_autumn.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_autumn_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_autumn_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/oak/oak_mature_winter.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_winter_2.glb",
+            "res://assets/models/flora/trees/oak/oak_mature_winter_3.glb"
+          ]
+        },
+        "harvest": {
+          "yields": [
+            {
+              "item": "base:item:oak_log",
+              "count": 6,
+              "chance": 1.0
+            },
+            {
+              "item": "base:item:oak_acorn",
+              "count": 1,
+              "chance": 0.2
+            }
+          ]
+        }
+      },
+      "ancient": {
+        "felling": { "work_seconds": 20.0 },
+        "clearance_height": 10,
+        "growth_duration_days": null,
+        "models": {
+          "spring": [
+            "res://assets/models/flora/trees/oak/oak_ancient_spring.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_spring_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_spring_3.glb"
+          ],
+          "summer": [
+            "res://assets/models/flora/trees/oak/oak_ancient.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_3.glb"
+          ],
+          "autumn": [
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_autumn_3.glb"
+          ],
+          "winter": [
+            "res://assets/models/flora/trees/oak/oak_ancient_winter.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_winter_2.glb",
+            "res://assets/models/flora/trees/oak/oak_ancient_winter_3.glb"
+          ]
+        },
+        "harvest": {
+          "yields": [
+            {
+              "item": "base:item:oak_log",
+              "count": 16,
+              "chance": 1.0
+            },
+            {
+              "item": "base:item:oak_acorn",
+              "count": 2,
+              "chance": 0.35
+            }
+          ]
+        }
+      }
+    }
+  }
+}

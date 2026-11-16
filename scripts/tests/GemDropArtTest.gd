@@ -102,7 +102,7 @@ func _run() -> void:
 			and Vector3(before.position[0], before.position[1], before.position[2]).is_equal_approx(Vector3(after.position[0], after.position[1], after.position[2]))
 			and is_equal_approx(float(before.rotation_y), float(after.rotation_y)), "save round trip preserves " + before.item_key)
 	restored.free()
-	var stone: Node3D = items.create_item_visual("base:resources:stone:rough_stone")
+	var stone: Node3D = items.create_item_visual("base:item:rough_stone")
 	var stone_material := stone.find_children("*", "MeshInstance3D", true, false)[0].material_override as ShaderMaterial
 	_expect(float(stone_material.get_shader_parameter("surface_specular")) == 0, "ordinary drops remain matte")
 	stone.free()

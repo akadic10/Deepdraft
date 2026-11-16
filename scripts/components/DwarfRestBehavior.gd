@@ -283,7 +283,8 @@ const BED_CLEARANCE := .6
 
 ## A lying head rests on its lowest cell, so a back bun or a deep knot lifts it
 ## slightly instead of sinking into the bed or floor (doc 256). Each dwarf's
-## head never changes shape, so the height is measured once.
+## head and hair never change shape, so the height is measured once; a hat comes
+## and goes with the trade and is left out of it (doc 304).
 var _lying_head_rest := -1.0
 
 func _lying_head_height() -> float:
@@ -297,9 +298,13 @@ func _lying_head_height() -> float:
 		if mesh.mesh == null: continue
 		var frame := Transform3D.IDENTITY
 		var node: Node = mesh
+		var worn := false
 		while node != agent._head and node is Node3D:
 			frame = (node as Node3D).transform * frame
+			# A hat never lifts the head: it rests as the hair does, and the hat gives into the bed.
+			worn = worn or String(node.name) in ["MeshHat", "MeshHairHatted"]
 			node = node.get_parent()
+		if worn: continue
 		for vertex: Vector3 in mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
 			lowest = minf(lowest,(turn*(width*(frame*vertex)-Vector3(0,2.45,0))).y)
 	# Breathing lowers the head by up to .0104 below its rest height.

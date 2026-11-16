@@ -143,6 +143,11 @@ func feedback_visible() -> bool:
 	return true
 
 
+## What taking it down is heard as: its recipe's `collect_sound`, a WorkFeedback kind; "" for none.
+func collect_sound() -> String:
+	return String(recipe.get("collect_sound", ""))
+
+
 func display_name() -> String:
 	return workshop_name
 

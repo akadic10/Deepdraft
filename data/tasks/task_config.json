@@ -40,6 +40,7 @@
     "search_nodes": 64,
     "forage_distance": 24,
     "dining_distance": 32,
+    "dining_walk_distance": 64,
     "dining_search_seconds": 2.0,
     "hungry_work_multiplier": 0.9,
     "famished_work_multiplier": 0.75,
@@ -53,7 +54,7 @@
       "rested_hours": 2.0
     },
     "spoilage": {
-      "__comment": "Food spoilage (doc 42 'Spoilage', doc 282), read by StockpileManager's FoodSpoilage. A stack's spoil runs 0 to 1, gaining speed / (24 x keeps_days) each game hour (keeps_days per food in resources.json). speed = rate_per_10c ^ ((T - reference_c) / 10) at the place's temperature T; frozen_speed under a roof at or below temperature.json's frozen_at_c; open sky adds open_sky_speed, or wet_speed in rain, storm or snow. At 1 the unclaimed units rot; Events warns as a stack passes warn_at. The readouts call a stack Fresh below spoiling_at, Spoiling below warn_at, then Going bad, and Frozen while it keeps at frozen_speed. Crates further apart in spoil than merge_band stay apart: a deposit tops up a crate of like freshness, else takes an empty cell, and only with no empty cell tops up the crate closest in freshness; fresh harvest never joins a loose crate spoilt past it, nor a hauler's basket a crate further off. The food search prefers older food: a fully spoilt stack counts route_margin_blocks nearer. The hourly pass spends at most budget_usec a frame.",
+      "__comment": "Food spoilage (doc 42 'Spoilage', doc 282), read by StockpileManager's FoodSpoilage. A stack's spoil runs 0 to 1, gaining speed / (24 x keeps_days) each game hour (keeps_days per food in items.json). speed = rate_per_10c ^ ((T - reference_c) / 10) at the place's temperature T; frozen_speed under a roof at or below temperature.json's frozen_at_c; open sky adds open_sky_speed, or wet_speed in rain, storm or snow. At 1 the unclaimed units rot; Events warns as a stack passes warn_at. The readouts call a stack Fresh below spoiling_at, Spoiling below warn_at, then Going bad, and Frozen while it keeps at frozen_speed. Crates further apart in spoil than merge_band stay apart: a deposit tops up a crate of like freshness, else takes an empty cell, and only with no empty cell tops up the crate closest in freshness; fresh harvest never joins a loose crate spoilt past it, nor a hauler's basket a crate further off. The food search prefers older food: a fully spoilt stack counts route_margin_blocks nearer. The hourly pass spends at most budget_usec a frame.",
       "reference_c": 20.0,
       "rate_per_10c": 2.5,
       "frozen_speed": 0.05,
@@ -91,10 +92,10 @@
   "__comment_fishing": "Fishing (doc 289). waters: each generated water a zone can fish, its catch and name, in the order a cast cell is matched (the lake, the tarn, the spring cave's pool, then the river). Its stock is stock_per_cell fish for each cell of it: the lake's and tarn's surface columns (lake 12,000-27,000, so 150-330 perch; a tarn about 900, so 60 char), the river's columns (2,000-3,200, so 60-95 trout) and the spring cave's water cells (31-37, so about 20 cave fish). It regrows regrowth_per_day of that maximum a day, continuously. Below fished_out_share of its maximum a water is Fished out and its zones post no work. A catch takes catch_hours of game time on a full water in spring, divided by season_speed, up to low_stock_factor times as long near Fished out, give or take catch_spread (seeded); Wisdom speeds it (stats.json). A zone keeps keep_default fish in store unless changed, by keep_step up to keep_max. A spot needs water at least min_depth deep within reach blocks of it, from its feet down to bank_drop blocks below them.",
   "fishing": {
     "waters": {
-      "lake": {"name": "Lowland lake", "item": "base:resources:fish:perch", "stock_per_cell": 0.012, "trait": "The lake holds the most fish."},
-      "tarn": {"name": "Mountain tarn", "item": "base:resources:fish:char", "stock_per_cell": 0.067, "trait": "Char keep a day longer."},
-      "spring_cave": {"name": "Spring cave pool", "item": "base:resources:fish:cave_fish", "stock_per_cell": 0.6, "seasonless": true, "trait": "They bite all year: the cave has no seasons."},
-      "river": {"name": "River", "item": "base:resources:fish:trout", "stock_per_cell": 0.03, "big_bonus": 0.1, "trait": "Trout are often big."}
+      "lake": {"name": "Lowland lake", "item": "base:item:perch", "stock_per_cell": 0.012, "trait": "The lake holds the most fish."},
+      "tarn": {"name": "Mountain tarn", "item": "base:item:char", "stock_per_cell": 0.067, "trait": "Char keep a day longer."},
+      "spring_cave": {"name": "Spring cave pool", "item": "base:item:cave_fish", "stock_per_cell": 0.6, "seasonless": true, "trait": "They bite all year: the cave has no seasons."},
+      "river": {"name": "River", "item": "base:item:trout", "stock_per_cell": 0.03, "big_bonus": 0.1, "trait": "Trout are often big."}
     },
     "season_speed": {"spring": 1.0, "summer": 0.85, "autumn": 1.0, "winter": 0.5},
     "bank_drop": 4,
@@ -110,7 +111,25 @@
     "reach": 2,
     "max_zone_extent": 16
   },
+  "__comment_farming": "Farming (doc 309), read by FarmingSystem. A field is a farming zone, at most max_zone_extent a side, worked by at most max_farmers_per_field Farmers at once. Its ground needs the open sky: nothing solid within sky_clearance blocks above. Work seconds a tile: till_seconds to hoe grass or dirt (tillable_kinds) into tilled_block, sow_seconds to sow, harvest_seconds to pull a ripe tile, clear_seconds to hoe an unripe plant under at a changeover. A tile is sown only if its crop is ripe sow_margin_days before the field's plan moves on. A plant shows as a sprout until growing_from of its days. Soil is damp from damp_from of full moisture, or under a wet sky (rain or storm); damp soil grows a crop damp_growth times as fast, and a crop that needs_damp grows nowhere else. Growth is added each game hour. bare_model is a tilled tile with nothing sown: its ridges alone.",
+  "farming": {
+    "max_zone_extent": 16,
+    "max_farmers_per_field": 2,
+    "sky_clearance": 10,
+    "till_seconds": 3.0,
+    "sow_seconds": 1.5,
+    "harvest_seconds": 2.0,
+    "clear_seconds": 1.5,
+    "sow_margin_days": 2.0,
+    "growing_from": 0.4,
+    "damp_from": 0.3,
+    "damp_growth": 1.25,
+    "tilled_block": "base:terrain:soil:tilled",
+    "tillable_kinds": ["grass", "dirt"],
+    "bare_model": "res://assets/models/flora/crops/field/tilled_bare.glb"
+  },
   "static_priorities": {
+    "FARM": 48,
     "FISH": 42,
     "COLLECT": 47,
     "MINE": 50,
@@ -127,7 +146,7 @@
     "UPROOT_SHRUB": 50,
     "HARVEST_TREE": 50
   },
-  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in resources.json: stone, ore and raw timber 1, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
+  "__comment_hauling": "Stockpile hauling. max_haulers_per_zone: maximum concurrent HAUL leases per storage source. carry_capacity: total carry_cost points per trip. Costs are authored per item in items.json: stone, ore and raw timber 1, produce/furniture crates 4. Crate cost is per physical crate, regardless of quantity inside. Matching edible produce may be consolidated into that one crate up to its item capacity. fruit_detour_blocks bounds total extra route steps; fruit_planning_budget_usec, fruit_probe_nodes, fruit_route_cells and fruit_candidate_limit bound optional route pickup planning. Other items cost 1. carry_speed_mult_heavy: walking multiplier when the reserved load includes any weight_class 'heavy' item, independent of carry cost. pouch_bundle_radius: extras must be within this many blocks of the main item. pickup_time_s / deposit_time_s: handling duration at normal clock speed.",
   "__comment_furniture": "FETCH_BUILD 45 > HAUL 40: player placement outranks storage. Ordinary finished furniture installs during hauling.deposit_time_s, with no separate build wait. Ladders and plants own their animated assembly/planting duration. uninstall_time_s remains the ordinary removal work duration. wall_reach_up_blocks: maximum bracket-cell height above a walkable floor for both wall-light installation and removal; clear reach and normal dwarf headroom are still required.",
   "furniture": {
     "uninstall_time_s": 2.0,

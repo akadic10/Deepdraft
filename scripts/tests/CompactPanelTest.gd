@@ -83,12 +83,12 @@ func _check_furniture(bench) -> void:
 	_expect(compact._badge.visible and compact._badge_value.text == String(data.badge.value) and compact._badge_icon.texture != null,
 		"badge shows the piece's appeal with its picture")
 	_expect(compact._picture.texture != null, "panel shows the workbench picture")
-	_expect(compact._status.text == "Any Worker crafts here" and compact._tone == "fine"
+	_expect(compact._status.text == "Workers and 4 trades craft here" and compact._tone == "fine"
 		and compact._status_tag.get_theme_stylebox("panel") == UITheme.cell_style("tag_fine", 3), "the status says who crafts here, on a moss tag")
 	var status_width: float = UITheme.body_font().get_string_size(compact._status.text, HORIZONTAL_ALIGNMENT_LEFT, -1,
 		compact._status.get_theme_font_size("font_size")).x
 	_expect(compact._status.size.x >= status_width - 1.0, "the status tag is wide enough for its whole text")
-	_expect(compact._flavour.text == "A broad bark-covered stump with a worn cut top, axe scars and chipped edges.", "flavour is the first sentence")
+	_expect(compact._flavour.text == "The stump of a felled tree, roots and all, with a worn cut top and the felling cut along one side.", "flavour is the first sentence")
 	for action_id: String in ["move", "uninstall", "craft"]:
 		var tile: Button = compact.get_action_button(action_id)
 		_expect(tile != null and tile.icon != null, "%s is a picture tile" % action_id)
@@ -183,11 +183,11 @@ func _check_closing(bench) -> void:
 
 
 func _check_goods() -> void:
-	drops.spawn_drop("base:resources:stone:rough_stone", 1, Vector3i(40,21,36))
+	drops.spawn_drop("base:item:rough_stone", 1, Vector3i(40,21,36))
 	var stone: Node3D = drops._loose.keys()[-1]
 	_expect(explorer.select_object(drops, stone), "loose stone selects")
 	await _frames(3)
-	_expect(compact.get_title() == "Rough Stone" and not compact._badge.visible and compact._picture.texture != null,
+	_expect(compact.get_title() == "Rough stone" and not compact._badge.visible and compact._picture.texture != null,
 		"single goods show their picture and no badge")
 	_expect(compact._status.text == "Awaiting collection" and compact._tone == "waiting", "loose goods wait for collection")
 	_click(compact.get_action_button("permission").get_global_rect().get_center())
@@ -215,7 +215,7 @@ func _check_goods() -> void:
 	await _shoot("packed_goods")
 	# The owner's example (2026-10-23): today's plate cut "Rudimentary hearth (packed)"
 	# short. The band shows a long name whole.
-	drops.restore_stored_item("base:resources:furniture:hearth", Vector3i(44,20,36), 1)
+	drops.restore_stored_item("base:item:hearth", Vector3i(44,20,36), 1)
 	var hearth: Node3D = drops.stored_node_at(Vector3i(44,20,36))
 	_expect(explorer.select_object(drops, hearth), "a packed hearth in storage selects")
 	await _frames(4)

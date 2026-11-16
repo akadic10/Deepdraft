@@ -135,7 +135,7 @@ func _capture_all() -> void:
 			await _capture(id+"_colony")
 		if def.has("door_animation"):
 			_show(def,"Open"); await _capture(id+"_open")
-		if id in ["log_chair","bench","log_bed"]:
+		if id in ["log_stool","bench","log_bed"]:
 			for angle in [30.0,90.0]:
 				_show(def,"Sleep" if def.has("sleep_surface") else "Sit",angle)
 				await _capture(id+"_use_"+str(int(angle)))

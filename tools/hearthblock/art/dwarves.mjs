@@ -4,7 +4,7 @@
 // ID and is redrawn for the square head in the same vocabulary. The art no longer
 // fits inside the old rig shapes (owner rule, 2026-10-21); what still binds it is
 // gameplay: at a table the seated head sits 6 cells up and 3 back, so anything on
-// the head below y 18 stays within z 11 (test_log_table checks every cell against
+// the head below y 18 stays within z 11 (test_dining_table checks every cell against
 // the tabletop); beards end at y >= 12 so striding boots pass beneath them; nothing
 // rises above y 54. A lying head rests on its lowest cell (DwarfRestBehavior), so
 // a back bun is fine.
@@ -248,48 +248,88 @@ define('eyebrows/brows_m_unibrow', v => {
   v.box(-11, 11, 42, 44, 10, 12, 'hair'); v.paint(-11, 11, 43, 44, 10, 12, 'hair_mid'); v.box(-2, 2, 43, 44, 10, 12, null);
 });
 
-// ── Work tools: square iron heads on a square haft ──────────────────────────
-// The hand grips the haft at (0, 0, 0); the support hand sits 10 cells up the haft;
-// the axe strikes at (0, 17, 11) and the pickaxe at (0, 22, 15) (felling/mining poses).
+// ── Work tools (doc 301): stone heads bound to wooden hafts with rope, no iron ──────
+// The stone is the worked stone of the benches: a dark skin, pale where it was ground or knocked.
+// The hand grips the haft at (0, 0, 0); the support hand sits 10 cells up the haft; the axe
+// strikes at (0, 17, 11) and the pickaxe at (0, 22, 15) (felling/mining poses). Rope binds every
+// head and wraps both grips: there is no leather yet. The Blacksmith's iron axe and pickaxe are
+// drawn and waiting in tools/art_data/studies/iron_work_tools.mjs.
+function haft(v, y0, y1) {
+  v.box(-1, 1, y0, y1, -1, 1, 'wood'); v.paint(0, 1, y0, y1, -1, 1, 'grain');   // a lit grain face
+  v.box(-1, 1, -3, 1, -1, 1, 'rope'); v.box(-1, 1, 8, 10, -1, 1, 'rope');       // grip bindings
+}
+// The felling axe: a ground stone blade set through the haft's swollen head and bound above and
+// below it, its butt showing at the back.
 define('tools/felling_axe', v => {
-  v.box(-1, 1, -4, 20, -1, 1, 'wood'); v.paint(0, 1, -4, 20, -1, 1, 'grain');   // haft, a lit grain face
-  v.box(-1, 1, -3, 2, -1, 1, 'tool_leather'); v.box(-1, 1, 8, 10, -1, 1, 'tool_leather');   // grip wraps
-  v.cut(-2, 2, 13, 21, -3, 3, 1, 'iron_dark');                // square socket collar
-  v.box(-2, 2, 12, 22, 3, 6, 'iron');                          // the heavy cheek
-  v.box(-1, 1, 11, 23, 6, 10, 'iron');                         // a flared bit
-  v.box(-1, 1, 11, 23, 10, 11, 'steel');                       // bright edge
-  v.paint(-2, 2, 21, 22, 3, 6, 'steel');                       // lit top of the cheek
+  haft(v, -4, 13);
+  v.box(-2, 2, 13, 22, -2, 2, 'wood'); v.paint(0, 2, 13, 22, -2, 2, 'grain');   // the haft swells to a club head
+  v.box(-1, 1, 16, 19, -4, -2, 'stone_skin_dark');              // the butt, out of the back
+  v.box(-1, 1, 15, 19, 2, 5, 'stone_skin');                     // the blade widens to its edge
+  v.box(-1, 1, 14, 20, 5, 8, 'stone_skin');
+  v.box(-1, 1, 13, 21, 8, 9, 'stone_skin');
+  v.box(-1, 1, 12, 22, 9, 10, 'stone_fresh_dark'); v.box(-1, 1, 12, 22, 10, 11, 'stone_fresh');   // ground to an edge
+  v.paint(-1, 1, 18, 19, 2, 5, 'stone_skin_top'); v.paint(-1, 1, 19, 20, 5, 8, 'stone_skin_top'); v.paint(-1, 1, 20, 21, 8, 9, 'stone_skin_top');
+  v.box(-2, 2, 19, 21, -2, 2, 'rope'); v.box(-2, 2, 13, 15, -2, 2, 'rope');   // bound above and below the blade
+  v.paint(-2, 2, 20, 21, -2, 2, 'rope_dark'); v.paint(-2, 2, 13, 14, -2, 2, 'rope_dark');
 });
+// The mining pickaxe: one long stone knapped to a point at each end, seated across the haft's
+// top and lashed there. Its arms thin as they drop to the points, which are fresh stone.
 define('tools/mining_pickaxe', v => {
-  v.box(-1, 1, -4, 26, -1, 1, 'wood'); v.paint(0, 1, -4, 26, -1, 1, 'grain');
-  v.box(-1, 1, -3, 2, -1, 1, 'tool_leather'); v.box(-1, 1, 8, 10, -1, 1, 'tool_leather');
-  v.cut(-2, 2, 24, 30, -3, 3, 1, 'iron_dark');                // square socket block
-  v.box(-2, 2, 25, 29, -10, -3, 'iron'); v.box(-2, 2, 25, 29, 3, 10, 'iron');   // two square arms
-  v.box(-1, 1, 23, 27, -13, -10, 'iron'); v.box(-1, 1, 23, 27, 10, 13, 'iron');  // stepping down to
-  v.box(-1, 1, 22, 24, -15, -13, 'steel'); v.box(-1, 1, 22, 24, 13, 15, 'steel'); // the points
-  v.paint(-2, 2, 28, 29, -10, 10, 'steel');                    // lit top edge
+  haft(v, -4, 31);
+  v.box(-2, 2, 25, 29, -3, 3, 'stone_skin'); v.paint(-2, 2, 28, 29, -3, 3, 'stone_skin_top');
+  for (const s of [1, -1]) {
+    const span = (a, b) => (s > 0 ? [a, b] : [-b, -a]);
+    let [a, b] = span(3, 7); v.box(-2, 2, 25, 29, a, b, 'stone_skin'); v.paint(-2, 2, 28, 29, a, b, 'stone_skin_top');
+    [a, b] = span(7, 11); v.box(-1, 1, 24, 28, a, b, 'stone_skin'); v.paint(-1, 1, 27, 28, a, b, 'stone_skin_top');
+    [a, b] = span(11, 14); v.box(-1, 1, 23, 26, a, b, 'stone_skin'); v.paint(-1, 1, 25, 26, a, b, 'stone_skin_top');
+    [a, b] = span(14, 15); v.box(-1, 1, 22, 24, a, b, 'stone_fresh');
+  }
+  v.box(-2, 2, 24, 30, -2, 2, 'rope'); v.paint(-2, 2, 26, 27, -2, 2, 'rope_dark'); v.paint(-2, 2, 28, 29, -2, 2, 'rope_dark');
+  v.box(-1, 1, 30, 31, -1, 1, 'wood');                          // the haft's top, above the lashing
 });
 
-// ── Crafting tools (doc 293): stone heads lashed to wooden hafts, no iron ─────
+// ── Crafting tools (doc 293) ──────────────────────────────────────────────────
 // Held in the Worker's crafting swing in place of the axe, so each strikes where the axe's
-// edge does, at (0, 17, 11). Rope binds them: there is no leather yet.
-// The Carpenter's stone adze: a wide stone blade lashed across the haft's top, its edge level.
+// edge does, at (0, 17, 11).
+// The Carpenter's stone adze: a flat blade lashed under the haft's bent knee, its edge level and
+// forward, as an adze is.
 define('tools/stone_adze', v => {
-  v.box(-1, 1, -4, 20, -1, 1, 'wood'); v.paint(0, 1, -4, 20, -1, 1, 'grain');
-  v.box(-1, 1, -3, 1, -1, 1, 'rope'); v.box(-1, 1, 8, 10, -1, 1, 'rope');          // grip bindings
-  v.box(-3, 3, 16, 20, 1, 9, 'tool_stone'); v.box(-3, 3, 16, 18, 9, 11, 'tool_stone');
-  v.paint(-3, 3, 19, 20, 1, 9, 'tool_stone_light'); v.paint(-3, 3, 16, 18, 10, 11, 'tool_stone_light');   // the edge
-  v.paint(-3, 3, 16, 17, 1, 9, 'tool_stone_dark');
-  v.box(-2, 2, 15, 21, -2, 2, 'rope'); v.paint(-2, 2, 17, 18, -2, 2, 'rope_dark');  // the lashing
+  haft(v, -4, 20);
+  v.box(-1, 1, 18, 20, 1, 6, 'wood'); v.paint(0, 1, 18, 20, 1, 6, 'grain');     // the knee: a branch crook
+  v.box(-3, 3, 15, 18, 2, 8, 'stone_skin'); v.box(-3, 3, 16, 18, 8, 10, 'stone_skin');   // the blade, flat under it, thinning forward
+  v.paint(-3, 3, 17, 18, 2, 10, 'stone_skin_top'); v.paint(-3, 3, 15, 16, 2, 8, 'stone_skin_dark');
+  v.box(-3, 3, 16, 18, 9, 10, 'stone_fresh_dark'); v.box(-3, 3, 16, 18, 10, 11, 'stone_fresh');   // ground to an edge
+  v.box(-3, 3, 15, 20, 3, 5, 'rope'); v.box(-1, 1, 20, 21, 3, 5, 'rope'); v.paint(-3, 3, 15, 21, 4, 5, 'rope_dark');   // lashed to the knee
 });
-// The Stonemason's maul: a squat hammerstone lashed to a short haft, its face forward.
+// The Stonemason's maul: a squat hammerstone bound to a short haft, one rope band round it by
+// the haft, its striking face worn pale.
 define('tools/stone_maul', v => {
-  v.box(-1, 1, -4, 18, -1, 1, 'wood'); v.paint(0, 1, -4, 18, -1, 1, 'grain');
-  v.box(-1, 1, -3, 1, -1, 1, 'rope'); v.box(-1, 1, 8, 10, -1, 1, 'rope');
-  v.cut(-4, 4, 13, 21, 2, 11, 2, 'tool_stone');
-  v.paint(-4, 4, 20, 21, 2, 11, 'tool_stone_light'); v.paint(-4, 4, 13, 14, 2, 11, 'tool_stone_dark');
-  v.paint(-3, 3, 14, 20, 10, 11, 'tool_stone_light');                                // the worn face
-  v.box(-2, 2, 14, 20, -2, 3, 'rope'); v.paint(-2, 2, 16, 17, -2, 3, 'rope_dark');  // the lashing
+  haft(v, -4, 21);
+  v.box(-3, 3, 13, 21, 1, 11, 'stone_skin'); v.box(-4, 4, 15, 19, 2, 10, 'stone_skin');
+  v.paint(-3, 3, 20, 21, 1, 11, 'stone_skin_top'); v.paint(-3, 3, 13, 14, 1, 11, 'stone_skin_dark');
+  v.paint(-3, 3, 14, 20, 10, 11, 'stone_fresh'); v.paint(-2, 2, 15, 19, 10, 11, 'stone_fresh_dark');   // the worn face
+  v.paint(-4, 4, 13, 21, 2, 4, 'rope'); v.paint(-4, 4, 13, 21, 3, 4, 'rope_dark');                    // one band round the stone
+  v.box(-2, 2, 14, 20, -2, 1, 'rope'); v.paint(-2, 2, 16, 17, -2, 1, 'rope_dark'); v.paint(-2, 2, 18, 19, -2, 1, 'rope_dark');   // and round the haft behind it
+  v.box(-1, 1, 21, 22, -1, 1, 'wood');
+});
+
+// ── Field work (doc 309) ─────────────────────────────────────────────────────
+// The Farmer's copper hoe: the hoe good's own blade (hearthblock_goods.starter('copper_hoe'), the
+// owner's pick of 2026-11-13) on a haft nearly as long as the pickaxe's. The haft ends in a branch
+// crook, the knee, and the blade is lashed under it: set across the haft, pointing forward and
+// sweeping down as it thins, as the good's does. Copper is drawn dark (doc 64): the bar's body over
+// its shade, and only the edge is ground bright. The blade is eight cells broad, two more than
+// the good's, to show in a dwarf's hands from above. Its edge lies at y 22, z 9; the hoe strikes
+// the ground with the middle of that edge's foot, (0, 22, 10), as the pickaxe strikes with its
+// point's (DwarfHoePose.HOE_EDGE).
+define('tools/copper_hoe', v => {
+  haft(v, -4, 29);
+  v.box(-1, 1, 27, 29, 1, 5, 'wood'); v.paint(0, 1, 27, 29, 1, 5, 'grain');     // the knee: a branch crook
+  for (const [z0, z1, y0, y1] of [[1, 5, 24, 27], [5, 8, 23, 26], [8, 9, 22, 24]]) {
+    v.box(-4, 4, y0, y1, z0, z1, 'copper'); v.paint(-4, 4, y0, y0 + 1, z0, z1, 'copper_dark');   // the blade under it, sweeping down and thinning
+  }
+  v.box(-4, 4, 22, 23, 9, 10, 'copper_light');                                  // to an edge ground bright
+  v.box(-4, 4, 24, 29, 2, 4, 'rope'); v.box(-1, 1, 29, 30, 2, 4, 'rope'); v.paint(-4, 4, 24, 30, 3, 4, 'rope_dark');   // lashed under the knee
 });
 
 // ── Fishing (doc 289): a peeled sapling rod, Tier 1 with no iron ─────────────
@@ -437,6 +477,122 @@ for (const [fish, body] of Object.entries(CATCHES)) {
     });
   }
 }
+
+// ── Smelting (doc 300, step 2): the hollow stick a Blacksmith blows through at the basic smelter's
+// fire hole. A peeled green stick like the grilling stick, the pith pushed out of it: gripped at
+// (0, 0, 0) near the mouth end, it runs 21 cells up +Y to the end held in the coals, which is
+// burnt black. Bark is left on where the hand holds it. The mouth end's last cell is dark: the
+// hole through it.
+define('tools/blow_stick', v => {
+  v.box(-1, 1, -3, 18, -1, 1, 'stick_wood');                    // peeled
+  v.box(-1, 1, -1, 5, -1, 1, 'stick_bark');                     // bark where it is held
+  v.paint(-1, 1, 1, 2, -1, 1, 'stick_bark_light'); v.paint(-1, 1, 3, 4, -1, 1, 'stick_bark_light');
+  v.paint(-1, 1, 10, 11, -1, 1, 'stick_knot');
+  v.paint(-1, 1, -3, -2, -1, 1, 'stick_knot');                  // the mouth end's hole
+  v.box(-1, 1, 14, 18, -1, 1, 'stick_char');                    // blackened in the fire
+});
+
+// ── Trade hats (doc 304, concept A, the owner's pick 2026-11-12) ─────────────────────────────
+// A dwarf with a trade wears its hat; a Worker goes bare-headed. Hats are costume, not goods.
+// Brows end at y 44, so the hat line is y 45: a hat is solid from there up and covers the head
+// (an elder's dome reaches y 52), so it sits alike on a bald head, a cropped one and a full head
+// of hair. Under a hat the hair is its style's own cut (dwarves.py: below the hat line, and a bun
+// behind it), so every hat's back stands at z -13. Nothing below y 50 goes beyond z 13: a front
+// more than three cells proud of the face hides the brows and eyes from the play camera, which
+// looks down 45 to 60 degrees. So trades differ on top, at the sides and behind. The feather and
+// the candle rise above y 54; in a tunnel three blocks high they stand in the ceiling's rock, as
+// hair tops do. test_dwarves.py holds every hat to these rules on every head, brow, beard and
+// hairstyle.
+// A felt cap in tiers, as the hair's own dome is drawn: a rolled rim one cell proud, a crown, a lit top.
+function feltCap(v, c) {
+  v.cut(-16, 16, 45, 48, -13, 13, 3, c + '_dark');
+  v.cut(-15, 15, 48, 52, -13, 12, 4, c);
+  v.cut(-13, 13, 52, 54, -11, 10, 4, c + '_light');
+}
+// Miner: a hard round cap in ochre felt, one seam over the top, and a tallow candle standing on it
+// in a rope ring, at the front where the camera looks. The flame is a part of its own
+// (hat_miner.glb's `flame`), lit and put out by DwarfHatLight.
+define('hats/hat_miner', v => {
+  feltCap(v, 'ochre');
+  v.paint(-1, 1, 48, 54, -13, 12, 'ochre_dark');
+  v.box(-3, 3, 54, 55, 3, 9, 'rope_dark');
+  v.box(-2, 2, 54, 59, 4, 8, 'tallow'); v.paint(-2, 2, 54, 55, 4, 8, 'tallow_shade');
+  v.box(-2, -1, 56, 59, 8, 9, 'tallow');                 // one drip, proud of the front
+  v.box(0, 1, 59, 60, 5, 6, 'wick');
+});
+define('hats/hat_miner_flame', v => {
+  v.box(-2, 2, 60, 62, 4, 8, 'flame_out');
+  v.box(-1, 1, 62, 64, 5, 7, 'flame_mid');
+  v.box(-1, 0, 64, 65, 5, 6, 'flame_core');
+});
+// Ranger: a moss cap swept back to a point, a pheasant's tail feather pinned flat along its top:
+// flat plates stepping up and back and a little outward, a pale quill, dark bars across.
+define('hats/hat_ranger', v => {
+  v.cut(-16, 16, 45, 48, -13, 13, 3, 'moss_dark');
+  v.cut(-15, 15, 48, 51, -13, 12, 4, 'moss');
+  v.cut(-13, 13, 51, 54, -12, 10, 4, 'moss_light');
+  v.cut(-9, 9, 45, 52, -18, -13, 2, 'moss'); v.paint(-9, 9, 51, 52, -18, -13, 'moss_light');   // the tail
+  v.cut(-5, 5, 45, 50, -22, -18, 1, 'moss_dark'); v.paint(-5, 5, 49, 50, -22, -18, 'moss');
+  const plates = [[5, 10, 54, 55, 4, 8], [4, 11, 54, 56, -2, 4], [5, 12, 55, 57, -8, -2], [6, 13, 56, 58, -14, -8], [8, 13, 57, 59, -19, -14], [10, 13, 58, 60, -23, -19]];
+  plates.forEach(([x0, x1, y0, y1, z0, z1], i) => {
+    v.box(x0, x1, y0, y1, z0, z1, i === 5 ? 'feather_tip' : 'feather');
+    if (i > 0 && i < 5) v.paint(x0, x1, y0, y1, z0, z0 + 2, 'feather_dark');
+    const mid = Math.floor((x0 + x1) / 2);
+    v.paint(mid, mid + 1, y1 - 1, y1, z0, z1, 'quill');
+  });
+  v.paint(5, 10, 54, 55, 4, 8, 'feather_dark');          // the quill's end, under its pin
+  v.box(6, 9, 55, 56, 5, 7, 'brass');                    // the pin
+});
+// Carpenter: a soft plum cap, broad and flat, slumped to one side, sewn in four and buttoned with a
+// slice of branch. Plum, not teal: by torch teal turned the Ranger's green.
+define('hats/hat_carpenter', v => {
+  v.cut(-15, 15, 45, 47, -13, 12, 3, 'plum_dark');
+  v.cut(-19, 16, 47, 50, -13, 13, 4, 'plum');
+  v.cut(-18, 13, 50, 53, -12, 11, 4, 'plum_light');
+  v.paint(-19, 16, 47, 48, -13, 13, 'plum_dark');        // its shaded underside
+  v.paint(-18, 13, 52, 53, -2, -1, 'plum'); v.paint(-3, -2, 52, 53, -12, 11, 'plum');   // the seams
+  v.box(-6, 1, 53, 54, -5, 2, 'wood'); v.ring(-5, 0, 53, -4, 1, 'grain'); v.paint(-3, -2, 53, 54, -2, -1, 'grain');
+});
+// Stonemason: a flat-topped cap of grey felt, square as a knocked stone, the day's dust lying pale
+// on its top one cell inside the rim, as worked stone is drawn (doc 64).
+define('hats/hat_stonemason', v => {
+  v.cut(-15, 15, 45, 48, -13, 12, 1, 'stone_skin_dark');
+  v.cut(-15, 15, 48, 54, -13, 12, 1, 'stone_skin');
+  v.paint(-15, 15, 53, 54, -13, 12, 'stone_skin_top');
+  v.paint(-13, 13, 53, 54, -11, 10, 'stone_fresh');
+  v.paint(-13, 13, 53, 54, -1, 1, 'stone_fresh_dark');   // one seam across it
+  v.paint(-15, 15, 48, 49, -13, 12, 'stone_skin_top');   // the band's upper edge
+});
+// Blacksmith: a rust kerchief tied tight over the skull, gathered into a knot behind with two
+// tails, its folds running back to the knot, one corner scorched. The knot fills the back to z -13.
+define('hats/hat_blacksmith', v => {
+  v.cut(-14, 14, 45, 51, -10, 11, 3, 'rust');
+  v.cut(-13, 13, 51, 53, -9, 10, 4, 'rust_light');
+  v.paint(-14, 14, 45, 47, -10, 11, 'rust_dark');        // the folded edge
+  v.box(-6, 6, 45, 50, -13, -10, 'rust_dark'); v.paint(-6, 6, 49, 50, -13, -10, 'rust');   // the knot
+  v.box(-4, -1, 39, 45, -13, -11, 'rust'); v.box(1, 4, 36, 45, -13, -11, 'rust');          // its tails
+  v.paint(-4, -1, 39, 40, -13, -11, 'rust_light'); v.paint(1, 4, 36, 37, -13, -11, 'rust_light');
+  for (const [x, z0, z1] of [[-1, -9, 1], [-5, -9, -3], [-6, -3, 2], [4, -9, -4], [5, -4, 0]]) v.paint(x, x + 1, 52, 53, z0, z1, 'rust');   // folds
+  v.paint(6, 11, 52, 53, 4, 8, 'soot'); v.paint(9, 14, 48, 53, 5, 9, 'soot'); v.paint(11, 14, 46, 48, 6, 8, 'soot');   // the scorch
+});
+
+// Farmer (doc 309): a broad-brimmed straw hat pushed back on the head. The brim is broad at the
+// sides and behind, where a bun's cut lies under it, and in front it is a thin lip one cell higher,
+// clear of the brows and eyes. Its one mark is a slate band round the crown, knotted at one side
+// with two tails lying on the brim; the crown's top shows the round the straw was woven in.
+define('hats/hat_farmer', v => {
+  v.cut(-20, 20, 48, 51, -18, 15, 6, 'straw');           // the brim, one outline:
+  v.box(-20, 20, 50, 51, -18, 8, null);                  // two cells thick at the sides and behind,
+  v.box(-20, 20, 48, 50, 9, 15, null);                   // and a lip one cell higher in front
+  v.paint(-20, 20, 48, 49, -18, 9, 'straw_dark');        // its shaded underside
+  v.cut(-15, 15, 45, 50, -13, 13, 3, 'straw_dark');      // the crown, from the brow line up
+  v.cut(-14, 14, 50, 53, -12, 12, 4, 'straw');
+  v.cut(-13, 13, 53, 54, -11, 11, 4, 'straw_light');     // its top, a cell in, so the band shows from above
+  v.ring(-8, 8, 53, -6, 6, 'straw_weave'); v.paint(-1, 1, 53, 54, -1, 1, 'straw_weave');   // woven in the round, from its middle
+  v.cut(-15, 15, 51, 53, -13, 13, 4, 'band'); v.paint(-15, 15, 51, 52, -13, 13, 'band_dark');   // the band, one cell proud
+  v.box(-17, -15, 51, 53, -4, -1, 'band_dark');          // its knot
+  v.box(-19, -16, 50, 51, -6, -4, 'band'); v.box(-18, -16, 50, 51, -1, 1, 'band');   // and two tails on the brim
+});
 
 // ── Portrait-only scars, drawn on the face; dwarves.py lifts them clear ──────
 define('scars/scar_cheek_slash', v => { v.box(7, 8, 32, 35, 9, 10, 'scar'); v.box(8, 9, 31, 33, 9, 10, 'scar'); });

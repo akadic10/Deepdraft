@@ -3,8 +3,8 @@ extends "res://tools/performance/CameraBenchmark.gd"
 ## Fixed elevated work yard in a fully simulated generated world. Uses actual
 ## work sources/executors; only population changes between fresh isolated runs.
 const BASE := Vector3i(432,124,432)
-const STONE := "base:resources:stone:rough_stone"
-const LOG := "base:resources:wood:oak_log"
+const STONE := "base:item:rough_stone"
+const LOG := "base:item:oak_log"
 const TaskType = preload("res://scripts/systems/Task.gd")
 var population := 5
 var yard_zones: Array = []

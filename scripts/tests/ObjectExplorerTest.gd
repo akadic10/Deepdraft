@@ -158,7 +158,7 @@ func _run() -> void:
 	explorer._refresh_selected()
 	_expect(furniture.get_explorer_data(furniture_id).is_empty() and not compact.visible and explorer._provider == null, "removed object closes its panel")
 
-	items.restore_stored_item("base:resources:seed:oak_acorn",Vector3i(10,20,30),17)
+	items.restore_stored_item("base:item:oak_acorn",Vector3i(10,20,30),17)
 	var crate: Node3D = items.stored_node_at(Vector3i(10,20,30))
 	_aim_above(crate.position)
 	await process_frame
@@ -217,7 +217,7 @@ func _build_floor() -> void:
 
 
 func _check_cabinet(items: Node3D, tree: Node3D) -> void:
-	var stone := "base:resources:stone:rough_stone"
+	var stone := "base:item:rough_stone"
 	items.spawn_drop(stone, 1, Vector3i(20, 21, 30))
 	var item: Node3D = items._loose.keys()[-1]
 	var compact: Control = explorer.get_compact_panel()
@@ -228,7 +228,7 @@ func _check_cabinet(items: Node3D, tree: Node3D) -> void:
 		explorer._refresh_selected()
 		for i in range(3): await process_frame
 		_expect(Rect2(Vector2.ZERO, Vector2(viewport)).encloses(compact.get_global_rect()), "resource panel fits %s" % viewport)
-		_expect(compact.get_title() == "Rough Stone" and compact._status.text == "Awaiting collection"
+		_expect(compact.get_title() == "Rough stone" and compact._status.text == "Awaiting collection"
 			and not compact._badge.visible, "live resource facts remain: a single stone waits for collection")
 		_expect(compact._flavour.is_visible_in_tree() and compact._flavour.text == "A rough-hewn chunk of mountain stone.", "resource description remains visible")
 		if "--capture" in OS.get_cmdline_user_args():

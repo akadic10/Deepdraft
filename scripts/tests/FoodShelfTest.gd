@@ -1,8 +1,8 @@
 extends "res://scripts/tests/WorkerCraftingTest.gd"
 
-## The food shelf (doc 299, A, the lean-to rack; owner, 2026-11-06), the first storage furniture to
+## The food shelf (doc 299; two plank shelves between plank ends since doc 308), the first storage furniture to
 ## hold food, on the fixture's open plain at Y20:
-## - only a Carpenter makes it, from two logs at the carpenter's bench; Place files it under Storage;
+## - only a Carpenter makes it, from four planks (two logs until doc 308) at the carpenter's bench; Place files it under Storage;
 ## - it keeps the ten foods dwarves eat and nothing else, one crate to each of six places, at
 ##   priority 4: food moves up from the ground and new food goes to it first, the upper deck first;
 ## - a crate stands straight on its deck at its anchor; a dwarf stands beside the place goods go to,
@@ -14,22 +14,23 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## - a save keeps each crate and its spoil, and taking the piece away drops crates with theirs;
 ## - a room counts the shelf's appeal, and no stocked storage for the food on it.
 const SHELF := "base:furniture:food_shelf"
-const SHELF_ITEM := "base:resources:furniture:food_shelf"
-const SHELF_RECIPE := "base:recipe:worker:food_shelf"
-const APPLE := "base:resources:flora:apple"
-const BLUEBERRY := "base:resources:flora:blueberry"
-const ELDERBERRY := "base:resources:flora:elderberry"
-const JUNIPER := "base:resources:flora:juniper_berry"
-const PERCH := "base:resources:fish:perch"
-const TROUT := "base:resources:fish:trout"
-const DRIED := "base:resources:fish:dried_fish"
-const HOPS := "base:resources:flora:hops"
-const GRAPE := "base:resources:flora:grape"
-const HELMET := "base:resources:flora:plump_helmet"
-const PIG_TAIL := "base:resources:flora:pig_tail"
+const SHELF_ITEM := "base:item:food_shelf"
+const SHELF_RECIPE := "base:recipe:food_shelf"
+const PINE_PLANK := "base:item:pine_plank"   # the shelf is a plank piece since doc 308
+const APPLE := "base:item:apple"
+const BLUEBERRY := "base:item:blueberry"
+const ELDERBERRY := "base:item:elderberry"
+const JUNIPER := "base:item:juniper_berry"
+const PERCH := "base:item:perch"
+const TROUT := "base:item:trout"
+const DRIED := "base:item:dried_fish"
+const HOPS := "base:item:hops"
+const GRAPE := "base:item:grape"
+const HELMET := "base:item:plump_helmet"
+const PIG_TAIL := "base:item:pig_tail"
 const ORIGIN := Vector3i(36, 20, 40)   # its back-left floor cell; it covers X 36..38 at Z 40
-const UPPER := 31.0 / 16               # the top of its upper deck's poles
-const LOWER := 12.0 / 16               # the top of its lower deck's poles
+const UPPER := 31.0 / 16               # the top of its upper shelf
+const LOWER := 12.0 / 16               # the top of its lower shelf
 const DROP := Vector3(41.5, 21, 40.5)  # where new goods turn up
 var spoilage
 var events
@@ -46,13 +47,14 @@ func _run() -> void:
 	root.get_node("WeatherManager").set_weather("base:weather:clear")
 	var recipe: Dictionary = crafting.recipes[SHELF_RECIPE]
 	_expect(String(recipe.get("section", "")) == "carpenter" and recipe.workshop == "base:furniture:carpenter_bench" and String(recipe.category) == "Storage"
-		and int(recipe.ingredient_count) == 2 and PINE in crafting.ingredient_keys(recipe), "the shelf: two logs at the carpenter's bench, on the Carpenter's page")
+		and int(recipe.ingredient_count) == 4 and PINE_PLANK in crafting.ingredient_keys(recipe) and not PINE in crafting.ingredient_keys(recipe),
+		"the shelf: four planks, never logs, at the carpenter's bench, on the Carpenter's page")
 	var placed: Array = root.get_node("UIRegistry").get_place_catalog().get("items", []).filter(func(entry): return entry.key == SHELF)
 	_expect(placed.size() == 1 and placed[0].category == "storage", "Place files it under Storage")
 	_carpenter_bench_at(Vector3i(44, 20, 41))
-	drops.spawn_drop(PINE, 2, Vector3i(42, 21, 40))
+	drops.spawn_drop(PINE_PLANK, 4, Vector3i(42, 21, 40))
 	var id: int = crafting.queue_order(SHELF_RECIPE, 1)
-	_expect(await _completed(id) and _count(SHELF_ITEM) == 1 and _count(PINE) == 0, "two logs make one packed shelf")
+	_expect(await _completed(id) and _count(SHELF_ITEM) == 1 and _count(PINE_PLANK) == 0, "four planks make one packed shelf")
 	# With no shelf yet, food goes to ground storage.
 	drops.restore_loose_item(APPLE, DROP, 0, 24)
 	_expect(await _until_true(func(): return int(zone.contents().get(APPLE, 0)) == 24), "with no shelf, a crate of apples goes to ground storage")
@@ -82,10 +84,12 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 
-## Its filter lists the ten foods dwarves eat, and narrowing it names the one it keeps.
+## Its filter lists the seventeen foods dwarves eat (the seven vegetables since doc 309), and
+## narrowing it names the one it keeps.
 func _kinds(shelf) -> void:
 	var allowed: Array = shelf.allowed_keys()
-	_expect(allowed.size() == 10 and APPLE in allowed and JUNIPER in allowed and TROUT in allowed and DRIED in allowed, "its filter lists the ten foods: %s" % [allowed])
+	_expect(allowed.size() == 17 and APPLE in allowed and JUNIPER in allowed and TROUT in allowed and DRIED in allowed
+		and "base:item:turnip" in allowed, "its filter lists the seventeen foods: %s" % [allowed])
 	for key: String in [HOPS, GRAPE, HELMET, PIG_TAIL, STONE, PINE]:
 		_expect(not key in allowed and not shelf.accepts_key(key), "it refuses %s" % key)
 	for key: String in allowed:
@@ -207,7 +211,7 @@ func _appeal(shelf) -> void:
 	var score: Dictionary = load("res://scripts/components/RoomAppeal.gd").score({"cells": air, "door_cells": {}, "floor_tiles": air.size()}, rooms)
 	var stocked: Array = score.parts.filter(func(part: Dictionary) -> bool: return part.key == "stocked")
 	var mine: Array = score.parts.filter(func(part: Dictionary) -> bool: return part.key == SHELF)
-	_expect(stocked.size() == 1 and int(stocked[0].count) == 1 and mine.size() == 1 and is_equal_approx(float(mine[0].value), 1.0), "the crate on the floor counts as stocked storage, those on the shelf don't, and a pine shelf adds 1: %s" % [score.parts])
+	_expect(stocked.size() == 1 and int(stocked[0].count) == 1 and mine.size() == 1 and is_equal_approx(float(mine[0].value), 2.0), "the crate on the floor counts as stocked storage, those on the shelf don't, and a pine plank shelf adds 2: %s" % [score.parts])
 	zone.cell_stacks.clear()
 	_expect(shelf.storage_used() > 0, "the shelf still holds its food")
 

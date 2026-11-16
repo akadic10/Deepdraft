@@ -2,7 +2,7 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 
 const SITE := Vector3i(52,20,46)
 const LOG_BENCH := "base:furniture:bench"
-const WALL := "base:furniture:wooden_torch"
+const WALL := "base:furniture:torch"
 const OUT := "res://tmp/furniture_placement_animation_20261011/"
 var checked := 0
 var support_cells: Array[Vector3i] = []
@@ -16,7 +16,7 @@ func _run() -> void:
 		if bool(definition.get("plant",false)) or definition.has("ladder") or definition.has("water_stone"):
 			continue # Their real work-source suites exercise the separate contracts.
 		await _place_case(key,0)
-	for key: String in [LOG_BENCH,"base:furniture:log_bed","base:furniture:log_door_4",WALL]:
+	for key: String in [LOG_BENCH,"base:furniture:log_bed","base:furniture:door_4",WALL]:
 		for yaw in range(1,4): await _place_case(key,yaw)
 	await _interruptions()
 	await _floor_excavation()

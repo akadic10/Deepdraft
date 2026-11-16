@@ -332,6 +332,13 @@ agriculture and alcohol production.
 - Reconcile planned brewing recipes with water's agreed role before implementing
   production. Longbeard Ale currently lacks a water input; quantities and container
   handling are still to be designed. This agreement does not edit recipe data.
+- **Fields** (doc 309; the rules are in doc 42, "Fields"). Live since 2026-11-14: soil counts
+  as damp from 0.3 of full moisture (`farming.damp_from`), damp soil grows every crop a
+  quarter faster, and pumpkins are sown and grow only in damp soil. A day of rain or storm
+  makes every open field damp; rain adds no water to the world. Tilled soil is `dirt` to the
+  moisture rules, so it wets, dries and shows damp as dirt does. Fields only read
+  `soil_moisture_at` and `depth_at`; a tile under standing water is left alone, and flooding
+  takes no plant.
 - **Fishing** (doc 289; the rules are in doc 42, "Fishing"). The lake, the tarn, the river and
   the spring cave's pool each hold a fish stock that catches lower and that regrows; water the
   player makes holds none. Fishing only reads `depth_at`, the live blocks between a bank and

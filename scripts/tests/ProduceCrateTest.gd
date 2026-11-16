@@ -1,8 +1,8 @@
 extends "res://scripts/tests/ObjectExplorerTest.gd"
 
-const ACORN := "base:resources:seed:oak_acorn"
-const BERRY := "base:resources:flora:juniper_berry"
-const LOG := "base:resources:wood:oak_log"
+const ACORN := "base:item:oak_acorn"
+const BERRY := "base:item:juniper_berry"
+const LOG := "base:item:oak_log"
 var drops
 
 

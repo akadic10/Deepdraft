@@ -20,7 +20,7 @@ func _run() -> void:
 		if model == null: failed.append(path)
 		else: model.free()
 		checked[asset] = true
-	for door in ["door.glb", "log_door_3.glb", "log_door_4.glb"]:
+	for door in ["door.glb", "door_3.glb", "door_4.glb"]:
 		if not checked.has(door): failed.append("Missing door: " + door)
 	if checked.size() < 41: failed.append("Expected at least 41 furniture models")
 	if not failed.is_empty(): push_error(str(failed))

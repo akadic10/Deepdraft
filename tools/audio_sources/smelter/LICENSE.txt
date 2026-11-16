@@ -1,0 +1,107 @@
+Deepdraft - recorded sounds of the basic smelter
+
+All 9 recordings were released under CC0 1.0 Universal, as stated on each source page.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+Legal code: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Retrieved: 2026-11-13
+
+Each local master is a decoded copy of Freesound's public HQ MP3 preview, not the original
+lossless upload (the originals need a Freesound login). source.json records each download
+URL, the hashes, the conversion and the edit regions; tools/generate_smelter_audio.py rebuilds
+the game's cues and its loop from these masters without a download.
+
+Foley_Rocks_Stones_Impacts_Mono.wav
+Author: Nox_Sound
+Source: https://freesound.org/people/Nox_Sound/sounds/567701/
+Preview: https://cdn.freesound.org/previews/567/567701_9250976-hq.mp3
+Local master: rocks_thrown_on_rocks.wav
+Used for: a lump of ore or coal landing in the stone pot
+The uploader's description: "Rocks being thrown at a pile of rocks (x21). You can edit it with Reaper/Audacity/etc. Gear: Zoom H5 File: 48khz, 24 bit, Mono, Wav.". The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 24 bit, Mono; downloading it needs a Freesound login
+Channel used: original mono
+
+Wood logs - woodshed
+Author: Vrymaa
+Source: https://freesound.org/people/Vrymaa/sounds/734628/
+Preview: https://cdn.freesound.org/previews/734/734628_13973196-hq.mp3
+Local master: logs_thrown_on_logs.wav
+Used for: a log pushed into the fire hole (foley: logs thrown onto other logs, not into a stone hole)
+The uploader's description: "Heavy logs being thrown to other logs and wood elements, including a pallet. You can combine 734665 - Lighting a candle + 734627 - Dried branches + 734628 - Wood logs + 734642 - Night crickets, and you will have a very nice camp fire. * No background noise. * No reverb nor echo. * Clean sound, close range. Recorded with Iphone 8 or Thomann micro t.bone SC 420.". The page states no processing.
+Original upload: Wave (.wav), 44.1 kHz, 16 bit, Mono; downloading it needs a Freesound login
+Channel used: original mono
+
+dhungro.flac
+Author: pbimal
+Source: https://freesound.org/people/pbimal/sounds/646756/
+Preview: https://cdn.freesound.org/previews/646/646756_11830391-hq.mp3
+Local master: fire_blowpipe.wav
+Used for: a breath blown onto the coals through the hollow stick
+The uploader's description: "Blowing inside a PVC Pipe. In natural arrangement, this sound is produced while burning the charcoal by blowing the air towards the fire. Generally, a metal or PVC pipe is used.". A plastic pipe, not a green stick; no fire is burning in the recording. The page states no processing.
+Original upload: Flac (.flac), 44.1 kHz, 24 bit, Mono; downloading it needs a Freesound login
+Channel used: original mono
+
+Blow in Card Tube01.wav
+Author: SuzieHanna
+Source: https://freesound.org/people/SuzieHanna/sounds/676737/
+Preview: https://cdn.freesound.org/previews/676/676737_14736290-hq.mp3
+Local master: card_tube_blow.wav
+Used for: a breath blown through the hollow stick (foley: a cardboard tube)
+The uploader's description: "Short hollow sound of breath in card tube, recorded as foley for a film about a bomb raid.". The page states no processing.
+Original upload: Wave (.wav), 44.1 kHz, 16 bit, Mono; downloading it needs a Freesound login
+Channel used: original mono
+
+Breath in Card Tube02.wav
+Author: SuzieHanna
+Source: https://freesound.org/people/SuzieHanna/sounds/676738/
+Preview: https://cdn.freesound.org/previews/676/676738_14736290-hq.mp3
+Local master: card_tube_breath.wav
+Used for: a breath blown through the hollow stick (foley: a cardboard tube)
+The uploader's description: "Foley recorded for film about a bomb raid, breath in card tube". The page states no processing.
+Original upload: Wave (.wav), 44.1 kHz, 16 bit, Mono; downloading it needs a Freesound login
+Channel used: original mono
+
+dropping_aluminum_ingots2.flac
+Author: wjoojoo
+Source: https://freesound.org/people/wjoojoo/sounds/179720/
+Preview: https://cdn.freesound.org/previews/179/179720_93137-hq.mp3
+Local master: aluminium_ingot_drop_2.wav
+Used for: the cast copper bar set down (foley: an aluminium ingot on concrete, not copper on stone)
+The uploader's description: "Dropping an aluminum ingot on a concrete floor in my garage". The page states no processing.
+Original upload: Flac (.flac), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: left microphone (the stronger of two that differ)
+
+dropping_aluminum_ingots3.flac
+Author: wjoojoo
+Source: https://freesound.org/people/wjoojoo/sounds/179721/
+Preview: https://cdn.freesound.org/previews/179/179721_93137-hq.mp3
+Local master: aluminium_ingot_drop_3.wav
+Used for: the cast copper bar set down (foley: an aluminium ingot on concrete, not copper on stone)
+The uploader's description: "Dropping an aluminum ingot on a concrete floor in my garage". The page states no processing.
+Original upload: Flac (.flac), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: left microphone (the stronger of two that differ)
+
+dropping_aluminum_ingots5.flac
+Author: wjoojoo
+Source: https://freesound.org/people/wjoojoo/sounds/179723/
+Preview: https://cdn.freesound.org/previews/179/179723_93137-hq.mp3
+Local master: aluminium_ingot_drop_5.wav
+Used for: the cast copper bar set down (foley: an aluminium ingot on concrete, not copper on stone)
+The uploader's description: "Dropping an aluminum ingot on a concrete floor in my garage". The page states no processing.
+Original upload: Flac (.flac), 44.1 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: left microphone (the stronger of two that differ)
+
+Anagama Kiln Pottery Fire
+Author: nicotep
+Source: https://freesound.org/people/nicotep/sounds/761354/
+Preview: https://cdn.freesound.org/previews/761/761354_7529214-hq.mp3
+Local master: anagama_kiln_fire.wav
+Used for: the fire in the boulder while the copper melts (foley: a wood-fired pottery kiln, not a smelting fire)
+The uploader's description: "Anagama Kiln Pottery oven close-up fire. Around 1300°C". The page states no processing.
+Original upload: Wave (.wav), 48 kHz, 16 bit, Stereo; downloading it needs a Freesound login
+Channel used: right microphone (the stronger of two that differ)
+
+Substitutes, named as such: the log going into the fire hole is logs thrown onto other logs; two of
+the three breaths are blown through a cardboard tube and the third through a plastic pipe, none of
+them at a fire; the copper bar is an aluminium ingot dropped on concrete; the smelter's fire is the
+fire of a wood-fired pottery kiln. The lumps are rocks thrown onto rocks, as in the game. No
+synthetic layers, time stretching or pitch changes are baked into any cue.

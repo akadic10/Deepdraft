@@ -1,8 +1,8 @@
 {
   "__comment": [
-    "Rudimentary room heater — an open fire on four flagstones against a stacked stone fire-back, with low wing stones and no wood of its own (docs 199, 279).",
+    "Rudimentary room heater — an open fire against its fire-back, one great split boulder in worked stone (the owner's pick of three, 2026-11-11), on the slab that came away from it, with no wood of its own (docs 199, 279).",
     "Tier 1 Hearthblock model from tools/hearthblock/art/tier1.mjs (doc 256); the fire-back stands at local -Z and the fire faces +Z.",
-    "The fire-back reaches 1.81 blocks inside the 2x2x2 collision envelope.",
+    "The fire-back reaches 1.69 blocks inside the 2x2x2 collision envelope.",
     "RoomManager counts 9600 heat units once at the origin (owner, 2026-10-30: one hearth warms a bedroom of about 600 cells through the winter). Fires are tended to temperature.json's tended_fire_c, so a small room is not overheated.",
     "Named body/flame meshes and ten voxel flame frames preserve installed lighting and animation; the flame burns below the fire-back's top.",
     "A lit hearth emits warm, gently flickering light and heats its room; it is lit with a log at dusk, or at bedtime by a dwarf going to sleep in its room, and goes out at dawn or when its sleepers wake by day (doc 34). Ghosts and packed items remain unlit.",
@@ -11,9 +11,9 @@
   "furniture_key": "base:furniture:hearth",
   "furniture_category": "hearth",
   "display_name": "Rudimentary hearth",
-  "description": "An open fire on flagstones against a stone fire-back that throws its heat into the room. A worker lights it at dusk with a log, and it burns until dawn. Warms a small enclosed bedroom; larger rooms may need more heat.",
+  "description": "An open fire against a great split boulder, its fire-back, which throws the heat into the room. A worker lights it at dusk with a log, and it burns until dawn. Warms a small enclosed bedroom; larger rooms may need more heat.",
   "model": "res://assets/models/furniture/hearth.glb",
-  "item_key": "base:resources:furniture:hearth",
+  "item_key": "base:item:hearth",
   "placement": "floor",
   "yaw_steps": 4,
   "show_placement_area": true,

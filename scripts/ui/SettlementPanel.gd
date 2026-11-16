@@ -44,7 +44,7 @@ const NO_FACE := "res://assets/ui/icons/dwarves.png"
 const LARGE := UITheme.TYPE_LARGE
 const MEDIUM := UITheme.TYPE_MEDIUM
 const SMALL := UITheme.TYPE_SMALL
-## Sizes by the screen's height, as Colony Dwarves': large from 1300 px tall (the concept's,
+## Sizes by the screen's height, as Colony dwarves': large from 1300 px tall (the concept's,
 ## on the 7680×2160 screen), medium from 900, short from 650 (all five rows above the dock at
 ## 1280×720, clear of the Sky Dial), small below. `width` has the journal beside the rows
 ## (the rows at least `glance` across); `narrow` sets it under them, on small screens and

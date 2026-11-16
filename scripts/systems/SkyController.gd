@@ -40,6 +40,7 @@ var _sun: DirectionalLight3D = null
 var _moon: DirectionalLight3D = null
 var _sun_yaw: float = 45.0
 var _moon_yaw: float = 225.0
+var _sun_lean: float = 0.0   # degrees the sun's path leans off overhead (sun.path_lean_degrees)
 
 # Precomputed curves — each is a sorted Array of [hour: float, value] (value = Color or float).
 var _c_sky_top: Array = []
@@ -242,6 +243,14 @@ func _on_calendar_changed(_value = null) -> void:
 	_build_curves()
 
 
+## How far into night the sky is, 0 by day to 1 by night: the starfield's own fade through dawn
+## and dusk (`starfield_brightness`), so it follows the season's day length. The Miner's candle
+## reads it to know when the open air is dark (doc 304).
+func night_amount() -> float:
+	if _c_stars.is_empty(): return 0.0
+	return clampf(_eval_scalar(_c_stars, _current_hour()), 0.0, 1.0)
+
+
 ## Read-only HUD access to the same seasonal anchors used by world lighting.
 func current_event_hours() -> Dictionary:
 	if _event_hours.is_empty(): _refresh_event_hours()
@@ -288,6 +297,7 @@ func _build_curves() -> void:
 	var sun: Dictionary = _settings.get("sun", {})
 	_c_sun_color = _color_curve(sun.get("light_color", []))
 	_c_sun_pitch = _scalar_curve(sun.get("angle_pitch", []), "deg")
+	_sun_lean = float(sun.get("path_lean_degrees", 0.0))
 
 	var moon: Dictionary = _settings.get("moon", {})
 	_c_moon_color = _color_curve(moon.get("light_color", []))
@@ -411,7 +421,7 @@ func _update(h: float) -> void:
 	var sun_live := is_instance_valid(_sun) and _sun.is_inside_tree()
 	var moon_live := is_instance_valid(_moon) and _moon.is_inside_tree()
 	if sun_live:
-		_apply_light(_sun, _eval_color(_c_sun_color, h), _eval_scalar(_c_sun_pitch, h), _sun_yaw, SUN_ENERGY_SCALE)
+		_apply_light(_sun, _eval_color(_c_sun_color, h), _eval_scalar(_c_sun_pitch, h), _sun_yaw, SUN_ENERGY_SCALE, _sun_lean)
 	if moon_live:
 		_apply_light(_moon, _eval_color(_c_moon_color, h), _eval_scalar(_c_moon_pitch, h), _moon_yaw, MOON_ENERGY_SCALE)
 	if _sky_mat != null:
@@ -472,7 +482,10 @@ func _weather_color(color: Color, cover: float) -> Color:
 	return _scale_color(color.lerp(Color(grey, grey, grey), cover * .55), _darken)
 
 
-func _apply_light(light: DirectionalLight3D, c: Color, pitch: float, yaw: float, energy_scale: float) -> void:
+## `lean` (degrees; only the sun has one) tips the light's path about the level line through its
+## rise and set, pitch 0 and -180. Those two keep their directions and the top of the path stands
+## that far short of overhead, so side faces take light at midday too (doc 24, "Sky").
+func _apply_light(light: DirectionalLight3D, c: Color, pitch: float, yaw: float, energy_scale: float, lean: float = 0.0) -> void:
 	if not is_instance_valid(light) or not light.is_inside_tree():
 		return
 	var b := maxf(c.r, maxf(c.g, c.b))
@@ -482,7 +495,13 @@ func _apply_light(light: DirectionalLight3D, c: Color, pitch: float, yaw: float,
 	light.visible = true
 	light.light_color  = Color(c.r / b, c.g / b, c.b / b)   # normalised hue (brightness -> energy)
 	light.light_energy = b * energy_scale
-	light.rotation_degrees = Vector3(pitch, yaw, 0.0)
+	if lean == 0.0:
+		light.rotation_degrees = Vector3(pitch, yaw, 0.0)
+	else:
+		# Turn to the heading, lean about it, then climb: Euler order YZX with the lean as the
+		# roll. The light's yaw stays the path's heading, which a rebind of this scene reads again.
+		light.rotation_order = EULER_ORDER_YZX
+		light.rotation_degrees = Vector3(pitch, yaw, -lean)
 
 
 # ── Static (non-time-varying) base from the 'environment' block ───────────────

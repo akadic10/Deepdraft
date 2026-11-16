@@ -172,7 +172,7 @@ func _run() -> void:
 	# Furniture added after the save must leave no stale light-blocking doors
 	# or heat/light registrations when an earlier world is restored.
 	var later_furniture := _owner("furniture")
-	for pair in [["base:furniture:door", 36], ["base:furniture:campfire", 38]]:
+	for pair in [["base:furniture:door_2", 36], ["base:furniture:campfire", 38]]:
 		later_furniture.call("_install", pair[0], later_furniture.call("get_defs")[pair[0]], _surface_cell(pair[1], 0), 0)
 	_load_completed = false
 	_load_succeeded = false
@@ -299,13 +299,13 @@ func _verify_snapshot_validation() -> String:
 		[["scene","events","entries",0,"id"],999999],
 		[["scene","events","entries",0,"past"],"Past words on an entry that is no standing warning."],
 		[["scene","terrain","edits",0,"block"],"base:terrain:unknown"],
-		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"":2}}],
-		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"":-1}}],
-		[["scene","construction","orders",0,"materials"],{"base:resources:stone:rough_stone":{"unknown_material":1}}],
-		[["scene","construction","orders",0,"materials"],{"base:resources:unknown":{"":1}}],
+		[["scene","construction","orders",0,"materials"],{"base:item:rough_stone":{"":2}}],
+		[["scene","construction","orders",0,"materials"],{"base:item:rough_stone":{"":-1}}],
+		[["scene","construction","orders",0,"materials"],{"base:item:rough_stone":{"unknown_material":1}}],
+		[["scene","construction","orders",0,"materials"],{"base:item:unknown":{"":1}}],
 		[["scene","construction","orders",0,"total_blocks"],0],
 		[["scene","construction","orders",0,"cells",0,"kind"],"unknown_kind"],
-		[["scene","construction","orders",0,"totals"],{"base:resources:unknown":1}],
+		[["scene","construction","orders",0,"totals"],{"base:item:unknown":1}],
 		[["scene","construction","orders",0,"name"],12],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":-1}]],
 		[["scene","water","flow","cells"],[{"cell":[10,18,10],"units":1.5}]],
@@ -350,7 +350,7 @@ func _verify_snapshot_validation() -> String:
 		[["scene", "dwarves", "roster", 0, "mood", "ate_room_taste"], "base:material:pine"],
 		[["scene", "dwarves", "roster", 0, "tastes", "base:furniture:no_such_piece"], "love"],
 		[["scene", "dwarves", "roster", 0, "tastes", "base:furniture:bench"], "adore"],
-		[["scene", "dwarves", "roster", 0, "found_tastes"], ["base:furniture:log_table"]],
+		[["scene", "dwarves", "roster", 0, "found_tastes"], ["base:furniture:dining_table"]],
 		[["scene", "dwarves", "roster", 0, "stats"], {"base:stat:strength": 3}],
 		[["scene", "dwarves", "roster", 0, "stats", "base:stat:luck"], 3],
 		[["scene", "dwarves", "roster", 0, "stats", "base:stat:strength"], 6],
@@ -428,9 +428,9 @@ func _verify_unknown_content_rejected(parsed: Dictionary) -> String:
 	for change in [
 		[["scene","furniture","installed",0,"key"],"base:furniture:retired"],
 		[["scene","furniture","ghosts",0,"key"],"base:furniture:retired"],
-		[["scene","items","loose",0,"item_key"],"base:resources:retired"],
-		[["scene","stockpiles","zones",0,"stacks"],[{"cell":[10,20,10],"item":"base:resources:retired","count":1,"disallowed":false}]],
-		[["scene","dwarves","roster",0,"carried_items"],[{"item_key":"base:resources:retired","count":1,"disallowed":false}]],
+		[["scene","items","loose",0,"item_key"],"base:item:retired"],
+		[["scene","stockpiles","zones",0,"stacks"],[{"cell":[10,20,10],"item":"base:item:retired","count":1,"disallowed":false}]],
+		[["scene","dwarves","roster",0,"carried_items"],[{"item_key":"base:item:retired","count":1,"disallowed":false}]],
 		[["scene","worker_crafting","orders"],[retired_order]],
 		[["scene","worker_crafting","orders"],too_many],
 		[["scene","flora","trees",0,"species"],"base:flora:retired_tree"],
@@ -673,12 +673,12 @@ func _build_nonempty_colony_state() -> String:
 		{"id": shrub_ids[3], "removed": false, "designated": false, "action": "harvest", "work_seconds": 0, "harvested_cycle": "3:autumn"},
 	]})
 	crafting.restore_state({"orders":[
-		{"recipe":"base:recipe:worker:crude_workbench","quantity":2,"maintain":false,"paused":true,"progress":2.25,
-			"allowed_ingredients":["base:resources:wood:pine_log","base:resources:wood:juniper_log"]},
-		{"recipe":"base:recipe:worker:wooden_torch","quantity":8,"maintain":true,"paused":false,"progress":0.0,
-			"allowed_ingredients":["base:resources:wood:apple_wood"]},
-		{"recipe":"base:recipe:worker:carpentry_kit","quantity":1,"maintain":false,"paused":true,"progress":3.5,
-			"allowed_ingredients":["base:resources:wood:oak_log"]}]})
+		{"recipe":"base:recipe:crude_workbench","quantity":2,"maintain":false,"paused":true,"progress":2.25,
+			"allowed_ingredients":["base:item:pine_log","base:item:juniper_log"]},
+		{"recipe":"base:recipe:torch","quantity":8,"maintain":true,"paused":false,"progress":0.0,
+			"allowed_ingredients":["base:item:apple_log"]},
+		{"recipe":"base:recipe:stone_hammer","quantity":1,"maintain":false,"paused":true,"progress":3.5,
+			"allowed_ingredients":["base:item:oak_log"]}]})
 
 	var flag_cell := _surface_cell(0, 0)
 	var dwarf_cell := _surface_cell(2, 0)
@@ -726,8 +726,8 @@ func _build_nonempty_colony_state() -> String:
 		{"cell":_pack_v3i(_surface_cell(18,6)+Vector3i.UP),"block":"base:construction:log:pine:x"}]})
 	# A placed blueprint's plan of two goods (doc 276): its grass block names its own kind.
 	construction.restore_state({"next_id":702,"orders":[{"id":701,"kind":"stone","name":"Test hut",
-		"totals":{"base:resources:stone:rough_stone":1,"base:resources:soil:soil":1},
-		"materials":{"base:resources:stone:rough_stone":{"":1}},"total_blocks":2,
+		"totals":{"base:item:rough_stone":1,"base:item:soil":1},
+		"materials":{"base:item:rough_stone":{"":1}},"total_blocks":2,
 		"cells":[{"cell":_pack_v3i(pending_stone),"work":.65},{"cell":_pack_v3i(pending_grass),"work":0.0,"kind":"grass"}]}]})
 	var rebuilt_targets: Array[Vector3i] = [mined_cell]
 	mining._create_zone(rebuilt_targets,102)
@@ -746,11 +746,11 @@ func _build_nonempty_colony_state() -> String:
 		"zones": [{
 			"id": 201,
 			"cells": [_pack_v3i(stockpile_cell)],
-			"storage_filter": {"tags": ["stockpile_seed"], "items": ["base:resources:wood:oak_log"],
-				"excluded_items": ["base:resources:seed:oak_acorn"]},
+			"storage_filter": {"tags": ["stockpile_seed"], "items": ["base:item:oak_log"],
+				"excluded_items": ["base:item:oak_acorn"]},
 			"stacks": [{
 				"cell": _pack_v3i(stockpile_cell),
-				"item": "base:resources:seed:oak_acorn",
+				"item": "base:item:oak_acorn",
 				"count": 21,
 			}],
 		}, {
@@ -758,7 +758,7 @@ func _build_nonempty_colony_state() -> String:
 			"id": 205,
 			"cells": [_pack_v3i(_surface_cell(12, 5))],
 			"storage_filter": _accept_all_filter(),
-			"stacks": [{"cell": _pack_v3i(_surface_cell(12, 5)), "item": "base:resources:flora:blueberry", "count": 9, "spoil": 0.375}],
+			"stacks": [{"cell": _pack_v3i(_surface_cell(12, 5)), "item": "base:item:blueberry", "count": 9, "spoil": 0.375}],
 		}],
 	})
 	furniture.call("restore_state", {
@@ -771,19 +771,19 @@ func _build_nonempty_colony_state() -> String:
 		}],
 		"installed": [{
 			"id": 401,
-			"key": "base:furniture:log_chair",
+			"key": "base:furniture:log_stool",
 			"material_id": "base:material:applewood",
 			"origin": _pack_v3i(furniture_cell),
 			"yaw": 0,
 			"flagged_uninstall": false,
 		}, {
-			"id": 402, "key": "base:furniture:door", "material_id":"base:material:oak",
+			"id": 402, "key": "base:furniture:door_2", "material_id":"base:material:oak",
 			"origin": _pack_v3i(_surface_cell(32, 0)), "yaw": 0, "flagged_uninstall": false,
 		}, {
 			"id": 403, "key": "base:furniture:campfire", "material_id": "",
 			"origin": _pack_v3i(_surface_cell(34, 0)), "yaw": 0, "flagged_uninstall": false,
 			# Burning before dawn (06:25 in autumn): its log and heat survive the reload (doc 279).
-			"fire_log": "base:resources:wood:pine_log", "fire_log_material": "base:material:pine",
+			"fire_log": "base:item:pine_log", "fire_log_material": "base:material:pine",
 		}, {
 			"id": 406, "key": "base:furniture:log_bed", "material_id": "", "assigned_dwarf_id": 0,
 			"origin": _pack_v3i(_surface_cell(46, 0)), "yaw": 1, "flagged_uninstall": false,
@@ -791,15 +791,15 @@ func _build_nonempty_colony_state() -> String:
 	})
 	items.restore_state({
 		"loose": [{
-			"item_key": "base:resources:flora:juniper_berry",
+			"item_key": "base:item:juniper_berry",
 			"count": 17,
 			"position": _pack_v3(Vector3(
 				float(item_cell.x) + 0.5, float(item_cell.y) + 1.05, float(item_cell.z) + 0.5)),
 			"rotation_y": 0.25,
 		}],
 	})
-	for tool in ["stone_hoe", "ranger_kit", "carpentry_kit", "stone_hammer"]:
-		items.restore_loose_item("base:resources:tools:"+tool, Vector3(item_cell)+Vector3(.5,1,.5),0,1,"",false,"base:material:juniper")
+	for tool in ["copper_hoe", "ranger_kit", "copper_saw", "stone_hammer"]:
+		items.restore_loose_item("base:item:"+tool, Vector3(item_cell)+Vector3(.5,1,.5),0,1,"",false,"base:material:juniper")
 	dwarves.call("restore_state", {
 		"birth_index": 1,
 		"settlement_anchor": _pack_v3i(flag_cell),
@@ -832,7 +832,7 @@ func _build_nonempty_colony_state() -> String:
 			"sleep": 0.4,
 			"sleeping": true,
 			"sleep_hours_left": 2.5,
-			"food": {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1},
+			"food": {"value":0.32,"last_meal":"base:item:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1},
 			"mood": {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5,"slept_room":"","slept_room_hours":0.0,"ate_room":"beautiful","ate_room_hours":5.5,"played_room":"","played_room_hours":0.0,"slept_room_taste":"","ate_room_taste":"base:furniture:log_bed","played_room_taste":""},
 			"carried_items": [],
 		}],
@@ -842,7 +842,7 @@ func _build_nonempty_colony_state() -> String:
 	carpenter_state.name = "Toolur"
 	carpenter_state.erase("health")   # a full dwarf, which saves no health
 	carpenter_state.profession = "base:profession:carpenter"
-	carpenter_state.equipment = {"tool":"base:resources:tools:carpentry_kit", "pending_role":"", "material_id":"base:material:applewood"}
+	carpenter_state.equipment = {"tool":"base:item:copper_saw", "pending_role":"", "material_id":"base:material:applewood"}
 	var pending_state: Dictionary = carpenter_state.duplicate(true)
 	pending_state.id = 2
 	pending_state.name = "Apprentice"
@@ -1000,7 +1000,7 @@ func _add_transplant_fixtures(details: Node, stockpiles: Node, furniture: Node, 
 	var ids: Array = details._records.keys().filter(func(id): return String(id).begins_with("blueberry:"))
 	ids.sort()
 	assert(ids.size() >= 6)
-	var key := "base:resources:plant:blueberry_bush"
+	var key := "base:item:blueberry_bush"
 	# Planted position/yaw and four physical packed-plant locations.
 	for i in range(5):
 		var state: Dictionary = details._state(ids[i])
@@ -1086,7 +1086,7 @@ func _add_cutting_fixtures(details: Node, furniture: Node, items: Node) -> void:
 			details.dev_mature_shrub(id)
 			details._changes[id]["packed"] = true
 			details._remove(id,"uprooted")
-			items.restore_loose_item("base:resources:plant:blueberry_bush",Vector3(_surface_cell(42,2))+Vector3(.5,1,.5),0,1,id)
+			items.restore_loose_item("base:item:blueberry_bush",Vector3(_surface_cell(42,2))+Vector3(.5,1,.5),0,1,id)
 	furniture._restore_ghost({"id":303,"key":"base:flora:blueberry_cutting",
 		"origin":_pack_v3i(_surface_cell(44,3)),"plant_work":.8,"yaw":1})
 
@@ -1098,7 +1098,7 @@ func _add_permission_fixtures(furniture: Node, items: Node) -> void:
 	water.stones.wet.disallowed = false
 	water.stones.wet.packing = true
 	water.stones.wet.work = .65
-	furniture._restore_ghost({"id":401,"key":"base:water:wet_stone","origin":_pack_v3i(_surface_cell(46,3)),"yaw":0,"stone_id":"wet"})
+	furniture._restore_ghost({"id":401,"key":"base:furniture:wet_stone","origin":_pack_v3i(_surface_cell(46,3)),"yaw":0,"stone_id":"wet"})
 	for kind in ["wet","dry"]: water.grant_stone(kind,_surface_cell(46,5)+Vector3i.UP)
 	var id: String = water.grant_stone("dry",_surface_cell(46,6)+Vector3i.UP)
 	for node in items._loose.keys():
@@ -1111,8 +1111,8 @@ func _add_permission_fixtures(furniture: Node, items: Node) -> void:
 	var chair_cell := _surface_cell(9,5)
 	_owner("stockpiles").restore_state({"zones":[{"id":204,"cells":[_pack_v3i(stone_cell),_pack_v3i(chair_cell)],
 		"storage_filter":_accept_all_filter(),"stacks":[
-		{"cell":_pack_v3i(stone_cell),"item":"base:resources:water:dry_stone","count":1,"instance_id":id},
-		{"cell":_pack_v3i(chair_cell),"item":"base:resources:furniture:log_chair","count":1,"material_id":"base:material:applewood"}]}]})
+		{"cell":_pack_v3i(stone_cell),"item":"base:item:dry_stone","count":1,"instance_id":id},
+		{"cell":_pack_v3i(chair_cell),"item":"base:item:log_stool","count":1,"material_id":"base:material:applewood"}]}]})
 	root.get_node("StockpileManager").rebuild_totals()
 
 
@@ -1191,7 +1191,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	if construction_state.orders[0].get("name","")!="Test hut" or construction_state.orders[0].get("totals",{}).size()!=2 \
 			or not pending.any(func(entry: Dictionary) -> bool: return entry.get("kind","")=="grass"):
 		return "a blueprint plan's name, goods or block materials did not round-trip"
-	if int(construction_state.orders[0].get("materials",{}).get("base:resources:stone:rough_stone",{}).get("",0))!=1:
+	if int(construction_state.orders[0].get("materials",{}).get("base:item:rough_stone",{}).get("",0))!=1:
 		return "staged construction stone did not round-trip"
 	for entry: Dictionary in scene_state.terrain.edits:
 		var cell := Vector3i(entry.cell[0],entry.cell[1],entry.cell[2])
@@ -1225,7 +1225,7 @@ func _verify_restored_state(expected_seed: int) -> String:
 	var roster: Array = (scene_state["dwarves"] as Dictionary).get("roster", [])
 	if roster.size() != 3 or not bool((roster[0] as Dictionary).get("sleeping", false)):
 		return "dwarf roster/runtime state did not round-trip"
-	if roster[0].food != {"value":0.32,"last_meal":"base:resources:flora:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1}:
+	if roster[0].food != {"value":0.32,"last_meal":"base:item:apple","last_dining":"seat_only","hours_since_meal":3.75,"retry_hours":0.1}:
 		return "food need, last meal, dining arrangement or retry did not round-trip"
 	if roster[0].mood != {"personal_sleep_hours":1.25,"bedroom_memory_hours":9.5,"dining_outcome":"seat_only","dining_memory_hours":4.25,"cold_sleep_hours":0.5,"cold_memory_hours":2.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":8.5,"solo_recreation_memory_hours":4.75,"recreation_retry_hours":2.5,"slept_room":"","slept_room_hours":0.0,"ate_room":"beautiful","ate_room_hours":5.5,"played_room":"","played_room_hours":0.0,"slept_room_taste":"","ate_room_taste":"base:furniture:log_bed","played_room_taste":""}:
 		return "personal-bedroom sleep progress or dining/thermal/recreation/room happiness did not round-trip"
@@ -1242,13 +1242,13 @@ func _verify_restored_state(expected_seed: int) -> String:
 		return "personal bed assignment did not round-trip"
 	if roster[0].profession != "base:profession:miner" or int(roster[0].profession_experience.get("base:profession:miner", 0)) != 123 or roster[0].work_permissions != {"haul": false, "mine": true, "gather": false}:
 		return "profession, retained experience or work permissions did not round-trip"
-	if roster[1].profession != "base:profession:carpenter" or roster[1].equipment.tool != "base:resources:tools:carpentry_kit" or roster[1].equipment.material_id != "base:material:applewood":
+	if roster[1].profession != "base:profession:carpenter" or roster[1].equipment.tool != "base:item:copper_saw" or roster[1].equipment.material_id != "base:material:applewood":
 		return "equipped Carpenter tool did not round-trip"
 	if roster[2].profession != "base:profession:worker" or roster[2].equipment.pending_role != "base:profession:carpenter":
 		return "pending promotion did not retain current profession and appointment intent"
 	var inventory_read_model = load("res://scripts/components/ColonyInventory.gd")
 	var equipment_stock: Dictionary = inventory_read_model.snapshot(_owner("items"), _owner("furniture"))
-	if int(equipment_stock["base:resources:tools:carpentry_kit"].total) != 2 or int(equipment_stock["base:resources:tools:carpentry_kit"].equipped) != 1:
+	if int(equipment_stock["base:item:copper_saw"].total) != 2 or int(equipment_stock["base:item:copper_saw"].equipped) != 1:
 		return "equipment duplicated or disappeared across scene replacement"
 	var camera_state := scene_state["camera"] as Dictionary
 	if not is_equal_approx(float(camera_state.get("zoom", 0.0)), 42.0):
@@ -1392,12 +1392,12 @@ func _run_inflight_carried_case() -> String:
 			"food": {"value":1.0,"last_meal":"","last_dining":"","hours_since_meal":0.0,"retry_hours":0.0},
 			"mood": {"personal_sleep_hours":0.0,"bedroom_memory_hours":0.0,"dining_outcome":"","dining_memory_hours":0.0,"cold_sleep_hours":0.0,"cold_memory_hours":0.0,"chilly_sleep_hours":0.0,"chilly_memory_hours":0.0,"hot_sleep_hours":0.0,"hot_memory_hours":0.0,"recreation_memory_hours":0.0,"recreation_retry_hours":0.0},
 			"carried_items": [
-				{"item_key":"base:resources:furniture:crude_workbench","count":1,"instance_id":move_id,"material_id":"base:material:juniper"},
-				{"item_key": "base:resources:stone:rough_stone", "count": 1, "disallowed":true},
-				{"item_key": "base:resources:seed:pine_cone", "count": 24},
-				{"item_key": "base:resources:plant:blueberry_bush", "count": 1, "instance_id": plant_id},
+				{"item_key":"base:item:crude_workbench","count":1,"instance_id":move_id,"material_id":"base:material:juniper"},
+				{"item_key": "base:item:rough_stone", "count": 1, "disallowed":true},
+				{"item_key": "base:item:pine_cone", "count": 24},
+				{"item_key": "base:item:blueberry_bush", "count": 1, "instance_id": plant_id},
 				{"item_key": flower_item, "count": 1, "instance_id": flower_id},
-				{"item_key": "base:resources:water:wet_stone", "count": 1, "instance_id":stone_id, "disallowed":true},
+				{"item_key": "base:item:wet_stone", "count": 1, "instance_id":stone_id, "disallowed":true},
 			],
 		}],
 	})
@@ -1415,7 +1415,7 @@ func _run_inflight_carried_case() -> String:
 	if stone_count!=1 or water.stones[stone_id].placed: return "in-flight stone lost its identity, permission or inactive state"
 	var carried_cones := 0
 	for drop in (items.serialize_state() as Dictionary).get("loose", []):
-		if String(drop.item_key) == "base:resources:seed:pine_cone":
+		if String(drop.item_key) == "base:item:pine_cone":
 			carried_cones += int(drop.count)
 	if carried_cones != 24:
 		return "in-flight case: crate contents were not conserved"

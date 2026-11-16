@@ -20,9 +20,9 @@ func _run() -> void:
 	reference.temperature_config = rooms.temperature_config
 	reference.appeal_config = rooms.appeal_config
 	_build_bedroom()
-	_put("door", Vector3i(63,20,60))
+	_put("door_2", Vector3i(63,20,60))
 	_put("log_bed", Vector3i(62,20,64))
-	_put("wooden_torch", Vector3i(68,20,64))
+	_put("torch", Vector3i(68,20,64))
 	var cases := []
 	cases.append(_measure_case("one_room"))
 	_build_second_room()

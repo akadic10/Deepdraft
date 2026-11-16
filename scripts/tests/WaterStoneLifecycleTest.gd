@@ -144,8 +144,8 @@ func _review_ui() -> void:
 	# Packed stones in Place share their inventory artwork and permission gate.
 	var dry: Node3D = null
 	for node in drops._loose:
-		if drops.item_key_of(node)=="base:resources:water:dry_stone": dry=node
-	_expect(dry!=null and furniture.get_catalog_stock()["base:water:dry_stone"].available==0,"forbidden packed stone hidden from available stock")
+		if drops.item_key_of(node)=="base:item:dry_stone": dry=node
+	_expect(dry!=null and furniture.get_catalog_stock()["base:furniture:dry_stone"].available==0,"forbidden packed stone hidden from available stock")
 	drops.set_disallowed(dry,false)
 	explorer.clear_selection()
 	root.size=Vector2i(960,540)
@@ -153,9 +153,9 @@ func _review_ui() -> void:
 	dock._open_place_catalog()
 	var catalog = dock._place_catalog
 	catalog.refresh()
-	catalog._select("base:water:dry_stone")
+	catalog._select("base:furniture:dry_stone")
 	await _frames(8)
-	_expect(catalog.tile("base:water:dry_stone").icon!=null and not catalog._place.disabled,"allowed packed stone has thumbnail and enabled Place")
+	_expect(catalog.tile("base:furniture:dry_stone").icon!=null and not catalog._place.disabled,"allowed packed stone has thumbnail and enabled Place")
 	_expect(catalog.window.get_global_rect().end.y<=540,"Water catalog fits compact screen")
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://tmp/water_review/water_place_960x540.png")

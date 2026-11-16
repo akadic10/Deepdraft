@@ -4,8 +4,8 @@ extends "res://scripts/tests/WorkerCraftingTest.gd"
 ## bench wait their turn ("Next in line", "2nd in line"), not "for a free workbench", and
 ## their recipes stay ready to queue. The freed bench goes to the top-most order that can
 ## start, even after the craft scan began below the top or an earlier order got its wood late.
-const LADDER_RECIPE := "base:recipe:worker:crude_ladder"
-const OAK := "base:resources:wood:oak_log"
+const LADDER_RECIPE := "base:recipe:crude_ladder"
+const OAK := "base:item:oak_log"
 
 func _run() -> void:
 	create_timer(120).timeout.connect(func(): push_error("Crafting queue timed out"); quit(1))
@@ -50,7 +50,7 @@ func _busy_bench_keeps_turns() -> void:
 ## another career's order where nothing would change on screen (the project review, 2026-11-09).
 func _moves_within_its_section() -> void:
 	var first: int = crafting.queue_order(TORCH_RECIPE,1)
-	var other: int = crafting.queue_order("base:recipe:worker:tool_rack",1)
+	var other: int = crafting.queue_order("base:recipe:tool_rack",1)
 	var last: int = crafting.queue_order(TORCH_RECIPE,1)
 	_expect(first > 0 and other > 0 and last > 0,"three orders, the middle one the Carpenter's")
 	crafting.move_order(last,-1)

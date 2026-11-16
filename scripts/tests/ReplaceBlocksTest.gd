@@ -12,8 +12,8 @@ extends "res://scripts/tests/ConstructionTest.gd"
 ## - a block mined out or made to match leaves its plan;
 ## - a replace plan saves with its progress;
 ## - Build's Replace switch, its F key and its name, and the block panel's list and action.
-const SOIL := "base:resources:soil:soil"
-const PINE := "base:resources:wood:pine_log"
+const SOIL := "base:item:soil"
+const PINE := "base:item:pine_log"
 const COPPER := "base:terrain:ore:copper"
 
 func _run() -> void:

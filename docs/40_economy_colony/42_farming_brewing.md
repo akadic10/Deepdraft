@@ -13,10 +13,12 @@ a separate seasonal queue; spawning, harvesting, growth and transplanting stay
 immediate, so a new or just-picked plant can show the new season before its
 neighbours. The night schedule and queue rules are in doc 13 (`WorldClock`).
 
-**Zones navigation, 2026-10-12 (doc 137):** Zones reserves visible Farming and Animal
-pasture entries beside live Storage (doc 23, "Navigation Groups"). Both
-are explicitly planned and only explain their status; no farm or pasture zones,
-worker jobs, livestock ownership or crop cultivation are enabled by this UI pass.
+**Fields (2026-11-14, doc 309):** a Farmer with a copper hoe grows seven vegetables on fields,
+farming zones laid out with Zones → Farming. See "Fields".
+
+**Zones navigation, 2026-10-12 (doc 137):** Zones reserves a visible Animal pasture entry beside
+live Storage, Fishing and Farming (doc 23, "Navigation Groups"). It is explicitly planned and
+only explains its status; no pasture zones or livestock are enabled.
 
 **Spoilage (2026-10-29, doc 282 phase 2):** stored, loose and carried fruit spoils by
 temperature and open sky, and rots at the end; cool cellars keep it longest. See "Spoilage".
@@ -132,21 +134,116 @@ cleared, which returns one cutting; construction or support loss removes it
 without a drop. Inspector **DEV: Grow to maturity** adds growth credit to that
 plant only, leaving the calendar and other crops unchanged.
 
-### Required future connection: bushes in a farming zone
+### Bushes and fruit trees in a field
 
 **From the owner, 2026-11-06:** "when we start with the farmer, bushes in a farming zone should
-get picked by the farmer." Planned, not live: the Farmer has no work yet, and Zones only reserves
-the Farming entry.
+get picked by the farmer." Live since 2026-11-14 (doc 309).
 
-- A bush inside a farming zone needs no order. The Farmer picks it as it ripens, with the same
-  crop work, yield and regrowth as any other pick.
-- Outside a zone nothing changes: **Harvest plants** and the inspector mark one crop, and the
+- A bush that stands in a field needs no order. While the colony has a Farmer, each ripe one is
+  marked for picking, as **Harvest plants** marks one, with the same crop work, yield and
+  regrowth (`FarmingSystem._pick_standing`, on the game hour). Apple and juniper trees in a
+  field are picked the same way each autumn (owner, 2026-11-14).
+- **Picking in a field is its Farmers' work.** Every such lease takes only a Farmer
+  (`TreeFellingComponent.worker_filter`), and the Farmer earns one experience for it. A field
+  whose colony has no Farmer picks nothing by itself, and an order the player gives there is
+  open to anyone.
+- A bush keeps its 3 × 3 planting area in a field: those tiles are neither hoed nor sown.
+- Outside a field nothing changes: **Harvest plants** and the inspector mark one crop, and the
   pick clears the mark.
 - The owner declined a standing harvest order, where a marked bush stays marked while it regrows
   until cancelled. Repeat picking comes from the Farmer instead.
-- To settle when the Farmer is built: whether fruit trees in a zone count too (the owner named
-  bushes, so trees stay on orders until then), and what happens when a zone ripens more than the
-  colony eats, since surplus fruit rots (see Spoilage).
+- **Surplus** (owner, 2026-11-14): everything ripe is picked and stored. What the store cannot
+  keep rots, as Events says (see Spoilage), and the player sizes the field. There is no Keep.
+- **An orchard** is a field whose plan rests in every season: nothing is hoed, and its Farmers
+  only pick what stands in it.
+
+## Fields
+
+Live 2026-11-14 (doc 309). From the owner: "several vegetables the farmer can grow, some low
+level that he can farm during a specific season and then later more complicated crops as the
+farmer levels up." Vegetables are the colony's third food after fruit and fish, and the one it
+sows. `FarmingSystem`, a scene node, owns the fields and their plants. The crops are
+`data/flora/field_crops.json`, read by ContentRegistry, and the tuning is `farming` in
+`task_config.json`, whose comment explains each value; the numbers are still to be settled in
+Play. The tool and the field's window are in doc 23, "Fields".
+
+- **Only Farmers work fields** (doc 41, Profession System), as only Rangers fish, so every
+  harvest goes to a dwarf who learns from it. A Farmer needs a copper hoe, so a colony farms
+  only once it has a Blacksmith and copper. With no Farmer a field waits.
+- **A field** is a farming zone: floor cells of grass or dirt (`tillable_kinds`) on one level,
+  under the open sky (nothing solid within `sky_clearance` blocks above), at any height, at
+  most `max_zone_extent` a side. Dirt and grass the colony builds count, so terraces can be
+  farmed. Storage, fishing spots and other fields refuse a field's cells, and it theirs.
+  Height and temperature do not slow a crop: the calendar's autumn cools from 9°C to −3°C in
+  the valley (doc 34), so a frost rule would take every autumn crop.
+- **What stands there stays.** A cell that holds a bush, a wildflower, a stone, a tree or
+  furniture may be part of a field and is left alone: a tile under furniture, a trunk or a stone,
+  within a plant's planting area or under water is neither hoed nor sown. A field counts these
+  afresh on the game hour and when something is placed (`FarmingSystem._survey`).
+- **Tilled soil** is a block of its own, `base:terrain:soil:tilled`. Its kind is `dirt`, so it
+  takes water from a ditch, shows damp and drops Soil as dirt does. A Farmer hoes grass or dirt
+  into it, `till_seconds` a tile, once. Removing a field leaves the tilled soil; digging it or
+  building over it takes the tile's plant.
+- **The plan** names a crop for each season, or rest, and the Farmer follows it year after year.
+  A new field plans the starter crops (radish, carrot, turnip) and rests in winter. A crop goes
+  only in a season it is sown in (`sow_seasons`). A crop that takes two seasons (`plan_seasons`
+  2: onion, pumpkin, kale) holds the season after its own; naming another crop for that second
+  season puts the first to rest (`FarmingSystem.set_plan`).
+- **Sowing** takes `sow_seconds` a tile and no goods: there are no seeds (owner, 2026-11-14),
+  and a Farmer's level is the only gate. A tile is sown only if the crop will be ripe
+  `sow_margin_days` before the plan moves on to another crop (`can_sow`), so a Farmer never
+  sows what cannot ripen. From that follow the last sowing days the window shows: radish
+  Spring 16, carrot Summer 14, turnip Autumn 12, onion Spring 13, pumpkin Summer 11 and kale
+  Autumn 10; cabbage day 11, or any day while the next season names it too.
+- **Growth** is credit kept on the tile and added on the game hour (`grow`): a day a day in
+  spring, summer and autumn, nothing in winter. A tile shows a sprout until `growing_from` of
+  its days, then the growing plant, then the ripe one.
+- **Water** (doc 33). Soil is damp from `damp_from` of full moisture, within three cells of
+  water, and on a day of rain or storm every open field is damp. Damp soil grows a crop
+  `damp_growth` times as fast. A crop that `needs_damp` (pumpkin) is sown and grows only in
+  damp soil, at its plain speed, and waits in dry soil. The sowing rule counts on dry soil, so
+  water only ever brings a harvest sooner.
+- **Pulling** takes `harvest_seconds` a tile and gives `tile_yield` of the crop's good. The
+  pulls fill one crate after another where the Farmer stood, not a crate a tile, and haulers
+  store them as they do fruit. The tile is then sown again if another round can still ripen.
+- **A crop picked more than once** (`regrow_days`: kale) stays in the ground after a picking and
+  is ripe again after those days, in winter too, until its seasons in the plan end.
+- **When the season turns** the field changes over. Ripe plants of the old crop are still
+  pulled, unripe ones are hoed under (`clear_seconds`), and Events says how many: "11 tiles of
+  carrots in Field 1 were not ripe when autumn came." Nothing ripe is lost to the calendar.
+- **A Farmer's order of work** in a field: pull what is ripe, hoe under what the plan has moved
+  on from, sow, then hoe new ground. Among jobs of a kind it takes the nearest tile. A field
+  takes `max_farmers_per_field` Farmers at once.
+- **Levels** (doc 41). A crop is sown only by a Farmer of its `farmer_level`; any Farmer pulls
+  it. A level gives its crop and nothing else.
+- **No collision** (Hard Rule 5): dwarves and animals walk through a plant. Rabbits and deer
+  leave crops alone (`00_todo.md`, "Farming left for later").
+- **Saves:** the `farming` section keeps each field's tiles, its plan and its plants: the
+  crop, the days grown, ripe or picked, and work begun on a tile (Hard Rule 12). Tilled soil
+  saves with the terrain. A save that names a crop or a season the game lacks is rejected.
+
+| Level | Crop | In the ground | Days | A tile gives | Keeps at 20°C | What sets it apart |
+|---|---|---|---|---|---|---|
+| 1 | Radish | Spring | 4 | 2 | 5 days | Quick: up to four rounds a spring, the first fresh food after winter |
+| 1 | Carrot | Summer | 6 | 3 | 12 days | Up to three rounds a summer |
+| 1 | Turnip | Autumn | 8 | 4 | 15 days | Two rounds an autumn; it keeps like apples, so it is the winter root |
+| 2 | Cabbage | Spring, summer or autumn | 9 | 6 | 8 days | Free of the calendar. The most fresh food a tile, but it does not keep |
+| 3 | Onion | Sown in spring, pulled in summer | 28 | 14 | 40 days | Two seasons in the ground. It keeps longest: a summer field can feed the winter |
+| 4 | Pumpkin | Sown in summer, cut in autumn | 30 | 24 | 30 days | Two seasons, and it needs damp soil. The biggest harvest of the year |
+| 5 | Kale | Sown in autumn, picked until spring | 10, then a picking every 3 | 1 a picking | 6 days | Picked through the snow: the only field food in winter |
+
+- **What a tile gives in a year:** the three starters 8 + 9 + 8 = 25; cabbage in spring and
+  pumpkins after it 12 + 24 = 36. A 6 × 6 field of a starter crop gives about 300 portions in
+  its season, against the 315 five dwarves eat.
+- **For agents:**
+  - a Farmer's place in a field is a surface work source (`FarmFieldWork`, doc 31): a field
+    posts one lease for each place it has work for, never one a tile, and the Farmer who takes
+    it is given the nearest job it may do;
+  - a field's plants are drawn a node a tile, as bushes are (`FarmFieldVisuals`), a few a frame.
+    A tile's model carries its own soil ridges, and a tilled tile with nothing sown shows
+    `bare_model`;
+  - `grow()` reads dampness as it is at the hour; a test that sets the clock by hand resets
+    `_grown_at` (`FarmingTest._clock`).
 
 ## Fishing
 
@@ -205,6 +302,11 @@ in Play. The zone's tool and window are in doc 23, "Fishing Zones".
   catch shows four frames: cast, wait, bite and land (`DwarfFishingPose`). A big fish is a
   heavier model of its own (concept B, `tmp/ranger_concepts_20261101/fish/big_fish_sheet.png`),
   never a scaled fish, which would break the 1:16 grid (doc 63).
+- **The sound** (owner, 2026-11-12: "I think we could add some sounds"). A catch is heard as it
+  is seen: the rod's swish, the float's plop, then nothing through the wait, which keeps it a
+  calm job; a splash at the bite, a longer one as the fish comes out (heavier for a big fish),
+  and two flops as it flaps on the line, its tail swinging with each. All are recordings; the
+  cues, their sources and their levels are in doc 13, "WorkFeedback".
 - **Saves:** the `fishing` section keeps each zone's spots and Keep, and each water's stock
   with the day it was counted (doc 13). Fish are ordinary items. Only a catch and a load
   write a stock; reading one (`FishingSystem.stock`) never does. A load reads stocks before
@@ -254,9 +356,10 @@ spoil += speed / (24 × keeps_days) each game hour
     at 5 (doc 31), and a store's priority never looks at temperature, so a shelf in the yard takes food
     from a cellar floor and it spoils sooner. That is the player's to fix: put the shelf in the cellar,
     or lower its priority. Its window's Keeping line says how long food keeps there.
-- **Keeping time** is item data: `food.keeps_days` in `resources.json`, the days a food
+- **Keeping time** is item data: `food.keeps_days` in `items.json`, the days a food
   lasts at 20°C under a roof. Wild strawberry 2, elderberry 2, blueberry 4, apple 15,
-  juniper berry 40; each fresh fish 2 and dried fish 30 (doc 289). The rest is
+  juniper berry 40; each fresh fish 2 and dried fish 30 (doc 289); radish 5, kale 6, cabbage 8,
+  carrot 12, turnip 15, pumpkin 30 and onion 40 (doc 309). The rest is
   `food.spoilage` in `task_config.json`.
 - **Rotting.** At 1 the units nobody has claimed are gone. Units claimed for a meal or a haul,
   and food in hand, stay until used; food put down rots at the next hour if due (Hard Rule
@@ -272,6 +375,10 @@ spoil += speed / (24 × keeps_days) each game hour
 - **The hourly pass** runs over frames, at most 0.5 ms a frame (`budget_usec`), and covers
   the hours since the last pass; after a load the hours start afresh.
 - **Saves:** `spoil` saves with zone stacks, loose goods and carried goods.
+- **Rooms that keep food** (2026-11-12; doc 34 "Room types"): a sealed room holding a food
+  shelf is a Pantry above 0°C and below 16°C and a Freezer at 0°C or below. The types change
+  nothing about spoiling, which goes by temperature alone; the room window shows how long
+  blueberries keep there.
 - **Seen** (doc 23):
   - a food crate's status tag: Fresh, Spoiling (from half its life), Going bad (from three
     quarters) or Frozen, with its days left there (`FoodSpoilage.freshness`);
@@ -331,7 +438,7 @@ These crops require no light and cannot survive on surface dirt. Dwarves expose 
 
 | Crop Key | Grow Time | Yield | Notes |
 |---|---|---|---|
-| `base:flora:plump_helmet` | 4.5 in-game days | 4 food units    | Bulbous mushroom; primary underground food staple. Auto-reseeds from mycelium — no seed item needed. See `data/entities/flora/plump_helmet.json` |
+| `base:flora:plump_helmet` | 4.5 in-game days | 4 food units    | Bulbous mushroom; primary underground food staple. Auto-reseeds from mycelium — no seed item needed. See `data/flora/plump_helmet.json` |
 
 ### Surface Crops (surface dirt — `base:terrain:surface:dirt`)
 
@@ -339,9 +446,9 @@ These crops require open sky above the farm block (no ceiling within 10 blocks) 
 
 | Crop Key | Grow Time | Harvest Season | Yield | Notes |
 |---|---|---|---|---|
-| `base:flora:pig_tail`    | 6 in-game days  | Any (annual — re-seed each spring) | 4× pig tail fiber + seed (40%) | Annual fibrous plant; source of cloth. See `data/entities/flora/pig_tail_plant.json` |
-| `base:flora:hops_plant`  | 8.25 in-game days | Any (dies in winter) | 5 hops + 2× cutting (60%) | Annual bine; re-seed each spring. See `data/entities/flora/hops_plant.json` |
-| `base:flora:grape_vine`  | 4.5 in-game days | Summer / Autumn | 5 grapes + 1× cutting (25%) | Perennial vine; survives winter dormant. See `data/entities/flora/grape_vine.json` |
+| `base:flora:pig_tail`    | 6 in-game days  | Any (annual — re-seed each spring) | 4× pig tail fiber + seed (40%) | Annual fibrous plant; source of cloth. See `data/flora/pig_tail_plant.json` |
+| `base:flora:hops_plant`  | 8.25 in-game days | Any (dies in winter) | 5 hops + 2× cutting (60%) | Annual bine; re-seed each spring. See `data/flora/hops_plant.json` |
+| `base:flora:grape_vine`  | 4.5 in-game days | Summer / Autumn | 5 grapes + 1× cutting (25%) | Perennial vine; survives winter dormant. See `data/flora/grape_vine.json` |
 
 #### Hops — Annual Crop
 
@@ -380,9 +487,11 @@ Each transition triggers a visual mesh swap on the farm block (see Single-Tile A
 - Annual crops return to FALLOW after harvest.
 - Perennial crops stay in their current growth stage and re-enter HARVESTABLE the following harvest season.
 
-**Planned, not implemented.** The crop files in `data/entities/flora/` hold the
-stages, models and yields the art tools read; the farming rules below are design
-only. Stages advance in the order the crop file lists them.
+**Planned, not implemented.** These four are the brewing and weaving crops, and they wait
+for the Brewer; the vegetables a Farmer grows today are under "Fields". Their files in
+`data/flora/` hold the stages, models and yields the art tools read; the rules below
+are design only, and the live rules of a field (the plan, sowing, growth) take the place of
+this state machine when they are built. Stages advance in the order the crop file lists them.
 
 | Crop | Stages | After harvest |
 |---|---|---|
@@ -521,9 +630,9 @@ There is no hard Y placement constraint on the block itself — temperature is t
 
 | Aged Drink | Required Temp | Baseline Height | Notes |
 |---|---|---|---|
-| Vintage Wine | 6–10°C | Y 7–55 | Valley and foothill cellars; the most accessible aging recipe |
-| Aged Dark Stout | 3–7°C | Y 43–91 | The mountain's middle shelves |
-| Reserve Gin | 1–4°C | Y 79–115 | Cold stone high in the mountain; a hearth warms a freezing summit cellar into range |
+| Vintage wine | 6–10°C | Y 7–55 | Valley and foothill cellars; the most accessible aging recipe |
+| Aged dark stout | 3–7°C | Y 43–91 | The mountain's middle shelves |
+| Reserve gin | 1–4°C | Y 79–115 | Cold stone high in the mountain; a hearth warms a freezing summit cellar into range |
 
 The baseline height is where a well-covered room's yearly mean falls in the range.
 
@@ -662,13 +771,13 @@ blocks): oak mature 12 × 11 and ancient 18.5 × 17, 23.5 high; apple 12 × 11 a
 17.5 high; pine 6 × 6 and 8 × 8, 27 high; juniper 6 × 6 and 9 × 8, 16 high. Below four blocks
 a mature or ancient tree is only its trunk.
 
-**Oak** is a spreading broadleaf. Mature oaks (3×3) are the primary surface obstacle and supply oak logs, which a carpenter will turn into staves for aging casks. Felling can also yield acorns, but never finished staves. Full schema: `data/entities/flora/oak_tree.json`.
+**Oak** is a spreading broadleaf. Mature oaks (3×3) are the primary surface obstacle and supply oak logs, which a carpenter will turn into staves for aging casks. Felling can also yield acorns, but never finished staves. Full schema: `data/flora/oak_tree.json`.
 
-**Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 3×3: an odd trunk, so a planted juniper stays centred on its seed (owner, 2026-10-29; it was 2×2, and the models' root flare follows the footprint). Full schema: `data/entities/flora/juniper_tree.json`.
+**Juniper** is a columnar evergreen. It stays 1×1 through maturity — dwarves can stand directly adjacent to fell it. Only the rare ancient juniper spreads to 3×3: an odd trunk, so a planted juniper stays centred on its seed (owner, 2026-10-29; it was 2×2, and the models' root flare follows the footprint). Full schema: `data/flora/juniper_tree.json`.
 
-**Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Mature and ancient trees support perennial autumn picking, described above, with distinct ripe and picked visuals. Full apple schema: `data/entities/flora/apple_tree.json`.
+**Apple** is a spreading deciduous fruit tree with a canopy matching the oak (3×3 mature). Mature and ancient trees support perennial autumn picking, described above, with distinct ripe and picked visuals. Full apple schema: `data/flora/apple_tree.json`.
 
-**Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/entities/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner`; placement across species is described under World placement below. Full schema: `data/entities/flora/pine_tree.json`.
+**Pine** is a tall conical evergreen — the primary source of basic construction lumber. Its cone is narrower than the oak's spreading crown (mature 2×2, ancient 3×3) but it grows fast and dense. Pine is the **elevation tree**: world-gen scatters it across the **foothill shelves and mountain slopes only — never the lowland shelf or settlement plain**, thinning to a bare-rock treeline near the peaks. Placement parameters are data-driven in the `placement` block of `data/flora/pine_tree.json`; the scatter and streaming logic lives in `SurfaceFloraSpawner`; placement across species is described under World placement below. Full schema: `data/flora/pine_tree.json`.
 
 ### Felling Yields
 
@@ -735,7 +844,7 @@ seed is kept if the plan is cancelled. `TreePlanting` holds the rules below;
 
 The settlement plain is fully forested: trees grow everywhere suitable, and the player clears land to build. There is no special forest belt at the map edge; the normal rules run to the border. Apples grow wild in groves; players plant them from seeds (Planting Seeds above).
 
-Each species has an elevation, domain and moisture niche, and all species share one scatter grid (`SurfaceFloraSpawner.scatter_cell_size`). Each cell holds at most one tree: every species is scored for suitability there, and one is chosen by a seeded weighted pick, or the cell is left open. This blends species across the gradients and prevents overlapping trunks. Placement is a pure function of `world_seed` and column position, so it needs no save data; saves store only changed trees (felled, designated, harvested). Moisture is a seeded noise map that reads drier with altitude and wetter beside water (`WorldGenerator.get_moisture`). Per-species keys (domains, height band, moisture band, `base_density`, slope and edge limits, footprints, stage weights) live in the `placement` block of each `data/entities/flora/*_tree.json`. Apple suitability is also gated by a grove mask, so wild apples cluster into groves.
+Each species has an elevation, domain and moisture niche, and all species share one scatter grid (`SurfaceFloraSpawner.scatter_cell_size`). Each cell holds at most one tree: every species is scored for suitability there, and one is chosen by a seeded weighted pick, or the cell is left open. This blends species across the gradients and prevents overlapping trunks. Placement is a pure function of `world_seed` and column position, so it needs no save data; saves store only changed trees (felled, designated, harvested). Moisture is a seeded noise map that reads drier with altitude and wetter beside water (`WorldGenerator.get_moisture`). Per-species keys (domains, height band, moisture band, `base_density`, slope and edge limits, footprints, stage weights) live in the `placement` block of each `data/flora/*_tree.json`. Apple suitability is also gated by a grove mask, so wild apples cluster into groves.
 
 The planned trade road (doc 51) must exclude flora from its road strip.
 
@@ -778,8 +887,8 @@ reservations stay.
 
 | Species | Fruit item | Season | Mature yield | Ancient yield |
 |---|---|---|---|---|
-| Apple | `base:resources:flora:apple` | Autumn | 4–6 | 7–10 |
-| Juniper | `base:resources:flora:juniper_berry` | Autumn | 2 | 4 |
+| Apple | `base:item:apple` | Autumn | 4–6 | 7–10 |
+| Juniper | `base:item:juniper_berry` | Autumn | 2 | 4 |
 
 A yield is either a fixed `yield_count` (juniper) or an inclusive
 `yield_min`/`yield_max` (apple) picked by a deterministic tree/year hash, so
@@ -799,7 +908,7 @@ self-foraging of standing plants still targets nearby ripe berry shrubs.
 
 Boulders, scree, wild berry shrubs, wildflowers and reeds are surface details:
 placed entities, never terrain blocks. `SurfaceDetailRegistry` loads their
-definitions from `data/entities/surface_details.json` and the flora
+definitions from `data/terrain/surface_details.json` and the flora
 `*_bush.json` files; `SurfaceDetailPlacement` scores candidates and
 `SurfaceDetailManager` owns the layout, removals and saved changes. They sit
 beside the tree layer described under World placement and never change it.
@@ -855,7 +964,7 @@ beside the tree layer described under World placement and never change it.
 
 ## Model Variant Resolution
 
-Tree species JSON (`data/entities/flora/*.json`) supports two formats for each season key inside a stage's `models` block:
+Tree species JSON (`data/flora/*.json`) supports two formats for each season key inside a stage's `models` block:
 
 ```json
 "summer": "res://assets/models/flora/trees/oak/oak_mature.glb"       // single string — always this model

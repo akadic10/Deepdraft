@@ -1,0 +1,251 @@
+{
+  "__comment": [
+    "Trait definitions for procedural dwarf generation.",
+    "",
+    "TRAIT SYSTEM:",
+    "  Traits are permanent attributes assigned at dwarf generation time.",
+    "  They cannot be gained or lost during play.",
+    "  Each trait has a polarity (positive / negative) and a rarity weight",
+    "  used when the generator selects which specific trait to assign.",
+    "  Trait effects are planned, not implemented; their design is in",
+    "  docs/40_economy_colony/41_dwarf_agents.md (Planned trait effects).",
+    "  stat_shape: the steps a trait sets for a stat when the dwarf is",
+    "  created (min, max), with points moved to or from the other stats",
+    "  so the total stays the same (doc 41).",
+    "",
+    "EXCLUSION GROUPS:",
+    "  Traits in the same exclusion group cannot be assigned to the same dwarf.",
+    "  The generator checks exclusions before finalising each trait slot."
+  ],
+
+  "generation_config": {
+    "__comment": [
+      "Weights for how many trait slots a dwarf receives at generation.",
+      "Rolls are weighted: total all weights, pick a random value, find the matching bucket.",
+      "When multiple slots are assigned, the generator fills positive slots from the",
+      "positive pool and negative slots from the negative pool independently.",
+      "'two_positive_one_negative' dwarves are the rarest and most valuable."
+    ],
+    "no_traits":               35,
+    "one_negative":            30,
+    "one_positive":            20,
+    "one_positive_one_negative": 10,
+    "two_positive":             4,
+    "two_positive_one_negative": 1
+  },
+
+  "exclusion_groups": {
+    "outdoor_preference": ["base:trait:hates_the_outdoors", "base:trait:cave_sick"],
+    "mood_baseline":      ["base:trait:cheerful", "base:trait:grumpy"],
+    "work_pace":          ["base:trait:hardworking", "base:trait:lazy"],
+    "sleep_pattern":      ["base:trait:deep_sleeper", "base:trait:light_sleeper"],
+    "social_preference":  ["base:trait:social", "base:trait:loner"],
+    "constitution":       ["base:trait:iron_constitution", "base:trait:frail"]
+  },
+
+  "traits": {
+
+    "__comment_calling": "Calling traits — one per profession.",
+
+    "base:trait:born_miner": {
+      "display_name": "Born miner",
+      "description": "Tunnels feel like home. This dwarf reads rock grain by instinct — fewer wasted swings, richer finds.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:brewmasters_intuition": {
+      "display_name": "Brewmaster's intuition",
+      "description": "A nose for fermentation that cannot be taught. Their batches come out right even when everything else goes wrong.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:green_thumb": {
+      "display_name": "Green thumb",
+      "description": "Plants seem to grow faster when this dwarf tends them. Even cave mushrooms respond.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:architects_eye": {
+      "display_name": "Architect's eye",
+      "description": "Everything they build sits true. Other dwarves bring their measurements to this one before they start.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:merchants_tongue": {
+      "display_name": "Merchant's tongue",
+      "description": "Caravans linger longer when this dwarf runs the shop. Something about the way they deal.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:warm_host": {
+      "display_name": "Warm host",
+      "description": "Travelers feel welcome the moment they step through the door. Guests always seem to stay one night longer.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:born_hauler": {
+      "display_name": "Born hauler",
+      "description": "Has never dropped a load. Has never taken a wrong route. The colony runs on dwarves like this one.",
+      "polarity": "positive",
+      "rarity_weight": 15
+    },
+
+    "base:trait:loves_to_cook": {
+      "display_name": "Loves to cook",
+      "description": "Happiest over a fire with a pot and an opinion. A Cook profession does not yet exist — but when it does, this dwarf was born for it.",
+      "polarity": "positive",
+      "rarity_weight": 20
+    },
+
+    "__comment_general_positive": "General positive traits — personality and physical strengths.",
+
+    "base:trait:cheerful": {
+      "display_name": "Cheerful",
+      "description": "Rarely has a bad day. The kind of dwarf whose mood is contagious in the best way.",
+      "polarity": "positive",
+      "rarity_weight": 60,
+      "exclusion_group": "mood_baseline"
+    },
+
+    "base:trait:hardworking": {
+      "display_name": "Hardworking",
+      "description": "Does everything a little faster. Not smarter — just more focused than most.",
+      "polarity": "positive",
+      "rarity_weight": 50,
+      "exclusion_group": "work_pace"
+    },
+
+    "base:trait:iron_constitution": {
+      "display_name": "Iron constitution",
+      "description": "Shrugs off knocks that would put other dwarves in bed. Bruises faster than they slow down.",
+      "polarity": "positive",
+      "rarity_weight": 30,
+      "exclusion_group": "constitution",
+      "stat_shape": {"base:stat:toughness": {"min": 4}}
+    },
+
+    "base:trait:deep_sleeper": {
+      "display_name": "Deep sleeper",
+      "description": "Fully rested in five hours instead of six. Wakes ready to work before the torches are lit.",
+      "polarity": "positive",
+      "rarity_weight": 40,
+      "exclusion_group": "sleep_pattern"
+    },
+
+    "base:trait:iron_stomach": {
+      "display_name": "Iron stomach",
+      "description": "Content eating the same thing every day. Never complains about the menu.",
+      "polarity": "positive",
+      "rarity_weight": 50
+    },
+
+    "base:trait:brave": {
+      "display_name": "Brave",
+      "description": "Does not drop tasks when invaders are nearby. Keeps working while others run. Whether that is wisdom or stubbornness is debatable.",
+      "polarity": "positive",
+      "rarity_weight": 25
+    },
+
+    "__comment_negative": "Negative traits — penalties, phobias, and difficult personalities.",
+
+    "base:trait:hates_the_outdoors": {
+      "display_name": "Hates the outdoors",
+      "description": "Uncomfortable under open sky. Outdoor tasks — farming, surface hauling, tending beehives — leave them unsettled and slow.",
+      "polarity": "negative",
+      "rarity_weight": 80,
+      "exclusion_group": "outdoor_preference"
+    },
+
+    "base:trait:cave_sick": {
+      "display_name": "Cave sick",
+      "description": "Unsettled in sealed underground rooms with no view of the sky. Prefers open air — a difficult thing to find in a mountain colony.",
+      "polarity": "negative",
+      "rarity_weight": 30,
+      "exclusion_group": "outdoor_preference"
+    },
+
+    "base:trait:grumpy": {
+      "display_name": "Grumpy",
+      "description": "Wakes up in a bad mood and works at it from there. Not unpleasant — just consistently underwhelmed.",
+      "polarity": "negative",
+      "rarity_weight": 80,
+      "exclusion_group": "mood_baseline"
+    },
+
+    "base:trait:lazy": {
+      "display_name": "Lazy",
+      "description": "Not malicious — just unhurried. Every task takes a little longer than it should.",
+      "polarity": "negative",
+      "rarity_weight": 80,
+      "exclusion_group": "work_pace"
+    },
+
+    "base:trait:light_sleeper": {
+      "display_name": "Light sleeper",
+      "description": "Needs seven in-game hours of sleep instead of the usual six.",
+      "polarity": "negative",
+      "rarity_weight": 70,
+      "exclusion_group": "sleep_pattern"
+    },
+
+    "base:trait:glutton": {
+      "display_name": "Glutton",
+      "description": "Eats considerably more than their share. Food stockpiles vanish faster with this dwarf around.",
+      "polarity": "negative",
+      "rarity_weight": 60
+    },
+
+    "base:trait:alcohol_dependent": {
+      "display_name": "Alcohol dependent",
+      "description": "Must drink regularly or mood deteriorates fast. When supplied, the happiest dwarf in the colony. When the barrels run dry, the first to cause problems.",
+      "polarity": "negative",
+      "rarity_weight": 40
+    },
+
+    "base:trait:loner": {
+      "display_name": "Loner",
+      "description": "Prefers their own company. Thrives on solo mining assignments; struggles in a busy common room.",
+      "polarity": "negative",
+      "rarity_weight": 60,
+      "exclusion_group": "social_preference"
+    },
+
+    "base:trait:fearful": {
+      "display_name": "Fearful",
+      "description": "Drops tasks and flees when an invader comes within range. Hard to rely on when the colony needs defenders.",
+      "polarity": "negative",
+      "rarity_weight": 50
+    },
+
+    "base:trait:homesick": {
+      "display_name": "Homesick",
+      "description": "New arrivals sometimes carry the weight of wherever they came from. It fades — but it takes time.",
+      "polarity": "negative",
+      "rarity_weight": 90
+    },
+
+    "base:trait:frail": {
+      "display_name": "Frail",
+      "description": "Takes injuries more easily than most. One bad cave-in can put this dwarf out for a season.",
+      "polarity": "negative",
+      "rarity_weight": 50,
+      "exclusion_group": "constitution",
+      "stat_shape": {"base:stat:toughness": {"max": 2}}
+    },
+
+    "base:trait:social": {
+      "display_name": "Social",
+      "description": "Mood lifts noticeably when working alongside others. Suffers quietly in solo assignments.",
+      "polarity": "positive",
+      "rarity_weight": 55,
+      "exclusion_group": "social_preference"
+    }
+
+  }
+}
